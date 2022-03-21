@@ -10,7 +10,10 @@ class RoomManagerWrapper {
 	async importRoomManager(server) {
 		import("./dist/room-manager.js").then(({ default: RoomManager }) => {
 			this.roomManager = new RoomManager(new Server(server.httpServer));
-		}).catch(() => console.error("Failed to import room manager."));
+			import("./dist/set-up-test-rooms.js").then(({ default: setUpTestRooms }) => {
+				setUpTestRooms(this.roomManager);
+			}).catch((err) => console.error(`Failed to import test room creator: ${err}`));
+		}).catch((err) => console.error(`Failed to import room manager: ${err}`));
 	}
 
 	createRoom(req, res, _next) {

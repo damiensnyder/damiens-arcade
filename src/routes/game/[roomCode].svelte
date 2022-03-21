@@ -5,7 +5,7 @@ import type { Action, Viewpoint } from "$lib/types";
 
 const absoluteUrl = $page.url.toString();
 const relativeUrl = $page.url.pathname;
-const socket = new io(relativeUrl);
+const socket = io(relativeUrl);
 
 let connected = false;
 let gamestate: Viewpoint | null = null;

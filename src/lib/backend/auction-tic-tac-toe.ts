@@ -2,12 +2,12 @@ import type { Gamestate, RoomSettings, TeardownCallback, Viewpoint } from "$lib/
 import type { Server } from "socket.io";
 import GameRoom from "./game-room";
 
-export interface MyGameViewpoint extends Viewpoint {}
+export interface AuctionTTTViewpoint extends Viewpoint {}
 
-export interface MyGamestate extends MyGameViewpoint, Gamestate {}
+export interface AuctionTTTGamestate extends AuctionTTTViewpoint, Gamestate {}
 
-export default class MyGameRoom extends GameRoom {
-  gamestate: MyGamestate;
+export default class AuctionTicTacToe extends GameRoom {
+  gamestate: AuctionTTTGamestate;
 
   constructor(
     io: Server,

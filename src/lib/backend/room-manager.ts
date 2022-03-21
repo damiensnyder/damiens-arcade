@@ -1,7 +1,7 @@
 import type GameRoom from "./game-room";
 import type { RoomInfo } from "../types";
 import type { Server } from "socket.io";
-import MyGameRoom from "./my-game-room";
+import AuctionTicTacToe from "./auction-tic-tac-toe";
 
 const ALPHABET = "abcdefghijklmnopqrstuvwxyz";
 
@@ -29,7 +29,7 @@ export default class RoomManager {
       roomSettings.roomName = "Untitled Room";
     }
 
-    this.activeRooms[roomSettings.roomCode] = new MyGameRoom(
+    this.activeRooms[roomSettings.roomCode] = new AuctionTicTacToe(
       this.io,
       roomSettings,
       this.teardownCallback.bind(this)
