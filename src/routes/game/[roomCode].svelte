@@ -1,7 +1,7 @@
 <script lang="ts">
 import { page } from "$app/stores";
 import { io } from "socket.io-client";
-import type { Action, Viewpoint } from "$lib/types";
+import type { Action } from "$lib/types";
 import AuctionTicTacToe from "$lib/auction-tic-tac-toe.svelte";
 
 const absoluteUrl = $page.url.toString();
