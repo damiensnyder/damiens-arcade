@@ -1,5 +1,5 @@
-import type GameRoom from "./game-room";
-import type { RoomInfo } from "../types";
+import GameRoom from "./game-room";
+import type { BasicRoomInfo } from "../types";
 import type { Server } from "socket.io";
 import AuctionTicTacToe from "./auction-tic-tac-toe";
 
@@ -29,7 +29,7 @@ export default class RoomManager {
       roomSettings.roomName = "Untitled Room";
     }
 
-    this.activeRooms[roomSettings.roomCode] = new AuctionTicTacToe(
+    this.activeRooms[roomSettings.roomCode] = new GameRoom(
       this.io,
       roomSettings,
       this.teardownCallback.bind(this)
@@ -58,12 +58,13 @@ export default class RoomManager {
     return roomCode;
   }
 
-  listActiveRooms(): { rooms: RoomInfo[] } {
-    const activeRooms: RoomInfo[] = [];
+  listActiveRooms(): { rooms: BasicRoomInfo[] } {
+    const activeRooms: BasicRoomInfo[] = [];
 
     for (const [, room] of Object.entries(this.activeRooms)) {
-      if (!room.roomSettings.isPrivate) {
-        activeRooms.push(room.roomInfo());
+      const roomInfo = room.publicRoomInfo();
+      if (!roomInfo.isPrivate) {
+        activeRooms.push(roomInfo);
       }
     }
     

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createForm } from "svelte-forms-lib";
   import { goto } from "$app/navigation";
-  import type { RoomInfo } from "./types";
+  import type { BasicRoomInfo } from "./types";
 
   const { form, handleChange, handleSubmit } = createForm({
     initialValues: {
@@ -12,7 +12,7 @@
     }
   });
 
-  async function fetchGames(): Promise<RoomInfo[]> {
+  async function fetchGames(): Promise<BasicRoomInfo[]> {
     const res = await fetch("/activeRooms", {
       method: "GET",
     });
@@ -28,7 +28,7 @@
   {:then rooms}
     {#each rooms as room}
       <div>
-        <p><a href={`/game/${room.roomCode}`}>{room.roomName}</a> &bull; {room.numPlayers} players</p>
+        <p><a href={`/game/${room.roomCode}`}>{room.roomName}</a></p>
       </div>
     {/each}
   {/await}

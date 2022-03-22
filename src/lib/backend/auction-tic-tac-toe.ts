@@ -1,30 +1,30 @@
-import type { Gamestate, RoomSettings, TeardownCallback, Viewpoint } from "$lib/types";
-import type { Server } from "socket.io";
-import GameRoom from "./game-room";
+import type { Action, GameType, Viewer } from "$lib/types";
+import GameLogicHandler from "./game-logic-handler";
 
-export interface AuctionTTTViewpoint extends Viewpoint {}
-
-export interface AuctionTTTGamestate extends AuctionTTTViewpoint, Gamestate {}
-
-export default class AuctionTicTacToe extends GameRoom {
-  gamestate: AuctionTTTGamestate;
-
-  constructor(
-    io: Server,
-    roomSettings: RoomSettings,
-    teardownCallback: TeardownCallback
-  ) {
-    super(io, roomSettings, teardownCallback);
-  }
-
-  // Handles an action's game logic.
-  handleGameAction(_pov: number, _data: unknown) {}
-
-  // Returns the viewpoint of the viewer with the given POV.
-  generateViewpoint(_pov: number): Viewpoint {
-    return {
-      players: this.gamestate.players,
-      ...this.roomSettings
-    };
-  }
+export interface AuctionTTTPublicState {
+  gameType: GameType.AuctionTTT,
+  numPlayers: number
 }
+
+/*export interface AuctionTTTGamestate {
+  whoseTurnToNominate?: number,
+  whoseTurnToBid?: number,
+  lastBid?: number,
+  playerWhoMadeLastBid?: number
+  players: AuctionTTTPlayer[]
+  squares?: number[][]
+  currentlyNominatedSquare?: [number, number]
+}
+
+export interface AuctionTTTPlayer {
+  name: string,
+  dollars: number
+}*/
+
+// Settings for auction tic-tac-toe
+export interface AuctionTTTSettings {
+  startingMoney: number,
+  startingPlayer?: number
+}
+
+export default class AuctionTicTacToe extends GameLogicHandler {}

@@ -1,12 +1,12 @@
 import type RoomManager from "./room-manager";
 import { readFileSync } from "fs";
-import type { Action, RoomSettings } from "$lib/types";
+import type { Action, BasicRoomInfo } from "$lib/types";
 
 interface TestRoomAction extends Action {
   pov: number
 }
 
-interface TestRoomScript extends RoomSettings {
+interface TestRoomScript extends BasicRoomInfo {
   actions: TestRoomAction[]
 }
 
@@ -17,7 +17,7 @@ export default function setUpTestRooms(roomManager: RoomManager) {
     const { roomCode } = roomManager.createRoom(roomScript);
     const room = roomManager.activeRooms[roomCode];
     for (const action in roomScript.actions) {
-      room.handleGameAction(action.pov, action);
+      room.enqueuePacket(action.pov, action);
     }
   }
 }

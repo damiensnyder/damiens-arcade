@@ -1,14 +1,15 @@
 import type { Namespace, Server, Socket } from "socket.io";
-
-import type { Gamestate, PacketInfo, RoomInfo, RoomSettings, TeardownCallback, Viewer, Viewpoint } from "../types";
+import AuctionTicTacToe from "./auction-tic-tac-toe";
+import GameLogicHandler from "./game-logic-handler";
+import { GameType, PacketInfo, BasicRoomInfo, TeardownCallback, Viewer } from "../types";
 
 const TEARDOWN_TIME: number = 60 * 60 * 1000; // one hour
 
 export default class GameRoom {
-  roomSettings: RoomSettings;
+  basicRoomInfo: BasicRoomInfo;
+  gameLogicHandler: GameLogicHandler;
   viewers: Viewer[];
   connectionsStarted: number;
-  gamestate: Gamestate;
   handlingPacket: boolean;
   private packetQueue: PacketInfo[];
   private readonly teardownCallback: TeardownCallback;
@@ -17,32 +18,42 @@ export default class GameRoom {
 
   constructor(
     io: Server,
-    roomSettings: RoomSettings,
+    roomSettings: BasicRoomInfo,
     teardownCallback: TeardownCallback
   ) {
-    this.roomSettings = roomSettings;
-    this.gamestate = {
-      players: []
-    };
     this.viewers = [];
     this.connectionsStarted = 0;
 
     this.io = io.of(`/game/${roomSettings.roomCode}`);
     this.io.on('connection', (socket: Socket) => {
+      // on a new connection, add the viewer to the list of viewers
       const viewer = {
         socket: socket,
-        pov: this.connectionsStarted
+        index: this.connectionsStarted
       };
+      this.viewers.push(viewer);
       this.connectionsStarted++;
+
+      // enqueue any disconnects the viewer sends, and remove them from the viewer list after
+      viewer.socket.on("disconnect", () => {
+        this.enqueuePacket.bind(this)(viewer, "disconnect");
+        this.viewers = this.viewers.filter((v) => v !== viewer);
+      });
+
+      // enqueue any actions the viewer sends
+      viewer.socket.on("action", (data: unknown) => {
+        this.enqueuePacket.bind(this)(viewer, "action", data);
+      });
+      
+      // enqueue the connection
       this.enqueuePacket.bind(this)(viewer, 'connect');
-      viewer.socket.emit("gamestate", this.generateViewpoint.bind(this)(viewer.pov));
     });
 
     this.packetQueue = [];
     this.handlingPacket = false;
     this.teardownCallback = teardownCallback;
     this.teardownTimer = setTimeout(
-      () => this.teardownCallback(this.roomSettings.roomCode),
+      () => this.teardownCallback(roomSettings.roomCode),
       TEARDOWN_TIME
     );
   }
@@ -66,29 +77,12 @@ export default class GameRoom {
   // queue, show that the queue is empty. Otherwise, handle the next packet.
   handlePacket(): void {
     const { viewer, type, data } = this.packetQueue.splice(0, 1)[0];
-    if (type === "connect") {
-      // on connection, add viewer to the list of viewers and give its socket new handlers
-      this.viewers.push(viewer);
-      viewer.socket.on("disconnect", () => {
-        this.enqueuePacket.bind(this)(viewer, "disconnect");
-      });
-      viewer.socket.on("action", (data: unknown) => {
-        this.enqueuePacket.bind(this)(viewer, "action", data);
-      });
-    } else if (type === "disconnect") {
-      // on disconnect, remove viewer from the list of viewers and handle its disconnect game logic
-      this.viewers = this.viewers.filter((v) => v !== viewer);
-      this.handleGameAction(viewer.pov, {
-        type: "disconnect"
-      });
-    } else {
-      // if the packet was an action, handle the action's game logic
-      this.handleGameAction(viewer.pov, data);
-    }
+    
+    this.gameLogicHandler.handlePacket(viewer.index, type, data);
 
     clearTimeout(this.teardownTimer);
     this.teardownTimer = setTimeout(
-        () => this.teardownCallback(this.roomSettings.roomCode),
+        () => this.teardownCallback(this.basicRoomInfo.roomCode),
         TEARDOWN_TIME
     );
     
@@ -99,28 +93,21 @@ export default class GameRoom {
     }
   }
 
-  // Emit the current game state to all viewers.
-  emitGameStateToAll(): void {
-    for (const viewer of this.viewers) {
-      viewer.socket.emit("gamestate", this.generateViewpoint(viewer.pov));
+  // Return the information shown in the joiner
+  publicRoomInfo(): BasicRoomInfo {
+    return {
+      ...this.basicRoomInfo,
+      roomState: this.gameLogicHandler.basicRoomInfo()
     };
   }
 
-  // Handles an action's game logic. Meant to be overridden.
-  handleGameAction(_pov: number, _data: unknown) {}
-
-  // Returns the viewpoint of the viewer with the given POV. Meant to be overridden.
-  generateViewpoint(_pov: number): Viewpoint {
-    return {
-      players: this.gamestate.players,
-      ...this.roomSettings
-    };
-  }
-
-  roomInfo(): RoomInfo {
-    return {
-      numPlayers: this.gamestate.players.length,
-      ...this.roomSettings
-    };
+  // Change to a new type of game
+  changeGameType(newGameType: GameType) {
+    this.basicRoomInfo.roomState.gameType = newGameType;
+    if (newGameType === GameType.None) {
+      this.gameLogicHandler = new GameLogicHandler(this);
+    } else if (newGameType === GameType.AuctionTTT) {
+      this.gameLogicHandler = new AuctionTicTacToe(this);
+    }
   }
 }

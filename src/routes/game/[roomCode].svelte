@@ -2,6 +2,7 @@
 import { page } from "$app/stores";
 import { io } from "socket.io-client";
 import type { Action, Viewpoint } from "$lib/types";
+import AuctionTicTacToe from "$lib/auction-tic-tac-toe.svelte";
 
 const absoluteUrl = $page.url.toString();
 const relativeUrl = $page.url.pathname;
@@ -22,10 +23,8 @@ socket.on('gamestate', (newGamestate: Viewpoint) => {
   gamestate = newGamestate;
 });
 
-// A callback for any game actions you execute from other components
-function actionCallback(action: Action) {
+function socketCallback(action: Action) {
   socket.emit('action', action);
-  // do client-side updating if you want
 }
 
 function copyInviteLink() {
@@ -34,11 +33,13 @@ function copyInviteLink() {
 </script>
 
 {#if connected && gamestate != null}
-<h1>{gamestate.roomName}</h1>
-<p>Invite a friend:</p>
-<input value={absoluteUrl} readonly />
-<button on:click={copyInviteLink}>Copy</button>
-<p>gamestate: {JSON.stringify(gamestate)}</p>
+  {#if gamestate.gameplaySettings.gameType === "Auction Tic-Tac-Toe"}
+    <AuctionTicTacToe gamestate={gamestate} socketCallback={socketCallback} />
+  {/if}
+  <h1>{gamestate.roomName}</h1>
+  <p>Invite a friend:</p>
+  <input value={absoluteUrl} readonly />
+  <button on:click={copyInviteLink}>Copy</button>
 {:else}
-<p>connecting...</p>
+  <p>connecting...</p>
 {/if}
