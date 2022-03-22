@@ -12,7 +12,7 @@ export default class GameLogicHandler {
     this.room = room;
   }
 
-  handlePacket(viewerIndex: number, data?: unknown): void {
+  handlePacket(viewerIndex: number, type: string, data?: unknown): void {
 
   }
 

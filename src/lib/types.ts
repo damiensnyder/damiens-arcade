@@ -1,6 +1,6 @@
 import type { Socket } from "socket.io";
 import type { AuctionTTTPublicState } from "./backend/auction-tic-tac-toe";
-import type { NonePublicState } from "./backend/game-room";
+import type { NonePublicState } from "./backend/game-logic-handler";
 
 export interface BasicRoomInfo {
   roomName: string,
