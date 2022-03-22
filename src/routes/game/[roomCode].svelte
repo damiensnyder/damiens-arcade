@@ -9,7 +9,7 @@ const relativeUrl = $page.url.pathname;
 const socket = io(relativeUrl);
 
 let connected = false;
-let gamestate: Viewpoint | null = null;
+let gamestate = null;
 
 socket.on('connect', () => {
   connected = true;
@@ -19,7 +19,7 @@ socket.on('disconnect', () => {
   connected = false;
 });
 
-socket.on('gamestate', (newGamestate: Viewpoint) => {
+socket.on('gamestate', (newGamestate) => {
   gamestate = newGamestate;
 });
 
