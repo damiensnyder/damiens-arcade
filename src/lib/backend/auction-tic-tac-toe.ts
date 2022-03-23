@@ -1,29 +1,43 @@
-import type { Action, GameType, Viewer } from "$lib/types";
+import type { Action, GameStatus, GameType, Viewer } from "$lib/types";
 import GameLogicHandler from "./game-logic-handler";
 
 export interface AuctionTTTPublicState {
-  gameType: GameType.AuctionTTT,
+  gameType: GameType.AuctionTTT
   numPlayers: number
 }
 
-/*export interface AuctionTTTGamestate {
-  whoseTurnToNominate?: number,
-  whoseTurnToBid?: number,
-  lastBid?: number,
+export type Viewpoint = PregameViewpoint | MidgameViewpoint | PostgameViewpoint;
+
+interface ViewpointBase {
+  gameStatus: GameStatus
+  settings: Settings
+  players: Player[]
+  pov?: number
+  isHost: boolean
+}
+
+export interface PregameViewpoint extends ViewpointBase {}
+
+export interface MidgameViewpoint extends ViewpointBase {
+  whoseTurnToNominate: number
+  whoseTurnToBid?: number
+  lastBid?: number
   playerWhoMadeLastBid?: number
-  players: AuctionTTTPlayer[]
-  squares?: number[][]
+  squares: number[][]
   currentlyNominatedSquare?: [number, number]
 }
 
-export interface AuctionTTTPlayer {
-  name: string,
-  dollars: number
-}*/
+export interface PostgameViewpoint extends ViewpointBase {
+  squares: number[][]
+}
 
-// Settings for auction tic-tac-toe
-export interface AuctionTTTSettings {
-  startingMoney: number,
+export interface Player {
+  name: string
+  dollars: number
+}
+
+export interface Settings {
+  startingMoney: number
   startingPlayer?: number
 }
 

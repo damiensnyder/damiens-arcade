@@ -1,7 +1,7 @@
 <script lang="ts">
 import { page } from "$app/stores";
 import { io } from "socket.io-client";
-import type { Action } from "$lib/types";
+import { Action, GameType } from "$lib/types";
 import AuctionTicTacToe from "$lib/auction-tic-tac-toe.svelte";
 
 const absoluteUrl = $page.url.toString();
@@ -33,10 +33,10 @@ function copyInviteLink() {
 </script>
 
 {#if connected && gamestate != null}
-  {#if gamestate.gameplaySettings.gameType === "Auction Tic-Tac-Toe"}
+  <h1>{gamestate.roomName}</h1>
+  {#if gamestate.roomState.gameType === GameType.AuctionTTT}
     <AuctionTicTacToe gamestate={gamestate} socketCallback={socketCallback} />
   {/if}
-  <h1>{gamestate.roomName}</h1>
   <p>Invite a friend:</p>
   <input value={absoluteUrl} readonly />
   <button on:click={copyInviteLink}>Copy</button>

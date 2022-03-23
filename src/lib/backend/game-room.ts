@@ -94,10 +94,10 @@ export default class GameRoom {
   }
 
   // Return the information shown in the joiner
-  publicRoomInfo(): BasicRoomInfo {
+  publicRoomState(): BasicRoomInfo {
     return {
       ...this.basicRoomInfo,
-      roomState: this.gameLogicHandler.basicRoomInfo()
+      roomState: this.gameLogicHandler.publicRoomState()
     };
   }
 
