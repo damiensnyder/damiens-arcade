@@ -1,7 +1,7 @@
 import type { Namespace, Server, Socket } from "socket.io";
 import AuctionTicTacToe from "./auction-tic-tac-toe";
 import GameLogicHandler from "./game-logic-handler";
-import { GameType, PacketInfo, BasicRoomInfo, TeardownCallback, Viewer } from "../types";
+import { GameType, PacketInfo, BasicRoomInfo, TeardownCallback, Viewer, PacketType } from "../types";
 
 const TEARDOWN_TIME: number = 60 * 60 * 1000; // one hour
 
@@ -60,7 +60,7 @@ export default class GameRoom {
 
   // Sends actions to a queue, which is handled one at a time so the items
   // don't interfere with each other.
-  enqueuePacket(viewer: Viewer, packetType: string, data?: unknown): void {
+  enqueuePacket(viewer: Viewer, packetType: PacketType, data?: unknown): void {
     this.packetQueue.push({
       viewer: viewer,
       type: packetType,
