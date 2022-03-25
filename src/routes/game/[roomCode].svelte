@@ -1,9 +1,10 @@
 <script lang="ts">
 import { page } from "$app/stores";
 import { io } from "socket.io-client";
-import { GameType, Viewpoint } from "$lib/types";
+import { Action, ActionCallback, GameType, Viewpoint } from "$lib/types";
 import AuctionTicTacToe from "$lib/auction-tic-tac-toe.svelte";
-import BasicSettingsSelector from "$lib/basic-settings-selector.svelte";
+import BasicSettingsSelector from "$lib/no-game-type-selected.svelte";
+import NoGameTypeSelected from "$lib/no-game-type-selected.svelte";
 
 const relativeUrl = $page.url.pathname;
 const socket = io(relativeUrl);
@@ -23,8 +24,7 @@ socket.on('gamestate', (newGamestate) => {
   gamestate = newGamestate;
 });
 
-// note to self: you can do this with a store, and probably should
-function socketCallback(action: any) {
+const socketCallback: ActionCallback = (action: Action) => {
   socket.emit('action', action);
 }
 </script>
@@ -32,7 +32,7 @@ function socketCallback(action: any) {
 {#if connected && gamestate != null}
   <h1>{gamestate.roomName}</h1>
   {#if gamestate.settings.gameType === GameType.None}
-    <BasicSettingsSelector gamestate={gamestate} socketCallback={socketCallback} />
+    <NoGameTypeSelected gamestate={gamestate} socketCallback={socketCallback} />
   {:else if gamestate.settings.gameType === GameType.AuctionTTT}
     <AuctionTicTacToe gamestate={gamestate} socketCallback={socketCallback} />
   {/if}

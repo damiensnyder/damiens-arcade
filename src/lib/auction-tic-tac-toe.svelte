@@ -1,5 +1,4 @@
 <script lang="ts">
-
 export let gamestate: any;
 export let socketCallback: (action) => void;
 

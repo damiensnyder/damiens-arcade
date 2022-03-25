@@ -1,6 +1,7 @@
 import type { Socket } from "socket.io";
 import type { AuctionTTTGameStatus, AuctionTTTPublicState, AuctionTTTViewpoint } from "./backend/auction-tic-tac-toe";
 import type { NoneGameStatus, NonePublicState, NoneViewpoint } from "./backend/game-logic-handler";
+import type { RoomAction } from "./backend/game-room";
 
 export interface PublicRoomInfo {
   roomName: string
@@ -33,6 +34,8 @@ export type Viewpoint = NotConnectedViewpoint |
     NoneViewpoint |
     AuctionTTTViewpoint;
 
+export type Action = RoomAction;
+
 // The information contained in a packet sent from a viewer
 export interface PacketInfo {
   viewer: Viewer
@@ -47,3 +50,5 @@ export interface Viewer {
 }
 
 export type TeardownCallback = (roomCode: string) => void;
+
+export type ActionCallback = (action: Action) => void;

@@ -1,7 +1,7 @@
 import type { Namespace, Server, Socket } from "socket.io";
 import AuctionTicTacToe from "./auction-tic-tac-toe";
 import GameLogicHandler from "./game-logic-handler";
-import { GameType, PacketInfo, PublicRoomInfo as PublicRoomInfo, TeardownCallback, Viewer, PacketType } from "../types";
+import { GameType, PacketInfo, PublicRoomInfo, TeardownCallback, Viewer, PacketType } from "../types";
 import { boolean, InferType, object, string } from "yup";
 
 const TEARDOWN_TIME: number = 60 * 60 * 1000; // one hour
@@ -10,7 +10,10 @@ const changeGameTypeSchema = object({
   type: string().required().equals(["changeGameType"]),
   newGameType: string().required().oneOf(Object.values(GameType))
 });
-type ChangeGameTypePacket = InferType<typeof changeGameTypeSchema>;
+interface ChangeGameTypeAction {
+  type: "changeGameType"
+  newGameType: GameType
+}
 
 const changeSettingsSchema = object({
   type: string().equals(["changeRoomSettings"]),
@@ -19,7 +22,15 @@ const changeSettingsSchema = object({
     isPrivate: boolean().required()
   })
 });
-type ChangeSettingsPacket = InferType<typeof changeSettingsSchema>;
+interface ChangeSettingsAction {
+  type: "changeRoomSettings"
+  settings: {
+    roomName: string
+    isPrivate: boolean
+  }
+}
+
+export type RoomAction = ChangeGameTypeAction | ChangeSettingsAction;
 
 export default class GameRoom {
   basicRoomInfo: PublicRoomInfo;
@@ -64,7 +75,6 @@ export default class GameRoom {
       // enqueue any disconnects the viewer sends, and remove them from the viewer list after
       viewer.socket.on("disconnect", () => {
         this.enqueuePacket.bind(this)(viewer, "disconnect");
-        this.viewers = this.viewers.filter((v) => v !== viewer);
       });
 
       // enqueue any actions the viewer sends
@@ -108,9 +118,9 @@ export default class GameRoom {
     if (type === PacketType.Action) {
       // if the action is changing something basic about the room, handle that manually
       if (this.shouldChangeGameType(data)) {
-        this.changeGameType((data as ChangeGameTypePacket).newGameType as GameType);
+        this.changeGameType(data.newGameType);
       } else if (this.shouldChangeSettings(data)) {
-        this.changeSettings((data as ChangeSettingsPacket).settings);
+        this.changeSettings(data.settings);
       } else {
         // otherwise, pass it on to the game logic handler
         this.gameLogicHandler.handleAction(viewer, data);
@@ -122,6 +132,8 @@ export default class GameRoom {
       }
       this.gameLogicHandler.handleConnect(viewer);
     } else if (type === PacketType.Disconnect) {
+      // remove the viewer from this list of viewers
+      this.viewers = this.viewers.filter((v) => v !== viewer);
       // if the player disconnecting was the host, pick a new host if possible
       const wasHost = this.host === viewer.index;
       if (wasHost) {
@@ -176,7 +188,7 @@ export default class GameRoom {
     return viewer.index === this.host &&
         this.basicRoomInfo.roomState.gameStatus === "pregame" &&
         changeGameTypeSchema.isValidSync(data) &&
-        (data as ChangeGameTypePacket).newGameType !== this.basicRoomInfo.roomState.gameType;
+        data.newGameType !== this.basicRoomInfo.roomState.gameType;
   }
 
   // Change to a new type of game
