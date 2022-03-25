@@ -17,6 +17,7 @@ export default function setUpTestRooms(roomManager: RoomManager) {
   for (const roomScript of roomScripts) {
     const { roomCode } = roomManager.createRoom();
     const room = roomManager.activeRooms[roomCode];
+    room.host = -1;
     for (const action of roomScript.actions) {
       room.enqueuePacket(
         {
@@ -27,6 +28,7 @@ export default function setUpTestRooms(roomManager: RoomManager) {
         action.data
       );
     }
+    room.host = null;
   }
 }
 

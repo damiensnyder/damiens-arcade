@@ -8,50 +8,46 @@ export interface NonePublicState {
   gameStatus: "pregame"
 }
 
-export interface Viewpoint extends PublicRoomInfo {
-  isHost: boolean
-  settings: {
-    gameType: GameType.None
-  }
-}
-
 export default class GameLogicHandler {
   room: GameRoom
 
   constructor(room: GameRoom) {
     this.room = room;
+    this.emitGamestateToAll();
   }
 
   handleConnect(viewer: Viewer): void {
-    viewer.socket.emit("gamestate", this.publicRoomState());
+    this.emitGamestateTo(viewer);
   }
 
-  handleDisconnect(viewer: Viewer, wasHost: boolean): void {
+  handleDisconnect(_viewer: Viewer, wasHost: boolean): void {
     if (wasHost) {
       this.emitGamestateToAll();
     }
   }
 
-  handleAction(viewer: Viewer, type: string, data?: any): void {
-    if (viewer.index === this.room.host) {
-      if (type === "changeGameType") {
-        if (data === GameType.AuctionTTT) {
-          this.room.changeGameType(GameType.AuctionTTT);
-        }
-      }
-    }
+  handleAction(viewer: Viewer, data?: any): void {}
+
+  emitGamestateTo(viewer: Viewer): void {
+    viewer.socket.emit("gamestate", this.viewpointOf(viewer));
   }
 
   emitGamestateToAll(): void {
     for (const viewer of this.room.viewers) {
-      viewer.socket.emit("gamestate", {
-        ...this.room.basicRoomInfo,
-        isHost: this.room.host === viewer.index,
-        roomState: {
-          gameType: GameType.None
-        }
-      });
+      this.emitGamestateTo(viewer);
     }
+  }
+
+  viewpointOf(viewer: Viewer) {
+    return {
+      roomCode: this.room.basicRoomInfo.roomCode,
+      roomName: this.room.basicRoomInfo.roomName,
+      isPrivate: this.room.basicRoomInfo.isPrivate,
+      isHost: this.room.host === viewer.index,
+      settings: {
+        gameType: GameType.None
+      }
+    };
   }
 
   publicRoomState(): PublicRoomState {

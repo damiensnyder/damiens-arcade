@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createForm } from "svelte-forms-lib";
   import { goto } from "$app/navigation";
-  import type { BasicRoomInfo } from "./types";
+  import type { PublicRoomInfo } from "./types";
 
   const { form, handleChange, handleSubmit } = createForm({
     initialValues: {
@@ -12,7 +12,7 @@
     }
   });
 
-  async function fetchGames(): Promise<BasicRoomInfo[]> {
+  async function fetchGames(): Promise<PublicRoomInfo[]> {
     const res = await fetch("/activeRooms", {
       method: "GET",
     });

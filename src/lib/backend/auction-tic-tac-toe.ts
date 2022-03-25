@@ -48,4 +48,6 @@ export interface Settings {
   startingPlayer?: number
 }
 
-export default class AuctionTicTacToe extends GameLogicHandler {}
+export default class AuctionTicTacToe extends GameLogicHandler {
+  
+}

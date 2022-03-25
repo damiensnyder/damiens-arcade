@@ -1,8 +1,9 @@
 <script lang="ts">
 import { page } from "$app/stores";
 import { io } from "socket.io-client";
-import { Action, GameType } from "$lib/types";
+import { GameType } from "$lib/types";
 import AuctionTicTacToe from "$lib/auction-tic-tac-toe.svelte";
+import BasicSettingsSelector from "$lib/basic-settings-selector.svelte";
 
 const absoluteUrl = $page.url.toString();
 const relativeUrl = $page.url.pathname;
@@ -23,7 +24,7 @@ socket.on('gamestate', (newGamestate) => {
   gamestate = newGamestate;
 });
 
-function socketCallback(action: Action) {
+function socketCallback(action: any) {
   socket.emit('action', action);
 }
 
@@ -34,7 +35,9 @@ function copyInviteLink() {
 
 {#if connected && gamestate != null}
   <h1>{gamestate.roomName}</h1>
-  {#if gamestate.roomState.gameType === GameType.AuctionTTT}
+  {#if gamestate.roomState.gameType === GameType.None}
+    <BasicSettingsSelector gamestate={gamestate} socketCallback={socketCallback} />
+  {:else if gamestate.roomState.gameType === GameType.AuctionTTT}
     <AuctionTicTacToe gamestate={gamestate} socketCallback={socketCallback} />
   {/if}
   <p>Invite a friend:</p>

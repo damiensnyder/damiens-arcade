@@ -16,22 +16,10 @@ class RoomManagerWrapper {
 		}).catch((err) => console.error(`Failed to import room manager: ${err}`));
 	}
 
-	createRoom(req, res, _next) {
+	createRoom(_req, res, _next) {
 		if (!this.roomManager) return;
-		let body = "";
-    req.on("data", (chunk) => {
-      body += chunk;
-    });
-    req.on("end", () => {
-      try {
-        res.statusCode = 200;
-        res.end(JSON.stringify(this.roomManager.createRoom(JSON.parse(body))));
-      } catch (err) {
-        console.log(err);
-        res.statusCode = 400;
-        res.end();
-      }
-    });
+		res.statusCode = 200;
+		res.end(JSON.stringify(this.roomManager.createRoom()));
 	}
 
 	listActiveRooms(_req, res, _next) {

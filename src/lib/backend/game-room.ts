@@ -2,8 +2,24 @@ import type { Namespace, Server, Socket } from "socket.io";
 import AuctionTicTacToe from "./auction-tic-tac-toe";
 import GameLogicHandler from "./game-logic-handler";
 import { GameType, PacketInfo, PublicRoomInfo as PublicRoomInfo, TeardownCallback, Viewer, PacketType } from "../types";
+import { boolean, InferType, object, string } from "yup";
 
 const TEARDOWN_TIME: number = 60 * 60 * 1000; // one hour
+
+const changeGameTypeSchema = object({
+  type: string().required().equals(["changeGameType"]),
+  newGameType: string().required().oneOf(Object.values(GameType))
+});
+type ChangeGameTypePacket = InferType<typeof changeGameTypeSchema>;
+
+const changeSettingsSchema = object({
+  type: string().equals(["changeSettings"]),
+  settings: object({
+    roomName: string().required(),
+    isPrivate: boolean().required()
+  })
+});
+type ChangeSettingsPacket = InferType<typeof changeSettingsSchema>;
 
 export default class GameRoom {
   basicRoomInfo: PublicRoomInfo;
@@ -90,16 +106,18 @@ export default class GameRoom {
     const { viewer, type, data } = this.packetQueue.splice(0, 1)[0];
     
     if (type === PacketType.Action) {
-      if (typeof data === "object" && typeof data.type === "string") {
-        if (data.type !== "changeGameType" || !this.changeGameType(data.data)) {
-          this.gameLogicHandler.handleAction(viewer, data.type, data.data);
-        }
+      if (this.shouldChangeGameType(data)) {
+        this.changeGameType((data as ChangeGameTypePacket).newGameType as GameType);
+      } else if (this.shouldChangeSettings(data)) {
+        this.changeSettings((data as ChangeSettingsPacket).settings);
+      } else {
+        this.gameLogicHandler.handleAction(viewer, data);
       }
     } else if (type === PacketType.Connect) {
-      this.gameLogicHandler.handleConnect(viewer);
       if (this.viewers.length === 1) {
         this.host = viewer.index;
       }
+      this.gameLogicHandler.handleConnect(viewer);
     } else if (type === PacketType.Disconnect) {
       const wasHost = this.host === viewer.index
       if (wasHost) {
@@ -133,22 +151,35 @@ export default class GameRoom {
     };
   }
 
-  // Change to a new type of game
-  changeGameType(newGameType: any): boolean {
-    // if the game type is invalid, return false
-    if (this.basicRoomInfo.roomState.gameStatus !== "pregame" ||
-        !newGameType ||
-        typeof newGameType.to !== "string" ||
-        !Object.values(GameType).includes(newGameType.to)) {
-      return false;
+  shouldChangeSettings(viewer: Viewer, data?: any): boolean {
+    return viewer.index === this.host &&
+        this.basicRoomInfo.roomState.gameStatus === "pregame" &&
+        changeSettingsSchema.isValidSync(data);
+  }
+
+  changeSettings(newSettings: { roomName: string, isPrivate: boolean }): void {
+    newSettings.roomName = newSettings.roomName.trim()
+    if (newSettings.roomName.length === 0) {
+      newSettings.roomName = "Untitled Room";
     }
-    // otherwise, change the game type 
-    this.basicRoomInfo.roomState.gameType = newGameType.to;
+    this.basicRoomInfo.roomName = newSettings.roomName;
+    this.basicRoomInfo.isPrivate = newSettings.isPrivate;
+  }
+
+  shouldChangeGameType(viewer: Viewer, data?: any) {
+    return viewer.index === this.host &&
+        this.basicRoomInfo.roomState.gameStatus === "pregame" &&
+        changeGameTypeSchema.isValidSync(data) &&
+        (data as ChangeGameTypePacket).newGameType !== this.basicRoomInfo.roomState.gameType;
+  }
+
+  // Change to a new type of game
+  changeGameType(newGameType: GameType): void {
+    this.basicRoomInfo.roomState.gameType = newGameType;
     if (newGameType === GameType.None) {
       this.gameLogicHandler = new GameLogicHandler(this);
     } else if (newGameType === GameType.AuctionTTT) {
       this.gameLogicHandler = new AuctionTicTacToe(this);
     }
-    return true;
   }
 }

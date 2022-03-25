@@ -1,9 +1,6 @@
 {
   "rooms": [
     {
-      "roomName": "example room",
-      "isPrivate": false,
-      "gameplaySettings": {},
       "actions": []
     }
   ]

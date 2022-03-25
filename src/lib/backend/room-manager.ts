@@ -1,5 +1,5 @@
 import GameRoom from "./game-room";
-import type { BasicRoomInfo } from "../types";
+import type { PublicRoomInfo } from "../types";
 import type { Server } from "socket.io";
 
 const ALPHABET = "abcdefghijklmnopqrstuvwxyz";
@@ -52,8 +52,8 @@ export default class RoomManager {
     return roomCode;
   }
 
-  listActiveRooms(): { rooms: BasicRoomInfo[] } {
-    const activeRooms: BasicRoomInfo[] = [];
+  listActiveRooms(): { rooms: PublicRoomInfo[] } {
+    const activeRooms: PublicRoomInfo[] = [];
 
     for (const [, room] of Object.entries(this.activeRooms)) {
       const roomInfo = room.publicRoomState();
