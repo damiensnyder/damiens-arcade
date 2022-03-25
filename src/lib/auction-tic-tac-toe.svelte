@@ -1,13 +1,11 @@
 <script lang="ts">
-import type { AuctionTTTGamestate } from "./backend/auction-tic-tac-toe";
-import type { Action } from "./types";
 
-export let gamestate: AuctionTTTGamestate;
-export let socketCallback: (action: Action) => void;
+export let gamestate: any;
+export let socketCallback: (action) => void;
 
 const clientSideGamestate = gamestate;
 
-function actionCallback(action: Action) {
+function actionCallback(action) {
   socketCallback(action);
 
   if (action.type === "nominate") {

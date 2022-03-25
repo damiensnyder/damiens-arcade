@@ -13,7 +13,7 @@ const changeGameTypeSchema = object({
 type ChangeGameTypePacket = InferType<typeof changeGameTypeSchema>;
 
 const changeSettingsSchema = object({
-  type: string().equals(["changeSettings"]),
+  type: string().equals(["changeRoomSettings"]),
   settings: object({
     roomName: string().required(),
     isPrivate: boolean().required()
@@ -106,20 +106,24 @@ export default class GameRoom {
     const { viewer, type, data } = this.packetQueue.splice(0, 1)[0];
     
     if (type === PacketType.Action) {
+      // if the action is changing something basic about the room, handle that manually
       if (this.shouldChangeGameType(data)) {
         this.changeGameType((data as ChangeGameTypePacket).newGameType as GameType);
       } else if (this.shouldChangeSettings(data)) {
         this.changeSettings((data as ChangeSettingsPacket).settings);
       } else {
+        // otherwise, pass it on to the game logic handler
         this.gameLogicHandler.handleAction(viewer, data);
       }
     } else if (type === PacketType.Connect) {
+      // if someone connects and no one else is in the room, make them the host
       if (this.viewers.length === 1) {
         this.host = viewer.index;
       }
       this.gameLogicHandler.handleConnect(viewer);
     } else if (type === PacketType.Disconnect) {
-      const wasHost = this.host === viewer.index
+      // if the player disconnecting was the host, pick a new host if possible
+      const wasHost = this.host === viewer.index;
       if (wasHost) {
         if (this.viewers.length === 0) {
           this.host = null;
@@ -130,12 +134,14 @@ export default class GameRoom {
       this.gameLogicHandler.handleDisconnect(viewer, wasHost);
     }
 
+    // reset the timer for tearing down this room
     clearTimeout(this.teardownTimer);
     this.teardownTimer = setTimeout(
         () => this.teardownCallback(this.basicRoomInfo.roomCode),
         TEARDOWN_TIME
     );
     
+    // if there is another packet, handle it
     if (this.packetQueue.length > 0) {
       this.handlePacket();
     } else {

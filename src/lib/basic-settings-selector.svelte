@@ -5,14 +5,14 @@
   let roomName = gamestate.roomName;
   let isPrivate = gamestate.isPrivate;
 
-  function isPrivateChange(newIsPrivate) {
+  function isPrivateChange(newIsPrivate: boolean) {
     socketCallback({
       type: "changeSettings",
       settings: {
         roomName: roomName,
         isPrivate: newIsPrivate
       }
-    })
+    });
   }
 </script>
 

@@ -27,12 +27,6 @@ export type PublicRoomState = NonePublicState |
 export type GameStatus = NoneGameStatus |
     AuctionTTTGameStatus;
 
-// An action taken by a player
-export interface Action {
-  type: string
-  data?: any
-}
-
 // The information contained in a packet sent from a viewer
 export interface PacketInfo {
   viewer: Viewer

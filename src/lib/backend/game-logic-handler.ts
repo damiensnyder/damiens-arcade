@@ -1,4 +1,4 @@
-import { PublicRoomInfo, GameType, PublicRoomState, Viewer } from "$lib/types";
+import { GameType, PublicRoomState, Viewer } from "$lib/types";
 import type GameRoom from "./game-room";
 
 export type NoneGameStatus = "pregame";
