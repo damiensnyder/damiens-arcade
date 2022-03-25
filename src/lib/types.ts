@@ -1,6 +1,6 @@
 import type { Socket } from "socket.io";
-import type { AuctionTTTGameStatus, AuctionTTTPublicState } from "./backend/auction-tic-tac-toe";
-import type { NoneGameStatus, NonePublicState } from "./backend/game-logic-handler";
+import type { AuctionTTTGameStatus, AuctionTTTPublicState, AuctionTTTViewpoint } from "./backend/auction-tic-tac-toe";
+import type { NoneGameStatus, NonePublicState, NoneViewpoint } from "./backend/game-logic-handler";
 
 export interface PublicRoomInfo {
   roomName: string
@@ -26,6 +26,12 @@ export type PublicRoomState = NonePublicState |
 
 export type GameStatus = NoneGameStatus |
     AuctionTTTGameStatus;
+
+type NotConnectedViewpoint = null;
+
+export type Viewpoint = NotConnectedViewpoint |
+    NoneViewpoint |
+    AuctionTTTViewpoint;
 
 // The information contained in a packet sent from a viewer
 export interface PacketInfo {

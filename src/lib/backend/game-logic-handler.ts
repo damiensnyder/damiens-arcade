@@ -8,6 +8,17 @@ export interface NonePublicState {
   gameStatus: "pregame"
 }
 
+export interface NoneViewpoint {
+  roomCode: string
+  roomName: string
+  isPrivate: boolean
+  isHost: boolean
+  gameStatus: "pregame"
+  settings: {
+    gameType: GameType.None
+  }
+}
+
 export default class GameLogicHandler {
   room: GameRoom
 
@@ -26,7 +37,7 @@ export default class GameLogicHandler {
     }
   }
 
-  handleAction(viewer: Viewer, data?: any): void {}
+  handleAction(_viewer: Viewer, _data?: any): void {}
 
   emitGamestateTo(viewer: Viewer): void {
     viewer.socket.emit("gamestate", this.viewpointOf(viewer));
@@ -44,6 +55,7 @@ export default class GameLogicHandler {
       roomName: this.room.basicRoomInfo.roomName,
       isPrivate: this.room.basicRoomInfo.isPrivate,
       isHost: this.room.host === viewer.index,
+      gameStatus: "pregame",
       settings: {
         gameType: GameType.None
       }

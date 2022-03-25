@@ -1,16 +1,15 @@
 <script lang="ts">
 import { page } from "$app/stores";
 import { io } from "socket.io-client";
-import { GameType } from "$lib/types";
+import { GameType, Viewpoint } from "$lib/types";
 import AuctionTicTacToe from "$lib/auction-tic-tac-toe.svelte";
 import BasicSettingsSelector from "$lib/basic-settings-selector.svelte";
 
-const absoluteUrl = $page.url.toString();
 const relativeUrl = $page.url.pathname;
 const socket = io(relativeUrl);
 
 let connected = false;
-let gamestate = null;
+let gamestate: Viewpoint = null;
 
 socket.on('connect', () => {
   connected = true;
@@ -24,25 +23,19 @@ socket.on('gamestate', (newGamestate) => {
   gamestate = newGamestate;
 });
 
+// note to self: you can do this with a store, and probably should
 function socketCallback(action: any) {
   socket.emit('action', action);
-}
-
-function copyInviteLink() {
-  navigator.clipboard.writeText(absoluteUrl);
 }
 </script>
 
 {#if connected && gamestate != null}
   <h1>{gamestate.roomName}</h1>
-  {#if gamestate.roomState.gameType === GameType.None}
+  {#if gamestate.settings.gameType === GameType.None}
     <BasicSettingsSelector gamestate={gamestate} socketCallback={socketCallback} />
-  {:else if gamestate.roomState.gameType === GameType.AuctionTTT}
+  {:else if gamestate.settings.gameType === GameType.AuctionTTT}
     <AuctionTicTacToe gamestate={gamestate} socketCallback={socketCallback} />
   {/if}
-  <p>Invite a friend:</p>
-  <input value={absoluteUrl} readonly />
-  <button on:click={copyInviteLink}>Copy</button>
 {:else}
   <p>connecting...</p>
 {/if}
