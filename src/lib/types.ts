@@ -1,19 +1,12 @@
 import type { Socket } from "socket.io";
-import type { AuctionTTTPublicState } from "./backend/auction-tic-tac-toe";
-import type { NonePublicState } from "./backend/game-logic-handler";
+import type { AuctionTTTGameStatus, AuctionTTTPublicState } from "./backend/auction-tic-tac-toe";
+import type { NoneGameStatus, NonePublicState } from "./backend/game-logic-handler";
 
-export interface BasicRoomInfo {
+export interface PublicRoomInfo {
   roomName: string
   roomCode: string
   isPrivate: boolean
   roomState: PublicRoomState
-  gameStatus: GameStatus
-}
-
-export enum GameStatus {
-  Pregame = "pregame",
-  Midgame = "midgame",
-  Postgame = "postgame"
 }
 
 export enum PacketType {
@@ -31,6 +24,9 @@ export enum GameType {
 export type PublicRoomState = NonePublicState |
     AuctionTTTPublicState;
 
+export type GameStatus = NoneGameStatus |
+    AuctionTTTGameStatus;
+
 // An action taken by a player
 export interface Action {
   type: string
@@ -38,9 +34,10 @@ export interface Action {
 }
 
 // The information contained in a packet sent from a viewer
-export interface PacketInfo extends Action {
+export interface PacketInfo {
   viewer: Viewer
-  data?: unknown // if the type is 'action', `data` should be an Action itself
+  type: PacketType
+  data?: any // if the type is 'action', `data` should be an Action itself
 }
 
 // Information about a viewer of a game

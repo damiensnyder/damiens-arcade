@@ -1,7 +1,6 @@
 import GameRoom from "./game-room";
 import type { BasicRoomInfo } from "../types";
 import type { Server } from "socket.io";
-import AuctionTicTacToe from "./auction-tic-tac-toe";
 
 const ALPHABET = "abcdefghijklmnopqrstuvwxyz";
 
@@ -21,21 +20,16 @@ export default class RoomManager {
   }
 
   // Create a game room and send the room code along with status 200.
-  createRoom(body: any): { roomCode: string } {
-    const roomSettings = body || {};
-    roomSettings.roomCode = this.generateRoomCode();
+  createRoom(): { roomCode: string } {
+    const roomCode = this.generateRoomCode();
 
-    if (typeof roomSettings.roomName != "string" || roomSettings.roomName.length === 0) {
-      roomSettings.roomName = "Untitled Room";
-    }
-
-    this.activeRooms[roomSettings.roomCode] = new GameRoom(
+    this.activeRooms[roomCode] = new GameRoom(
       this.io,
-      roomSettings,
+      roomCode,
       this.teardownCallback.bind(this)
     );
 
-    return { roomCode: roomSettings.roomCode };
+    return { roomCode: roomCode };
   }
 
   // Generate a random sequence of lowercase letters, without colliding with
@@ -62,7 +56,7 @@ export default class RoomManager {
     const activeRooms: BasicRoomInfo[] = [];
 
     for (const [, room] of Object.entries(this.activeRooms)) {
-      const roomInfo = room.publicRoomInfo();
+      const roomInfo = room.publicRoomState();
       if (!roomInfo.isPrivate) {
         activeRooms.push(roomInfo);
       }

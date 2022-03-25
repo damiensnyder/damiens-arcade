@@ -1,24 +1,30 @@
-import type { Action, GameStatus, GameType, Viewer } from "$lib/types";
+import type { Action, GameType, Viewer } from "$lib/types";
 import GameLogicHandler from "./game-logic-handler";
+
+export type AuctionTTTGameStatus = "pregame" | "midgame" | "postgame"
 
 export interface AuctionTTTPublicState {
   gameType: GameType.AuctionTTT
+  gameStatus: AuctionTTTGameStatus
   numPlayers: number
 }
 
 export type Viewpoint = PregameViewpoint | MidgameViewpoint | PostgameViewpoint;
 
 interface ViewpointBase {
-  gameStatus: GameStatus
+  gameStatus: AuctionTTTGameStatus
   settings: Settings
   players: Player[]
   pov?: number
   isHost: boolean
 }
 
-export interface PregameViewpoint extends ViewpointBase {}
+export interface PregameViewpoint extends ViewpointBase {
+  gameStatus: "pregame"
+}
 
 export interface MidgameViewpoint extends ViewpointBase {
+  gameStatus: "midgame"
   whoseTurnToNominate: number
   whoseTurnToBid?: number
   lastBid?: number
@@ -28,6 +34,7 @@ export interface MidgameViewpoint extends ViewpointBase {
 }
 
 export interface PostgameViewpoint extends ViewpointBase {
+  gameStatus: "postgame"
   squares: number[][]
 }
 
