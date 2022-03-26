@@ -21,7 +21,7 @@ function changeRoomSettings() {
 
 <h3>Room settings</h3>
 <form on:submit|preventDefault={changeRoomSettings}>
-  <GameTypeSwitcher gameType={this.gamestate.gameType} changeGameTypeCallback={changeRoomSettingsCallback} />
+  <GameTypeSwitcher gameType={gamestate.gameType} changeGameTypeCallback={changeRoomSettingsCallback} />
   <label>Room name: <input bind:value={roomName} /></label>
   <label>Room is private: <input type="checkbox" bind:checked={isPrivate} /></label>
   <input type="submit" value="Update settings" />

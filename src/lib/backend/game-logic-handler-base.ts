@@ -9,7 +9,6 @@ export default class GameLogicHandlerBase {
   constructor(room: GameRoom) {
     this.room = room;
     this.gameStatus = "pregame";
-    this.emitGamestateToAll();
   }
 
   handleConnect(viewer: Viewer): void {

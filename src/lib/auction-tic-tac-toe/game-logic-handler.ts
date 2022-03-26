@@ -20,7 +20,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
     this.settings = {
       startingMoney: 15,
       startingPlayer: Side.None
-    }
+    };
     this.players = [];
   }
 

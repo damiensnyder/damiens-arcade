@@ -22,6 +22,7 @@ socket.on('disconnect', () => {
 
 socket.on('gamestate', (newGamestate) => {
   gamestate = newGamestate;
+  console.log(gamestate);
 });
 
 const socketCallback: ActionCallback = (action: Action) => {

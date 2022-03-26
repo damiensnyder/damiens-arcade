@@ -121,8 +121,10 @@ export default class GameRoom {
       // if the action is changing something basic about the room, handle that manually
       if (this.shouldChangeGameType(viewer, data)) {
         this.changeGameType(data.newGameType);
+        this.gameLogicHandler.emitGamestateToAll();
       } else if (this.shouldChangeSettings(viewer, data)) {
         this.changeSettings(data.settings);
+        this.gameLogicHandler.emitGamestateToAll();
       } else {
         // otherwise, pass it on to the game logic handler
         this.gameLogicHandler.handleAction(viewer, data);
