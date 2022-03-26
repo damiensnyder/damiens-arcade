@@ -22,11 +22,16 @@ function changeGameSettings() {
 
 <h3>Game settings</h3>
 <form on:submit|preventDefault={changeGameSettings}>
-  <label>Starting money: <input type="number" bind:value={startingMoney} /></label>
+  <label>Starting money:
+    <input type="number"
+        min={0}
+        bind:value={startingMoney}
+        disabled={!gamestate.isHost} /></label>
   <label>Starting player:
-    <select bind:value={startingPlayer}>
+    <select bind:value={startingPlayer}
+        disabled={!gamestate.isHost}>
       {#each Object.values(Side) as side}
-        <option value={side}>{side}</option>
+        <option value={side}>{side === Side.None ? "Random" : side}</option>
       {/each}
     </select>
   </label>

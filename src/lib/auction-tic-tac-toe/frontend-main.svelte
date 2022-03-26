@@ -17,6 +17,6 @@ const actionCallback: ActionCallback = (action) => {
 
 {#if gamestate.isHost}
   <RoomSettingsEditor gamestate={gamestate} changeRoomSettingsCallback={actionCallback} />
-  <GameSettingsEditor gamestate={gamestate} changeGameSettingsCallback={actionCallback} />
 {/if}
+<GameSettingsEditor gamestate={gamestate} changeGameSettingsCallback={actionCallback} />
 <InviteLink />
