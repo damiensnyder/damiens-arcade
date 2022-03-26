@@ -24,7 +24,6 @@ export default class GameLogicHandlerBase {
   handleAction(_viewer: Viewer, _data?: any): void {}
 
   emitGamestateTo(viewer: Viewer): void {
-    console.debug(this.viewpointOf(viewer));
     viewer.socket.emit("gamestate", this.viewpointOf(viewer));
   }
 
