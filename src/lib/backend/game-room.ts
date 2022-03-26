@@ -1,8 +1,9 @@
 import type { Namespace, Server, Socket } from "socket.io";
-import AuctionTicTacToe from "./auction-tic-tac-toe";
-import GameLogicHandler from "./game-logic-handler";
+import type GameLogicHandler from "./game-logic-handler-base";
+import AuctionTicTacToe from "../auction-tic-tac-toe/game-logic-handler";
+import NoGameSelected from "../no-game-selected/game-logic-handler";
 import { GameType, PacketInfo, PublicRoomInfo, TeardownCallback, Viewer, PacketType } from "../types";
-import { boolean, InferType, object, string } from "yup";
+import { boolean, object, string } from "yup";
 
 const TEARDOWN_TIME: number = 60 * 60 * 1000; // one hour
 
@@ -56,11 +57,11 @@ export default class GameRoom {
       roomName: "Untitled Room",
       isPrivate: true,
       roomState: {
-        gameType: GameType.None,
+        gameType: GameType.NoGameSelected,
         gameStatus: "pregame"
       }
     };
-    this.gameLogicHandler = new GameLogicHandler(this);
+    this.gameLogicHandler = new NoGameSelected(this);
 
     this.io = io.of(`/game/${roomCode}`);
     this.io.on("connection", (socket: Socket) => {
@@ -117,9 +118,9 @@ export default class GameRoom {
     
     if (type === PacketType.Action) {
       // if the action is changing something basic about the room, handle that manually
-      if (this.shouldChangeGameType(data)) {
+      if (this.shouldChangeGameType(viewer, data)) {
         this.changeGameType(data.newGameType);
-      } else if (this.shouldChangeSettings(data)) {
+      } else if (this.shouldChangeSettings(viewer, data)) {
         this.changeSettings(data.settings);
       } else {
         // otherwise, pass it on to the game logic handler
@@ -171,7 +172,7 @@ export default class GameRoom {
 
   shouldChangeSettings(viewer: Viewer, data?: any): boolean {
     return viewer.index === this.host &&
-        this.basicRoomInfo.roomState.gameStatus === "pregame" &&
+        this.gameLogicHandler.gameStatus === "pregame" &&
         changeSettingsSchema.isValidSync(data);
   }
 
@@ -186,7 +187,7 @@ export default class GameRoom {
 
   shouldChangeGameType(viewer: Viewer, data?: any) {
     return viewer.index === this.host &&
-        this.basicRoomInfo.roomState.gameStatus === "pregame" &&
+        this.gameLogicHandler.gameStatus === "pregame" &&
         changeGameTypeSchema.isValidSync(data) &&
         data.newGameType !== this.basicRoomInfo.roomState.gameType;
   }
@@ -194,8 +195,8 @@ export default class GameRoom {
   // Change to a new type of game
   changeGameType(newGameType: GameType): void {
     this.basicRoomInfo.roomState.gameType = newGameType;
-    if (newGameType === GameType.None) {
-      this.gameLogicHandler = new GameLogicHandler(this);
+    if (newGameType === GameType.NoGameSelected) {
+      this.gameLogicHandler = new NoGameSelected(this);
     } else if (newGameType === GameType.AuctionTTT) {
       this.gameLogicHandler = new AuctionTicTacToe(this);
     }

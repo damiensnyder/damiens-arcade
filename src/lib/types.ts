@@ -1,6 +1,6 @@
 import type { Socket } from "socket.io";
-import type { AuctionTTTGameStatus, AuctionTTTPublicState, AuctionTTTViewpoint } from "./backend/auction-tic-tac-toe";
-import type { NoneGameStatus, NonePublicState, NoneViewpoint } from "./backend/game-logic-handler";
+import type { AuctionTTTAction, AuctionTTTGameStatus, AuctionTTTPublicState, AuctionTTTViewpoint } from "./auction-tic-tac-toe/types";
+import type { NoneGameStatus, NonePublicState, NoneViewpoint } from "./no-game-selected/types";
 import type { RoomAction } from "./backend/game-room";
 
 export interface PublicRoomInfo {
@@ -17,7 +17,7 @@ export enum PacketType {
 }
 
 export enum GameType {
-  None = "[none selected]",
+  NoGameSelected = "[none selected]",
   AuctionTTT = "Auction Tic-Tac-Toe"
 }
 
@@ -34,7 +34,8 @@ export type Viewpoint = NotConnectedViewpoint |
     NoneViewpoint |
     AuctionTTTViewpoint;
 
-export type Action = RoomAction;
+export type Action = RoomAction |
+    AuctionTTTAction;
 
 // The information contained in a packet sent from a viewer
 export interface PacketInfo {

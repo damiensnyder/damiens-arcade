@@ -1,5 +1,4 @@
 import type { GameType } from "$lib/types";
-import GameLogicHandler from "./game-logic-handler";
 
 export type AuctionTTTGameStatus = "pregame" | "midgame" | "postgame"
 
@@ -28,22 +27,27 @@ export interface PregameViewpoint extends ViewpointBase {
 
 export interface MidgameViewpoint extends ViewpointBase {
   gameStatus: "midgame"
-  whoseTurnToNominate: number
-  whoseTurnToBid?: number
+  whoseTurnToNominate: Side
+  whoseTurnToBid?: Side
   lastBid?: number
-  playerWhoMadeLastBid?: number
-  squares: number[][]
+  squares: Side[][]
   currentlyNominatedSquare?: [number, number]
 }
 
 export interface PostgameViewpoint extends ViewpointBase {
   gameStatus: "postgame"
-  squares: number[][]
+  squares: Side[][]
 }
 
 export interface Player {
-  name: string
+  side: Side
   dollars: number
+}
+
+export enum Side {
+  X = "X",
+  O = "O",
+  None = "[none]"
 }
 
 export interface Settings {
@@ -52,6 +56,12 @@ export interface Settings {
   startingPlayer?: number
 }
 
-export default class AuctionTicTacToe extends GameLogicHandler {
-  
+interface ChangeGameSettingsAction {
+  type: "changeGameSettings"
+  settings: {
+    startingMoney: number
+    startingPlayer?: number
+  }
 }
+
+export type AuctionTTTAction = ChangeGameSettingsAction;

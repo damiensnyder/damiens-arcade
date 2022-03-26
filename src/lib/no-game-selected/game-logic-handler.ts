@@ -1,10 +1,9 @@
-import { GameType, PublicRoomState, Viewer } from "$lib/types";
-import type GameRoom from "./game-room";
-
-export type NoneGameStatus = "pregame";
+import { GameStatus, GameType, PublicRoomState, Viewer, Viewpoint } from "$lib/types";
+import GameLogicHandlerBase from "../backend/game-logic-handler-base";
+import type GameRoom from "../backend/game-room";
 
 export interface NonePublicState {
-  gameType: GameType.None
+  gameType: GameType.NoGameSelected
   gameStatus: "pregame"
 }
 
@@ -15,15 +14,18 @@ export interface NoneViewpoint {
   isHost: boolean
   gameStatus: "pregame"
   settings: {
-    gameType: GameType.None
+    gameType: GameType.NoGameSelected
   }
 }
 
-export default class GameLogicHandler {
+export default class NoGameSelected extends GameLogicHandlerBase {
   room: GameRoom
+  gameStatus: GameStatus
 
   constructor(room: GameRoom) {
+    super(room);
     this.room = room;
+    this.gameStatus = "pregame";
     this.emitGamestateToAll();
   }
 
@@ -40,6 +42,7 @@ export default class GameLogicHandler {
   handleAction(_viewer: Viewer, _data?: any): void {}
 
   emitGamestateTo(viewer: Viewer): void {
+    console.debug(this.viewpointOf(viewer));
     viewer.socket.emit("gamestate", this.viewpointOf(viewer));
   }
 
@@ -49,7 +52,7 @@ export default class GameLogicHandler {
     }
   }
 
-  viewpointOf(viewer: Viewer) {
+  viewpointOf(viewer: Viewer): Viewpoint {
     return {
       roomCode: this.room.basicRoomInfo.roomCode,
       roomName: this.room.basicRoomInfo.roomName,
@@ -57,14 +60,14 @@ export default class GameLogicHandler {
       isHost: this.room.host === viewer.index,
       gameStatus: "pregame",
       settings: {
-        gameType: GameType.None
+        gameType: GameType.NoGameSelected
       }
     };
   }
 
   publicRoomState(): PublicRoomState {
     return {
-      gameType: GameType.None,
+      gameType: GameType.NoGameSelected,
       gameStatus: "pregame"
     };
   }
