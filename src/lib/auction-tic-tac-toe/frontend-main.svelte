@@ -2,7 +2,7 @@
 import RoomSettingsEditor from "$lib/room-settings-editor.svelte";
 import InviteLink from "$lib/invite-link.svelte";
 import type { ActionCallback } from "$lib/types";
-import GameSettings from "./game-settings.svelte";
+import GameSettingsEditor from "./game-settings-editor.svelte";
 import type { AuctionTTTViewpoint } from "$lib/auction-tic-tac-toe/types";
 
 export let gamestate: AuctionTTTViewpoint;
@@ -31,6 +31,6 @@ const actionCallback: ActionCallback = (action) => {
 
 {#if gamestate.isHost}
   <RoomSettingsEditor gamestate={gamestate} changeRoomSettingsCallback={actionCallback} />
-  <GameSettings gamestate={gamestate} changeGameSettingsCallback={actionCallback} />
+  <GameSettingsEditor gamestate={gamestate} changeGameSettingsCallback={actionCallback} />
 {/if}
 <InviteLink />

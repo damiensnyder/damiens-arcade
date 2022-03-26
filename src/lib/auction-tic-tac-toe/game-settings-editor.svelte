@@ -4,13 +4,13 @@ import GameTypeSwitcher from "$lib/game-type-switcher.svelte";
 import type { ActionCallback } from "$lib/types";
 
 export let gamestate: AuctionTTTViewpoint;
-export let changeRoomSettingsCallback: ActionCallback;
+export let changeGameSettingsCallback: ActionCallback;
 
 let startingMoney = gamestate.settings.startingMoney;
 let startingPlayer = gamestate.settings.startingPlayer;
 
-function changeRoomSettings() {
-  changeRoomSettingsCallback({
+function changeGameSettings() {
+  changeGameSettingsCallback({
     type: "changeGameSettings",
     settings: {
       startingMoney: startingMoney,
@@ -21,10 +21,10 @@ function changeRoomSettings() {
 </script>
 
 <h3>Game settings</h3>
-<form on:submit|preventDefault={changeRoomSettings}>
+<form on:submit|preventDefault={changeGameSettings}>
   <label>Starting money: <input type="number" bind:value={startingMoney} /></label>
   <label>Starting player:
-    <select bind:value={startingPlayer} />
+    <select bind:value={startingPlayer}>
       {#each Object.values(Side) as side}
         <option value={side}>{side}</option>
       {/each}
