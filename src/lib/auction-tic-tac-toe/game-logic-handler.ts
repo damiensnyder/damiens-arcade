@@ -6,9 +6,10 @@ import { Side } from "$lib/auction-tic-tac-toe/types";
 import type { AuctionTTTGameStatus, AuctionTTTViewpoint, Player, Settings } from "$lib/auction-tic-tac-toe/types";
 
 export default class AuctionTicTacToe extends GameLogicHandlerBase {
-  settings: Settings;
-  gameStatus: AuctionTTTGameStatus;
-  players: Player[];
+  settings: Settings
+  gameType: GameType.AuctionTTT
+  gameStatus: AuctionTTTGameStatus
+  players: Player[]
   whoseTurnToNominate?: Side
   whoseTurnToBid?: Side
   lastBid?: number
@@ -27,10 +28,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
   viewpointOf(viewer: Viewer): AuctionTTTViewpoint {
     if (this.gameStatus === "pregame") {
       return {
-        roomCode: this.room.basicRoomInfo.roomCode,
-        roomName: this.room.basicRoomInfo.roomName,
-        isPrivate: this.room.basicRoomInfo.isPrivate,
-        isHost: this.room.host === viewer.index,
+        ...this.basicViewpointInfo(viewer),
         gameType: GameType.AuctionTTT,
         gameStatus: this.gameStatus,
         settings: this.settings,
@@ -38,10 +36,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       };
     } else if (this.gameStatus === "midgame") {
       return {
-        roomCode: this.room.basicRoomInfo.roomCode,
-        roomName: this.room.basicRoomInfo.roomName,
-        isPrivate: this.room.basicRoomInfo.isPrivate,
-        isHost: this.room.host === viewer.index,
+        ...this.basicViewpointInfo(viewer),
         gameType: GameType.AuctionTTT,
         gameStatus: this.gameStatus,
         settings: this.settings,
@@ -54,10 +49,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       };
     } else if (this.gameStatus === "postgame") {
       return {
-        roomCode: this.room.basicRoomInfo.roomCode,
-        roomName: this.room.basicRoomInfo.roomName,
-        isPrivate: this.room.basicRoomInfo.isPrivate,
-        isHost: this.room.host === viewer.index,
+        ...this.basicViewpointInfo(viewer),
         gameType: GameType.AuctionTTT,
         gameStatus: this.gameStatus,
         settings: this.settings,

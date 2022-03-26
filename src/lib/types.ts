@@ -35,6 +35,13 @@ export type Viewpoint = NotConnectedViewpoint |
     NoneViewpoint |
     AuctionTTTViewpoint;
 
+export interface BasicViewpointInfo {
+  roomCode: string
+  roomName: string
+  isPrivate: boolean
+  isHost: boolean
+}
+
 export type Action = RoomAction |
     TestRoomAction |
     AuctionTTTAction;
