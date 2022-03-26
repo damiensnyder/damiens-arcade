@@ -2,6 +2,7 @@ import type { Socket } from "socket.io";
 import type { AuctionTTTAction, AuctionTTTGameStatus, AuctionTTTPublicState, AuctionTTTViewpoint } from "./auction-tic-tac-toe/types";
 import type { NoneGameStatus, NonePublicState, NoneViewpoint } from "./no-game-selected/types";
 import type { RoomAction } from "./backend/game-room";
+import type { TestRoomAction } from "./backend/set-up-test-rooms";
 
 export interface PublicRoomInfo {
   roomName: string
@@ -35,6 +36,7 @@ export type Viewpoint = NotConnectedViewpoint |
     AuctionTTTViewpoint;
 
 export type Action = RoomAction |
+    TestRoomAction |
     AuctionTTTAction;
 
 // The information contained in a packet sent from a viewer

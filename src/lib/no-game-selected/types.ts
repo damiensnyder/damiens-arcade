@@ -13,7 +13,5 @@ export interface NoneViewpoint {
   isPrivate: boolean
   isHost: boolean
   gameStatus: "pregame"
-  settings: {
-    gameType: GameType.NoGameSelected
-  }
+  gameType: GameType.NoGameSelected
 }

@@ -1,9 +1,11 @@
 import type RoomManager from "./room-manager";
 import { readFileSync } from "fs";
-import type { Action, PacketType, PublicRoomInfo } from "$lib/types";
+import type { PacketType, PublicRoomInfo } from "$lib/types";
 import type { Socket } from "socket.io";
 
-interface TestRoomAction extends Action {
+export interface TestRoomAction {
+  type: string,
+  data?: any,
   viewerIndex: number
 }
 

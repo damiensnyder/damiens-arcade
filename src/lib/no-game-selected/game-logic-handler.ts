@@ -1,4 +1,5 @@
-import { GameStatus, GameType, PublicRoomState, Viewer, Viewpoint } from "$lib/types";
+import { GameType } from "$lib/types";
+import type { GameStatus, PublicRoomState, Viewer, Viewpoint } from "$lib/types";
 import GameLogicHandlerBase from "../backend/game-logic-handler-base";
 import type GameRoom from "../backend/game-room";
 
@@ -13,9 +14,7 @@ export interface NoneViewpoint {
   isPrivate: boolean
   isHost: boolean
   gameStatus: "pregame"
-  settings: {
-    gameType: GameType.NoGameSelected
-  }
+  gameType: GameType.NoGameSelected
 }
 
 export default class NoGameSelected extends GameLogicHandlerBase {
@@ -42,7 +41,6 @@ export default class NoGameSelected extends GameLogicHandlerBase {
   handleAction(_viewer: Viewer, _data?: any): void {}
 
   emitGamestateTo(viewer: Viewer): void {
-    console.debug(this.viewpointOf(viewer));
     viewer.socket.emit("gamestate", this.viewpointOf(viewer));
   }
 
@@ -52,16 +50,14 @@ export default class NoGameSelected extends GameLogicHandlerBase {
     }
   }
 
-  viewpointOf(viewer: Viewer): Viewpoint {
+  viewpointOf(viewer: Viewer): NoneViewpoint {
     return {
       roomCode: this.room.basicRoomInfo.roomCode,
       roomName: this.room.basicRoomInfo.roomName,
       isPrivate: this.room.basicRoomInfo.isPrivate,
       isHost: this.room.host === viewer.index,
       gameStatus: "pregame",
-      settings: {
-        gameType: GameType.NoGameSelected
-      }
+      gameType: GameType.NoGameSelected
     };
   }
 

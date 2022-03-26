@@ -1,5 +1,6 @@
-import { GameStatus, GameType, PublicRoomState, Viewer, Viewpoint } from "$lib/types";
-import type GameRoom from "./game-room";
+import { GameType } from "$lib/types";
+import type { GameStatus, PublicRoomState, Viewer, Viewpoint } from "$lib/types";
+import type GameRoom from "$lib/backend/game-room";
 
 export default class GameLogicHandlerBase {
   room: GameRoom

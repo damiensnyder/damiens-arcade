@@ -1,6 +1,6 @@
 <script lang="ts">
-import { AuctionTTTViewpoint, Side } from "$lib/auction-tic-tac-toe/types";
-import GameTypeSwitcher from "$lib/game-type-switcher.svelte";
+import type { AuctionTTTViewpoint } from "$lib/auction-tic-tac-toe/types";
+import { Side } from "$lib/auction-tic-tac-toe/types";
 import type { ActionCallback } from "$lib/types";
 
 export let gamestate: AuctionTTTViewpoint;

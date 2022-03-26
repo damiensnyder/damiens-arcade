@@ -2,7 +2,8 @@ import type { Namespace, Server, Socket } from "socket.io";
 import type GameLogicHandler from "./game-logic-handler-base";
 import AuctionTicTacToe from "../auction-tic-tac-toe/game-logic-handler";
 import NoGameSelected from "../no-game-selected/game-logic-handler";
-import { GameType, PacketInfo, PublicRoomInfo, TeardownCallback, Viewer, PacketType } from "../types";
+import { GameType, PacketType } from "../types";
+import type { PacketInfo, PublicRoomInfo, TeardownCallback, Viewer } from "../types";
 import { boolean, object, string } from "yup";
 
 const TEARDOWN_TIME: number = 60 * 60 * 1000; // one hour
@@ -19,7 +20,7 @@ interface ChangeGameTypeAction {
 const changeSettingsSchema = object({
   type: string().equals(["changeRoomSettings"]),
   settings: object({
-    roomName: string().required(),
+    roomName: string().min(1).required(),
     isPrivate: boolean().required()
   })
 });

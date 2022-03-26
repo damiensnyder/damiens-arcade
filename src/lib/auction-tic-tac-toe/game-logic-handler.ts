@@ -1,7 +1,9 @@
-import { GameStatus, GameType, Viewer } from "$lib/types";
-import GameLogicHandlerBase from "../backend/game-logic-handler-base";
-import type GameRoom from "../backend/game-room";
-import type { AuctionTTTGameStatus, AuctionTTTViewpoint, Player, Settings, Side } from "./types";
+import { GameType } from "$lib/types";
+import type { PublicRoomState, Viewer } from "$lib/types";
+import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
+import type GameRoom from "$lib/backend/game-room";
+import { Side } from "$lib/auction-tic-tac-toe/types";
+import type { AuctionTTTGameStatus, AuctionTTTViewpoint, Player, Settings } from "$lib/auction-tic-tac-toe/types";
 
 export default class AuctionTicTacToe extends GameLogicHandlerBase {
   settings: Settings;
@@ -16,8 +18,8 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
   constructor(room: GameRoom) {
     super(room);
     this.settings = {
-      gameType: GameType.AuctionTTT,
-      startingMoney: 15
+      startingMoney: 15,
+      startingPlayer: Side.None
     }
     this.players = [];
   }
@@ -29,6 +31,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
         roomName: this.room.basicRoomInfo.roomName,
         isPrivate: this.room.basicRoomInfo.isPrivate,
         isHost: this.room.host === viewer.index,
+        gameType: GameType.AuctionTTT,
         gameStatus: this.gameStatus,
         settings: this.settings,
         players: this.players
@@ -39,6 +42,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
         roomName: this.room.basicRoomInfo.roomName,
         isPrivate: this.room.basicRoomInfo.isPrivate,
         isHost: this.room.host === viewer.index,
+        gameType: GameType.AuctionTTT,
         gameStatus: this.gameStatus,
         settings: this.settings,
         players: this.players,
@@ -54,11 +58,20 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
         roomName: this.room.basicRoomInfo.roomName,
         isPrivate: this.room.basicRoomInfo.isPrivate,
         isHost: this.room.host === viewer.index,
+        gameType: GameType.AuctionTTT,
         gameStatus: this.gameStatus,
         settings: this.settings,
         players: this.players,
         squares: this.squares
       };
     }
+  }
+
+  publicRoomState(): PublicRoomState {
+    return {
+      gameType: GameType.AuctionTTT,
+      gameStatus: "pregame",
+      numPlayers: this.players.length
+    };
   }
 }

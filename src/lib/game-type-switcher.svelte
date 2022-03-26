@@ -1,7 +1,8 @@
 <script lang="ts">
-import { ActionCallback, GameType } from "./types";
+import { GameType } from "./types";
+import type { ActionCallback } from "./types";
 
-export let gameType;
+export let gameType: GameType;
 export let changeGameTypeCallback: ActionCallback;
 
 function changeGameType() {

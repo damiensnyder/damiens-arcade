@@ -3,9 +3,7 @@
   "version": "0.0.1",
   "license": "WTFPL",
   "scripts": {
-    "dev": "yarn build:backend && concurrently --kill-others npm:dev:*",
-    "dev:backend": "yarn build:backend --watch",
-    "dev:sveltekit": "svelte-kit dev",
+    "dev": "yarn build:backend && svelte-kit dev",
     "build": "yarn build:backend && svelte-kit build",
     "build:backend": "esbuild src/lib/backend/room-manager.ts --bundle --outfile=dist/room-manager.js --platform=node --format=esm && esbuild src/lib/backend/set-up-test-rooms.ts --bundle --outfile=dist/set-up-test-rooms.js --platform=node --format=esm",
     "start": "node app.js",

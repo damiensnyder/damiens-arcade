@@ -16,6 +16,7 @@ interface ViewpointBase {
   isPrivate: boolean
   isHost: boolean
   gameStatus: AuctionTTTGameStatus
+  gameType: GameType.AuctionTTT
   settings: Settings
   players: Player[]
   pov?: number
@@ -51,16 +52,15 @@ export enum Side {
 }
 
 export interface Settings {
-  gameType: GameType.AuctionTTT
   startingMoney: number
-  startingPlayer?: number
+  startingPlayer: Side
 }
 
 interface ChangeGameSettingsAction {
   type: "changeGameSettings"
   settings: {
     startingMoney: number
-    startingPlayer?: number
+    startingPlayer: Side
   }
 }
 
