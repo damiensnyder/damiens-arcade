@@ -64,4 +64,48 @@ interface ChangeGameSettingsAction {
   }
 }
 
-export type AuctionTTTAction = ChangeGameSettingsAction;
+interface JoinAction {
+  type: "nominate",
+  side: Side.X | Side.O
+}
+
+interface LeaveAction {
+  type: "leave"
+}
+
+interface StartGameAction {
+  type: "startGame"
+}
+
+interface NominateAction {
+  type: "nominate",
+  square: [number, number],
+  startingBid: number
+}
+
+interface BidAction {
+  type: "bid",
+  amount: number
+}
+
+interface PassAction {
+  type: "pass"
+}
+
+interface RematchAction {
+  type: "rematch"
+}
+
+interface BackToSettingsAction {
+  type: "backToSettings"
+}
+
+export type AuctionTTTAction = ChangeGameSettingsAction |
+    JoinAction |
+    LeaveAction |
+    StartGameAction |
+    NominateAction |
+    BidAction |
+    PassAction |
+    RematchAction |
+    BackToSettingsAction;
