@@ -30,7 +30,7 @@
         <p><a href={`/game/${room.roomCode}`}>{room.roomName}</a></p>
       {/each}
       {#if rooms.length === 0}
-        <p>No public games found</p>
+        <p>No public games found.</p>
       {/if}
     {/await}
   </div>

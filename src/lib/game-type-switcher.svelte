@@ -13,10 +13,21 @@ function changeGameType() {
 }
 </script>
 
-<label>Game type:
-  <select bind:value={gameType} on:change|preventDefault={changeGameType}>
+<div class="form-field">
+  <label for="gameType">Game type:</label>
+  <select id="gameType" bind:value={gameType} on:change|preventDefault={changeGameType}>
     {#each Object.values(GameType) as gameTypeName}
       <option value={gameTypeName}>{gameTypeName}</option>
     {/each}
   </select>
-</label>
+</div>
+
+<style>
+  select {
+    margin-right: 0;
+  }
+
+  .form-field {
+    margin: 0.25rem 0;
+  }
+</style>

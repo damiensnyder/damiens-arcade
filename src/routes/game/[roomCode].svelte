@@ -32,7 +32,6 @@ const socketCallback: ActionCallback = (action: Action) => {
 </script>
 
 {#if connected && gamestate != null}
-  <h1>{gamestate.roomName}</h1>
   {#if gamestate.gameType === GameType.NoGameSelected}
     <NoGameSelected gamestate={gamestate} socketCallback={socketCallback} />
   {:else if gamestate.gameType === GameType.AuctionTTT}

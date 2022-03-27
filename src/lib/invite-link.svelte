@@ -9,5 +9,22 @@
 </script>
 
 <h3>Invite a friend</h3>
-<input value={absoluteUrl} readonly />
-<button class="big-button" on:click={copyInviteLink}>COPY</button>
+<div class="form-field">
+  <input type="text" value={absoluteUrl} readonly />
+  <button class="big-button" on:click={copyInviteLink}>COPY</button>
+</div>
+
+<style>
+  .big-button {
+    margin: 0;
+  }
+
+  .form-field {
+    justify-self: stretch;
+    width: 100%;
+  }
+
+  input {
+    margin-left: 0;
+  }
+</style>
