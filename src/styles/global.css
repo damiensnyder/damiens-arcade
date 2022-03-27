@@ -156,6 +156,8 @@ a {
 
 input:disabled,
 input:disabled:active,
+button:disabled,
+button:disabled:active,
 select:disabled {
   color: var(--text-3);
   background-color: var(--bg-5);
