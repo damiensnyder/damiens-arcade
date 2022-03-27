@@ -6,8 +6,8 @@ import type { ActionCallback } from "$lib/types";
 export let gamestate: AuctionTTTViewpoint;
 export let changeGameSettingsCallback: ActionCallback;
 
-let startingMoney = gamestate.settings.startingMoney;
-let startingPlayer = gamestate.settings.startingPlayer;
+$: startingMoney = gamestate.settings.startingMoney;
+$: startingPlayer = gamestate.settings.startingPlayer;
 
 function changeGameSettings() {
   changeGameSettingsCallback({
@@ -35,5 +35,6 @@ function changeGameSettings() {
       {/each}
     </select>
   </label>
-  <input type="submit" value="Update settings" />
+  <input type="submit" value="Update settings"
+      disabled={!gamestate.isHost} />
 </form>

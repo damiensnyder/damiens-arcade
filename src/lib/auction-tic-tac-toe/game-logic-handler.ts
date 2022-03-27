@@ -4,6 +4,15 @@ import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
 import { Side } from "$lib/auction-tic-tac-toe/types";
 import type { AuctionTTTGameStatus, AuctionTTTViewpoint, Player, Settings } from "$lib/auction-tic-tac-toe/types";
+import { number, object, string } from "yup";
+
+const changeGameSettingsSchema = object({
+  type: string().required().equals(["changeGameSettings"]),
+  settings: object({
+    startingMoney: number().required().integer().min(0),
+    startingPlayer: string().required().oneOf(Object.values(Side))
+  })
+});
 
 export default class AuctionTicTacToe extends GameLogicHandlerBase {
   settings: Settings
@@ -23,6 +32,16 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       startingPlayer: Side.None
     };
     this.players = [];
+  }
+
+  handleAction(viewer: Viewer, data?: any): void {
+    if (this.room.host === viewer.index &&
+        changeGameSettingsSchema.isValidSync(data)) {
+      this.settings = data.settings as Settings;
+      this.emitGamestateToAll();
+    } else {
+      console.debug(data);
+    }
   }
 
   viewpointOf(viewer: Viewer): AuctionTTTViewpoint {

@@ -8,8 +8,6 @@ import type { AuctionTTTViewpoint } from "$lib/auction-tic-tac-toe/types";
 export let gamestate: AuctionTTTViewpoint;
 export let socketCallback: ActionCallback;
 
-let clientSideGamestate = gamestate;
-
 const actionCallback: ActionCallback = (action) => {
   socketCallback(action);
 };

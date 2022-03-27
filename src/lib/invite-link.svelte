@@ -8,6 +8,6 @@
   }
 </script>
 
-<p>Invite a friend:</p>
+<h3>Invite a friend</h3>
 <input value={absoluteUrl} readonly />
 <button on:click={copyInviteLink}>Copy</button>
