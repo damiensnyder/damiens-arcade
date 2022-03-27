@@ -16,8 +16,10 @@
   });
 </script>
 
-<h2>Create Game</h2>
+<div class="top-level-menu">
+  <h2>Create a game</h2>
 
-<form on:submit={handleSubmit}>
-  <button type="submit">Create</button>
-</form>
+  <form on:submit={handleSubmit}>
+    <button class="big-button" type="submit">CREATE</button>
+  </form>
+</div>

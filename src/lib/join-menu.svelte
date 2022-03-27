@@ -20,27 +20,70 @@
   }
 </script>
 
-<h2>Join Game</h2>
-
-<div>
-  {#await fetchGames()}
-    Loading active games...
-  {:then rooms}
-    {#each rooms as room}
-      <div>
+<div class="top-level-menu">
+  <h2>Join an existing game</h2>
+  <div class="active-games">
+    {#await fetchGames()}
+      <p>Loading active games...</p>
+    {:then rooms}
+      {#each rooms as room}
         <p><a href={`/game/${room.roomCode}`}>{room.roomName}</a></p>
-      </div>
-    {/each}
-  {/await}
+      {/each}
+      {#if rooms.length === 0}
+        <p>No public games found</p>
+      {/if}
+    {/await}
+  </div>
+  
+  <form on:submit={handleSubmit}>
+    <div class="form-field">
+      <label for="roomCode">Room code:</label>
+      <input
+          id="roomCode"
+          type="text"
+          minlength="4"
+          on:change={handleChange}
+          bind:value={$form.roomCode}>
+      <button class="big-button" type="submit">Join</button>
+    </div>
+  </form>
 </div>
 
-<form on:submit={handleSubmit}>
-  <label>Join room from code:
-    <input
-      id="roomCode"
-      type="text"
-      on:change={handleChange}
-      bind:value={$form.roomCode}>
-  </label>
-  <button type="submit">Join</button>
-</form>
+<style>
+  p {
+    flex: 1;
+    margin: 0.5rem;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .active-games {
+    align-self: stretch;
+    align-items: flex-start;
+    flex: 1;
+    margin: 1rem 0;
+    max-height: 8rem;
+    color: var(--text-4);
+    background-color: var(--bg-1);
+    border: 2px solid var(--text-4);
+    border-radius: 0.4rem;
+    font-size: 0.9rem;
+    overflow-y: scroll;
+  }
+
+  .big-button {
+    margin-top: 0;
+  }
+
+  input {
+    flex: 1 1 auto;
+    flex-basis: 10px;
+    margin: 0 0.5rem;
+    padding: 0.2rem;
+  }
+
+  form {
+    max-width: 100%;
+  }
+</style>

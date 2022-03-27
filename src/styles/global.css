@@ -1,0 +1,135 @@
+:root {
+  --bg-1: #001;
+  --bg-2: #113;
+  --bg-3: #111;
+  --bg-4: #000;
+  --text-1: #ccc;
+  --text-2: #ddd;
+  --text-3: #bbb;
+  --text-4: #888;
+  --accent-1: #ee1;
+  --accent-2: #0b0;
+  --accent-3: #090;
+  --link: #585;
+
+  --font-main: Helvetica, sans-serif;
+  --font-title: "Watchtower Gradient Italic";
+  --font-subtitle: "Watchtower Expanded";
+}
+
+html,
+body,
+#svelte {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+
+  background-color: var(--bg-1);
+  color: var(--text-1);
+  font-family: var(--font-main);
+  font-size: 20px;
+  font-weight: 300;
+}
+
+* {
+  font: inherit;
+}
+
+div,
+form {
+  display: flex;
+  flex-flow: column;
+}
+
+div {
+  align-items: center;
+}
+
+form {
+  align-items: stretch;
+}
+
+h1 {
+  color: var(--accent-1);
+  font-family: var(--font-title);
+  font-size: 3.5rem;
+  text-align: center;
+}
+
+h2 {
+  margin: 0;
+  color: var(--text-2);
+  font-family: var(--font-subtitle);
+  font-size: 2rem;
+}
+
+input[type=text] {
+  min-width: 0;
+  flex-grow: 1;
+  padding: 0.25rem;
+  border: 2px solid var(--text-3);
+  border-radius: 0.4rem;
+  background-color: var(--bg-2);
+  color: var(--text-1);
+}
+
+button {
+  flex-grow: 0;
+}
+
+a {
+  color: var(--link);
+}
+
+.horiz {
+  display: flex;
+  flex-flow: row;
+}
+
+.top-level-menu {
+  margin: 1rem 3.5rem;
+  padding: 1.25rem 2.25rem;
+  flex-flow: column;
+  border: 2px solid var(--text-1);
+  border-radius: 1.5rem;
+  background-color: var(--bg-3);
+}
+
+.big-button {
+  padding: 0.25rem 0.5rem;
+  margin-top: 1rem;
+  justify-self: last baseline;
+  border: 2px solid var(--text-3);
+  border-radius: 0.5rem;
+
+  font-family: var(--font-subtitle);
+  font-size: 1rem;
+  color: var(--text-2);
+  background-color: var(--accent-2);
+  transition: color 0.05s ease-in-out;
+  transition: background-color 0.05s ease-in-out;
+}
+
+.big-button:hover {
+  color: var(--text-3);
+  transition: color 0.05s ease-in-out;
+}
+
+.big-button:active {
+  color: var(--text-3);
+  background-color: var(--accent-3);
+  transition: color 0.05s ease-in-out;
+  transition: background-color 0.05s ease-in-out;
+}
+
+.form-field {
+  flex: 1;
+  display: flex;
+  flex-flow: row;
+  justify-content: space-between;
+  align-items: center;
+  white-space: nowrap;
+}
