@@ -23,3 +23,10 @@
     <input class="big-button" type="submit" value="CREATE">
   </form>
 </div>
+
+<style>
+  .big-button {
+    width: min-content;
+    align-self: center;
+  }
+</style>

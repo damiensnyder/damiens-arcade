@@ -14,11 +14,20 @@ const changeGameSettingsSchema = object({
   })
 });
 
+const joinSchema = object({
+  type: string().required().equals(["join"]),
+  side: string().required().oneOf([Side.X, Side.O])
+});
+
+const leaveSchema = object({
+  type: string().required().equals(["leave"])
+});
+
 export default class AuctionTicTacToe extends GameLogicHandlerBase {
   settings: Settings
   gameType: GameType.AuctionTTT
   gameStatus: AuctionTTTGameStatus
-  players: Player[]
+  players: [Player, Player]
   whoseTurnToNominate?: Side
   whoseTurnToBid?: Side
   lastBid?: number
@@ -31,17 +40,49 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       startingMoney: 15,
       startingPlayer: Side.None
     };
-    this.players = [];
+    this.players = [{
+      side: Side.X,
+      money: 0
+    }, {
+      side: Side.O,
+      money: 0
+    }];
   }
 
-  handleAction(viewer: Viewer, data?: any): void {
+  handleAction(viewer: Viewer, action?: any): void {
     if (this.room.host === viewer.index &&
-        changeGameSettingsSchema.isValidSync(data)) {
-      this.settings = data.settings as Settings;
+        changeGameSettingsSchema.isValidSync(action)) {
+      this.settings = action.settings as Settings;
       this.emitGamestateToAll();
+    } else if (joinSchema.isValidSync(action) &&
+        this.players.every((player) => player.controller !== viewer.index)) {
+      this.players.forEach((player) => {
+        if (player.side === action.side) {
+          player.controller = viewer.index;
+          this.emitGamestateToAll();
+        }
+      });
+    } else if (leaveSchema.isValidSync(action) &&
+        this.gameStatus === "pregame") {
+      this.players.forEach((player) => {
+        if (player.controller === viewer.index) {
+          delete player.controller;
+          this.emitGamestateToAll();
+        }
+      });
     } else {
-      console.debug(data);
+      console.debug(action);
     }
+  }
+
+  handleDisconnect(viewer: Viewer, wasHost: boolean): void {
+    this.players.forEach((player) => {
+      if (player.controller === viewer.index) {
+        delete player.controller;
+        this.emitGamestateToAll();
+      }
+    });
+    super.handleDisconnect(viewer, wasHost);
   }
 
   viewpointOf(viewer: Viewer): AuctionTTTViewpoint {

@@ -18,7 +18,7 @@ interface ViewpointBase {
   gameStatus: AuctionTTTGameStatus
   gameType: GameType.AuctionTTT
   settings: Settings
-  players: Player[]
+  players: [Player, Player]
   pov?: number
 }
 
@@ -42,7 +42,8 @@ export interface PostgameViewpoint extends ViewpointBase {
 
 export interface Player {
   side: Side
-  dollars: number
+  money: number
+  controller?: number
 }
 
 export enum Side {

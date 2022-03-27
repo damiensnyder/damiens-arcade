@@ -39,6 +39,7 @@ export interface BasicViewpointInfo {
   roomName: string
   isPrivate: boolean
   isHost: boolean
+  pov: number
 }
 
 interface ChangeGameTypeAction {

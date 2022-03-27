@@ -28,6 +28,7 @@ socket.on('gamestate', (newGamestate) => {
 
 const socketCallback: ActionCallback = (action: Action) => {
   socket.emit('action', action);
+  console.log(action);
 }
 </script>
 

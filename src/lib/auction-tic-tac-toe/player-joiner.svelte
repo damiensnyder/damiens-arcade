@@ -9,11 +9,21 @@
   export let callback: ActionCallback;
   export let side: Side.X | Side.O;
 
-  $: isSide = typeof gamestate.pov === "number" &&
-      gamestate.players[gamestate.pov].side === side;
+  $: isSide = gamestate.players.every((player) => {
+    if (player.side === side) {
+      return player.controller === gamestate.pov;
+    }
+    return true;
+  });
   $: canJoinAsSide = gamestate.players.every((player) => {
-    return player.side !== side;
-  }) && typeof gamestate.pov !== "number";
+    if (player.controller === gamestate.pov) {
+      return false;
+    }
+    if (player.side === side) {
+      return player.controller === undefined;
+    }
+    return true;
+  });
 
   function join() {
     callback({
@@ -36,11 +46,11 @@
     <O size={50} />
   {/if}
   {#if canJoinAsSide}
-    <button class="big-button" on:submit={join}>
+    <button class="big-button" on:submit={join} on:click={join}>
       JOIN
     </button>
   {:else if isSide}
-    <button class="big-button" on:submit={leave}>
+    <button class="big-button" on:submit={leave} on:click={leave}>
       LEAVE
     </button>
   {:else}

@@ -20,7 +20,7 @@
     <PlayerJoiner gamestate={gamestate} callback={callback} side={Side.O} />
   </div>
   {#if gamestate.isHost && gamestate.players.length === 2}
-    <button class="big-button" on:submit={startGame}>
+    <button class="big-button" on:submit={startGame} on:click={startGame}>
       START
     </button>
   {:else if gamestate.isHost}

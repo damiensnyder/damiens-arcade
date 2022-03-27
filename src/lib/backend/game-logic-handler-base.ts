@@ -44,7 +44,8 @@ export default class GameLogicHandlerBase {
       roomCode: this.room.basicRoomInfo.roomCode,
       roomName: this.room.basicRoomInfo.roomName,
       isPrivate: this.room.basicRoomInfo.isPrivate,
-      isHost: this.room.host === viewer.index
+      isHost: this.room.host === viewer.index,
+      pov: viewer.index
     };
   }
 
