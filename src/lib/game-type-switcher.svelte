@@ -4,6 +4,7 @@ import type { ActionCallback } from "./types";
 
 export let gameType: GameType;
 export let changeGameTypeCallback: ActionCallback;
+export let isHost: boolean;
 
 function changeGameType() {
   changeGameTypeCallback({
@@ -15,7 +16,7 @@ function changeGameType() {
 
 <div class="form-field">
   <label for="gameType">Game type:</label>
-  <select id="gameType" bind:value={gameType} on:change|preventDefault={changeGameType}>
+  <select id="gameType" disabled={!isHost} bind:value={gameType} on:change|preventDefault={changeGameType}>
     {#each Object.values(GameType) as gameTypeName}
       <option value={gameTypeName}>{gameTypeName}</option>
     {/each}

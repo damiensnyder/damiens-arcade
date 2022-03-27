@@ -8,10 +8,8 @@
   export let socketCallback: ActionCallback;
 </script>
 
-<h1>{gamestate.roomName}</h1>
+<h1>Damien's Arcade</h1>
 <div class="top-level-menu">
-  {#if gamestate.isHost}
-    <RoomSettingsEditor gamestate={gamestate} changeRoomSettingsCallback={socketCallback} />
-  {/if}
+  <RoomSettingsEditor gamestate={gamestate} changeRoomSettingsCallback={socketCallback} />
   <InviteLink />
 </div>

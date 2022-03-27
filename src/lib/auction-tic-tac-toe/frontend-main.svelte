@@ -13,8 +13,9 @@ const actionCallback: ActionCallback = (action) => {
 };
 </script>
 
-{#if gamestate.isHost}
+<h1>Damien's Arcade</h1>
+<div class="top-level-menu">
   <RoomSettingsEditor gamestate={gamestate} changeRoomSettingsCallback={actionCallback} />
-{/if}
-<GameSettingsEditor gamestate={gamestate} changeGameSettingsCallback={actionCallback} />
-<InviteLink />
+  <GameSettingsEditor gamestate={gamestate} changeGameSettingsCallback={actionCallback} />
+  <InviteLink />
+</div>

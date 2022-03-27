@@ -21,16 +21,24 @@ function changeRoomSettings() {
 
 <h3>Room settings</h3>
 <form on:submit|preventDefault={changeRoomSettings}>
-  <GameTypeSwitcher gameType={gamestate.gameType} changeGameTypeCallback={changeRoomSettingsCallback} />
+  <GameTypeSwitcher gameType={gamestate.gameType} changeGameTypeCallback={changeRoomSettingsCallback} isHost={gamestate.isHost} />
   <div class="form-field">
     <label for="roomName">Room name:</label>
-    <input id="roomName" type="text" bind:value={roomName} />
+    {#if gamestate.isHost}
+      <input id="roomName" type="text" bind:value={roomName} />
+    {:else}
+      <input id="roomName" type="text" disabled value={gamestate.roomName} />
+    {/if}
   </div>
   <div class="form-field">
     <label for="public">List publicly:
-      <input id="public" type="checkbox" bind:checked={isPrivate} />
+      {#if gamestate.isHost}
+        <input id="public" type="checkbox" bind:checked={isPrivate} />
+      {:else}
+        <input id="public" type="checkbox" disabled checked={!gamestate.isPrivate} />
+      {/if}
     </label>
-    <input type="submit" class="big-button" value="UPDATE SETTINGS" />
+    <input type="submit" class="big-button" disabled={!gamestate.isHost} value="UPDATE SETTINGS" />
   </div>
 </form>
 

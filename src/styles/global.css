@@ -3,6 +3,7 @@
   --bg-2: #113;
   --bg-3: #111;
   --bg-4: #000;
+  --bg-5: #666;
   --text-1: #ccc;
   --text-2: #ddd;
   --text-3: #bbb;
@@ -42,7 +43,6 @@ div,
 form {
   display: flex;
   flex-flow: column;
-  max-width: 100%;
 }
 
 div {
@@ -51,6 +51,7 @@ div {
 
 form {
   align-items: stretch;
+  align-self: stretch;
 }
 
 h1 {
@@ -70,10 +71,11 @@ h2 {
 h3 {
   font-family: var(--font-subtitle);
   font-size: 1.4rem;
-  margin: 0.6rem;
+  margin: 0.6rem 0 0.5rem;
 }
 
-input[type=text] {
+input[type=text],
+input[type=number] {
   min-width: 0;
   padding: 0.25rem;
   border: 2px solid var(--text-3);
@@ -126,7 +128,7 @@ a {
 }
 
 .big-button {
-  padding: 0.25rem 0.5rem;
+  padding: 0.18rem 0.5rem;
   margin-top: 1rem;
   justify-self: last baseline;
   border: 2px solid var(--text-3);
@@ -150,6 +152,14 @@ a {
   background-color: var(--accent-3);
   transition: color 0.05s ease-in-out;
   transition: background-color 0.05s ease-in-out;
+}
+
+input:disabled,
+input:disabled:active,
+select:disabled {
+  color: var(--text-3);
+  background-color: var(--bg-5);
+  cursor: not-allowed;
 }
 
 .form-field {
