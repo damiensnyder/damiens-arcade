@@ -3,11 +3,11 @@ import { GameType, type Viewpoint } from "./types";
 import type { ActionCallback } from "./types";
 
 export let gameType: GameType;
-export let changeGameTypeCallback: ActionCallback;
+export let callback: ActionCallback;
 export let gamestate: Viewpoint;
 
 function changeGameType() {
-  changeGameTypeCallback({
+  callback({
     type: "changeGameType",
     newGameType: gameType
   });

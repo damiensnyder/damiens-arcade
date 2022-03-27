@@ -1,10 +1,10 @@
 <script lang="ts">
   import type { ActionCallback } from "$lib/types";
   import { Side } from "$lib/auction-tic-tac-toe/types";
-  import type { AuctionTTTViewpoint } from "$lib/auction-tic-tac-toe/types";
+  import type { PregameViewpoint } from "$lib/auction-tic-tac-toe/types";
   import PlayerJoiner from "./player-joiner.svelte";
 
-  export let gamestate: AuctionTTTViewpoint;
+  export let gamestate: PregameViewpoint;
   export let callback: ActionCallback;
 
   $: canStartGame = gamestate.host === gamestate.pov &&

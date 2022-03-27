@@ -34,9 +34,9 @@ const socketCallback: ActionCallback = (action: Action) => {
 
 {#if connected && gamestate != null}
   {#if gamestate.gameType === GameType.NoGameSelected}
-    <NoGameSelected gamestate={gamestate} socketCallback={socketCallback} />
+    <NoGameSelected gamestate={gamestate} callback={socketCallback} />
   {:else if gamestate.gameType === GameType.AuctionTTT}
-    <AuctionTicTacToe gamestate={gamestate} socketCallback={socketCallback} />
+    <AuctionTicTacToe gamestate={gamestate} callback={socketCallback} />
   {/if}
 {:else}
   <h1>Damien's Arcade</h1>

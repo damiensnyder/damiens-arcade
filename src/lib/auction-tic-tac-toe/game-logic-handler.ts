@@ -23,6 +23,10 @@ const leaveSchema = object({
   type: string().required().equals(["leave"])
 });
 
+const startGameSchema = object({
+  type: string().required().equals(["startGame"])
+});
+
 export default class AuctionTicTacToe extends GameLogicHandlerBase {
   settings: Settings
   gameType: GameType.AuctionTTT
@@ -70,6 +74,22 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
           this.emitGamestateToAll();
         }
       });
+    } else if (startGameSchema.isValidSync(action) &&
+        this.gameStatus === "pregame" &&
+        this.room.host === viewer.index &&
+        this.players.every((player) => player.controller !== undefined)) {
+      this.gameStatus = "midgame";
+      this.players.forEach((player) => player.money = this.settings.startingMoney);
+      this.whoseTurnToNominate = this.settings.startingPlayer;
+      if (this.whoseTurnToNominate === Side.None) {
+        this.whoseTurnToNominate = Math.random() > 0.5 ? Side.X : Side.O;
+      }
+      this.squares = [
+        [Side.None, Side.None, Side.None],
+        [Side.None, Side.None, Side.None],
+        [Side.None, Side.None, Side.None]
+      ];
+      this.emitGamestateToAll();
     } else {
       console.debug(action);
     }

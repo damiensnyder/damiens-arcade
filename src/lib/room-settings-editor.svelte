@@ -3,13 +3,13 @@ import GameTypeSwitcher from "$lib/game-type-switcher.svelte";
 import type { ActionCallback, Viewpoint } from "./types";
 
 export let gamestate: Viewpoint;
-export let changeRoomSettingsCallback: ActionCallback;
+export let callback: ActionCallback;
 
 let roomName = gamestate.roomName;
 let isPrivate = !gamestate.isPrivate;
 
 function changeRoomSettings() {
-  changeRoomSettingsCallback({
+  callback({
     type: "changeRoomSettings",
     settings: {
       roomName: roomName,
@@ -21,7 +21,7 @@ function changeRoomSettings() {
 
 <h3>Room Settings</h3>
 <form on:submit|preventDefault={changeRoomSettings}>
-  <GameTypeSwitcher gameType={gamestate.gameType} changeGameTypeCallback={changeRoomSettingsCallback} gamestate={gamestate} />
+  <GameTypeSwitcher gameType={gamestate.gameType} callback={callback} gamestate={gamestate} />
   <div class="form-field">
     <label for="roomName">Room name:</label>
     {#if gamestate.host === gamestate.pov}

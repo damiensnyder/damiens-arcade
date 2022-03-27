@@ -1,16 +1,16 @@
 <script lang="ts">
-import type { AuctionTTTViewpoint } from "$lib/auction-tic-tac-toe/types";
+import type { PregameViewpoint } from "$lib/auction-tic-tac-toe/types";
 import { Side } from "$lib/auction-tic-tac-toe/types";
 import type { ActionCallback } from "$lib/types";
 
-export let gamestate: AuctionTTTViewpoint;
-export let changeGameSettingsCallback: ActionCallback;
+export let gamestate: PregameViewpoint;
+export let callback: ActionCallback;
 
 let startingMoney = gamestate.settings.startingMoney;
 let startingPlayer = gamestate.settings.startingPlayer;
 
 function changeGameSettings() {
-  changeGameSettingsCallback({
+  callback({
     type: "changeGameSettings",
     settings: {
       startingMoney: startingMoney,

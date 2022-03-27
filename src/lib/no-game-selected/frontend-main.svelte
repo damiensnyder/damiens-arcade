@@ -5,11 +5,11 @@
   import type { NoneViewpoint } from "$lib/no-game-selected/types";
   
   export let gamestate: NoneViewpoint;
-  export let socketCallback: ActionCallback;
+  export let callback: ActionCallback;
 </script>
 
 <h1>Damien's Arcade</h1>
 <div class="top-level-menu">
-  <RoomSettingsEditor gamestate={gamestate} changeRoomSettingsCallback={socketCallback} />
+  <RoomSettingsEditor gamestate={gamestate} callback={callback} />
   <InviteLink />
 </div>
