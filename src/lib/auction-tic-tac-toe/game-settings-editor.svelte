@@ -45,10 +45,11 @@ function changeGameSettings() {
         {/each}
       </select>
     {/if}
-    <input type="submit"
-        class="big-button"
-        value="UPDATE SETTINGS"
-        disabled={!gamestate.isHost} />
+    {#if gamestate.isHost}
+      <input type="submit"
+          class="big-button"
+          value="UPDATE SETTINGS" />
+    {/if}
   </div>
 </form>
 
@@ -59,9 +60,5 @@ function changeGameSettings() {
 
   input[type=number] {
     margin-right: 0;
-  }
-  
-  .big-button {
-    margin: 0;
   }
 </style>

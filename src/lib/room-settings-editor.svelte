@@ -38,7 +38,9 @@ function changeRoomSettings() {
         <input id="public" type="checkbox" disabled checked={!gamestate.isPrivate} />
       {/if}
     </label>
-    <input type="submit" class="big-button" disabled={!gamestate.isHost} value="UPDATE SETTINGS" />
+    {#if gamestate.isHost}
+      <input type="submit" class="big-button" value="UPDATE SETTINGS" />
+    {/if}
   </div>
 </form>
 
@@ -57,9 +59,5 @@ function changeRoomSettings() {
 
   input[type=text] {
     margin-right: 0;
-  }
-  
-  .big-button {
-    margin: 0;
   }
 </style>
