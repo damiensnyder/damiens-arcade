@@ -1,16 +1,18 @@
 <script lang="ts">
   import type { ActionCallback } from "$lib/types";
-  import type { AuctionTTTViewpoint } from "./types";
-  import X from "./x.svelte";
-  import O from "./o.svelte";
+  import { Side } from "$lib/auction-tic-tac-toe/types";
+  import type { AuctionTTTViewpoint } from "$lib/auction-tic-tac-toe/types";
+  import X from "$lib/auction-tic-tac-toe/x.svelte";
+  import O from "$lib/auction-tic-tac-toe/o.svelte";
+import PlayerJoiner from "./player-joiner.svelte";
 
   export let gamestate: AuctionTTTViewpoint;
   export let callback: ActionCallback;
 </script>
 
 <div class="player-select">
-  <X />
-  <O />
+  <PlayerJoiner gamestate={gamestate} callback={callback} side={Side.X} />
+  <PlayerJoiner gamestate={gamestate} callback={callback} side={Side.O} />
 </div>
 
 <style>

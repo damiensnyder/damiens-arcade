@@ -43,6 +43,10 @@ function changeRoomSettings() {
 </form>
 
 <style>
+  h3 {
+    margin-top: 0;
+  }
+
   .form-field {
     margin: 0.25rem 0;
   }

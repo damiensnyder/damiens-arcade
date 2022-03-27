@@ -65,7 +65,7 @@ interface ChangeGameSettingsAction {
 }
 
 interface JoinAction {
-  type: "nominate",
+  type: "join",
   side: Side.X | Side.O
 }
 
