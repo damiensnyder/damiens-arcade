@@ -6,9 +6,11 @@
   
   export let gamestate: NoneViewpoint;
   export let socketCallback: ActionCallback;
-  </script>
-  
+</script>
+
+<div class="top-level-menu">
   {#if gamestate.isHost}
     <RoomSettingsEditor gamestate={gamestate} changeRoomSettingsCallback={socketCallback} />
   {/if}
   <InviteLink />
+</div>

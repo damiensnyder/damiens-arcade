@@ -44,7 +44,7 @@
           minlength="4"
           on:change={handleChange}
           bind:value={$form.roomCode}>
-      <button class="big-button" type="submit">Join</button>
+      <input class="big-button" type="submit" value="JOIN">
     </div>
   </form>
 </div>
@@ -74,16 +74,5 @@
 
   .big-button {
     margin-top: 0;
-  }
-
-  input {
-    flex: 1 1 auto;
-    flex-basis: 10px;
-    margin: 0 0.5rem;
-    padding: 0.2rem;
-  }
-
-  form {
-    max-width: 100%;
   }
 </style>

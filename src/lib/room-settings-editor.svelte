@@ -6,14 +6,14 @@ export let gamestate: Viewpoint;
 export let changeRoomSettingsCallback: ActionCallback;
 
 let roomName = gamestate.roomName;
-let isPrivate = gamestate.isPrivate;
+let isPrivate = !gamestate.isPrivate;
 
 function changeRoomSettings() {
   changeRoomSettingsCallback({
     type: "changeRoomSettings",
     settings: {
       roomName: roomName,
-      isPrivate: isPrivate
+      isPrivate: !isPrivate
     }
   });
 }
@@ -22,7 +22,7 @@ function changeRoomSettings() {
 <h3>Room settings</h3>
 <form on:submit|preventDefault={changeRoomSettings}>
   <GameTypeSwitcher gameType={gamestate.gameType} changeGameTypeCallback={changeRoomSettingsCallback} />
-  <label>Room name: <input bind:value={roomName} /></label>
-  <label>Room is private: <input type="checkbox" bind:checked={isPrivate} /></label>
-  <input type="submit" value="Update settings" />
+  <div class="form-field"><label for="roomName">Room name:</label> <input id="roomName" bind:value={roomName} /></div>
+  <div class="form-field"><label for="public">List publicly:</label> <input id="public" type="checkbox" bind:checked={isPrivate} /></div>
+  <input type="submit" class="big-button" value="Update settings" />
 </form>

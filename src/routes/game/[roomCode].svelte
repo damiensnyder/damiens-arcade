@@ -5,6 +5,7 @@ import { GameType } from "$lib/types";
 import type { Action, ActionCallback, Viewpoint } from "$lib/types";
 import AuctionTicTacToe from "$lib/auction-tic-tac-toe/frontend-main.svelte";
 import NoGameSelected from "$lib/no-game-selected/frontend-main.svelte";
+import "../../styles/global.css";
 
 const relativeUrl = $page.url.pathname;
 const socket = io(relativeUrl);

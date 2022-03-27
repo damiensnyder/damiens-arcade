@@ -20,6 +20,6 @@
   <h2>Create a game</h2>
 
   <form on:submit={handleSubmit}>
-    <button class="big-button" type="submit">CREATE</button>
+    <input class="big-button" type="submit" value="CREATE">
   </form>
 </div>

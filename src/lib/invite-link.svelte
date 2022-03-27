@@ -10,4 +10,4 @@
 
 <h3>Invite a friend</h3>
 <input value={absoluteUrl} readonly />
-<button on:click={copyInviteLink}>Copy</button>
+<button class="big-button" on:click={copyInviteLink}>COPY</button>
