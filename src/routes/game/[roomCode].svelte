@@ -38,5 +38,6 @@ const socketCallback: ActionCallback = (action: Action) => {
     <AuctionTicTacToe gamestate={gamestate} socketCallback={socketCallback} />
   {/if}
 {:else}
-  <p>connecting...</p>
+  <h1>Damien's Arcade</h1>
+  <p>Connecting to game...</p>
 {/if}

@@ -12,7 +12,7 @@
   }
 </script>
 
-<h3>Invite a friend</h3>
+<h3>Invite a Friend</h3>
 <div class="form-field">
   <input type="text" value={absoluteUrl} on:focus={highlightText} readonly />
   <button class="big-button" on:click={copyInviteLink}>COPY</button>

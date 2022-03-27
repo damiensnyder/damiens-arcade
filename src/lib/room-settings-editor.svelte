@@ -19,7 +19,7 @@ function changeRoomSettings() {
 }
 </script>
 
-<h3>Room settings</h3>
+<h3>Room Settings</h3>
 <form on:submit|preventDefault={changeRoomSettings}>
   <GameTypeSwitcher gameType={gamestate.gameType} changeGameTypeCallback={changeRoomSettingsCallback} isHost={gamestate.isHost} />
   <div class="form-field">

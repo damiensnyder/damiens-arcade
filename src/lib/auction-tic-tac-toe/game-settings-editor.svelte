@@ -20,7 +20,7 @@ function changeGameSettings() {
 }
 </script>
 
-<h3>Game settings</h3>
+<h3>Game Settings</h3>
 <form on:submit|preventDefault={changeGameSettings}>
   <div class="form-field">
     <label for="startingMoney">Starting money:</label>
