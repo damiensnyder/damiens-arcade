@@ -1,4 +1,4 @@
-import type { GameType } from "$lib/types"
+import type { BasicViewpointInfo, GameType } from "$lib/types"
 
 export type NoneGameStatus = "pregame";
 
@@ -7,11 +7,7 @@ export interface NonePublicState {
   gameStatus: "pregame"
 }
 
-export interface NoneViewpoint {
-  roomCode: string
-  roomName: string
-  isPrivate: boolean
-  isHost: boolean
+export interface NoneViewpoint extends BasicViewpointInfo {
   gameStatus: "pregame"
   gameType: GameType.NoGameSelected
 }

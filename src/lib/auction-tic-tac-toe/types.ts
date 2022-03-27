@@ -1,4 +1,4 @@
-import type { GameType } from "$lib/types";
+import type { BasicViewpointInfo, GameType } from "$lib/types";
 
 export type AuctionTTTGameStatus = "pregame" | "midgame" | "postgame"
 
@@ -10,16 +10,16 @@ export interface AuctionTTTPublicState {
 
 export type AuctionTTTViewpoint = PregameViewpoint | MidgameViewpoint | PostgameViewpoint;
 
-interface ViewpointBase {
+interface ViewpointBase extends BasicViewpointInfo {
   roomCode: string
   roomName: string
   isPrivate: boolean
-  isHost: boolean
+  host: number
+  pov: number
   gameStatus: AuctionTTTGameStatus
   gameType: GameType.AuctionTTT
   settings: Settings
   players: [Player, Player]
-  pov?: number
 }
 
 export interface PregameViewpoint extends ViewpointBase {

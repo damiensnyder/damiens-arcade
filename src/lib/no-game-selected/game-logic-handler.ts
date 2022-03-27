@@ -1,18 +1,10 @@
 import { GameType } from "$lib/types";
 import type { GameStatus, PublicRoomState, Viewer } from "$lib/types";
-import GameLogicHandlerBase from "../backend/game-logic-handler-base";
-import type GameRoom from "../backend/game-room";
+import type { NoneViewpoint } from "$lib/no-game-selected/types";
+import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
+import type GameRoom from "$lib/backend/game-room";
 
 export interface NonePublicState {
-  gameType: GameType.NoGameSelected
-  gameStatus: "pregame"
-}
-
-export interface NoneViewpoint {
-  roomCode: string
-  roomName: string
-  isPrivate: boolean
-  isHost: boolean
   gameType: GameType.NoGameSelected
   gameStatus: "pregame"
 }

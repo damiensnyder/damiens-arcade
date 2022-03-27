@@ -24,7 +24,7 @@ function changeGameSettings() {
 <form on:submit|preventDefault={changeGameSettings}>
   <div class="form-field">
     <label for="startingMoney">Starting money:</label>
-    {#if gamestate.isHost}
+    {#if gamestate.host === gamestate.pov}
       <input type="number" min={0} bind:value={startingMoney} />
     {:else}
       <input type="number" disabled bind:value={gamestate.settings.startingMoney} />
@@ -32,7 +32,7 @@ function changeGameSettings() {
   </div>
   <div class="form-field">
     <label for="startingPlayer">Starting player:</label>
-    {#if gamestate.isHost}
+    {#if gamestate.host === gamestate.pov}
       <select id="startingPlayer" bind:value={startingPlayer}>
         {#each Object.values(Side) as side}
           <option value={side}>{side === Side.None ? "Random" : side}</option>
@@ -45,7 +45,7 @@ function changeGameSettings() {
         {/each}
       </select>
     {/if}
-    {#if gamestate.isHost}
+    {#if gamestate.host === gamestate.pov}
       <input type="submit"
           class="big-button"
           value="UPDATE SETTINGS" />

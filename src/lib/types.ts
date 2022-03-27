@@ -38,7 +38,7 @@ export interface BasicViewpointInfo {
   roomCode: string
   roomName: string
   isPrivate: boolean
-  isHost: boolean
+  host: number
   pov: number
 }
 

@@ -7,6 +7,11 @@
   export let gamestate: AuctionTTTViewpoint;
   export let callback: ActionCallback;
 
+  $: canStartGame = gamestate.host === gamestate.pov &&
+      gamestate.players.every((player) => {
+    return player.controller !== undefined;
+  })
+
   function startGame() {
     callback({
       type: "startGame"
@@ -19,11 +24,11 @@
     <PlayerJoiner gamestate={gamestate} callback={callback} side={Side.X} />
     <PlayerJoiner gamestate={gamestate} callback={callback} side={Side.O} />
   </div>
-  {#if gamestate.isHost && gamestate.players.length === 2}
+  {#if canStartGame}
     <button class="big-button" on:submit={startGame} on:click={startGame}>
       START
     </button>
-  {:else if gamestate.isHost}
+  {:else if gamestate.host === gamestate.pov}
     <button class="big-button" disabled>
       START
     </button>
