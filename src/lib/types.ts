@@ -1,7 +1,6 @@
 import type { Socket } from "socket.io";
 import type { AuctionTTTAction, AuctionTTTGameStatus, AuctionTTTPublicState, AuctionTTTViewpoint } from "./auction-tic-tac-toe/types";
 import type { NoneGameStatus, NonePublicState, NoneViewpoint } from "./no-game-selected/types";
-import type { RoomAction } from "./backend/game-room";
 import type { TestRoomAction } from "./backend/set-up-test-rooms";
 
 export interface PublicRoomInfo {
@@ -41,6 +40,21 @@ export interface BasicViewpointInfo {
   isPrivate: boolean
   isHost: boolean
 }
+
+interface ChangeGameTypeAction {
+  type: "changeGameType"
+  newGameType: GameType
+}
+
+interface ChangeSettingsAction {
+  type: "changeRoomSettings"
+  settings: {
+    roomName: string
+    isPrivate: boolean
+  }
+}
+
+export type RoomAction = ChangeGameTypeAction | ChangeSettingsAction;
 
 export type Action = RoomAction |
     TestRoomAction |
