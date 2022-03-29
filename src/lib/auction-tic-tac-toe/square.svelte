@@ -19,7 +19,7 @@ import { getPlayerByController } from "./utils";
   {:else if thisSquare === Side.O}
     <O size={80} />
   {:else if getPlayerByController(gs.players, gs.pov).side === gs.whoseTurnToNominate}
-    <button>Nominate me.</button>
+    <button class="nominate">Nominate</button>
   {/if}
 </div>
 
@@ -29,5 +29,25 @@ import { getPlayerByController } from "./utils";
     width: 100%;
     justify-content: center;
     background-color: var(--bg-1);
+  }
+
+  .nominate {
+    height: 70%;
+    width: 70%;
+    border-radius: 0.75rem;
+    color: #668;
+    background-color: #113;
+    box-shadow: 0.5rem 0.5rem 1rem #113,
+        0.5rem -0.5rem 1rem #113,
+        -0.5rem -0.5rem 1rem #113,
+        -0.5rem 0.5rem 1rem #113;
+    border: 0.5rem solid transparent;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  .nominate:hover {
+    opacity: 100%;
+    transition: opacity 0.2s ease-in-out;
   }
 </style>
