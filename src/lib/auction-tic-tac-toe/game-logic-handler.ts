@@ -4,7 +4,7 @@ import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
 import { Side } from "$lib/auction-tic-tac-toe/types";
 import type { AuctionTTTGameStatus, AuctionTTTViewpoint, Player, Settings } from "$lib/auction-tic-tac-toe/types";
-import { number, object, string } from "yup";
+import { array, number, object, string } from "yup";
 
 const changeGameSettingsSchema = object({
   type: string().required().equals(["changeGameSettings"]),
@@ -25,6 +25,34 @@ const leaveSchema = object({
 
 const startGameSchema = object({
   type: string().required().equals(["startGame"])
+});
+
+const nominateSchema = object({
+  type: string().required().equals(["nominate"]),
+  square: array().required().length(2).of(number().min(0).max(2)),
+  startingBid: number().required().min(0)
+});
+
+const bidSchema = object({
+  type: string().required().equals(["bid"]),
+  amount: number().required().min(0)
+});
+
+const passSchema = object({
+  type: string().required().equals(["pass"])
+});
+
+const rematchSchema = object({
+  type: string().required().equals(["rematch"])
+});
+
+const backToSettingsSchema = object({
+  type: string().required().equals(["backToSettings"])
+});
+
+const replacePlayerSchema = object({
+  type: string().required().equals(["replacePlayer"]),
+  side: string().required().oneOf(["X", "O"])
 });
 
 export default class AuctionTicTacToe extends GameLogicHandlerBase {
@@ -90,6 +118,31 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
         [Side.None, Side.None, Side.None]
       ];
       this.emitGamestateToAll();
+    } else if (nominateSchema.isValidSync(action) &&
+        this.gameStatus === "midgame" &&
+        this.squares[action.square[0]][action.square[1]] === Side.None) {
+
+    } else if (bidSchema.isValidSync(action) &&
+        this.gameStatus === "midgame") {
+
+    } else if (passSchema.isValidSync(action) &&
+        this.gameStatus === "midgame") {
+
+    } else if (rematchSchema.isValidSync(action) &&
+        this.gameStatus === "postgame") {
+
+    } else if (backToSettingsSchema.isValidSync(action) &&
+        this.gameStatus === "postgame") {
+
+    } else if (replacePlayerSchema.isValidSync(action) &&
+        this.gameStatus === "midgame" &&
+        this.players.every((player) => player.controller !== viewer.index &&
+        this.players.every((player) => player.side !== action.side || player.controller === undefined))) {
+      this.players.forEach((player) => {
+        if (player.side === action.side) {
+          player.controller = viewer.index;
+        }
+      });
     } else {
       console.debug(action);
     }

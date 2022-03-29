@@ -96,6 +96,11 @@ interface BackToSettingsAction {
   type: "backToSettings"
 }
 
+interface ReplacePlayerAction {
+  type: "replacePlayer"
+  side: Side
+}
+
 export type AuctionTTTAction = ChangeGameSettingsAction |
     JoinAction |
     LeaveAction |
@@ -104,4 +109,5 @@ export type AuctionTTTAction = ChangeGameSettingsAction |
     BidAction |
     PassAction |
     RematchAction |
-    BackToSettingsAction;
+    BackToSettingsAction |
+    ReplacePlayerAction;
