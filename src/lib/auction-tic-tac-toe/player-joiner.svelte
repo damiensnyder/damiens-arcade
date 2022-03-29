@@ -1,22 +1,19 @@
 <script lang="ts">
-  import type { ActionCallback } from "$lib/types";
   import { Side } from "$lib/auction-tic-tac-toe/types";
-  import type { PregameViewpoint } from "$lib/auction-tic-tac-toe/types";
+  import { gamestate, lastAction } from "$lib/stores";
   import X from "./x.svelte";
   import O from "./o.svelte";
 
-  export let gamestate: PregameViewpoint;
-  export let callback: ActionCallback;
   export let side: Side.X | Side.O;
 
-  $: isSide = gamestate.players.every((player) => {
+  $: isSide = $gamestate.players.every((player) => {
     if (player.side === side) {
-      return player.controller === gamestate.pov;
+      return player.controller === $gamestate.pov;
     }
     return true;
   });
-  $: canJoinAsSide = gamestate.players.every((player) => {
-    if (player.controller === gamestate.pov) {
+  $: canJoinAsSide = $gamestate.players.every((player) => {
+    if (player.controller === $gamestate.pov) {
       return false;
     }
     if (player.side === side) {
@@ -26,14 +23,14 @@
   });
 
   function join() {
-    callback({
+    lastAction.set({
       type: "join",
       side: side
     });
   }
 
   function leave() {
-    callback({
+    lastAction.set({
       type: "leave"
     });
   }

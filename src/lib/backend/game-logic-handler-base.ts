@@ -43,9 +43,11 @@ export default class GameLogicHandlerBase {
     return {
       roomCode: this.room.basicRoomInfo.roomCode,
       roomName: this.room.basicRoomInfo.roomName,
-      isPrivate: this.room.basicRoomInfo.isPrivate,
+      isPublic: this.room.basicRoomInfo.isPublic,
       host: this.room.host,
-      pov: viewer.index
+      pov: viewer.index,
+      connected: true,
+      gameType: GameType.NoGameSelected
     };
   }
 

@@ -1,8 +1,9 @@
 <script lang="ts">
 import { page } from "$app/stores";
+import { gamestate, lastAction } from "$lib/stores";
 import { io } from "socket.io-client";
-import { GameType } from "$lib/types";
-import type { Action, ActionCallback, Viewpoint } from "$lib/types";
+import { GameType, type Action } from "$lib/types";
+import type { Viewpoint } from "$lib/types";
 import AuctionTicTacToe from "$lib/auction-tic-tac-toe/frontend-main.svelte";
 import NoGameSelected from "$lib/no-game-selected/frontend-main.svelte";
 import "../../styles/global.css";
@@ -10,33 +11,36 @@ import "../../styles/global.css";
 const relativeUrl = $page.url.pathname;
 const socket = io(relativeUrl);
 
-let connected = false;
-let gamestate: Viewpoint = null;
-
 socket.on('connect', () => {
-  connected = true;
+  gamestate.update((gs) => {
+    gs.connected = true;
+    return gs;
+  });
 });
 
 socket.on('disconnect', () => {
-  connected = false;
+  gamestate.update((gs) => {
+    gs.connected = false;
+    return gs;
+  });
 });
 
-socket.on('gamestate', (newGamestate) => {
-  gamestate = newGamestate;
-  console.log(gamestate);
+socket.on('gamestate', (newGamestate: Viewpoint) => {
+  gamestate.set(newGamestate);
+  console.log($gamestate);
 });
 
-const socketCallback: ActionCallback = (action: Action) => {
+lastAction.subscribe((action: Action) => {
   socket.emit('action', action);
-  console.log(action);
-}
+  console.log($lastAction);
+});
 </script>
 
-{#if connected && gamestate != null}
-  {#if gamestate.gameType === GameType.NoGameSelected}
-    <NoGameSelected gamestate={gamestate} callback={socketCallback} />
-  {:else if gamestate.gameType === GameType.AuctionTTT}
-    <AuctionTicTacToe gamestate={gamestate} callback={socketCallback} />
+{#if $gamestate.roomCode !== "" }
+  {#if $gamestate.gameType === GameType.NoGameSelected}
+    <NoGameSelected />
+  {:else if $gamestate.gameType === GameType.AuctionTTT}
+    <AuctionTicTacToe />
   {/if}
 {:else}
   <h1>Damien's Arcade</h1>

@@ -6,7 +6,7 @@ import type { TestRoomAction } from "./backend/set-up-test-rooms";
 export interface PublicRoomInfo {
   roomName: string
   roomCode: string
-  isPrivate: boolean
+  isPublic: boolean
   roomState: PublicRoomState
 }
 
@@ -28,19 +28,18 @@ export type PublicRoomState = NonePublicState |
 export type GameStatus = NoneGameStatus |
     AuctionTTTGameStatus;
 
-type NotConnectedViewpoint = null;
-
-export type Viewpoint = NotConnectedViewpoint |
-    NoneViewpoint |
-    AuctionTTTViewpoint;
-
 export interface BasicViewpointInfo {
   roomCode: string
   roomName: string
-  isPrivate: boolean
+  isPublic: boolean
   host: number
   pov: number
+  connected: boolean
+  gameType: GameType
 }
+
+export type Viewpoint = NoneViewpoint |
+    AuctionTTTViewpoint;
 
 interface ChangeGameTypeAction {
   type: "changeGameType"
@@ -51,7 +50,7 @@ interface ChangeSettingsAction {
   type: "changeRoomSettings"
   settings: {
     roomName: string
-    isPrivate: boolean
+    isPublic: boolean
   }
 }
 
@@ -77,3 +76,5 @@ export interface Viewer {
 export type TeardownCallback = (roomCode: string) => void;
 
 export type ActionCallback = (action: Action) => void;
+
+export type GamestateMutator = (viewpoint: Viewpoint) => Viewpoint;

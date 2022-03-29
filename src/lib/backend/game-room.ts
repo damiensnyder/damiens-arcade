@@ -17,7 +17,7 @@ const changeSettingsSchema = object({
   type: string().equals(["changeRoomSettings"]),
   settings: object({
     roomName: string().min(1).required(),
-    isPrivate: boolean().required()
+    isPublic: boolean().required()
   })
 });
 
@@ -43,7 +43,7 @@ export default class GameRoom {
     this.basicRoomInfo = {
       roomCode: roomCode,
       roomName: "Untitled Room",
-      isPrivate: true,
+      isPublic: false,
       roomState: {
         gameType: GameType.NoGameSelected,
         gameStatus: "pregame"
@@ -166,13 +166,13 @@ export default class GameRoom {
         changeSettingsSchema.isValidSync(data);
   }
 
-  changeSettings(newSettings: { roomName: string, isPrivate: boolean }): void {
+  changeSettings(newSettings: { roomName: string, isPublic: boolean }): void {
     newSettings.roomName = newSettings.roomName.trim()
     if (newSettings.roomName.length === 0) {
       newSettings.roomName = "Untitled Room";
     }
     this.basicRoomInfo.roomName = newSettings.roomName;
-    this.basicRoomInfo.isPrivate = newSettings.isPrivate;
+    this.basicRoomInfo.isPublic = newSettings.isPublic;
   }
 
   shouldChangeGameType(viewer: Viewer, data?: any) {

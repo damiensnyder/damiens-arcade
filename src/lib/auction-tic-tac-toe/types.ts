@@ -11,11 +11,6 @@ export interface AuctionTTTPublicState {
 export type AuctionTTTViewpoint = PregameViewpoint | MidgameViewpoint | PostgameViewpoint;
 
 interface ViewpointBase extends BasicViewpointInfo {
-  roomCode: string
-  roomName: string
-  isPrivate: boolean
-  host: number
-  pov: number
   gameStatus: AuctionTTTGameStatus
   gameType: GameType.AuctionTTT
   settings: Settings

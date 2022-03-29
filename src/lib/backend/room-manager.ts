@@ -57,7 +57,7 @@ export default class RoomManager {
 
     for (const [, room] of Object.entries(this.activeRooms)) {
       const roomInfo = room.publicRoomState();
-      if (!roomInfo.isPrivate) {
+      if (roomInfo.isPublic) {
         activeRooms.push(roomInfo);
       }
     }

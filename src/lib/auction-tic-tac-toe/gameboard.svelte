@@ -1,20 +1,12 @@
 <script lang="ts">
-  import type { ActionCallback } from "$lib/types";
-  import type { MidgameViewpoint } from "$lib/auction-tic-tac-toe/types";
-  
-  export let gamestate: MidgameViewpoint;
-  export let callback: ActionCallback;
-  
-  const actionCallback: ActionCallback = (action) => {
-    callback(action);
-  };
+  import { gamestate } from "$lib/stores";
 </script>
 
 <div class="outer">
   {#each [0, 1, 2] as x}
     {#each [0, 1, 2] as y}
       <div class="square">
-        {gamestate.squares[x][y]}
+        {$gamestate.squares[x][y]}
       </div>
     {/each}
   {/each}

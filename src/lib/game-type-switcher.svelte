@@ -1,22 +1,23 @@
 <script lang="ts">
-import { GameType, type Viewpoint } from "./types";
-import type { ActionCallback } from "./types";
+  import { GameType } from "$lib/types";
+  import { gamestate, lastAction } from "$lib/stores";
 
-export let gameType: GameType;
-export let callback: ActionCallback;
-export let gamestate: Viewpoint;
+  let gameType: GameType = $gamestate.gameType;
 
-function changeGameType() {
-  callback({
-    type: "changeGameType",
-    newGameType: gameType
-  });
-}
+  function changeGameType() {
+    lastAction.set({
+      type: "changeGameType",
+      newGameType: gameType
+    });
+  }
 </script>
 
 <div class="form-field">
   <label for="gameType">Game type:</label>
-  <select id="gameType" disabled={gamestate.host !== gamestate.pov} bind:value={gameType} on:change|preventDefault={changeGameType}>
+  <select id="gameType"
+      disabled={$gamestate.host !== $gamestate.pov}
+      bind:value={gameType}
+      on:change|preventDefault={changeGameType}>
     {#each Object.values(GameType) as gameTypeName}
       <option value={gameTypeName}>{gameTypeName}</option>
     {/each}

@@ -1,19 +1,16 @@
 <script lang="ts">
 import GameTypeSwitcher from "$lib/game-type-switcher.svelte";
-import type { ActionCallback, Viewpoint } from "./types";
+import { gamestate, lastAction } from "$lib/stores";
 
-export let gamestate: Viewpoint;
-export let callback: ActionCallback;
-
-let roomName = gamestate.roomName;
-let isPrivate = !gamestate.isPrivate;
+let roomName = $gamestate.roomName;
+let isPublic = $gamestate.isPublic;
 
 function changeRoomSettings() {
-  callback({
+  lastAction.set({
     type: "changeRoomSettings",
     settings: {
       roomName: roomName,
-      isPrivate: !isPrivate
+      isPublic: isPublic
     }
   });
 }
@@ -21,24 +18,24 @@ function changeRoomSettings() {
 
 <h3>Room Settings</h3>
 <form on:submit|preventDefault={changeRoomSettings}>
-  <GameTypeSwitcher gameType={gamestate.gameType} callback={callback} gamestate={gamestate} />
+  <GameTypeSwitcher />
   <div class="form-field">
     <label for="roomName">Room name:</label>
-    {#if gamestate.host === gamestate.pov}
+    {#if $gamestate.host === $gamestate.pov}
       <input id="roomName" type="text" bind:value={roomName} />
     {:else}
-      <input id="roomName" type="text" disabled value={gamestate.roomName} />
+      <input id="roomName" type="text" disabled value={$gamestate.roomName} />
     {/if}
   </div>
   <div class="form-field">
     <label for="public">List publicly:
-      {#if gamestate.host === gamestate.pov}
-        <input id="public" type="checkbox" bind:checked={isPrivate} />
+      {#if $gamestate.host === $gamestate.pov}
+        <input id="public" type="checkbox" bind:checked={isPublic} />
       {:else}
-        <input id="public" type="checkbox" disabled checked={!gamestate.isPrivate} />
+        <input id="public" type="checkbox" disabled checked={$gamestate.isPublic} />
       {/if}
     </label>
-    {#if gamestate.host === gamestate.pov}
+    {#if $gamestate.host === $gamestate.pov}
       <input type="submit" class="big-button" value="UPDATE SETTINGS" />
     {/if}
   </div>
