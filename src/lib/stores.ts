@@ -1,6 +1,8 @@
 import { writable } from 'svelte/store';
 import { GameType } from '$lib/types';
 import type { Action, GamestateMutator, Viewpoint } from '$lib/types';
+import type { AuctionTTTViewpoint } from './auction-tic-tac-toe/types';
+import type { NoneViewpoint } from './no-game-selected/types';
 
 function createGamestate() {
 	const { subscribe, set, update } = writable({
@@ -11,7 +13,7 @@ function createGamestate() {
 		pov: -1,
     gameType: GameType.NoGameSelected,
     connected: false,
-  } as Viewpoint | any);
+  } as any);
 
 	return {
 		subscribe,
