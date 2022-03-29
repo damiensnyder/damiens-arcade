@@ -4,6 +4,7 @@ import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
 import { Side } from "$lib/auction-tic-tac-toe/types";
 import type { AuctionTTTGameStatus, AuctionTTTViewpoint, Player, Settings } from "$lib/auction-tic-tac-toe/types";
+import { getPlayerBySide, getPlayerByController, oppositeSideOf, winningSide } from "$lib/auction-tic-tac-toe/utils";
 import { array, number, object, string } from "yup";
 
 const changeGameSettingsSchema = object({
@@ -82,7 +83,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
   }
 
   handleAction(viewer: Viewer, action?: any): void {
-    const playerControlledByViewer = this.getPlayerByViewer(viewer);
+    const playerControlledByViewer = getPlayerByController(this.players, viewer.index);
     const sideControlledByViewer =
         playerControlledByViewer === null ?
         Side.None :
@@ -94,21 +95,14 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       this.settings = action.settings as Settings;
       this.emitGamestateToAll();
     } else if (joinSchema.isValidSync(action) &&
-        this.players.every((player) => player.controller !== viewer.index)) {
-      this.players.forEach((player) => {
-        if (player.side === action.side) {
-          player.controller = viewer.index;
-          this.emitGamestateToAll();
-        }
-      });
+        playerControlledByViewer === null) {
+      getPlayerBySide(this.players, action.side as Side).controller = viewer.index;
+      this.emitGamestateToAll();
     } else if (leaveSchema.isValidSync(action) &&
-        this.gameStatus === "pregame") {
-      this.players.forEach((player) => {
-        if (player.controller === viewer.index) {
-          delete player.controller;
-          this.emitGamestateToAll();
-        }
-      });
+        this.gameStatus === "pregame" &&
+        playerControlledByViewer !== null) {
+      delete playerControlledByViewer.controller;
+      this.emitGamestateToAll();
     } else if (startGameSchema.isValidSync(action) &&
         this.gameStatus === "pregame" &&
         isHost &&
@@ -121,9 +115,10 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
         sideControlledByViewer === this.whoseTurnToNominate &&
         action.startingBid <= playerControlledByViewer.money &&
         action.startingBid >= 0) {
+      this.currentlyNominatedSquare = action.square as [number, number];
       this.lastBid = action.startingBid;
-      this.whoseTurnToBid = oppositeSideOf(this.whoseTurnToNominate);
-      if (this.lastBid >= this.getPlayerBySide(this.whoseTurnToBid).money) {
+      this.whoseTurnToBid = oppositeSideOf(sideControlledByViewer);
+      if (this.lastBid >= getPlayerBySide(this.players, this.whoseTurnToBid).money) {
         this.giveSquareToHighestBidder();
       }
       this.emitGamestateToAll();
@@ -133,8 +128,8 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
         action.amount <= playerControlledByViewer.money &&
         action.amount > this.lastBid) {
       this.lastBid = action.amount;
-      this.whoseTurnToBid = oppositeSideOf(this.whoseTurnToBid);
-      if (this.lastBid >= this.getPlayerBySide(this.whoseTurnToBid).money) {
+      this.whoseTurnToBid = oppositeSideOf(sideControlledByViewer);
+      if (this.lastBid >= getPlayerBySide(this.players, this.whoseTurnToBid).money) {
         this.giveSquareToHighestBidder();
       }
       this.emitGamestateToAll();
@@ -156,38 +151,24 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       this.emitGamestateToAll();
     } else if (replacePlayerSchema.isValidSync(action) &&
         this.gameStatus === "midgame" &&
-        this.getPlayerByViewer(viewer) === null &&
-        this.getPlayerBySide(action.side as Side).controller === undefined) {
-      this.getPlayerBySide(action.side as Side).controller = viewer.index;
+        playerControlledByViewer === null &&
+        getPlayerBySide(this.players, action.side as Side).controller === undefined) {
+      getPlayerBySide(this.players, action.side as Side).controller = viewer.index;
       this.emitGamestateToAll();
     } else {
       console.debug(action);
     }
   }
 
-  getPlayerBySide(side: Side): Player | null {
-    for (const player of this.players) {
-      if (player.side === side) return player;
-    }
-    return null;
-  }
-
-  getPlayerByViewer(viewer: Viewer): Player | null {
-    for (const player of this.players) {
-      if (player.controller === viewer.index) return player;
-    }
-    return null;
-  }
-
   giveSquareToHighestBidder(): void {
     const sideWhoLastBid = oppositeSideOf(this.whoseTurnToBid);
     this.squares[this.currentlyNominatedSquare[0]][this.currentlyNominatedSquare[1]] = sideWhoLastBid;
-    this.getPlayerBySide(sideWhoLastBid).money -= this.lastBid;
+    getPlayerBySide(this.players, sideWhoLastBid).money -= this.lastBid;
     delete this.lastBid;
     delete this.whoseTurnToBid;
     this.checkForWinner();
     if (this.gameStatus === "midgame") {
-      this.whoseTurnToNominate = this.whoseTurnToNominate === Side.X ? Side.O : Side.X;
+      this.whoseTurnToNominate = oppositeSideOf(this.whoseTurnToNominate);
     }
   }
 
@@ -206,28 +187,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
   }
 
   checkForWinner(): void {
-    let winningSide = Side.None;
-    for (const side of [Side.X, Side.O]) {
-      for (let i = 0; i < 3; i++) {
-        if ((this.squares[i][0] === side &&
-             this.squares[i][1] === side &&
-             this.squares[i][2] === side) ||
-            (this.squares[0][i] === side &&
-             this.squares[1][i] === side &&
-             this.squares[2][i] === side)) {
-          winningSide = side;
-        }
-      }
-      if ((this.squares[0][0] === side &&
-           this.squares[1][1] === side &&
-           this.squares[2][2] === side) ||
-          (this.squares[2][0] === side &&
-           this.squares[1][1] === side &&
-           this.squares[0][2] === side)) {
-        winningSide = side;
-      }
-    }
-    if (winningSide !== Side.None) {
+    if (winningSide(this.squares) !== Side.None) {
       this.gameStatus = "postgame";
       delete this.whoseTurnToBid;
       delete this.whoseTurnToNominate;
@@ -287,8 +247,4 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       numPlayers: this.players.length
     };
   }
-}
-
-function oppositeSideOf(side: Side): Side {
-  return side === Side.X ? Side.O : Side.X;
 }
