@@ -5,6 +5,7 @@
   import PlayerSelect from "./player-select.svelte";
 </script>
   
+<h1>Damien's Arcade</h1>
 <div class="top-level-menu">
   <div>
     <RoomSettingsEditor />

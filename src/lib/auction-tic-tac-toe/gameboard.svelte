@@ -15,8 +15,8 @@
 <style>
   .outer {
     display: grid;
-    grid-template-rows: repeat(3, 8rem);
-    grid-template-columns: repeat(3, 8rem);
+    grid-template-rows: repeat(3, 9rem);
+    grid-template-columns: repeat(3, 9rem);
     gap: 2px;
     background-color: var(--text-1);
   }

@@ -4,7 +4,6 @@ import Midgame from "$lib/auction-tic-tac-toe/midgame.svelte";
 import { gamestate } from "$lib/stores";
 </script>
 
-<h1>Damien's Arcade</h1>
 {#if $gamestate.gameStatus === "pregame"}
   <Pregame />
 {:else if $gamestate.gameStatus === "midgame"}
