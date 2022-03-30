@@ -113,6 +113,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
         this.gameStatus === "midgame" &&
         this.squares[action.square[0]][action.square[1]] === Side.None &&
         sideControlledByViewer === this.whoseTurnToNominate &&
+        this.lastBid === undefined &&
         action.startingBid <= playerControlledByViewer.money &&
         action.startingBid >= 0) {
       this.currentlyNominatedSquare = action.square as [number, number];
