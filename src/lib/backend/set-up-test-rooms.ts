@@ -1,36 +1,49 @@
 import type RoomManager from "./room-manager";
 import { readFileSync } from "fs";
-import type { PacketType, PublicRoomInfo } from "$lib/types";
+import { PacketType, type Action, type Viewer } from "$lib/types";
 import type { Socket } from "socket.io";
 
-export interface TestRoomAction {
-  type: string,
-  data?: any,
-  viewerIndex: number
+interface ConnectAction {
+  type: PacketType.Connect
 }
 
-interface TestRoomScript extends PublicRoomInfo {
-  actions: TestRoomAction[]
+interface DisconnectAction {
+  type: PacketType.Disconnect
+}
+
+export type TestRoomAction = ConnectAction | DisconnectAction;
+
+interface HasViewerIndex {
+  index: number
+}
+
+type ActionWithIndex = Action & HasViewerIndex;
+
+interface TestRoomScript {
+  actions: ActionWithIndex[]
 }
 
 export default function setUpTestRooms(roomManager: RoomManager) {
   const testFileText = readFileSync("src/lib/backend/test-rooms.json").toString();
   const roomScripts: TestRoomScript[] = JSON.parse(testFileText)['rooms'];
   for (const roomScript of roomScripts) {
-    const { roomCode } = roomManager.createRoom();
+    const roomCode = roomManager.createRoom().roomCode;
     const room = roomManager.activeRooms[roomCode];
-    room.host = -1;
+
     for (const action of roomScript.actions) {
-      room.enqueuePacket(
-        {
-          index: action.viewerIndex,
-          socket: new FakeSocket() as unknown as Socket
-        },
-        action.type as PacketType,
-        action.data
-      );
+      const fakeViewer: Viewer = {
+        index: -1 * action.index,
+        socket: new FakeSocket() as unknown as Socket
+      };
+      if (action.type === PacketType.Connect) {
+        room.viewers.push(fakeViewer);
+        room.enqueuePacket(fakeViewer, action.type);
+      } else if (action.type === PacketType.Disconnect) {
+        room.enqueuePacket(fakeViewer, action.type);
+      } else {
+        room.enqueuePacket(fakeViewer, PacketType.Action, action as Action);
+      }
     }
-    room.host = null;
   }
 }
 

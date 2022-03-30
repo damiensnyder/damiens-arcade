@@ -1,7 +1,51 @@
 {
   "rooms": [
     {
-      "actions": []
+      "actions": [
+        {
+          "type": "connect",
+          "index": 1
+        },
+        {
+          "type": "connect",
+          "index": 2
+        },
+        {
+          "type": "changeRoomSettings",
+          "settings": {
+            "roomName": "started",
+            "isPublic": true
+          },
+          "index": 1
+        },
+        {
+          "type": "changeGameType",
+          "newGameType": "Auction Tic-Tac-Toe",
+          "index": 1
+        },
+        {
+          "type": "join",
+          "side": "X",
+          "index": 1
+        },
+        {
+          "type": "join",
+          "side": "O",
+          "index": 2
+        },
+        {
+          "type": "startGame",
+          "index": 1
+        },
+        {
+          "type": "disconnect",
+          "index": 1
+        },
+        {
+          "type": "disconnect",
+          "index": 2
+        }
+      ]
     }
   ]
 }

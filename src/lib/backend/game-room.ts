@@ -117,14 +117,14 @@ export default class GameRoom {
         this.gameLogicHandler.handleAction(viewer, data);
       }
     } else if (type === PacketType.Connect) {
-      // if someone connects and no one else is in the room, make them the host
-      if (this.viewers.length === 1) {
+      // if someone connects and there is no host, make them the host
+      if (this.host == null) {
         this.host = viewer.index;
       }
       this.gameLogicHandler.handleConnect(viewer);
     } else if (type === PacketType.Disconnect) {
       // remove the viewer from this list of viewers
-      this.viewers = this.viewers.filter((v) => v !== viewer);
+      this.viewers = this.viewers.filter((v) => v.index !== viewer.index);
       // if the player disconnecting was the host, pick a new host if possible
       const wasHost = this.host === viewer.index;
       if (wasHost) {
