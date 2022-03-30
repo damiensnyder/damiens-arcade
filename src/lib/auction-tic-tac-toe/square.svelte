@@ -4,7 +4,7 @@
   import type { MidgameViewpoint } from "$lib/auction-tic-tac-toe/types";
   import X from "$lib/auction-tic-tac-toe/x.svelte";
   import O from "$lib/auction-tic-tac-toe/o.svelte";
-  import { getPlayerByController } from "./utils";
+  import { getPlayerByController } from "$lib/auction-tic-tac-toe/utils";
 
   export let x: number;
   export let y: number;
@@ -13,7 +13,7 @@
   
   $: gs = $gamestate as MidgameViewpoint;
   $: thisSquare = gs.squares[x][y];
-  
+
   function beginNominate() {
     gamestate.update((oldGs) => {
       return {
