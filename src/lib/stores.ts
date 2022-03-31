@@ -1,8 +1,6 @@
 import { writable } from 'svelte/store';
 import { GameType } from '$lib/types';
 import type { Action, GamestateMutator, Viewpoint } from '$lib/types';
-import type { AuctionTTTViewpoint } from './auction-tic-tac-toe/types';
-import type { NoneViewpoint } from './no-game-selected/types';
 
 function createGamestate() {
 	const { subscribe, set, update } = writable({
@@ -18,7 +16,13 @@ function createGamestate() {
 	return {
 		subscribe,
     update: (mutator: GamestateMutator) => update(mutator),
-		set: (newGamestate: Viewpoint) => set(newGamestate)
+		set: (newGamestate: Viewpoint) => {
+			if (newGamestate.gameType === GameType.AuctionTTT &&
+					newGamestate.gameStatus === "midgame") {
+				newGamestate.currentBid = (newGamestate.lastBid || -1) + 1;
+			}
+			set(newGamestate);
+		}
 	};
 }
 

@@ -8,8 +8,6 @@
 
   export let x: number;
   export let y: number;
-
-  let bidAmount: number = 0;
   
   $: gs = $gamestate as MidgameViewpoint;
   $: thisSquare = gs.squares[x][y];
@@ -17,16 +15,18 @@
   function beginNominate() {
     gamestate.update((oldGs) => {
       return {
-        currentlyNominatedSquare: [x, y],
-        ...oldGs
+        ...oldGs,
+        nominating: [x, y],
+        currentBid: 0
       };
     });
   }
   
   function cancel() {
     gamestate.update((oldGs: MidgameViewpoint) => {
-      delete oldGs.currentlyNominatedSquare;
-      return oldGs
+      delete oldGs.nominating;
+      delete oldGs.currentBid;
+      return oldGs;
     });
   }
 
@@ -34,14 +34,14 @@
     lastAction.set({
       type: "nominate",
       square: [x, y],
-      startingBid: bidAmount
+      startingBid: gs.currentBid
     });
   }
 
   function bid() {
     lastAction.set({
       type: "bid",
-      amount: bidAmount
+      amount: gs.currentBid
     });
   }
 </script>
@@ -51,45 +51,43 @@
     <X size={80} />
   {:else if thisSquare === Side.O}
     <O size={80} />
-  {:else if gs.currentlyNominatedSquare && gs.currentlyNominatedSquare[0] === x && gs.currentlyNominatedSquare[1] === y}
-    {#if gs.lastBid === undefined}
-      <div>
-        <p>Starting bid:</p>
-        <div class="form-field">
-          <input type="number"
-              min={0}
-              max={getPlayerByController(gs.players, gs.pov).money}
-              bind:value={bidAmount}>
-          <input type="submit"
-              class="big-button"
-              value="BID"
-              on:submit={nominate}
-              on:click={nominate}>
-        </div>
-        <div class="form-field">
-          <input type="submit"
-              class="big-button cancel"
-              value="CANCEL"
-              on:submit={cancel}
-              on:click={cancel}>
-        </div>
+  {:else if gs.currentlyNominatedSquare && gs.currentlyNominatedSquare[0] === x && gs.currentlyNominatedSquare[1] === y && getPlayerByController(gs.players, gs.pov) && getPlayerByController(gs.players, gs.pov).side === gs.whoseTurnToBid}
+    <div>
+      <p>Bid:</p>
+      <div class="form-field">
+        <input type="number"
+        min={gs.lastBid + 1}
+        max={getPlayerByController(gs.players, gs.pov).money}
+        bind:value={gs.currentBid}>
+        <input type="submit"
+        class="big-button"
+        value="BID"
+        on:submit={bid}
+        on:click={bid}>
       </div>
-    {:else}
-      <div>
-        <p>Bid:</p>
-        <div class="form-field">
-          <input type="number"
-          min={gs.lastBid}
+    </div>
+  {:else if gs.nominating && gs.nominating[0] === x && gs.nominating[1] === y}
+  <div>
+    <p>Starting bid:</p>
+    <div class="form-field">
+      <input type="number"
+          min={0}
           max={getPlayerByController(gs.players, gs.pov).money}
-          bind:value={bidAmount}>
-          <input type="submit"
+          bind:value={gs.currentBid}>
+      <input type="submit"
           class="big-button"
           value="BID"
-          on:submit={bid}
-          on:click={bid}>
-        </div>
-      </div>
-    {/if}
+          on:submit={nominate}
+          on:click={nominate}>
+    </div>
+    <div class="form-field">
+      <input type="submit"
+          class="big-button cancel"
+          value="CANCEL"
+          on:submit={cancel}
+          on:click={cancel}>
+    </div>
+  </div>
   {:else if getPlayerByController(gs.players, gs.pov) && getPlayerByController(gs.players, gs.pov).side === gs.whoseTurnToNominate && gs.currentlyNominatedSquare === undefined}
     <button class="nominate"
         on:click={beginNominate}

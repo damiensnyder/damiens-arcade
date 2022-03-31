@@ -28,6 +28,8 @@ export interface MidgameViewpoint extends ViewpointBase {
   lastBid?: number
   squares: Side[][]
   currentlyNominatedSquare?: [number, number]
+  nominating?: [number, number]
+  currentBid?: number
 }
 
 export interface PostgameViewpoint extends ViewpointBase {
