@@ -141,6 +141,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       this.emitGamestateToAll();
     } else if (rematchSchema.isValidSync(action) &&
         this.gameStatus === "postgame" &&
+        this.players.every(player => typeof player.controller === "number") &&
         this.room.host === viewer.index) {
       this.startGame();
       this.emitGamestateToAll();
@@ -151,7 +152,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       delete this.squares;
       this.emitGamestateToAll();
     } else if (replacePlayerSchema.isValidSync(action) &&
-        this.gameStatus === "midgame" &&
+        this.gameStatus !== "pregame" &&
         playerControlledByViewer === null &&
         getPlayerBySide(this.players, action.side as Side).controller === undefined) {
       getPlayerBySide(this.players, action.side as Side).controller = viewer.index;
