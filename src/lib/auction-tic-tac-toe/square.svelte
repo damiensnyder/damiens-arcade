@@ -44,26 +44,39 @@
       amount: gs.currentBid
     });
   }
+
+function pass() {
+  lastAction.set({
+    type: "pass"
+  });
+}
 </script>
 
 <div class="outer">
   {#if thisSquare === Side.X}
-    <X size={80} />
+    <X size={100} />
   {:else if thisSquare === Side.O}
-    <O size={80} />
+    <O size={100} />
   {:else if gs.currentlyNominatedSquare && gs.currentlyNominatedSquare[0] === x && gs.currentlyNominatedSquare[1] === y && getPlayerByController(gs.players, gs.pov) && getPlayerByController(gs.players, gs.pov).side === gs.whoseTurnToBid}
     <div>
       <p>Bid:</p>
       <div class="form-field">
         <input type="number"
-        min={gs.lastBid + 1}
-        max={getPlayerByController(gs.players, gs.pov).money}
-        bind:value={gs.currentBid}>
+            min={gs.lastBid + 1}
+            max={getPlayerByController(gs.players, gs.pov).money}
+            bind:value={gs.currentBid}>
         <input type="submit"
-        class="big-button"
-        value="BID"
-        on:submit={bid}
-        on:click={bid}>
+            class="big-button"
+            value="BID"
+            on:submit={bid}
+            on:click={bid}>
+      </div>
+      <div class="form-field">
+        <input type="submit"
+            class="big-button cancel"
+            value="PASS"
+            on:submit={pass}
+            on:click={pass}>
       </div>
     </div>
   {:else if gs.nominating && gs.nominating[0] === x && gs.nominating[1] === y}
@@ -88,7 +101,7 @@
           on:click={cancel}>
     </div>
   </div>
-  {:else if getPlayerByController(gs.players, gs.pov) && getPlayerByController(gs.players, gs.pov).side === gs.whoseTurnToNominate && gs.currentlyNominatedSquare === undefined}
+  {:else if getPlayerByController(gs.players, gs.pov) && getPlayerByController(gs.players, gs.pov).side === gs.whoseTurnToNominate && gs.nominating === undefined && gs.currentlyNominatedSquare === undefined}
     <button class="nominate"
         on:click={beginNominate}
         on:submit={beginNominate}>

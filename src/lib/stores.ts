@@ -20,6 +20,7 @@ function createGamestate() {
 			if (newGamestate.gameType === GameType.AuctionTTT &&
 					newGamestate.gameStatus === "midgame") {
 				newGamestate.currentBid = (newGamestate.lastBid || -1) + 1;
+				delete newGamestate.nominating;
 			}
 			set(newGamestate);
 		}

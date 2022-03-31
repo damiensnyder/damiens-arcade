@@ -167,6 +167,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
     getPlayerBySide(this.players, sideWhoLastBid).money -= this.lastBid;
     delete this.lastBid;
     delete this.whoseTurnToBid;
+    delete this.currentlyNominatedSquare;
     this.checkForWinner();
     if (this.gameStatus === "midgame") {
       this.whoseTurnToNominate = oppositeSideOf(this.whoseTurnToNominate);
