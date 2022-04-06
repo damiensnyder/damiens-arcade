@@ -1,6 +1,14 @@
 import type { BasicViewpointInfo, GameType } from "$lib/types";
 
-export type AuctionTTTGameStatus = "pregame" | "midgame" | "postgame"
+export type AuctionTTTGameStatus = "pregame" | "midgame" | "postgame";
+
+export enum TurnPart {
+  Bidding,
+  WaitingForBid,
+  Nominating,
+  WaitingForNomination,
+  Postgame
+}
 
 export interface AuctionTTTPublicState {
   gameType: GameType.AuctionTTT
@@ -113,3 +121,62 @@ export type AuctionTTTAction = ChangeGameSettingsAction |
     RematchAction |
     BackToSettingsAction |
     ReplacePlayerAction;
+
+interface ChangeGameSettingsEvent {
+  type: "changeGameSettings"
+  settings: {
+    startingMoney?: number
+    startingPlayer?: Side
+  }
+}
+
+interface JoinEvent {
+  type: "join"
+  controller: number
+  side: Side
+}
+
+interface LeaveEvent {
+  type: "leave"
+  side: Side
+}
+
+interface StartEvent {
+  type: "start"
+  startingPlayer: Side
+}
+
+interface NominateEvent {
+  type: "nominate",
+  square: [number, number],
+  startingBid: number
+}
+
+interface BidEvent {
+  type: "bid",
+  amount: number
+}
+
+interface PassEvent {
+  type: "pass"
+}
+
+interface BackToSettingsEvent {
+  type: "backToSettings"
+}
+
+interface ReplaceEvent {
+  type: "replace"
+  side: Side
+  controller: number
+}
+
+export type AuctionTTTEvent = ChangeGameSettingsEvent |
+    JoinEvent |
+    LeaveEvent |
+    StartEvent |
+    NominateEvent |
+    BidEvent |
+    PassEvent |
+    BackToSettingsEvent |
+    ReplaceEvent;

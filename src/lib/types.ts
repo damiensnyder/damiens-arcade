@@ -1,7 +1,7 @@
 import type { Socket } from "socket.io";
-import type { AuctionTTTAction, AuctionTTTGameStatus, AuctionTTTPublicState, AuctionTTTViewpoint } from "./auction-tic-tac-toe/types";
-import type { NoneGameStatus, NonePublicState, NoneViewpoint } from "./no-game-selected/types";
-import type { TestRoomAction } from "./backend/set-up-test-rooms";
+import type { AuctionTTTAction, AuctionTTTEvent, AuctionTTTGameStatus, AuctionTTTPublicState, AuctionTTTViewpoint } from "$lib/auction-tic-tac-toe/types";
+import type { NoneGameStatus, NonePublicState, NoneViewpoint } from "$lib/no-game-selected/types";
+import type { TestRoomAction } from "$lib/backend/set-up-test-rooms";
 
 export interface PublicRoomInfo {
   roomName: string
@@ -59,6 +59,31 @@ export type RoomAction = ChangeGameTypeAction | ChangeSettingsAction;
 export type Action = RoomAction |
     TestRoomAction |
     AuctionTTTAction;
+
+interface ChangeRoomSettingsEvent {
+  type: "changeRoomSettings"
+  settings: {
+    roomName?: string
+    isPublic?: boolean
+  }
+}
+
+interface ChangeGameTypeEvent {
+  type: "changeGameType"
+  gameType: GameType
+}
+
+interface ChangeHostEvent {
+  type: "changeHost"
+  host: number
+}
+
+type RoomEvent = ChangeRoomSettingsEvent |
+    ChangeGameTypeEvent |
+    ChangeHostEvent;
+
+export type Event = RoomEvent |
+    AuctionTTTEvent;
 
 // The information contained in a packet sent from a viewer
 export interface PacketInfo {

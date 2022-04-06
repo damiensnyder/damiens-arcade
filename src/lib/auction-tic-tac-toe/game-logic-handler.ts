@@ -10,8 +10,8 @@ import { array, number, object, string } from "yup";
 const changeGameSettingsSchema = object({
   type: string().required().equals(["changeGameSettings"]),
   settings: object({
-    startingMoney: number().required().integer().min(0),
-    startingPlayer: string().required().oneOf(Object.values(Side))
+    startingMoney: number().integer().min(0),
+    startingPlayer: string().oneOf(Object.values(Side))
   })
 });
 
@@ -93,22 +93,35 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
     if (this.room.host === viewer.index &&
         changeGameSettingsSchema.isValidSync(action)) {
       this.settings = action.settings as Settings;
-      this.emitGamestateToAll();
+      this.emitEventToAll({
+        type: "changeGameSettings",
+        settings: action.settings as any
+      });
     } else if (joinSchema.isValidSync(action) &&
         playerControlledByViewer === null) {
       getPlayerBySide(this.players, action.side as Side).controller = viewer.index;
-      this.emitGamestateToAll();
+      this.emitEventToAll({
+        type: "join",
+        controller: viewer.index,
+        side: action.side as Side
+      });
     } else if (leaveSchema.isValidSync(action) &&
         this.gameStatus === "pregame" &&
         playerControlledByViewer !== null) {
       delete playerControlledByViewer.controller;
-      this.emitGamestateToAll();
+      this.emitEventToAll({
+        type: "leave",
+        side: playerControlledByViewer.side
+      });
     } else if (startGameSchema.isValidSync(action) &&
         this.gameStatus === "pregame" &&
         isHost &&
         this.players.every((player) => player.controller !== undefined)) {
       this.startGame();
-      this.emitGamestateToAll();
+      this.emitEventToAll({
+        type: "start",
+        startingPlayer: this.whoseTurnToNominate
+      });
     } else if (nominateSchema.isValidSync(action) &&
         this.gameStatus === "midgame" &&
         this.squares[action.square[0]][action.square[1]] === Side.None &&
@@ -122,7 +135,11 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       if (this.lastBid >= getPlayerBySide(this.players, this.whoseTurnToBid).money) {
         this.giveSquareToHighestBidder();
       }
-      this.emitGamestateToAll();
+      this.emitEventToAll({
+        type: "nominate",
+        square: action.square as [number, number],
+        startingBid: action.startingBid
+      });
     } else if (bidSchema.isValidSync(action) &&
         this.gameStatus === "midgame" &&
         sideControlledByViewer === this.whoseTurnToBid &&
@@ -133,30 +150,40 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       if (this.lastBid >= getPlayerBySide(this.players, this.whoseTurnToBid).money) {
         this.giveSquareToHighestBidder();
       }
-      this.emitGamestateToAll();
+      this.emitEventToAll({
+        type: "bid",
+        amount: action.amount
+      });
     } else if (passSchema.isValidSync(action) &&
         this.gameStatus === "midgame" &&
         sideControlledByViewer === this.whoseTurnToBid) {
       this.giveSquareToHighestBidder();
-      this.emitGamestateToAll();
+      this.emitEventToAll({ type: "pass" });
     } else if (rematchSchema.isValidSync(action) &&
         this.gameStatus === "postgame" &&
         this.players.every(player => typeof player.controller === "number") &&
         this.room.host === viewer.index) {
       this.startGame();
-      this.emitGamestateToAll();
+      this.emitEventToAll({
+        type: "start",
+        startingPlayer: this.whoseTurnToNominate
+      });
     } else if (backToSettingsSchema.isValidSync(action) &&
         this.gameStatus === "postgame" &&
         this.room.host === viewer.index) {
       this.gameStatus = "pregame";
       delete this.squares;
-      this.emitGamestateToAll();
+      this.emitEventToAll({ type: "backToSettings" });
     } else if (replacePlayerSchema.isValidSync(action) &&
         this.gameStatus !== "pregame" &&
         playerControlledByViewer === null &&
         getPlayerBySide(this.players, action.side as Side).controller === undefined) {
       getPlayerBySide(this.players, action.side as Side).controller = viewer.index;
-      this.emitGamestateToAll();
+      this.emitEventToAll({
+        type: "replace",
+        side: action.side as Side,
+        controller: viewer.index
+      });
     } else {
       console.debug(action);
     }
@@ -203,7 +230,10 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
     this.players.forEach((player) => {
       if (player.controller === viewer.index) {
         delete player.controller;
-        this.emitGamestateToAll();
+        this.emitEventToAll({
+          type: "leave",
+          side: player.side
+        });
       }
     });
     super.handleDisconnect(viewer, wasHost);
