@@ -1,12 +1,12 @@
 <script lang="ts">
   import { Side } from "$lib/auction-tic-tac-toe/types";
   import PlayerJoiner from "$lib/auction-tic-tac-toe/player-joiner.svelte";
-  import { gamestate, lastAction } from "$lib/stores";
+  import { host, lastAction, pov } from "$lib/stores";
+  import { players } from "$lib/auction-tic-tac-toe/stores";
 
-  $: canStartGame = $gamestate.host === $gamestate.pov &&
-      $gamestate.players.every((player) => {
-    return player.controller !== undefined;
-  })
+  $: canStartGame = $host === $pov &&
+      $players.X.controller !== undefined &&
+      $players.O.controller !== undefined;
 
   function startGame() {
     lastAction.set({
@@ -24,7 +24,7 @@
     <button class="big-button" on:submit={startGame} on:click={startGame}>
       START
     </button>
-  {:else if $gamestate.host === $gamestate.pov}
+  {:else if $host === $pov}
     <button class="big-button" disabled>
       START
     </button>

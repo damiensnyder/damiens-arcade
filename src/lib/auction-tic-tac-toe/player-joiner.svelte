@@ -1,26 +1,14 @@
 <script lang="ts">
   import { Side } from "$lib/auction-tic-tac-toe/types";
-  import { gamestate, lastAction } from "$lib/stores";
+  import { lastAction, pov } from "$lib/stores";
+  import { players } from "$lib/auction-tic-tac-toe/stores";
   import X from "./x.svelte";
   import O from "./o.svelte";
 
   export let side: Side.X | Side.O;
 
-  $: isSide = $gamestate.players.every((player) => {
-    if (player.side === side) {
-      return player.controller === $gamestate.pov;
-    }
-    return true;
-  });
-  $: canJoinAsSide = $gamestate.players.every((player) => {
-    if (player.controller === $gamestate.pov) {
-      return false;
-    }
-    if (player.side === side) {
-      return player.controller === undefined;
-    }
-    return true;
-  });
+  $: isSide = $players[side].controller === $pov;
+  $: canJoinAsSide = $players[side].controller === undefined;
 
   function join() {
     lastAction.set({

@@ -2,12 +2,12 @@
 import Pregame from "$lib/auction-tic-tac-toe/pregame.svelte";
 import Midgame from "$lib/auction-tic-tac-toe/midgame.svelte";
 import Postgame from "$lib/auction-tic-tac-toe/postgame.svelte";
-import { gamestate } from "$lib/stores";
+import { gameStatus } from "$lib/auction-tic-tac-toe/stores";
 </script>
 
-{#if $gamestate.gameStatus === "pregame"}
+{#if $gameStatus === "pregame"}
   <Pregame />
-{:else if $gamestate.gameStatus === "midgame"}
+{:else if $gameStatus === "midgame"}
   <Midgame />
 {:else}
   <Postgame />

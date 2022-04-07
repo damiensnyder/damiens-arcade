@@ -2,7 +2,7 @@
   import Gameboard from "./gameboard.svelte";
   import Player from "$lib/auction-tic-tac-toe/player.svelte";
   import { Side } from "$lib/auction-tic-tac-toe/types";
-  import { gamestate, lastAction } from "$lib/stores";
+  import { host, lastAction, pov } from "$lib/stores";
 
   function rematch() {
     lastAction.set({
@@ -27,11 +27,11 @@
     <button class="big-button"
         on:click={rematch}
         on:submit={rematch}
-        disabled={$gamestate.pov !== $gamestate.host}>REMATCH</button>
+        disabled={$pov !== $host}>REMATCH</button>
     <button class="big-button"
         on:click={backToSettings}
         on:submit={backToSettings}
-        disabled={$gamestate.pov !== $gamestate.host}>BACK TO LOBBY</button>
+        disabled={$pov !== $host}>BACK TO LOBBY</button>
   </div>
 </div>
 

@@ -90,7 +90,7 @@
       </div>
       <div class="form-field">
         <input type="submit"
-            class="big-button"
+            class="cancel"
             value="CANCEL"
             on:submit={cancel}
             on:click={cancel}>
@@ -106,7 +106,7 @@
 </div>
 
 <style>
-  .outer {getSideByControllergetSideByController
+  .outer {
     height: 100%;
     width: 100%;
     justify-content: center;
