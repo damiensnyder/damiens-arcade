@@ -1,19 +1,11 @@
 <script lang="ts">
-  import { gamestate } from "$lib/stores";
-  import type { MidgameViewpoint, Player } from "$lib/auction-tic-tac-toe/types";
-
-  $: gs = $gamestate as MidgameViewpoint;
-
-  $: isOwnTurnToNominate = gs.players.every((player: Player) => {
-    if (gs.whoseTurnToNominate === player.side) {
-      return player.controller === gs.pov
-    }
-    return true;
-  });
+  import { players, turnPart, whoseTurnToNominate } from "$lib/auction-tic-tac-toe/stores";
+  import { TurnPart } from "$lib/auction-tic-tac-toe/types";
+  import { pov } from "$lib/stores";
 </script>
 
 <p>
-  {#if isOwnTurnToNominate}
+  {#if $turnPart === TurnPart.Nominating && $players[$whoseTurnToNominate].controller === $pov}
     Click a square to put it up for auction.
   {:else}
     &nbsp;

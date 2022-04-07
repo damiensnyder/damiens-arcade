@@ -48,10 +48,8 @@ interface ChangeGameTypeAction {
 
 interface ChangeSettingsAction {
   type: "changeRoomSettings"
-  settings: {
-    roomName: string
-    isPublic: boolean
-  }
+  roomName: string
+  isPublic: boolean
 }
 
 export type RoomAction = ChangeGameTypeAction | ChangeSettingsAction;
@@ -62,10 +60,8 @@ export type Action = RoomAction |
 
 interface ChangeRoomSettingsEvent {
   type: "changeRoomSettings"
-  settings: {
-    roomName?: string
-    isPublic?: boolean
-  }
+  roomName?: string
+  isPublic?: boolean
 }
 
 interface ChangeGameTypeEvent {

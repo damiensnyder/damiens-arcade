@@ -6,9 +6,8 @@ import { GameType, type Action, type Event } from "$lib/types";
 import type { Viewpoint } from "$lib/types";
 import AuctionTicTacToe from "$lib/auction-tic-tac-toe/frontend-main.svelte";
 import NoGameSelected from "$lib/no-game-selected/frontend-main.svelte";
+import { handleEvent, handleGamestate } from "$lib/auction-tic-tac-toe/event-handler";
 import "../../styles/global.css";
-import handleEvent from "$lib/auction-tic-tac-toe/event-handler";
-import type { AuctionTTTEvent } from "$lib/auction-tic-tac-toe/types";
 
 const relativeUrl = $page.url.pathname;
 const socket = io(relativeUrl);
@@ -28,6 +27,9 @@ socket.on('gamestate', (gamestate: Viewpoint) => {
   $host = gamestate.host;
   $pov = gamestate.pov;
   $gameType = gamestate.gameType;
+  if (gamestate.gameType === GameType.AuctionTTT) {
+    handleGamestate(gamestate);
+  }
   console.log(gamestate);
 });
 
@@ -35,16 +37,16 @@ socket.on("event", (event: Event) => {
   if (event.type === "changeGameType") {
 
   } else if (event.type === "changeRoomSettings") {
-    if (event.settings.isPublic !== undefined) {
-      $isPublic = event.settings.isPublic;
+    if (event.isPublic !== undefined) {
+      $isPublic = event.isPublic;
     }
-    if (event.settings.roomName !== undefined) {
-      $roomName = event.settings.roomName;
+    if (event.roomName !== undefined) {
+      $roomName = event.roomName;
     }
   } else if (event.type === "changeHost") {
     $host = event.host;
   } else if ($gameType === GameType.AuctionTTT) {
-    handleEvent(event as AuctionTTTEvent);
+    handleEvent(event);
   }
 });
 
@@ -54,10 +56,10 @@ lastAction.subscribe((action: Action) => {
 });
 </script>
 
-{#if $gamestate.roomCode !== "" }
-  {#if $gamestate.gameType === GameType.NoGameSelected}
+{#if $roomCode !== "" }
+  {#if $gameType === GameType.NoGameSelected}
     <NoGameSelected />
-  {:else if $gamestate.gameType === GameType.AuctionTTT}
+  {:else if $gameType === GameType.AuctionTTT}
     <AuctionTicTacToe />
   {/if}
 {:else}

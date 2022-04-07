@@ -3,10 +3,8 @@ import type { BasicViewpointInfo, GameType } from "$lib/types";
 export type AuctionTTTGameStatus = "pregame" | "midgame" | "postgame";
 
 export enum TurnPart {
-  Bidding,
-  WaitingForBid,
   Nominating,
-  WaitingForNomination,
+  Bidding,
   None
 }
 
@@ -16,31 +14,41 @@ export interface AuctionTTTPublicState {
   numPlayers: number
 }
 
-export type AuctionTTTViewpoint = PregameViewpoint | MidgameViewpoint | PostgameViewpoint;
+export type AuctionTTTViewpoint = PregameViewpoint |
+    MidgameViewpoint | PostgameViewpoint;
 
 interface ViewpointBase extends BasicViewpointInfo {
   gameStatus: AuctionTTTGameStatus
   gameType: GameType.AuctionTTT
   settings: Settings
-  players: [Player, Player]
+  players: Record<Side.X | Side.O, Player>
 }
 
 export interface PregameViewpoint extends ViewpointBase {
   gameStatus: "pregame"
 }
 
-export interface MidgameViewpoint extends ViewpointBase {
+export interface MidgameViewpointBase extends ViewpointBase {
   gameStatus: "midgame"
-  whoseTurnToNominate: Side
-  whoseTurnToBid?: Side
-  lastBid?: number
   squares: Side[][]
-  currentlyNominatedSquare?: [number, number]
-  nominating?: [number, number]
-  currentBid?: number
+  turnPart: TurnPart
+  whoseTurnToNominate: Side
 }
 
-export interface PostgameViewpoint extends ViewpointBase {
+interface BiddingViewpoint extends MidgameViewpointBase {
+  turnPart: TurnPart.Bidding
+  whoseTurnToBid: Side
+  lastBid: number
+  currentlyNominatedSquare: [number, number]
+}
+
+interface NominatingViewpoint extends MidgameViewpointBase {
+  turnPart: TurnPart.Nominating
+}
+
+type MidgameViewpoint = BiddingViewpoint | NominatingViewpoint;
+
+interface PostgameViewpoint extends ViewpointBase {
   gameStatus: "postgame"
   squares: Side[][]
 }
@@ -63,10 +71,8 @@ export interface Settings {
 
 interface ChangeGameSettingsAction {
   type: "changeGameSettings"
-  settings: {
-    startingMoney: number
-    startingPlayer: Side
-  }
+  startingMoney?: number
+  startingPlayer?: Side
 }
 
 interface JoinAction {

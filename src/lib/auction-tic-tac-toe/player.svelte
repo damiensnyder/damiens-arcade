@@ -1,16 +1,15 @@
 <script lang="ts">
-  import { gamestate, lastAction } from "$lib/stores";
+  import { lastAction, pov } from "$lib/stores";
   import X from "$lib/auction-tic-tac-toe/x.svelte";
   import O from "$lib/auction-tic-tac-toe/o.svelte";
-  import { Side, type MidgameViewpoint } from "$lib/auction-tic-tac-toe/types";
-  import { getPlayerByController, getPlayerBySide } from "$lib/auction-tic-tac-toe/utils";
+  import { Side } from "$lib/auction-tic-tac-toe/types";
+  import { getSideByController } from "$lib/auction-tic-tac-toe/utils";
+  import { players } from "$lib/auction-tic-tac-toe/stores";
 
   export let side: Side;
 
-  $: gs = $gamestate as MidgameViewpoint;
-  $: thisPlayer = getPlayerBySide(gs.players, side);
-  $: ownPlayer = getPlayerByController(gs.players, gs.pov);
-
+  $: ownPlayer = $players[getSideByController($players, $pov)];
+  
   function replace() {
     lastAction.set({
       type: "replacePlayer",
@@ -25,8 +24,8 @@
   {:else}
     <O size={120} />
   {/if}
-  <span>${thisPlayer.money}</span>
-  {#if thisPlayer.controller === undefined && ownPlayer === null}
+  <span>${ownPlayer.money}</span>
+  {#if $players[side].controller === undefined && ownPlayer === Side.None}
     <button class="big-button" on:click={replace} on:submit={replace}>REPLACE</button>
   {/if}
 </div>

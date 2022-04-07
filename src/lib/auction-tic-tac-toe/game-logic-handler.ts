@@ -2,9 +2,9 @@ import { GameType } from "$lib/types";
 import type { PublicRoomState, Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
-import { Side } from "$lib/auction-tic-tac-toe/types";
+import { Side, TurnPart } from "$lib/auction-tic-tac-toe/types";
 import type { AuctionTTTGameStatus, AuctionTTTViewpoint, Player, Settings } from "$lib/auction-tic-tac-toe/types";
-import { getPlayerBySide, getPlayerByController, oppositeSideOf, winningSide } from "$lib/auction-tic-tac-toe/utils";
+import { getPlayerByController, getSideByController, oppositeSideOf, winningSide } from "$lib/auction-tic-tac-toe/utils";
 import { array, number, object, string } from "yup";
 
 const changeGameSettingsSchema = object({
@@ -60,7 +60,8 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
   settings: Settings
   gameType: GameType.AuctionTTT
   gameStatus: AuctionTTTGameStatus
-  players: [Player, Player]
+  players: Record<Side.X | Side.O, Player>
+  turnPart: TurnPart
   whoseTurnToNominate?: Side
   whoseTurnToBid?: Side
   lastBid?: number
@@ -73,21 +74,19 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       startingMoney: 15,
       startingPlayer: Side.None
     };
-    this.players = [{
-      side: Side.X,
-      money: 0
-    }, {
-      side: Side.O,
-      money: 0
-    }];
+    this.players = {
+      X: {
+        money: 0
+      },
+      O: {
+        money: 0
+      }
+    };
   }
 
   handleAction(viewer: Viewer, action?: any): void {
     const playerControlledByViewer = getPlayerByController(this.players, viewer.index);
-    const sideControlledByViewer =
-        playerControlledByViewer === null ?
-        Side.None :
-        playerControlledByViewer.side;
+    const sideControlledByViewer = getSideByController(this.players, viewer.index);
     const isHost = this.room.host === viewer.index;
 
     if (this.room.host === viewer.index &&
@@ -98,8 +97,8 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
         settings: action.settings as any
       });
     } else if (joinSchema.isValidSync(action) &&
-        playerControlledByViewer === null) {
-      getPlayerBySide(this.players, action.side as Side).controller = viewer.index;
+        sideControlledByViewer === Side.None) {
+      this.players[action.side].controller = viewer.index;
       this.emitEventToAll({
         type: "join",
         controller: viewer.index,
@@ -111,12 +110,13 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       delete playerControlledByViewer.controller;
       this.emitEventToAll({
         type: "leave",
-        side: playerControlledByViewer.side
+        side: sideControlledByViewer
       });
     } else if (startGameSchema.isValidSync(action) &&
         this.gameStatus === "pregame" &&
         isHost &&
-        this.players.every((player) => player.controller !== undefined)) {
+        this.players.X.controller !== undefined &&
+        this.players.O.controller !== undefined) {
       this.startGame();
       this.emitEventToAll({
         type: "start",
@@ -132,8 +132,10 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       this.currentlyNominatedSquare = action.square as [number, number];
       this.lastBid = action.startingBid;
       this.whoseTurnToBid = oppositeSideOf(sideControlledByViewer);
-      if (this.lastBid >= getPlayerBySide(this.players, this.whoseTurnToBid).money) {
+      if (this.lastBid >= this.players[this.whoseTurnToBid].money) {
         this.giveSquareToHighestBidder();
+      } else {
+        this.turnPart = TurnPart.Bidding;
       }
       this.emitEventToAll({
         type: "nominate",
@@ -147,7 +149,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
         action.amount > this.lastBid) {
       this.lastBid = action.amount;
       this.whoseTurnToBid = oppositeSideOf(sideControlledByViewer);
-      if (this.lastBid >= getPlayerBySide(this.players, this.whoseTurnToBid).money) {
+      if (this.lastBid >= this.players[this.whoseTurnToBid].money) {
         this.giveSquareToHighestBidder();
       }
       this.emitEventToAll({
@@ -161,7 +163,8 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       this.emitEventToAll({ type: "pass" });
     } else if (rematchSchema.isValidSync(action) &&
         this.gameStatus === "postgame" &&
-        this.players.every(player => typeof player.controller === "number") &&
+        this.players.X.controller !== undefined &&
+        this.players.O.controller !== undefined &&
         this.room.host === viewer.index) {
       this.startGame();
       this.emitEventToAll({
@@ -177,8 +180,8 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
     } else if (replacePlayerSchema.isValidSync(action) &&
         this.gameStatus !== "pregame" &&
         playerControlledByViewer === null &&
-        getPlayerBySide(this.players, action.side as Side).controller === undefined) {
-      getPlayerBySide(this.players, action.side as Side).controller = viewer.index;
+        this.players[action.side].controller === undefined) {
+      this.players[action.side].controller = viewer.index;
       this.emitEventToAll({
         type: "replace",
         side: action.side as Side,
@@ -192,19 +195,24 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
   giveSquareToHighestBidder(): void {
     const sideWhoLastBid = oppositeSideOf(this.whoseTurnToBid);
     this.squares[this.currentlyNominatedSquare[0]][this.currentlyNominatedSquare[1]] = sideWhoLastBid;
-    getPlayerBySide(this.players, sideWhoLastBid).money -= this.lastBid;
+    this.players[sideWhoLastBid].money -= this.lastBid;
     delete this.lastBid;
     delete this.whoseTurnToBid;
     delete this.currentlyNominatedSquare;
     this.checkForWinner();
     if (this.gameStatus === "midgame") {
       this.whoseTurnToNominate = oppositeSideOf(this.whoseTurnToNominate);
+      this.turnPart = TurnPart.Nominating;
+    } else {
+      this.turnPart = TurnPart.None;
     }
   }
 
   startGame(): void {
     this.gameStatus = "midgame";
-    this.players.forEach((player) => player.money = this.settings.startingMoney);
+    this.turnPart = TurnPart.Nominating;
+    this.players.X.money = this.settings.startingMoney;
+    this.players.O.money = this.settings.startingMoney;
     this.whoseTurnToNominate = this.settings.startingPlayer;
     if (this.whoseTurnToNominate === Side.None) {
       this.whoseTurnToNominate = Math.random() > 0.5 ? Side.X : Side.O;
@@ -227,15 +235,14 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
   }
 
   handleDisconnect(viewer: Viewer, wasHost: boolean): void {
-    this.players.forEach((player) => {
-      if (player.controller === viewer.index) {
-        delete player.controller;
-        this.emitEventToAll({
-          type: "leave",
-          side: player.side
-        });
-      }
-    });
+    const playerControlledByViewer = getPlayerByController(this.players, viewer.index);
+    if (playerControlledByViewer !== null) {
+      delete playerControlledByViewer.controller;
+      this.emitEventToAll({
+        type: "leave",
+        side: getSideByController(this.players, viewer.index)
+      });
+    }
     super.handleDisconnect(viewer, wasHost);
   }
 
@@ -249,18 +256,32 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
         players: this.players
       };
     } else if (this.gameStatus === "midgame") {
-      return {
-        ...this.basicViewpointInfo(viewer),
-        gameType: GameType.AuctionTTT,
-        gameStatus: this.gameStatus,
-        settings: this.settings,
-        players: this.players,
-        whoseTurnToNominate: this.whoseTurnToNominate,
-        whoseTurnToBid: this.whoseTurnToBid,
-        lastBid: this.lastBid,
-        squares: this.squares,
-        currentlyNominatedSquare: this.currentlyNominatedSquare
-      };
+      if (this.turnPart === TurnPart.Bidding) {
+        return {
+          ...this.basicViewpointInfo(viewer),
+          gameType: GameType.AuctionTTT,
+          gameStatus: this.gameStatus,
+          settings: this.settings,
+          turnPart: this.turnPart,
+          players: this.players,
+          whoseTurnToNominate: this.whoseTurnToNominate,
+          whoseTurnToBid: this.whoseTurnToBid,
+          lastBid: this.lastBid,
+          squares: this.squares,
+          currentlyNominatedSquare: this.currentlyNominatedSquare
+        };
+      } else {
+        return {
+          ...this.basicViewpointInfo(viewer),
+          gameType: GameType.AuctionTTT,
+          gameStatus: this.gameStatus,
+          settings: this.settings,
+          turnPart: TurnPart.Nominating,
+          players: this.players,
+          whoseTurnToNominate: this.whoseTurnToNominate,
+          squares: this.squares
+        };
+      }
     } else if (this.gameStatus === "postgame") {
       return {
         ...this.basicViewpointInfo(viewer),
@@ -277,7 +298,8 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
     return {
       gameType: GameType.AuctionTTT,
       gameStatus: "pregame",
-      numPlayers: this.players.length
+      numPlayers: (this.players.X.controller !== undefined ? 1 : 0) +
+          (this.players.X.controller !== undefined ? 1 : 0)
     };
   }
 }
