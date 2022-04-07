@@ -3,7 +3,7 @@ import type GameLogicHandler from "./game-logic-handler-base";
 import AuctionTicTacToe from "../auction-tic-tac-toe/game-logic-handler";
 import NoGameSelected from "../no-game-selected/game-logic-handler";
 import { GameType, PacketType } from "../types";
-import type { PacketInfo, PublicRoomInfo, RoomAction, TeardownCallback, Viewer } from "../types";
+import type { PacketInfo, PublicRoomInfo, TeardownCallback, Viewer } from "../types";
 import { boolean, object, string } from "yup";
 
 const TEARDOWN_TIME: number = 60 * 60 * 1000; // one hour
@@ -16,8 +16,8 @@ const changeGameTypeSchema = object({
 const changeSettingsSchema = object({
   type: string().equals(["changeRoomSettings"]),
   settings: object({
-    roomName: string().min(1).required(),
-    isPublic: boolean().required()
+    roomName: string(),
+    isPublic: boolean()
   })
 });
 
@@ -177,8 +177,12 @@ export default class GameRoom {
     if (newSettings.roomName.length === 0) {
       newSettings.roomName = "Untitled Room";
     }
-    this.basicRoomInfo.roomName = newSettings.roomName;
-    this.basicRoomInfo.isPublic = newSettings.isPublic;
+    if (newSettings.roomName !== undefined) {
+      this.basicRoomInfo.roomName = newSettings.roomName;
+    }
+    if (newSettings.isPublic !== undefined) {
+      this.basicRoomInfo.isPublic = newSettings.isPublic;
+    }
   }
 
   shouldChangeGameType(viewer: Viewer, data?: any) {

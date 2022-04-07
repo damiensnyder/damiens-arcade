@@ -7,7 +7,7 @@ export enum TurnPart {
   WaitingForBid,
   Nominating,
   WaitingForNomination,
-  Postgame
+  None
 }
 
 export interface AuctionTTTPublicState {
@@ -46,7 +46,6 @@ export interface PostgameViewpoint extends ViewpointBase {
 }
 
 export interface Player {
-  side: Side
   money: number
   controller?: number
 }

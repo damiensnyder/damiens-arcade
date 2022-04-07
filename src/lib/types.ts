@@ -101,5 +101,3 @@ export interface Viewer {
 export type TeardownCallback = (roomCode: string) => void;
 
 export type ActionCallback = (action: Action) => void;
-
-export type GamestateMutator = (viewpoint: Viewpoint) => Viewpoint;
