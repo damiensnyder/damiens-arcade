@@ -130,8 +130,8 @@ export type AuctionTTTAction = ChangeGameSettingsAction |
 interface ChangeGameSettingsEvent {
   type: "changeGameSettings"
   settings: {
-    startingMoney?: number
-    startingPlayer?: Side
+    startingMoney: number
+    startingPlayer: Side
   }
 }
 
@@ -162,6 +162,16 @@ interface BidEvent {
   amount: number
 }
 
+interface AwardSquareEvent {
+  type: "awardSquare"
+  side: Side
+}
+
+interface GameOverEvent {
+  type: "gameOver",
+  winner: Side
+}
+
 interface PassEvent {
   type: "pass"
 }
@@ -182,6 +192,8 @@ export type AuctionTTTEvent = ChangeGameSettingsEvent |
     StartEvent |
     NominateEvent |
     BidEvent |
+    AwardSquareEvent |
+    GameOverEvent |
     PassEvent |
     BackToSettingsEvent |
     ReplaceEvent;

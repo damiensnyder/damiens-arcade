@@ -15,8 +15,8 @@ const changeGameTypeSchema = object({
 
 const changeSettingsSchema = object({
   type: string().equals(["changeRoomSettings"]),
-  roomName: string(),
-  isPublic: boolean()
+  roomName: string().required(),
+  isPublic: boolean().required()
 });
 
 export default class GameRoom {

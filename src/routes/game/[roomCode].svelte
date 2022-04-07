@@ -35,7 +35,7 @@ socket.on('gamestate', (gamestate: Viewpoint) => {
 
 socket.on("event", (event: Event) => {
   if (event.type === "changeGameType") {
-
+    $gameType = event.gameType;
   } else if (event.type === "changeRoomSettings") {
     if (event.isPublic !== undefined) {
       $isPublic = event.isPublic;

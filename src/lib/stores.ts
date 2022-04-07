@@ -10,3 +10,4 @@ export const gameType = writable(GameType.NoGameSelected);
 export const connected = writable(false);
 
 export const lastAction = writable(null);
+export const eventLog = writable([]);

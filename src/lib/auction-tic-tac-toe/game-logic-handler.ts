@@ -227,6 +227,20 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
   checkForWinner(): void {
     if (winningSide(this.squares) !== Side.None) {
       this.gameStatus = "postgame";
+      this.emitEventToAll({
+        type: "gameOver",
+        winner: this.whoseTurnToBid
+      });
+      delete this.whoseTurnToBid;
+      delete this.whoseTurnToNominate;
+      delete this.lastBid;
+      delete this.currentlyNominatedSquare;
+    } else if (this.squares.every((row) => row.every((square) => square !== Side.None))) {
+      this.gameStatus = "postgame";
+      this.emitEventToAll({
+        type: "gameOver",
+        winner: Side.None
+      });
       delete this.whoseTurnToBid;
       delete this.whoseTurnToNominate;
       delete this.lastBid;
