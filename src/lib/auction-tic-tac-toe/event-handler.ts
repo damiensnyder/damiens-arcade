@@ -45,19 +45,26 @@ export function handleEvent(event: AuctionTTTEvent): void {
       old[oppositeSideOf(get(whoseTurnToBid))].money -= get(lastBid);
       return old;
     })
+    squares.update((old) => {
+      old[get(currentlyNominatedSquare)[0]][get(currentlyNominatedSquare)[1]] = event.side;
+      return old;
+    })
+    currentlyNominatedSquare.set([-1, -1]);
     turnPart.set(TurnPart.Nominating);
   } else if (event.type === "gameOver") {
     gameStatus.set("postgame");
     turnPart.set(TurnPart.None);
   } else if (event.type === "leave") {
-    players.update((p) => {
-      delete p[event.side].controller;
-      return p;
+    players.update((old) => {
+      delete old[event.side].controller;
+      return old;
     })
   } else if (event.type === "nominate") {
     whoseTurnToBid.set(oppositeSideOf(get(whoseTurnToNominate)));
     currentlyNominatedSquare.set(event.square);
     turnPart.set(TurnPart.Bidding);
+    lastBid.set(event.startingBid);
+    currentBid.set(event.startingBid + 1);
   } else if (event.type === "pass") {
     // do nothing as of now
   } else if (event.type === "replace") {
@@ -65,6 +72,7 @@ export function handleEvent(event: AuctionTTTEvent): void {
       old[event.side].controller = event.controller;
       return old;
     });
+    currentBid.set(get(lastBid) + 1);
   } else if (event.type === "start") {
     whoseTurnToNominate.set(event.startingPlayer);
     turnPart.set(TurnPart.Nominating);

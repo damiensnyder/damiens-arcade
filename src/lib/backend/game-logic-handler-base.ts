@@ -32,7 +32,7 @@ export default class GameLogicHandlerBase {
     viewer.socket.emit("gamestate", this.viewpointOf(viewer));
   }
 
-  emitEventTo(viewer: Viewer, event: Event):void {
+  emitEventTo(viewer: Viewer, event: Event): void {
     viewer.socket.emit("event", event);
   }
 

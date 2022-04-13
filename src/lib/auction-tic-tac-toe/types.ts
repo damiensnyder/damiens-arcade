@@ -168,8 +168,7 @@ interface AwardSquareEvent {
 }
 
 interface GameOverEvent {
-  type: "gameOver",
-  winner: Side
+  type: "gameOver"
 }
 
 interface PassEvent {

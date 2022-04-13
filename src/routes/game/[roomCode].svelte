@@ -18,6 +18,7 @@ socket.on('connect', () => {
 
 socket.on('disconnect', () => {
   $connected = false
+  $pov = -1;
 });
 
 socket.on('gamestate', (gamestate: Viewpoint) => {
@@ -34,6 +35,7 @@ socket.on('gamestate', (gamestate: Viewpoint) => {
 });
 
 socket.on("event", (event: Event) => {
+  console.log(event);
   if (event.type === "changeGameType") {
     $gameType = event.gameType;
     if ($gameType === GameType.AuctionTTT) {
@@ -54,12 +56,14 @@ socket.on("event", (event: Event) => {
 });
 
 lastAction.subscribe((action: Action) => {
-  if (action != null) socket.emit('action', action);
-  console.log($lastAction);
+  if (action != null && $pov !== -1) {
+    socket.emit('action', action)
+    console.log($lastAction);
+  };
 });
 </script>
 
-{#if $roomCode !== "" }
+{#if $roomCode !== ""}
   {#if $gameType === GameType.NoGameSelected}
     <NoGameSelected />
   {:else if $gameType === GameType.AuctionTTT}

@@ -90,7 +90,7 @@
       </div>
       <div class="form-field">
         <input type="submit"
-            class="cancel"
+            class="big-button cancel"
             value="CANCEL"
             on:submit={cancel}
             on:click={cancel}>

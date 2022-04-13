@@ -189,9 +189,8 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
         controller: viewer.index
       });
     } else {
-      console.debug("invalid packet:");
+      console.debug("INVALID");
     }
-    console.debug(action);
   }
 
   giveSquareToHighestBidder(): void {
@@ -227,21 +226,11 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
   }
 
   checkForWinner(): void {
-    if (winningSide(this.squares) !== Side.None) {
+    if (winningSide(this.squares) !== Side.None ||
+        this.squares.every((row) => row.every((square) => square !== Side.None))) {
       this.gameStatus = "postgame";
       this.emitEventToAll({
-        type: "gameOver",
-        winner: this.whoseTurnToBid
-      });
-      delete this.whoseTurnToBid;
-      delete this.whoseTurnToNominate;
-      delete this.lastBid;
-      delete this.currentlyNominatedSquare;
-    } else if (this.squares.every((row) => row.every((square) => square !== Side.None))) {
-      this.gameStatus = "postgame";
-      this.emitEventToAll({
-        type: "gameOver",
-        winner: Side.None
+        type: "gameOver"
       });
       delete this.whoseTurnToBid;
       delete this.whoseTurnToNominate;
@@ -251,12 +240,13 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
   }
 
   handleDisconnect(viewer: Viewer, wasHost: boolean): void {
+    const sideControlledByViewer = getSideByController(this.players, viewer.index);
     const playerControlledByViewer = getPlayerByController(this.players, viewer.index);
-    if (playerControlledByViewer !== null) {
+    if (sideControlledByViewer !== Side.None) {
       delete playerControlledByViewer.controller;
       this.emitEventToAll({
         type: "leave",
-        side: getSideByController(this.players, viewer.index)
+        side: sideControlledByViewer
       });
     }
     super.handleDisconnect(viewer, wasHost);
