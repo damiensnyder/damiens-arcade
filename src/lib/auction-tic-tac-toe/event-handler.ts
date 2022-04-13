@@ -1,17 +1,35 @@
-import { TurnPart, type AuctionTTTEvent, type AuctionTTTViewpoint } from "$lib/auction-tic-tac-toe/types";
-import { currentBid, gameStatus, lastBid, players, settings, turnPart, whoseTurnToBid, whoseTurnToNominate, winner } from "$lib/auction-tic-tac-toe/stores";
+import { Side, TurnPart, type AuctionTTTEvent, type AuctionTTTViewpoint } from "$lib/auction-tic-tac-toe/types";
+import { currentBid, currentlyNominatedSquare, gameStatus, lastBid, players, settings, squares, turnPart, whoseTurnToBid, whoseTurnToNominate } from "$lib/auction-tic-tac-toe/stores";
 import { oppositeSideOf } from "$lib/auction-tic-tac-toe/utils";
 import { get } from "svelte/store";
 
-export function handleGamestate(gamestate: AuctionTTTViewpoint) {
-  gamestate.settings.startingMoney
+export function switchToType(): void {
+  settings.set({ startingMoney: 15, startingPlayer: Side.None });
+  gameStatus.set("pregame");
+  players.set({ X: { money: -1 }, O: { money: -1 } });
 }
 
-export function handleEvent(event: AuctionTTTEvent) {
+export function handleGamestate(gamestate: AuctionTTTViewpoint): void {
+  settings.set(gamestate.settings);
+  gameStatus.set(gamestate.gameStatus);
+  players.set(gamestate.players);
+  if (gamestate.gameStatus === "midgame") {
+    squares.set(gamestate.squares);
+    whoseTurnToNominate.set(gamestate.whoseTurnToNominate);
+    turnPart.set(gamestate.turnPart);
+    if (gamestate.turnPart === TurnPart.Bidding) {
+      currentlyNominatedSquare.set(gamestate.currentlyNominatedSquare);
+      lastBid.set(gamestate.lastBid);
+      whoseTurnToBid.set(gamestate.whoseTurnToBid);
+    }
+  }
+}
+
+export function handleEvent(event: AuctionTTTEvent): void {
   if (event.type === "join") {
-    players.update((p) => {
-      p[event.side] = { controller: event.controller, money: -1 };
-      return p;
+    players.update((old) => {
+      old[event.side] = { controller: event.controller, money: -1 };
+      return old;
     });
   } else if (event.type === "backToSettings") {
     gameStatus.set("pregame");
@@ -23,11 +41,14 @@ export function handleEvent(event: AuctionTTTEvent) {
     whoseTurnToBid.update((lastBidder) => oppositeSideOf(lastBidder));
   } else if (event.type === "awardSquare") {
     whoseTurnToNominate.update((lastNominater) => oppositeSideOf(lastNominater));
+    players.update((old) => {
+      old[oppositeSideOf(get(whoseTurnToBid))].money -= get(lastBid);
+      return old;
+    })
     turnPart.set(TurnPart.Nominating);
   } else if (event.type === "gameOver") {
     gameStatus.set("postgame");
     turnPart.set(TurnPart.None);
-    winner.set(event.winner);
   } else if (event.type === "leave") {
     players.update((p) => {
       delete p[event.side].controller;
@@ -35,6 +56,7 @@ export function handleEvent(event: AuctionTTTEvent) {
     })
   } else if (event.type === "nominate") {
     whoseTurnToBid.set(oppositeSideOf(get(whoseTurnToNominate)));
+    currentlyNominatedSquare.set(event.square);
     turnPart.set(TurnPart.Bidding);
   } else if (event.type === "pass") {
     // do nothing as of now

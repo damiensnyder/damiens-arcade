@@ -97,7 +97,8 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
         settings: action.settings as any
       });
     } else if (joinSchema.isValidSync(action) &&
-        sideControlledByViewer === Side.None) {
+        sideControlledByViewer === Side.None &&
+        this.players[action.side].controller === undefined) {
       this.players[action.side].controller = viewer.index;
       this.emitEventToAll({
         type: "join",
@@ -188,8 +189,9 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
         controller: viewer.index
       });
     } else {
-      console.debug(action);
+      console.debug("invalid packet:");
     }
+    console.debug(action);
   }
 
   giveSquareToHighestBidder(): void {

@@ -5,7 +5,7 @@
   function changeGameType() {
     lastAction.set({
       type: "changeGameType",
-      newGameType: gameType
+      newGameType: $gameType
     });
   }
 </script>

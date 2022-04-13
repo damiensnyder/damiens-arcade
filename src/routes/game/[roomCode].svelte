@@ -6,7 +6,7 @@ import { GameType, type Action, type Event } from "$lib/types";
 import type { Viewpoint } from "$lib/types";
 import AuctionTicTacToe from "$lib/auction-tic-tac-toe/frontend-main.svelte";
 import NoGameSelected from "$lib/no-game-selected/frontend-main.svelte";
-import { handleEvent, handleGamestate } from "$lib/auction-tic-tac-toe/event-handler";
+import { handleEvent, handleGamestate, switchToType as switchToAuctionTTT } from "$lib/auction-tic-tac-toe/event-handler";
 import "../../styles/global.css";
 
 const relativeUrl = $page.url.pathname;
@@ -36,6 +36,9 @@ socket.on('gamestate', (gamestate: Viewpoint) => {
 socket.on("event", (event: Event) => {
   if (event.type === "changeGameType") {
     $gameType = event.gameType;
+    if ($gameType === GameType.AuctionTTT) {
+      switchToAuctionTTT();
+    }
   } else if (event.type === "changeRoomSettings") {
     if (event.isPublic !== undefined) {
       $isPublic = event.isPublic;
@@ -51,7 +54,7 @@ socket.on("event", (event: Event) => {
 });
 
 lastAction.subscribe((action: Action) => {
-  socket.emit('action', action);
+  if (action != null) socket.emit('action', action);
   console.log($lastAction);
 });
 </script>

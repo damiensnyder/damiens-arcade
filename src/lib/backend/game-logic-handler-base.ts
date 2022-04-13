@@ -59,7 +59,6 @@ export default class GameLogicHandlerBase {
       isPublic: this.room.basicRoomInfo.isPublic,
       host: this.room.host,
       pov: viewer.index,
-      connected: true,
       gameType: GameType.NoGameSelected
     };
   }

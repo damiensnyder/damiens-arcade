@@ -34,7 +34,6 @@ export interface BasicViewpointInfo {
   isPublic: boolean
   host: number
   pov: number
-  connected: boolean
   gameType: GameType
 }
 

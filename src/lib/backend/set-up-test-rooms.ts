@@ -35,6 +35,7 @@ export default function setUpTestRooms(roomManager: RoomManager) {
         index: -1 * action.index,
         socket: new FakeSocket() as unknown as Socket
       };
+      delete action.index;
       if (action.type === PacketType.Connect) {
         room.viewers.push(fakeViewer);
         room.enqueuePacket(fakeViewer, action.type);

@@ -3,12 +3,10 @@
   import X from "$lib/auction-tic-tac-toe/x.svelte";
   import O from "$lib/auction-tic-tac-toe/o.svelte";
   import { Side } from "$lib/auction-tic-tac-toe/types";
-  import { getSideByController } from "$lib/auction-tic-tac-toe/utils";
+  import { oppositeSideOf } from "$lib/auction-tic-tac-toe/utils";
   import { players } from "$lib/auction-tic-tac-toe/stores";
 
   export let side: Side;
-
-  $: ownPlayer = $players[getSideByController($players, $pov)];
   
   function replace() {
     lastAction.set({
@@ -24,8 +22,8 @@
   {:else}
     <O size={120} />
   {/if}
-  <span>${ownPlayer.money}</span>
-  {#if $players[side].controller === undefined && ownPlayer === Side.None}
+  <span>${$players[side].money}</span>
+  {#if $players[side].controller === undefined && $players[oppositeSideOf(side)].controller !== $pov}
     <button class="big-button" on:click={replace} on:submit={replace}>REPLACE</button>
   {/if}
 </div>

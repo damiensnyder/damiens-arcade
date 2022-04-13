@@ -106,16 +106,8 @@ export default class GameRoom {
       // if the action is changing something basic about the room, handle that manually
       if (this.shouldChangeGameType(viewer, data)) {
         this.changeGameType(data.newGameType);
-        this.gameLogicHandler.emitEventToAll({
-          type: "changeGameType",
-          gameType: data.newGameType
-        });
       } else if (this.shouldChangeSettings(viewer, data)) {
-        this.changeSettings(data.settings);
-        this.gameLogicHandler.emitEventToAll({
-          type: "changeRoomSettings",
-          settings: data.settings
-        });
+        this.changeSettings(data);
       } else {
         // otherwise, pass it on to the game logic handler
         this.gameLogicHandler.handleAction(viewer, data);
@@ -181,6 +173,12 @@ export default class GameRoom {
     if (newSettings.isPublic !== undefined) {
       this.basicRoomInfo.isPublic = newSettings.isPublic;
     }
+
+    this.gameLogicHandler.emitEventToAll({
+      type: "changeRoomSettings",
+      roomName: newSettings.roomName,
+      isPublic: newSettings.isPublic
+    });
   }
 
   shouldChangeGameType(viewer: Viewer, data?: any) {
@@ -198,5 +196,10 @@ export default class GameRoom {
     } else if (newGameType === GameType.AuctionTTT) {
       this.gameLogicHandler = new AuctionTicTacToe(this);
     }
+
+    this.gameLogicHandler.emitEventToAll({
+      type: "changeGameType",
+      gameType: newGameType
+    });
   }
 }
