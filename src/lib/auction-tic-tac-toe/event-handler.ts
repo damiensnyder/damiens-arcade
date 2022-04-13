@@ -1,5 +1,5 @@
 import { Side, TurnPart, type AuctionTTTEvent, type AuctionTTTViewpoint } from "$lib/auction-tic-tac-toe/types";
-import { currentBid, currentlyNominatedSquare, gameStatus, lastBid, players, settings, squares, turnPart, whoseTurnToBid, whoseTurnToNominate } from "$lib/auction-tic-tac-toe/stores";
+import { currentBid, currentlyNominatedSquare, gameStatus, nominating, lastBid, players, settings, squares, turnPart, whoseTurnToBid, whoseTurnToNominate } from "$lib/auction-tic-tac-toe/stores";
 import { oppositeSideOf } from "$lib/auction-tic-tac-toe/utils";
 import { get } from "svelte/store";
 
@@ -65,6 +65,7 @@ export function handleEvent(event: AuctionTTTEvent): void {
     turnPart.set(TurnPart.Bidding);
     lastBid.set(event.startingBid);
     currentBid.set(event.startingBid + 1);
+    nominating.set(null);
   } else if (event.type === "pass") {
     // do nothing as of now
   } else if (event.type === "replace") {
@@ -80,6 +81,12 @@ export function handleEvent(event: AuctionTTTEvent): void {
       old.X.money = get(settings).startingMoney;
       old.O.money = get(settings).startingMoney;
       return old;
-    })
+    });
+    gameStatus.set("midgame");
+    squares.set([
+      [Side.None, Side.None, Side.None],
+      [Side.None, Side.None, Side.None],
+      [Side.None, Side.None, Side.None]
+    ]);
   }
 }

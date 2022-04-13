@@ -133,16 +133,16 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       this.currentlyNominatedSquare = action.square as [number, number];
       this.lastBid = action.startingBid;
       this.whoseTurnToBid = oppositeSideOf(sideControlledByViewer);
-      if (this.lastBid >= this.players[this.whoseTurnToBid].money) {
-        this.giveSquareToHighestBidder();
-      } else {
-        this.turnPart = TurnPart.Bidding;
-      }
       this.emitEventToAll({
         type: "nominate",
         square: action.square as [number, number],
         startingBid: action.startingBid
       });
+      if (this.lastBid >= this.players[this.whoseTurnToBid].money) {
+        this.giveSquareToHighestBidder();
+      } else {
+        this.turnPart = TurnPart.Bidding;
+      }
     } else if (bidSchema.isValidSync(action) &&
         this.gameStatus === "midgame" &&
         sideControlledByViewer === this.whoseTurnToBid &&
@@ -197,6 +197,10 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
     const sideWhoLastBid = oppositeSideOf(this.whoseTurnToBid);
     this.squares[this.currentlyNominatedSquare[0]][this.currentlyNominatedSquare[1]] = sideWhoLastBid;
     this.players[sideWhoLastBid].money -= this.lastBid;
+    this.emitEventToAll({
+      type: "awardSquare",
+      side: sideWhoLastBid
+    });
     delete this.lastBid;
     delete this.whoseTurnToBid;
     delete this.currentlyNominatedSquare;

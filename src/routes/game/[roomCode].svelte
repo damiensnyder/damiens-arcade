@@ -19,6 +19,7 @@ socket.on('connect', () => {
 socket.on('disconnect', () => {
   $connected = false
   $pov = -1;
+  $lastAction.set(null);
 });
 
 socket.on('gamestate', (gamestate: Viewpoint) => {
