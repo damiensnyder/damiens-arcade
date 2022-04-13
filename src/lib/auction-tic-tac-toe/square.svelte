@@ -68,7 +68,7 @@
       </div>
       <div class="form-field">
         <input type="submit"
-            class="big-button"
+            class="big-button cancel"
             value="PASS"
             on:submit={pass}
             on:click={pass}>
@@ -102,6 +102,8 @@
         on:submit={beginNominate}>
       Nominate
     </button>
+  {:else if isCurrentlyNominated}
+    <span class="last-bid">${$lastBid}</span>
   {/if}
 </div>
 
@@ -137,6 +139,11 @@
   .cancel {
     margin-top: 0.5rem;
     flex: 1;
+  }
+
+  .last-bid {
+    font-size: 2.5rem;
+    font-weight: 200;
   }
 
   p {
