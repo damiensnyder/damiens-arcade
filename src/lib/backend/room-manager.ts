@@ -20,8 +20,10 @@ export default class RoomManager {
   }
 
   // Create a game room and send the room code along with status 200.
-  createRoom(): { roomCode: string } {
-    const roomCode = this.generateRoomCode();
+  createRoom(roomCode?: string): { roomCode: string } {
+    if (roomCode === undefined) {
+      roomCode = this.generateRoomCode();
+    }
 
     this.activeRooms[roomCode] = new GameRoom(
       this.io,

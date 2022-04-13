@@ -21,14 +21,15 @@ type ActionWithIndex = Action & HasViewerIndex;
 
 interface TestRoomScript {
   actions: ActionWithIndex[]
+  roomCode: string
 }
 
 export default function setUpTestRooms(roomManager: RoomManager) {
   const testFileText = readFileSync("src/lib/backend/test-rooms.json").toString();
   const roomScripts: TestRoomScript[] = JSON.parse(testFileText)['rooms'];
   for (const roomScript of roomScripts) {
-    const roomCode = roomManager.createRoom().roomCode;
-    const room = roomManager.activeRooms[roomCode];
+    roomManager.createRoom(roomScript.roomCode);
+    const room = roomManager.activeRooms[roomScript.roomCode];
 
     for (const action of roomScript.actions) {
       const fakeViewer: Viewer = {

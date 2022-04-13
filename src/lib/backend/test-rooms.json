@@ -1,6 +1,7 @@
 {
   "rooms": [
     {
+      "roomCode": "started",
       "actions": [
         {
           "type": "connect",
