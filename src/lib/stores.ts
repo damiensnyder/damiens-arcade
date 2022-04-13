@@ -1,41 +1,13 @@
 import { writable } from 'svelte/store';
 import { GameType } from '$lib/types';
-import type { Action, GamestateMutator, Viewpoint } from '$lib/types';
 
-function createGamestate() {
-	const { subscribe, set, update } = writable({
-		roomCode: "",
-		roomName: "",
-		isPublic: false,
-		host: -1,
-		pov: -1,
-    gameType: GameType.NoGameSelected,
-    connected: false,
-  } as any);
+export const roomCode = writable("");
+export const roomName = writable("");
+export const isPublic = writable(false);
+export const host = writable(-1);
+export const pov = writable(-1);
+export const gameType = writable(GameType.NoGameSelected);
+export const connected = writable(false);
 
-	return {
-		subscribe,
-    update: (mutator: GamestateMutator) => update(mutator),
-		set: (newGamestate: Viewpoint) => {
-			if (newGamestate.gameType === GameType.AuctionTTT &&
-					newGamestate.gameStatus === "midgame") {
-				newGamestate.currentBid = (newGamestate.lastBid || -1) + 1;
-				delete newGamestate.nominating;
-			}
-			set(newGamestate);
-		}
-	};
-}
-
-export const gamestate = createGamestate();
-
-function createLastAction() {
-	const { subscribe, set } = writable(null);
-
-	return {
-		subscribe,
-		set: (newAction: Action) => set(newAction)
-	};
-}
-
-export const lastAction = createLastAction();
+export const lastAction = writable(null);
+export const eventLog = writable([]);

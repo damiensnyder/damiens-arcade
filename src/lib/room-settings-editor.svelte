@@ -1,9 +1,6 @@
 <script lang="ts">
 import GameTypeSwitcher from "$lib/game-type-switcher.svelte";
-import { gamestate, lastAction } from "$lib/stores";
-
-let roomName = $gamestate.roomName;
-let isPublic = $gamestate.isPublic;
+import { host, isPublic, lastAction, pov, roomName } from "$lib/stores";
 
 function changeRoomSettings() {
   lastAction.set({
@@ -21,21 +18,21 @@ function changeRoomSettings() {
   <GameTypeSwitcher />
   <div class="form-field">
     <label for="roomName">Room name:</label>
-    {#if $gamestate.host === $gamestate.pov}
-      <input id="roomName" type="text" bind:value={roomName} />
+    {#if $host === $pov}
+      <input id="roomName" type="text" bind:value={$roomName} />
     {:else}
-      <input id="roomName" type="text" disabled value={$gamestate.roomName} />
+      <input id="roomName" type="text" disabled value={$roomName} />
     {/if}
   </div>
   <div class="form-field">
     <label for="public">List publicly:
-      {#if $gamestate.host === $gamestate.pov}
-        <input id="public" type="checkbox" bind:checked={isPublic} />
+      {#if $host === $pov}
+        <input id="public" type="checkbox" bind:checked={$isPublic} />
       {:else}
-        <input id="public" type="checkbox" disabled checked={$gamestate.isPublic} />
+        <input id="public" type="checkbox" disabled checked={$isPublic} />
       {/if}
     </label>
-    {#if $gamestate.host === $gamestate.pov}
+    {#if $host === $pov}
       <input type="submit" class="big-button" value="UPDATE SETTINGS" />
     {/if}
   </div>

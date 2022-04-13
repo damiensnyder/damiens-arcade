@@ -29,16 +29,14 @@ export function winningSide(squares: Side[][]): Side {
   return Side.None;
 }
 
-export function getPlayerBySide(players: Player[], side: Side): Player | null {
-  for (const player of players) {
-    if (player.side === side) return player;
-  }
-  return null;
+export function getSideByController(players: Record<Side.X | Side.O, Player>, index: number): Side {
+  if (players.X.controller === index) return Side.X;
+  if (players.O.controller === index) return Side.O;
+  return Side.None;
 }
 
-export function getPlayerByController(players: Player[], index: number): Player | null {
-  for (const player of players) {
-    if (player.controller === index) return player;
-  }
+export function getPlayerByController(players: Record<Side.X | Side.O, Player>, index: number): Player | null {
+  if (players.X.controller === index) return players[Side.X];
+  if (players.O.controller === index) return players[Side.O];
   return null;
 }

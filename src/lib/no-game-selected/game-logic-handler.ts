@@ -19,28 +19,6 @@ export default class NoGameSelected extends GameLogicHandlerBase {
     this.gameStatus = "pregame";
   }
 
-  handleConnect(viewer: Viewer): void {
-    this.emitGamestateTo(viewer);
-  }
-
-  handleDisconnect(_viewer: Viewer, wasHost: boolean): void {
-    if (wasHost) {
-      this.emitGamestateToAll();
-    }
-  }
-
-  handleAction(_viewer: Viewer, _data?: any): void {}
-
-  emitGamestateTo(viewer: Viewer): void {
-    viewer.socket.emit("gamestate", this.viewpointOf(viewer));
-  }
-
-  emitGamestateToAll(): void {
-    for (const viewer of this.room.viewers) {
-      this.emitGamestateTo(viewer);
-    }
-  }
-
   viewpointOf(viewer: Viewer): NoneViewpoint {
     return {
       ...this.basicViewpointInfo(viewer),

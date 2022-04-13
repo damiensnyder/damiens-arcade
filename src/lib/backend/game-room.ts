@@ -3,7 +3,7 @@ import type GameLogicHandler from "./game-logic-handler-base";
 import AuctionTicTacToe from "../auction-tic-tac-toe/game-logic-handler";
 import NoGameSelected from "../no-game-selected/game-logic-handler";
 import { GameType, PacketType } from "../types";
-import type { PacketInfo, PublicRoomInfo, RoomAction, TeardownCallback, Viewer } from "../types";
+import type { PacketInfo, PublicRoomInfo, TeardownCallback, Viewer } from "../types";
 import { boolean, object, string } from "yup";
 
 const TEARDOWN_TIME: number = 60 * 60 * 1000; // one hour
@@ -15,10 +15,8 @@ const changeGameTypeSchema = object({
 
 const changeSettingsSchema = object({
   type: string().equals(["changeRoomSettings"]),
-  settings: object({
-    roomName: string().min(1).required(),
-    isPublic: boolean().required()
-  })
+  roomName: string().required(),
+  isPublic: boolean().required()
 });
 
 export default class GameRoom {
@@ -103,15 +101,16 @@ export default class GameRoom {
   // queue, show that the queue is empty. Otherwise, handle the next packet.
   handlePacket(): void {
     const { viewer, type, data } = this.packetQueue.splice(0, 1)[0];
+
+    console.debug(`${viewer.index}\t${type}`);
+    console.debug(data);
     
     if (type === PacketType.Action) {
       // if the action is changing something basic about the room, handle that manually
       if (this.shouldChangeGameType(viewer, data)) {
         this.changeGameType(data.newGameType);
-        this.gameLogicHandler.emitGamestateToAll();
       } else if (this.shouldChangeSettings(viewer, data)) {
-        this.changeSettings(data.settings);
-        this.gameLogicHandler.emitGamestateToAll();
+        this.changeSettings(data);
       } else {
         // otherwise, pass it on to the game logic handler
         this.gameLogicHandler.handleAction(viewer, data);
@@ -171,8 +170,18 @@ export default class GameRoom {
     if (newSettings.roomName.length === 0) {
       newSettings.roomName = "Untitled Room";
     }
-    this.basicRoomInfo.roomName = newSettings.roomName;
-    this.basicRoomInfo.isPublic = newSettings.isPublic;
+    if (newSettings.roomName !== undefined) {
+      this.basicRoomInfo.roomName = newSettings.roomName;
+    }
+    if (newSettings.isPublic !== undefined) {
+      this.basicRoomInfo.isPublic = newSettings.isPublic;
+    }
+
+    this.gameLogicHandler.emitEventToAll({
+      type: "changeRoomSettings",
+      roomName: newSettings.roomName,
+      isPublic: newSettings.isPublic
+    });
   }
 
   shouldChangeGameType(viewer: Viewer, data?: any) {
@@ -190,5 +199,10 @@ export default class GameRoom {
     } else if (newGameType === GameType.AuctionTTT) {
       this.gameLogicHandler = new AuctionTicTacToe(this);
     }
+
+    this.gameLogicHandler.emitEventToAll({
+      type: "changeGameType",
+      gameType: newGameType
+    });
   }
 }

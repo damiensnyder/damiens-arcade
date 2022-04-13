@@ -1,4 +1,4 @@
-import { GameType, type BasicViewpointInfo } from "$lib/types";
+import { GameType, type BasicViewpointInfo, type Event } from "$lib/types";
 import type { GameStatus, PublicRoomState, Viewer, Viewpoint } from "$lib/types";
 import type GameRoom from "$lib/backend/game-room";
 
@@ -19,7 +19,10 @@ export default class GameLogicHandlerBase {
 
   handleDisconnect(_viewer: Viewer, wasHost: boolean): void {
     if (wasHost) {
-      this.emitGamestateToAll();
+      this.emitEventToAll({
+        type: "changeHost",
+        host: this.room.host
+      });
     }
   }
 
@@ -29,9 +32,19 @@ export default class GameLogicHandlerBase {
     viewer.socket.emit("gamestate", this.viewpointOf(viewer));
   }
 
+  emitEventTo(viewer: Viewer, event: Event): void {
+    viewer.socket.emit("event", event);
+  }
+
   emitGamestateToAll(): void {
     for (const viewer of this.room.viewers) {
       this.emitGamestateTo(viewer);
+    }
+  }
+
+  emitEventToAll(event: Event):void {
+    for (const viewer of this.room.viewers) {
+      this.emitEventTo(viewer, event);
     }
   }
 
@@ -46,7 +59,6 @@ export default class GameLogicHandlerBase {
       isPublic: this.room.basicRoomInfo.isPublic,
       host: this.room.host,
       pov: viewer.index,
-      connected: true,
       gameType: GameType.NoGameSelected
     };
   }

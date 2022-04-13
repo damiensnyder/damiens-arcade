@@ -12,10 +12,8 @@
         },
         {
           "type": "changeRoomSettings",
-          "settings": {
-            "roomName": "started",
-            "isPublic": true
-          },
+          "roomName": "started",
+          "isPublic": true,
           "index": 1
         },
         {

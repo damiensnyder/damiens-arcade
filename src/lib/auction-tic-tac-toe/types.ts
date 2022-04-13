@@ -1,6 +1,12 @@
 import type { BasicViewpointInfo, GameType } from "$lib/types";
 
-export type AuctionTTTGameStatus = "pregame" | "midgame" | "postgame"
+export type AuctionTTTGameStatus = "pregame" | "midgame" | "postgame";
+
+export enum TurnPart {
+  Nominating,
+  Bidding,
+  None
+}
 
 export interface AuctionTTTPublicState {
   gameType: GameType.AuctionTTT
@@ -8,37 +14,46 @@ export interface AuctionTTTPublicState {
   numPlayers: number
 }
 
-export type AuctionTTTViewpoint = PregameViewpoint | MidgameViewpoint | PostgameViewpoint;
+export type AuctionTTTViewpoint = PregameViewpoint |
+    MidgameViewpoint | PostgameViewpoint;
 
 interface ViewpointBase extends BasicViewpointInfo {
   gameStatus: AuctionTTTGameStatus
   gameType: GameType.AuctionTTT
   settings: Settings
-  players: [Player, Player]
+  players: Record<Side.X | Side.O, Player>
 }
 
 export interface PregameViewpoint extends ViewpointBase {
   gameStatus: "pregame"
 }
 
-export interface MidgameViewpoint extends ViewpointBase {
+export interface MidgameViewpointBase extends ViewpointBase {
   gameStatus: "midgame"
-  whoseTurnToNominate: Side
-  whoseTurnToBid?: Side
-  lastBid?: number
   squares: Side[][]
-  currentlyNominatedSquare?: [number, number]
-  nominating?: [number, number]
-  currentBid?: number
+  turnPart: TurnPart
+  whoseTurnToNominate: Side
 }
 
-export interface PostgameViewpoint extends ViewpointBase {
+interface BiddingViewpoint extends MidgameViewpointBase {
+  turnPart: TurnPart.Bidding
+  whoseTurnToBid: Side
+  lastBid: number
+  currentlyNominatedSquare: [number, number]
+}
+
+interface NominatingViewpoint extends MidgameViewpointBase {
+  turnPart: TurnPart.Nominating
+}
+
+type MidgameViewpoint = BiddingViewpoint | NominatingViewpoint;
+
+interface PostgameViewpoint extends ViewpointBase {
   gameStatus: "postgame"
   squares: Side[][]
 }
 
 export interface Player {
-  side: Side
   money: number
   controller?: number
 }
@@ -56,10 +71,8 @@ export interface Settings {
 
 interface ChangeGameSettingsAction {
   type: "changeGameSettings"
-  settings: {
-    startingMoney: number
-    startingPlayer: Side
-  }
+  startingMoney?: number
+  startingPlayer?: Side
 }
 
 interface JoinAction {
@@ -113,3 +126,73 @@ export type AuctionTTTAction = ChangeGameSettingsAction |
     RematchAction |
     BackToSettingsAction |
     ReplacePlayerAction;
+
+interface ChangeGameSettingsEvent {
+  type: "changeGameSettings"
+  settings: {
+    startingMoney: number
+    startingPlayer: Side
+  }
+}
+
+interface JoinEvent {
+  type: "join"
+  controller: number
+  side: Side
+}
+
+interface LeaveEvent {
+  type: "leave"
+  side: Side
+}
+
+interface StartEvent {
+  type: "start"
+  startingPlayer: Side
+}
+
+interface NominateEvent {
+  type: "nominate",
+  square: [number, number],
+  startingBid: number
+}
+
+interface BidEvent {
+  type: "bid",
+  amount: number
+}
+
+interface AwardSquareEvent {
+  type: "awardSquare"
+  side: Side
+}
+
+interface GameOverEvent {
+  type: "gameOver"
+}
+
+interface PassEvent {
+  type: "pass"
+}
+
+interface BackToSettingsEvent {
+  type: "backToSettings"
+}
+
+interface ReplaceEvent {
+  type: "replace"
+  side: Side
+  controller: number
+}
+
+export type AuctionTTTEvent = ChangeGameSettingsEvent |
+    JoinEvent |
+    LeaveEvent |
+    StartEvent |
+    NominateEvent |
+    BidEvent |
+    AwardSquareEvent |
+    GameOverEvent |
+    PassEvent |
+    BackToSettingsEvent |
+    ReplaceEvent;

@@ -1,13 +1,11 @@
 <script lang="ts">
   import { GameType } from "$lib/types";
-  import { gamestate, lastAction } from "$lib/stores";
-
-  let gameType: GameType = $gamestate.gameType;
+  import { gameType, host, lastAction, pov } from "$lib/stores";
 
   function changeGameType() {
     lastAction.set({
       type: "changeGameType",
-      newGameType: gameType
+      newGameType: $gameType
     });
   }
 </script>
@@ -15,8 +13,8 @@
 <div class="form-field">
   <label for="gameType">Game type:</label>
   <select id="gameType"
-      disabled={$gamestate.host !== $gamestate.pov}
-      bind:value={gameType}
+      disabled={$host !== $pov}
+      bind:value={$gameType}
       on:change|preventDefault={changeGameType}>
     {#each Object.values(GameType) as gameTypeName}
       <option value={gameTypeName}>{gameTypeName}</option>
