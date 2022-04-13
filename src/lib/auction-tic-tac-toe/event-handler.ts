@@ -1,5 +1,5 @@
 import { Side, TurnPart, type AuctionTTTEvent, type AuctionTTTViewpoint } from "$lib/auction-tic-tac-toe/types";
-import { currentBid, currentlyNominatedSquare, gameStatus, nominating, lastBid, players, settings, squares, turnPart, whoseTurnToBid, whoseTurnToNominate } from "$lib/auction-tic-tac-toe/stores";
+import { currentBid, currentlyNominatedSquare, gameStatus, nominating, lastBid, players, settings, squares, turnPart, whoseTurnToBid, whoseTurnToNominate, winner } from "$lib/auction-tic-tac-toe/stores";
 import { oppositeSideOf } from "$lib/auction-tic-tac-toe/utils";
 import { get } from "svelte/store";
 
@@ -99,6 +99,8 @@ export const eventHandler: AuctionTTTEventHandler = {
   gameOver: function (event): void {
     gameStatus.set("postgame");
     turnPart.set(TurnPart.None);
+    delete event.type;
+    winner.set(event);
   },
   backToSettings: function (event): void {
     gameStatus.set("pregame");

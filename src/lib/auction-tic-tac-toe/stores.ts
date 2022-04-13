@@ -22,3 +22,4 @@ export const settings = writable({
   startingMoney: 15,
   startingPlayer: Side.None
 });
+export const winner = writable({ winningSide: Side.None });

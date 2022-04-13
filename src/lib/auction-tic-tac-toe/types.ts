@@ -58,6 +58,14 @@ export interface Player {
   controller?: number
 }
 
+export type Winner = {
+  winningSide: Side.None
+} | {
+  winningSide: Side.X | Side.O,
+  start: [number, number],
+  end: [number, number]
+};
+
 export enum Side {
   X = "X",
   O = "O",
@@ -167,9 +175,9 @@ interface AwardSquareEvent {
   side: Side
 }
 
-interface GameOverEvent {
+type GameOverEvent = {
   type: "gameOver"
-}
+} & Winner;
 
 interface PassEvent {
   type: "pass"
