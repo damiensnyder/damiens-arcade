@@ -10,7 +10,7 @@
   
   function replace() {
     lastAction.set({
-      type: "replacePlayer",
+      type: "join",
       side: side
     });
   }

@@ -109,18 +109,6 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
         type: "leave",
         side: sideControlledByViewer
       });
-
-      // REPLACE
-    } else if (replacePlayerSchema.isValidSync(action) &&
-        this.gameStatus !== "pregame" &&
-        playerControlledByViewer === null &&
-        this.players[action.side].controller === undefined) {
-      this.players[action.side].controller = viewer.index;
-      this.emitEventToAll({
-        type: "replace",
-        side: action.side as Side,
-        controller: viewer.index
-      });
     } else if (changeGameSettingsSchema.isValidSync(action) &&
         this.room.host === viewer.index) {
       this.settings = action.settings as Settings;
