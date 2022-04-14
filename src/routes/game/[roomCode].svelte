@@ -1,6 +1,6 @@
 <script lang="ts">
 import { page } from "$app/stores";
-import { connected, gameType, host, isPublic, lastAction, pov, roomCode, roomName } from "$lib/stores";
+import { connected, eventLog, gameType, host, isPublic, lastAction, pov, roomCode, roomName } from "$lib/stores";
 import { io } from "socket.io-client";
 import { GameType, type Action, type Event } from "$lib/types";
 import type { Viewpoint } from "$lib/types";
@@ -51,6 +51,9 @@ socket.on("event", (event: Event) => {
     }
   } else if (event.type === "changeHost") {
     $host = event.host;
+    if (event.host === $pov) {
+      eventLog.append(`The previous host has disconnected. You are now the host of this room.`);
+    }
   } else if ($gameType === GameType.AuctionTTT) {
     // @ts-ignore — "union type too complex to represent" maybe for you...
     // anyway this calls the event handler corresponding to the event's type

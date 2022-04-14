@@ -51,11 +51,6 @@ const backToSettingsSchema = object({
   type: string().required().equals(["backToSettings"])
 });
 
-const replacePlayerSchema = object({
-  type: string().required().equals(["replacePlayer"]),
-  side: string().required().oneOf(["X", "O"])
-});
-
 export default class AuctionTicTacToe extends GameLogicHandlerBase {
   settings: Settings
   gameType: GameType.AuctionTTT

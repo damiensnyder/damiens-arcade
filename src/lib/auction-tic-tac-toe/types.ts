@@ -181,20 +181,13 @@ interface BackToSettingsEvent {
   type: "backToSettings"
 }
 
-interface ReplaceEvent {
-  type: "replace"
-  side: Side
-  controller: number
-}
-
 export type AuctionTTTEvent = ChangeGameSettingsEvent |
     JoinEvent |
     LeaveEvent |
     StartEvent |
     NominateEvent |
     BidEvent |
+    PassEvent |
     AwardSquareEvent |
     GameOverEvent |
-    PassEvent |
-    BackToSettingsEvent |
-    ReplaceEvent;
+    BackToSettingsEvent;

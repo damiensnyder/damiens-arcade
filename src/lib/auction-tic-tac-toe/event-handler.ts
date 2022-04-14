@@ -2,6 +2,7 @@ import { Side, TurnPart, type AuctionTTTEvent, type AuctionTTTViewpoint } from "
 import { currentBid, currentlyNominatedSquare, gameStatus, nominating, lastBid, players, settings, squares, turnPart, whoseTurnToBid, whoseTurnToNominate, winner } from "$lib/auction-tic-tac-toe/stores";
 import { oppositeSideOf } from "$lib/auction-tic-tac-toe/utils";
 import { get } from "svelte/store";
+import { eventLog } from "$lib/stores";
 
 export function switchToType(): void {
   settings.set({ startingMoney: 15, startingPlayer: Side.None });
@@ -35,19 +36,16 @@ export const eventHandler: AuctionTTTEventHandler = {
       old[event.side] = { controller: event.controller, money: -1 };
       return old;
     });
+    eventLog.append(`A player has joined as ${event.side}.`);
   },
   leave: function (event): void {
     players.update((old) => {
       delete old[event.side].controller;
       return old;
     });
-  },
-  replace: function (event): void {
-    players.update((old) => {
-      old[event.side].controller = event.controller;
-      return old;
-    });
-    currentBid.set(get(lastBid) + 1);
+    if (get(gameStatus) !== "pregame") {
+      eventLog.append(`The player playing ${event.side} has left.`)
+    }
   },
   changeGameSettings: function (event): void {
     settings.set(event.settings);
@@ -74,19 +72,23 @@ export const eventHandler: AuctionTTTEventHandler = {
     lastBid.set(event.startingBid);
     currentBid.set(event.startingBid + 1);
     nominating.set(null);
+    eventLog.append(`${whoseTurnToBid} nominated a square with a starting bid of $${event.startingBid}.`)
   },
   bid: function (event): void {
     lastBid.set(event.amount);
     currentBid.set(event.amount + 1);
-    whoseTurnToBid.update((lastBidder) => oppositeSideOf(lastBidder));
+    const lastBidder = get(whoseTurnToBid);
+    whoseTurnToBid.set(oppositeSideOf(lastBidder));
+    eventLog.append(`${lastBidder} bid $${event.amount}.`)
   },
-  pass: function (event): void {
-    // do nothing for now
+  pass: function (_event): void {
+    eventLog.append(`${get(whoseTurnToBid)} passed.`);
   },
   awardSquare: function (event): void {
     whoseTurnToNominate.update((lastNominater) => oppositeSideOf(lastNominater));
+    const whoWonTheSquare = oppositeSideOf(get(whoseTurnToBid))
     players.update((old) => {
-      old[oppositeSideOf(get(whoseTurnToBid))].money -= get(lastBid);
+      old[whoWonTheSquare].money -= get(lastBid);
       return old;
     })
     squares.update((old) => {
@@ -95,12 +97,18 @@ export const eventHandler: AuctionTTTEventHandler = {
     })
     currentlyNominatedSquare.set([-1, -1]);
     turnPart.set(TurnPart.Nominating);
+    eventLog.append(`The square has been awarded to ${whoWonTheSquare}.`);
   },
   gameOver: function (event): void {
     gameStatus.set("postgame");
     turnPart.set(TurnPart.None);
     delete event.type;
     winner.set(event);
+    if (event.winningSide === Side.None) {
+      eventLog.append(`The game is a tie!`);
+    } else {
+      eventLog.append(`${event.winningSide} has won the game!`);
+    }
   },
   backToSettings: function (event): void {
     gameStatus.set("pregame");
