@@ -6,7 +6,7 @@ import { GameType, type Action, type Event } from "$lib/types";
 import type { Viewpoint } from "$lib/types";
 import AuctionTicTacToe from "$lib/auction-tic-tac-toe/frontend-main.svelte";
 import NoGameSelected from "$lib/no-game-selected/frontend-main.svelte";
-import { eventHandler, handleGamestate, switchToType as switchToAuctionTTT } from "$lib/auction-tic-tac-toe/event-handler";
+import { eventHandler as auctionTTTEventHandler, handleGamestate, switchToType as switchToAuctionTTT } from "$lib/auction-tic-tac-toe/event-handler";
 import "../../styles/global.css";
 
 const relativeUrl = $page.url.pathname;
@@ -55,9 +55,9 @@ socket.on("event", (event: Event) => {
       eventLog.append(`The previous host has disconnected. You are now the host of this room.`);
     }
   } else if ($gameType === GameType.AuctionTTT) {
-    // @ts-ignore — "union type too complex to represent" maybe for you...
+    // @ts-ignore — "union type too complex to represent"?? maybe for you...
     // anyway this calls the event handler corresponding to the event's type
-    eventHandler[event.type](event);
+    auctionTTTEventHandler[event.type](event);
   }
 });
 
