@@ -81,7 +81,7 @@ export const eventHandler: AuctionTTTEventHandler = {
     whoseTurnToBid.update((lastBidder) => oppositeSideOf(lastBidder));
   },
   pass: function (event): void {
-    throw new Error("Function not implemented.");
+    // do nothing for now
   },
   awardSquare: function (event): void {
     whoseTurnToNominate.update((lastNominater) => oppositeSideOf(lastNominater));
