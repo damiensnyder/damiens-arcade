@@ -37,11 +37,15 @@ socket.on('gamestate', (gamestate: Viewpoint) => {
 
 socket.on("event", (event: Event) => {
   console.log(event);
+
+  // CHANGE GAME TYPE
   if (event.type === "changeGameType") {
     $gameType = event.gameType;
     if ($gameType === GameType.AuctionTTT) {
       switchToAuctionTTT();
     }
+
+    // CHANGE ROOM SETTINGS
   } else if (event.type === "changeRoomSettings") {
     if (event.isPublic !== undefined) {
       $isPublic = event.isPublic;
@@ -49,11 +53,15 @@ socket.on("event", (event: Event) => {
     if (event.roomName !== undefined) {
       $roomName = event.roomName;
     }
+
+    // CHANGE HOST
   } else if (event.type === "changeHost") {
     $host = event.host;
     if (event.host === $pov) {
       eventLog.append(`The previous host has disconnected. You are now the host of this room.`);
     }
+
+    // HANDLE AUCTION TTT EVENTS
   } else if ($gameType === GameType.AuctionTTT) {
     // @ts-ignore — "union type too complex to represent"?? maybe for you...
     // anyway this calls the event handler corresponding to the event's type
@@ -61,7 +69,9 @@ socket.on("event", (event: Event) => {
   }
 });
 
+// emit every action sent via this store to the server
 lastAction.subscribe((action: Action) => {
+  // tbh i don't know if the two conditions are doing anything
   if (action != null && $pov !== -1) {
     socket.emit('action', action)
     console.log($lastAction);

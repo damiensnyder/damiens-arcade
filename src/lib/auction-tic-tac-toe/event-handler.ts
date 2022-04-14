@@ -110,7 +110,7 @@ export const eventHandler: AuctionTTTEventHandler = {
       eventLog.append(`${event.winningSide} has won the game!`);
     }
   },
-  backToSettings: function (event): void {
+  backToSettings: function (_event): void {
     gameStatus.set("pregame");
   }
 }
