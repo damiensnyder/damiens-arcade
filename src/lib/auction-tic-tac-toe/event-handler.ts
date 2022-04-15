@@ -7,7 +7,7 @@ import { eventLog, pov } from "$lib/stores";
 export function switchToType(): void {
   settings.set({ startingMoney: 15, startingPlayer: Side.None });
   gameStatus.set("pregame");
-  players.set({ X: { money: -1 }, O: { money: -1 } });
+  players.set({ X: { money: 15 }, O: { money: 15 } });
 }
 
 export function handleGamestate(gamestate: AuctionTTTViewpoint): void {
@@ -23,6 +23,9 @@ export function handleGamestate(gamestate: AuctionTTTViewpoint): void {
       lastBid.set(gamestate.lastBid);
       whoseTurnToBid.set(gamestate.whoseTurnToBid);
     }
+  } else if (gamestate.gameStatus === "postgame") {
+    squares.set(gamestate.squares);
+    turnPart.set(TurnPart.None);
   }
 }
 
@@ -61,6 +64,11 @@ export const eventHandler: AuctionTTTEventHandler = {
       old.O.money = get(settings).startingMoney;
       return old;
     });
+    if (get(gameStatus) === "pregame") {
+      eventLog.append("The game has started.");
+    } else {
+      eventLog.append("A new game has started.");
+    }
     gameStatus.set("midgame");
     squares.set([
       [Side.None, Side.None, Side.None],

@@ -96,7 +96,7 @@
             on:click={cancel}>
       </div>
     </div>
-  {:else if $players[$whoseTurnToNominate].controller === $pov && $turnPart === TurnPart.Nominating}
+  {:else if $turnPart === TurnPart.Nominating && $players[$whoseTurnToNominate].controller === $pov}
     <button class="nominate"
         on:click={beginNominate}
         on:submit={beginNominate}>

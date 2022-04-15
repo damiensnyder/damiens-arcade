@@ -43,6 +43,11 @@
     margin-top: 1rem;
   }
 
+  button {
+    position: absolute;
+    bottom: -2rem;
+  }
+
   .you {
     position: absolute;
     bottom: -1.5rem;

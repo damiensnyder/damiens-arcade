@@ -14,12 +14,14 @@ const socket = io(relativeUrl);
 
 socket.on('connect', () => {
   $connected = true;
+  eventLog.append("You have connected to the game.")
 });
 
 socket.on('disconnect', () => {
   $connected = false
   $pov = -1;
   $lastAction.set(null);
+  eventLog.append("You have disconnected from the game.");
 });
 
 socket.on('gamestate', (gamestate: Viewpoint) => {
@@ -58,7 +60,7 @@ socket.on("event", (event: Event) => {
   } else if (event.type === "changeHost") {
     $host = event.host;
     if (event.host === $pov) {
-      eventLog.append(`The previous host has disconnected. You are now the host of this room.`);
+      eventLog.append("The previous host has disconnected. You are now the host of this room.");
     }
 
     // HANDLE AUCTION TTT EVENTS
