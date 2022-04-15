@@ -12,7 +12,7 @@
   {:else if $turnPart === TurnPart.Nominating}
     Waiting for {$whoseTurnToNominate} to nominate a square.
   {:else if $turnPart === TurnPart.Bidding && $players[$whoseTurnToBid].controller === $pov}
-    Decide how much you want to bid on the square, or if you want to pass.
+    Make a bid on the square, or else pass.
   {:else if $turnPart === TurnPart.Bidding}
     Waiting for {$whoseTurnToBid} to bid.
   {:else}
