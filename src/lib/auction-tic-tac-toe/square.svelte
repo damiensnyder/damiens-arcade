@@ -121,11 +121,11 @@
     width: 70%;
     border-radius: 0.75rem;
     color: #668;
-    background-color: #113;
-    box-shadow: 0.5rem 0.5rem 1rem #113,
-        0.5rem -0.5rem 1rem #113,
-        -0.5rem -0.5rem 1rem #113,
-        -0.5rem 0.5rem 1rem #113;
+    background-color: var(--bg-2);
+    box-shadow: 0.5rem 0.5rem 1rem var(--bg-2),
+        0.5rem -0.5rem 1rem var(--bg-2),
+        -0.5rem -0.5rem 1rem var(--bg-2),
+        -0.5rem 0.5rem 1rem var(--bg-2);
     border: 0.5rem solid transparent;
     opacity: 0;
     transition: opacity 0.2s ease-in-out;

@@ -47,7 +47,7 @@
     top: 0;
     left: 0;
     right: 0;
-    bottom: 4rem;
+    bottom: 3rem;
     background: linear-gradient(var(--bg-1), transparent);
     transition: all 0.2s ease-in-out;
     opacity: 100%;
