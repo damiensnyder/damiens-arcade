@@ -22,14 +22,17 @@
   {:else}
     <O size={120} />
   {/if}
-  <span class:this-players-turn={($whoseTurnToNominate === side && $turnPart === TurnPart.Nominating) ||
-                                 ($whoseTurnToBid === side && $turnPart === TurnPart.Bidding)}>
+  <span class="money"
+      class:this-players-turn={($whoseTurnToNominate === side && $turnPart === TurnPart.Nominating) ||
+                               ($whoseTurnToBid === side && $turnPart === TurnPart.Bidding)}>
     ${$players[side].money}
   </span>
   {#if $pov === $players[side].controller}
-    <div class="you">(you)</div>
+    <span class="controller">(you)</span>
   {:else if $players[side].controller === undefined && $players[oppositeSideOf(side)].controller !== $pov}
     <button class="big-button" on:click={replace} on:submit={replace}>REPLACE</button>
+  {:else if $players[side].controller === undefined}
+    <span class="controller">(disconnected)</span>
   {/if}
 </div>
   
@@ -38,7 +41,7 @@
     position: relative;
   }
 
-  span {
+  .money {
     font-size: 1.5rem;
     margin-top: 1rem;
   }
@@ -48,7 +51,7 @@
     bottom: -2rem;
   }
 
-  .you {
+  .controller {
     position: absolute;
     bottom: -1.5rem;
     color: var(--text-4);
