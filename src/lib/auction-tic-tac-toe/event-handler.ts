@@ -2,7 +2,7 @@ import { Side, TurnPart, type AuctionTTTEvent, type AuctionTTTViewpoint } from "
 import { currentBid, currentlyNominatedSquare, gameStatus, nominating, lastBid, players, settings, squares, turnPart, whoseTurnToBid, whoseTurnToNominate, winner } from "$lib/auction-tic-tac-toe/stores";
 import { oppositeSideOf } from "$lib/auction-tic-tac-toe/utils";
 import { get } from "svelte/store";
-import { eventLog } from "$lib/stores";
+import { eventLog, pov } from "$lib/stores";
 
 export function switchToType(): void {
   settings.set({ startingMoney: 15, startingPlayer: Side.None });
@@ -33,9 +33,12 @@ type AuctionTTTEventHandler = {
 export const eventHandler: AuctionTTTEventHandler = {
   join: function (event): void {
     players.update((old) => {
-      old[event.side] = { controller: event.controller, money: -1 };
+      old[event.side].controller = event.controller;
       return old;
     });
+    if (get(pov) === event.controller && get(lastBid) !== null) {
+      currentBid.set(get(lastBid) + 1);
+    }
     eventLog.append(`A player has joined as ${event.side}.`);
   },
   leave: function (event): void {
@@ -72,7 +75,7 @@ export const eventHandler: AuctionTTTEventHandler = {
     lastBid.set(event.startingBid);
     currentBid.set(event.startingBid + 1);
     nominating.set(null);
-    eventLog.append(`${whoseTurnToBid} nominated a square with a starting bid of $${event.startingBid}.`)
+    eventLog.append(`${get(whoseTurnToBid)} nominated a square with a starting bid of $${event.startingBid}.`)
   },
   bid: function (event): void {
     lastBid.set(event.amount);
