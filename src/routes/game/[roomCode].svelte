@@ -82,6 +82,10 @@ lastAction.subscribe((action: Action) => {
 });
 </script>
 
+<svelte:head>
+  <title>Damien's Arcade | Connecting...</title>
+</svelte:head>
+
 {#if $roomCode !== ""}
   {#if $gameType === GameType.NoGameSelected}
     <NoGameSelected />
