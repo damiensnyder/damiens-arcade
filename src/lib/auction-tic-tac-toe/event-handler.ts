@@ -90,7 +90,9 @@ export const eventHandler: AuctionTTTEventHandler = {
       return old;
     });
     timeOfLastMove.set(event.timeOfLastMove);
-    startTimer();
+    if (get(gameStatus) !== "postgame") {
+      startTimer();
+    }
   },
   nominate: function (event): void {
     whoseTurnToBid.set(oppositeSideOf(get(whoseTurnToNominate)));

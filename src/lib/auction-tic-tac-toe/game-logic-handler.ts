@@ -286,7 +286,6 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       delete this.whoseTurnToNominate;
       delete this.lastBid;
       delete this.currentlyNominatedSquare;
-      delete this.timeOfLastMove;
 
       return true;
     }
