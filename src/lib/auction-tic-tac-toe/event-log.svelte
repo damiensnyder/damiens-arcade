@@ -10,7 +10,11 @@
     innerDiv.classList.remove("no-recent-events");
     clearTimeout(disappearTimeout);
     disappearTimeout = setTimeout(
-      () => innerDiv.classList.add("no-recent-events"),
+      function() {
+        if (innerDiv !== null) {
+          innerDiv.classList.add("no-recent-events");
+        }
+      },
       5000
     );
   }
