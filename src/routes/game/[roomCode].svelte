@@ -50,12 +50,8 @@ socket.on("event", (event: Event) => {
 
     // CHANGE ROOM SETTINGS
   } else if (event.type === "changeRoomSettings") {
-    if (event.isPublic !== undefined) {
-      $isPublic = event.isPublic;
-    }
-    if (event.roomName !== undefined) {
-      $roomName = event.roomName;
-    }
+    $isPublic = event.isPublic;
+    $roomName = event.roomName;
 
     // CHANGE HOST
   } else if (event.type === "changeHost") {
@@ -74,11 +70,8 @@ socket.on("event", (event: Event) => {
 
 // emit every action sent via this store to the server
 lastAction.subscribe((action: Action) => {
-  // tbh i don't know if the two conditions are doing anything
-  if (action != null && $pov !== -1) {
-    socket.emit('action', action)
-    console.log($lastAction);
-  };
+  socket.emit('action', action);
+  console.log($lastAction);
 });
 </script>
 

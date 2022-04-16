@@ -5,13 +5,14 @@ import type GameRoom from "$lib/backend/game-room";
 import { Side, TurnPart } from "$lib/auction-tic-tac-toe/types";
 import type { AuctionTTTGameStatus, AuctionTTTViewpoint, Player, Settings } from "$lib/auction-tic-tac-toe/types";
 import { getPlayerByController, getSideByController, oppositeSideOf, winningSide } from "$lib/auction-tic-tac-toe/utils";
-import { array, number, object, string } from "yup";
+import { array, boolean, number, object, string } from "yup";
 
 const changeGameSettingsSchema = object({
   type: string().required().equals(["changeGameSettings"]),
   settings: object({
-    startingMoney: number().integer().min(0),
-    startingPlayer: string().oneOf(Object.values(Side))
+    startingMoney: number().required().integer().min(0),
+    startingPlayer: string().required().oneOf(Object.values(Side)),
+    useTiebreaker: boolean().required()
   })
 });
 
@@ -61,13 +62,15 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
   whoseTurnToBid?: Side
   lastBid?: number
   squares?: Side[][]
+  timeOfLastMove?: number
   currentlyNominatedSquare?: [number, number]
 
   constructor(room: GameRoom) {
     super(room);
     this.settings = {
       startingMoney: 15,
-      startingPlayer: Side.None
+      startingPlayer: Side.None,
+      useTiebreaker: false
     };
     this.players = {
       X: {
@@ -140,6 +143,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
         square: action.square as [number, number],
         startingBid: action.startingBid
       });
+      this.updateTiming(sideControlledByViewer);
 
       // if the other player can't afford to outbid it, award the square immediately
       if (this.lastBid >= this.players[this.whoseTurnToBid].money) {
@@ -160,6 +164,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
         type: "bid",
         amount: action.amount
       });
+      this.updateTiming(sideControlledByViewer);
 
       // if the other player can't afford to outbid it, award the square immediately
       if (this.lastBid >= this.players[this.whoseTurnToBid].money) {
@@ -172,6 +177,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
         sideControlledByViewer === this.whoseTurnToBid) {
       this.emitEventToAll({ type: "pass" });
       this.giveSquareToHighestBidder();
+      this.updateTiming(sideControlledByViewer);
 
       // REMATCH
     } else if (rematchSchema.isValidSync(action) &&
@@ -234,12 +240,46 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       [Side.None, Side.None, Side.None],
       [Side.None, Side.None, Side.None]
     ];
+
+    // if using the timer tiebreaker, initialize time used
+    if (this.settings.useTiebreaker) {
+      this.players.X.timeUsed = 0;
+      this.players.O.timeUsed = 0;
+      this.timeOfLastMove = new Date().getTime();
+    }
+  }
+
+  updateTiming(side: Side) {
+    // if using the timer tiebreaker, update time used
+    if (this.settings.useTiebreaker) {
+      this.players[side].timeUsed += new Date().getTime() - this.timeOfLastMove;
+      this.timeOfLastMove = new Date().getTime();
+      this.emitEventToAll({
+        type: "timing",
+        X: this.players.X.timeUsed,
+        O: this.players.O.timeUsed,
+        timeOfLastMove: this.timeOfLastMove
+      });
+    }
   }
 
   checkForWinner(): void {
-    const winner = winningSide(this.squares);
+    let winner = winningSide(this.squares);
+
+    // if someone has a 3-in-a-row or every square is filled
     if (winner.winningSide !== Side.None ||
         this.squares.every((row) => row.every((square) => square !== Side.None))) {
+      // if using the timing tiebreaker, break the tie
+      if (this.settings.useTiebreaker && winner.winningSide === Side.None) {
+        this.updateTiming(oppositeSideOf(this.whoseTurnToBid));
+        // the winning side is whoever used less time
+        winner = {
+          winningSide: this.players.X.timeUsed < this.players.O.timeUsed ? Side.X : Side.O,
+          start: [-1, -1],
+          end: [-1, -1]
+        };
+      }
+
       this.gameStatus = "postgame";
       this.emitEventToAll({
         type: "gameOver",
@@ -249,6 +289,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       delete this.whoseTurnToNominate;
       delete this.lastBid;
       delete this.currentlyNominatedSquare;
+      delete this.timeOfLastMove;
     }
   }
 

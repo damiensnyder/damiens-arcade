@@ -1,11 +1,15 @@
 import { Side, TurnPart, type AuctionTTTEvent, type AuctionTTTViewpoint } from "$lib/auction-tic-tac-toe/types";
-import { currentBid, currentlyNominatedSquare, gameStatus, nominating, lastBid, players, settings, squares, turnPart, whoseTurnToBid, whoseTurnToNominate, winner } from "$lib/auction-tic-tac-toe/stores";
+import { currentBid, currentlyNominatedSquare, gameStatus, nominating, lastBid, players, settings, squares, turnPart, whoseTurnToBid, whoseTurnToNominate, winner, timeOfLastMove } from "$lib/auction-tic-tac-toe/stores";
 import { oppositeSideOf } from "$lib/auction-tic-tac-toe/utils";
 import { get } from "svelte/store";
 import { eventLog, pov } from "$lib/stores";
 
 export function switchToType(): void {
-  settings.set({ startingMoney: 15, startingPlayer: Side.None });
+  settings.set({
+    startingMoney: 15,
+    startingPlayer: Side.None,
+    useTiebreaker: false
+  });
   gameStatus.set("pregame");
   players.set({ X: { money: 15 }, O: { money: 15 } });
 }
@@ -73,6 +77,14 @@ export const eventHandler: AuctionTTTEventHandler = {
       [Side.None, Side.None, Side.None],
       [Side.None, Side.None, Side.None]
     ]);
+  },
+  timing: function (event): void {
+    players.update((old) => {
+      old.X.timeUsed = event.X;
+      old.O.timeUsed = event.O;
+      return old;
+    });
+    timeOfLastMove.set(event.timeOfLastMove);
   },
   nominate: function (event): void {
     whoseTurnToBid.set(oppositeSideOf(get(whoseTurnToNominate)));
