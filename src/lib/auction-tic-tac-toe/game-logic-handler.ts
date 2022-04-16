@@ -176,8 +176,8 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
         this.gameStatus === "midgame" &&
         sideControlledByViewer === this.whoseTurnToBid) {
       this.emitEventToAll({ type: "pass" });
-      this.giveSquareToHighestBidder();
       this.updateTiming(sideControlledByViewer);
+      this.giveSquareToHighestBidder();
 
       // REMATCH
     } else if (rematchSchema.isValidSync(action) &&
@@ -286,6 +286,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       delete this.whoseTurnToNominate;
       delete this.lastBid;
       delete this.currentlyNominatedSquare;
+      delete this.timeOfLastMove;
 
       return true;
     }
