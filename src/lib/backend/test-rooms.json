@@ -23,6 +23,15 @@
           "index": 1
         },
         {
+          "type": "changeGameSettings",
+          "settings": {
+            "startingMoney": 15,
+            "startingPlayer": "X",
+            "useTiebreaker": true
+          },
+          "index": 1
+        },
+        {
           "type": "join",
           "side": "X",
           "index": 1

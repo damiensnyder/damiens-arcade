@@ -64,6 +64,11 @@ export const eventHandler: AuctionTTTEventHandler = {
     players.update((old) => {
       old.X.money = get(settings).startingMoney;
       old.O.money = get(settings).startingMoney;
+      if (get(settings).useTiebreaker) {
+        old.X.timeUsed = 0;
+        old.O.timeUsed = 0;
+        startTimer();
+      }
       return old;
     });
     if (get(gameStatus) === "pregame") {
@@ -85,6 +90,7 @@ export const eventHandler: AuctionTTTEventHandler = {
       return old;
     });
     timeOfLastMove.set(event.timeOfLastMove);
+    startTimer();
   },
   nominate: function (event): void {
     whoseTurnToBid.set(oppositeSideOf(get(whoseTurnToNominate)));
@@ -130,8 +136,31 @@ export const eventHandler: AuctionTTTEventHandler = {
     } else {
       eventLog.append(`${event.winningSide} has won the game!`);
     }
+    if (get(settings).useTiebreaker) {
+      stopTimer();
+    }
   },
   backToSettings: function (_event): void {
     gameStatus.set("pregame");
   }
+}
+
+let timer;
+
+function startTimer(): void {
+  timer = setInterval(() => {
+    const prevTime = get(timeOfLastMove);
+    const newTime = new Date().getTime()
+    timeOfLastMove.set(newTime);
+    const whoseTurnItIs = get(turnPart) === TurnPart.Bidding ?
+        get(whoseTurnToBid) : get(whoseTurnToNominate);
+    players.update((old) => {
+      old[whoseTurnItIs].timeUsed += newTime - prevTime;
+      return old;
+    });
+  }, 1000);
+}
+
+function stopTimer(): void {
+  clearInterval(timer);
 }

@@ -13,7 +13,7 @@
   
   // For example, converts 234567 to 3:54 (because 3m 54s ~ 234567 ms)
   function millisToMinutesAndSeconds(timeInMillis: number): string {
-    const asDate = new Date(Date.UTC(0, 0, 0, 0, 0, timeInMillis));
+    const asDate = new Date(Date.UTC(0, 0, 0, 0, 0, 0, timeInMillis));
     return `${asDate.getUTCMinutes()}:${String(asDate.getUTCSeconds()).padStart(2, "0")}`;
   }
   
@@ -34,7 +34,7 @@
   <span class="money" class:this-players-turn={thisPlayersTurn}>
     ${$players[side].money}
     {#if $settings.useTiebreaker}
-      &nbsp;&bull;&nbsp;{millisToMinutesAndSeconds($players[side].timeUsed)}
+      &middot; {millisToMinutesAndSeconds($players[side].timeUsed)}
     {/if}
   </span>
   {#if $pov === $players[side].controller}

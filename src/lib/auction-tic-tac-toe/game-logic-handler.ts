@@ -217,12 +217,9 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
     delete this.currentlyNominatedSquare;
 
     // check to see if the game ended, and if not, switch who nominates
-    this.checkForWinner();
-    if (this.gameStatus === "midgame") {
+    if (!this.checkForWinner()) {
       this.whoseTurnToNominate = oppositeSideOf(this.whoseTurnToNominate);
       this.turnPart = TurnPart.Nominating;
-    } else {
-      this.turnPart = TurnPart.None;
     }
   }
 
@@ -263,7 +260,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
     }
   }
 
-  checkForWinner(): void {
+  checkForWinner(): boolean {
     let winner = winningSide(this.squares);
 
     // if someone has a 3-in-a-row or every square is filled
@@ -271,7 +268,6 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
         this.squares.every((row) => row.every((square) => square !== Side.None))) {
       // if using the timing tiebreaker, break the tie
       if (this.settings.useTiebreaker && winner.winningSide === Side.None) {
-        this.updateTiming(oppositeSideOf(this.whoseTurnToBid));
         // the winning side is whoever used less time
         winner = {
           winningSide: this.players.X.timeUsed < this.players.O.timeUsed ? Side.X : Side.O,
@@ -285,12 +281,16 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
         type: "gameOver",
         ...winner
       });
+      this.turnPart = TurnPart.None;
       delete this.whoseTurnToBid;
       delete this.whoseTurnToNominate;
       delete this.lastBid;
       delete this.currentlyNominatedSquare;
       delete this.timeOfLastMove;
+
+      return true;
     }
+    return false;
   }
 
   handleDisconnect(viewer: Viewer, wasHost: boolean): void {
