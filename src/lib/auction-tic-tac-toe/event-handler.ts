@@ -34,6 +34,7 @@ export function handleGamestate(gamestate: AuctionTTTViewpoint): void {
   } else if (gamestate.gameStatus === "postgame") {
     squares.set(gamestate.squares);
     turnPart.set(TurnPart.None);
+    winner.set(gamestate.winner);
   }
 }
 

@@ -2,7 +2,7 @@ import { GameType } from "$lib/types";
 import type { PublicRoomState, Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
-import { Side, TurnPart } from "$lib/auction-tic-tac-toe/types";
+import { Side, TurnPart, type Winner } from "$lib/auction-tic-tac-toe/types";
 import type { AuctionTTTGameStatus, AuctionTTTViewpoint, Player, Settings } from "$lib/auction-tic-tac-toe/types";
 import { getPlayerByController, getSideByController, oppositeSideOf, winningSide } from "$lib/auction-tic-tac-toe/utils";
 import { array, boolean, number, object, string } from "yup";
@@ -64,6 +64,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
   squares?: Side[][]
   timeOfLastMove?: number
   currentlyNominatedSquare?: [number, number]
+  winner?: Winner
 
   constructor(room: GameRoom) {
     super(room);
@@ -244,6 +245,8 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       this.players.O.timeUsed = 0;
       this.timeOfLastMove = new Date().getTime();
     }
+
+    delete this.winner;
   }
 
   updateTiming(side: Side) {
@@ -261,15 +264,15 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
   }
 
   checkForWinner(): boolean {
-    let winner = winningSide(this.squares);
+    this.winner = winningSide(this.squares);
 
     // if someone has a 3-in-a-row or every square is filled
-    if (winner.winningSide !== Side.None ||
+    if (this.winner.winningSide !== Side.None ||
         this.squares.every((row) => row.every((square) => square !== Side.None))) {
       // if using the timing tiebreaker, break the tie
-      if (this.settings.useTiebreaker && winner.winningSide === Side.None) {
+      if (this.settings.useTiebreaker && this.winner.winningSide === Side.None) {
         // the winning side is whoever used less time
-        winner = {
+        this.winner = {
           winningSide: this.players.X.timeUsed < this.players.O.timeUsed ? Side.X : Side.O,
           start: [-1, -1],
           end: [-1, -1]
@@ -279,7 +282,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       this.gameStatus = "postgame";
       this.emitEventToAll({
         type: "gameOver",
-        ...winner
+        ...this.winner
       });
       this.turnPart = TurnPart.None;
       delete this.whoseTurnToBid;
@@ -351,7 +354,8 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
         gameStatus: this.gameStatus,
         settings: this.settings,
         players: this.players,
-        squares: this.squares
+        squares: this.squares,
+        winner: this.winner
       };
     }
   }

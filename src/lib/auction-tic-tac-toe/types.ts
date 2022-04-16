@@ -52,6 +52,7 @@ type MidgameViewpoint = BiddingViewpoint | NominatingViewpoint;
 interface PostgameViewpoint extends ViewpointBase {
   gameStatus: "postgame"
   squares: Side[][]
+  winner: Winner
 }
 
 export interface Player {

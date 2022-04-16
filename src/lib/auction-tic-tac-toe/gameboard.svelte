@@ -25,7 +25,7 @@ import { winningSide } from "./utils";
     </div>
   {:else if $gameStatus === "postgame"}
     <div class="winner-name">
-      <span style="font-size: 1.5rem;">It's a draw.</span>
+      <span style="border-color: var(--bg-5);">It's a draw.</span>
     </div>
   {/if}
 </div>
@@ -61,14 +61,12 @@ import { winningSide } from "./utils";
   
   span {
     z-index: 2;
+    padding: 0.5rem 0.5rem 0.3rem;
+    font-size: 1.4rem;
+    border: 2px solid var(--accent-1);
+    border-radius: 8px;
     color: var(--text-2);
-    background-color: var(--bg-2);
-    font-size: 2rem;
-    border-radius: 0.75rem;
-    background-color: #113a;
-    box-shadow: 0.5rem 0.5rem 1rem #113a,
-        0.5rem -0.5rem 1rem #113a,
-        -0.5rem -0.5rem 1rem #113a,
-        -0.5rem 0.5rem 1rem #113a;
+    background-color: var(--bg-3);
+    opacity: 90%;
   }
 </style>
