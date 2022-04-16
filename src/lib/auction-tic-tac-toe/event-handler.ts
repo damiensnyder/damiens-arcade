@@ -28,7 +28,7 @@ export function handleGamestate(gamestate: AuctionTTTViewpoint): void {
       whoseTurnToBid.set(gamestate.whoseTurnToBid);
     }
     if (gamestate.settings.useTiebreaker) {
-      timeOfLastMove.set(new Date().getTime());
+      timeOfLastMove.set(gamestate.timeOfLastMove);
       startTimer();
     }
   } else if (gamestate.gameStatus === "postgame") {

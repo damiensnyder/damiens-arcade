@@ -33,6 +33,7 @@ export interface MidgameViewpointBase extends ViewpointBase {
   squares: Side[][]
   turnPart: TurnPart
   whoseTurnToNominate: Side
+  timeOfLastMove?: number
 }
 
 interface BiddingViewpoint extends MidgameViewpointBase {

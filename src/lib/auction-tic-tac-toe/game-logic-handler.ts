@@ -328,7 +328,8 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
           whoseTurnToBid: this.whoseTurnToBid,
           lastBid: this.lastBid,
           squares: this.squares,
-          currentlyNominatedSquare: this.currentlyNominatedSquare
+          currentlyNominatedSquare: this.currentlyNominatedSquare,
+          timeOfLastMove: this.timeOfLastMove
         };
       } else {
         return {
@@ -339,7 +340,8 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
           turnPart: TurnPart.Nominating,
           players: this.players,
           whoseTurnToNominate: this.whoseTurnToNominate,
-          squares: this.squares
+          squares: this.squares,
+          timeOfLastMove: this.timeOfLastMove
         };
       }
     } else if (this.gameStatus === "postgame") {
