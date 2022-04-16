@@ -27,6 +27,10 @@ export function handleGamestate(gamestate: AuctionTTTViewpoint): void {
       lastBid.set(gamestate.lastBid);
       whoseTurnToBid.set(gamestate.whoseTurnToBid);
     }
+    if (gamestate.settings.useTiebreaker) {
+      timeOfLastMove.set(new Date().getTime());
+      startTimer();
+    }
   } else if (gamestate.gameStatus === "postgame") {
     squares.set(gamestate.squares);
     turnPart.set(TurnPart.None);
@@ -65,6 +69,7 @@ export const eventHandler: AuctionTTTEventHandler = {
       old.X.money = get(settings).startingMoney;
       old.O.money = get(settings).startingMoney;
       if (get(settings).useTiebreaker) {
+        timeOfLastMove.set(new Date().getTime());
         old.X.timeUsed = 0;
         old.O.timeUsed = 0;
         startTimer();
@@ -90,9 +95,6 @@ export const eventHandler: AuctionTTTEventHandler = {
       return old;
     });
     timeOfLastMove.set(event.timeOfLastMove);
-    if (get(gameStatus) !== "postgame") {
-      startTimer();
-    }
   },
   nominate: function (event): void {
     whoseTurnToBid.set(oppositeSideOf(get(whoseTurnToNominate)));
@@ -152,7 +154,7 @@ let timer;
 function startTimer(): void {
   timer = setInterval(() => {
     const prevTime = get(timeOfLastMove);
-    const newTime = new Date().getTime()
+    const newTime = new Date().getTime();
     timeOfLastMove.set(newTime);
     const whoseTurnItIs = get(turnPart) === TurnPart.Bidding ?
         get(whoseTurnToBid) : get(whoseTurnToNominate);
