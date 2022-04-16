@@ -16,19 +16,11 @@ function changeRoomSettings() {
   <GameTypeSwitcher />
   <div class="form-field">
     <label for="roomName">Room name:</label>
-    {#if $host === $pov}
-      <input id="roomName" type="text" bind:value={$roomName} />
-    {:else}
-      <input id="roomName" type="text" disabled value={$roomName} />
-    {/if}
+    <input id="roomName" type="text" disabled={$host !== $pov} bind:value={$roomName} />
   </div>
   <div class="form-field">
     <label for="public">List publicly:
-      {#if $host === $pov}
-        <input id="public" type="checkbox" bind:checked={$isPublic} />
-      {:else}
-        <input id="public" type="checkbox" disabled checked={$isPublic} />
-      {/if}
+      <input id="public" type="checkbox" disabled={$host !== $pov} bind:checked={$isPublic} />
     </label>
     {#if $host === $pov}
       <input type="submit" class="big-button" value="UPDATE SETTINGS" />
@@ -43,10 +35,6 @@ function changeRoomSettings() {
 
   .form-field {
     margin: 0.25rem 0;
-  }
-
-  input[type=checkbox] {
-    justify-self: flex-start;
   }
 
   input[type=text] {

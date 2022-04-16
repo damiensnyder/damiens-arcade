@@ -186,6 +186,10 @@ select:disabled {
   margin-right: 0;
 }
 
+input[type=checkbox] {
+  justify-self: flex-start;
+}
+
 .center-on-page {
   width: 100%;
   height: 100vh;

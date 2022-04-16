@@ -170,12 +170,8 @@ export default class GameRoom {
     if (newSettings.roomName.length === 0) {
       newSettings.roomName = "Untitled Room";
     }
-    if (newSettings.roomName !== undefined) {
-      this.basicRoomInfo.roomName = newSettings.roomName;
-    }
-    if (newSettings.isPublic !== undefined) {
-      this.basicRoomInfo.isPublic = newSettings.isPublic;
-    }
+    this.basicRoomInfo.roomName = newSettings.roomName;
+    this.basicRoomInfo.isPublic = newSettings.isPublic;
 
     this.gameLogicHandler.emitEventToAll({
       type: "changeRoomSettings",

@@ -56,15 +56,20 @@ interface PostgameViewpoint extends ViewpointBase {
 export interface Player {
   money: number
   controller?: number
+  timeUsed?: number
 }
 
-export type Winner = {
-  winningSide: Side.None
-} | {
-  winningSide: Side.X | Side.O,
-  start: [number, number],
+interface NoWinner {
+  winningSide: Side.None;
+}
+
+interface WinnerExists {
+  winningSide: Side.X | Side.O
+  start: [number, number]
   end: [number, number]
-};
+}
+
+export type Winner = NoWinner | WinnerExists;
 
 export enum Side {
   X = "X",
@@ -75,12 +80,12 @@ export enum Side {
 export interface Settings {
   startingMoney: number
   startingPlayer: Side
+  useTiebreaker: boolean
 }
 
 interface ChangeGameSettingsAction {
   type: "changeGameSettings"
-  startingMoney?: number
-  startingPlayer?: Side
+  settings: Settings
 }
 
 interface JoinAction {
@@ -131,10 +136,7 @@ export type AuctionTTTAction = ChangeGameSettingsAction |
 
 interface ChangeGameSettingsEvent {
   type: "changeGameSettings"
-  settings: {
-    startingMoney: number
-    startingPlayer: Side
-  }
+  settings: Settings
 }
 
 interface JoinEvent {
@@ -153,14 +155,21 @@ interface StartEvent {
   startingPlayer: Side
 }
 
+interface TimingEvent {
+  type: "timing"
+  X: number
+  O: number
+  timeOfLastMove: number
+}
+
 interface NominateEvent {
-  type: "nominate",
-  square: [number, number],
+  type: "nominate"
+  square: [number, number]
   startingBid: number
 }
 
 interface BidEvent {
-  type: "bid",
+  type: "bid"
   amount: number
 }
 
@@ -185,6 +194,7 @@ export type AuctionTTTEvent = ChangeGameSettingsEvent |
     JoinEvent |
     LeaveEvent |
     StartEvent |
+    TimingEvent |
     NominateEvent |
     BidEvent |
     PassEvent |

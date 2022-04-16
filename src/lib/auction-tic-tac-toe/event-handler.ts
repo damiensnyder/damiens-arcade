@@ -1,11 +1,15 @@
 import { Side, TurnPart, type AuctionTTTEvent, type AuctionTTTViewpoint } from "$lib/auction-tic-tac-toe/types";
-import { currentBid, currentlyNominatedSquare, gameStatus, nominating, lastBid, players, settings, squares, turnPart, whoseTurnToBid, whoseTurnToNominate, winner } from "$lib/auction-tic-tac-toe/stores";
+import { currentBid, currentlyNominatedSquare, gameStatus, nominating, lastBid, players, settings, squares, turnPart, whoseTurnToBid, whoseTurnToNominate, winner, timeOfLastMove } from "$lib/auction-tic-tac-toe/stores";
 import { oppositeSideOf } from "$lib/auction-tic-tac-toe/utils";
 import { get } from "svelte/store";
 import { eventLog, pov } from "$lib/stores";
 
 export function switchToType(): void {
-  settings.set({ startingMoney: 15, startingPlayer: Side.None });
+  settings.set({
+    startingMoney: 15,
+    startingPlayer: Side.None,
+    useTiebreaker: false
+  });
   gameStatus.set("pregame");
   players.set({ X: { money: 15 }, O: { money: 15 } });
 }
@@ -22,6 +26,10 @@ export function handleGamestate(gamestate: AuctionTTTViewpoint): void {
       currentlyNominatedSquare.set(gamestate.currentlyNominatedSquare);
       lastBid.set(gamestate.lastBid);
       whoseTurnToBid.set(gamestate.whoseTurnToBid);
+    }
+    if (gamestate.settings.useTiebreaker) {
+      timeOfLastMove.set(new Date().getTime());
+      startTimer();
     }
   } else if (gamestate.gameStatus === "postgame") {
     squares.set(gamestate.squares);
@@ -60,6 +68,12 @@ export const eventHandler: AuctionTTTEventHandler = {
     players.update((old) => {
       old.X.money = get(settings).startingMoney;
       old.O.money = get(settings).startingMoney;
+      if (get(settings).useTiebreaker) {
+        timeOfLastMove.set(new Date().getTime());
+        old.X.timeUsed = 0;
+        old.O.timeUsed = 0;
+        startTimer();
+      }
       return old;
     });
     if (get(gameStatus) === "pregame") {
@@ -73,6 +87,14 @@ export const eventHandler: AuctionTTTEventHandler = {
       [Side.None, Side.None, Side.None],
       [Side.None, Side.None, Side.None]
     ]);
+  },
+  timing: function (event): void {
+    players.update((old) => {
+      old.X.timeUsed = event.X;
+      old.O.timeUsed = event.O;
+      return old;
+    });
+    timeOfLastMove.set(event.timeOfLastMove);
   },
   nominate: function (event): void {
     whoseTurnToBid.set(oppositeSideOf(get(whoseTurnToNominate)));
@@ -118,8 +140,31 @@ export const eventHandler: AuctionTTTEventHandler = {
     } else {
       eventLog.append(`${event.winningSide} has won the game!`);
     }
+    if (get(settings).useTiebreaker) {
+      stopTimer();
+    }
   },
   backToSettings: function (_event): void {
     gameStatus.set("pregame");
   }
+}
+
+let timer;
+
+function startTimer(): void {
+  timer = setInterval(() => {
+    const prevTime = get(timeOfLastMove);
+    const newTime = new Date().getTime();
+    timeOfLastMove.set(newTime);
+    const whoseTurnItIs = get(turnPart) === TurnPart.Bidding ?
+        get(whoseTurnToBid) : get(whoseTurnToNominate);
+    players.update((old) => {
+      old[whoseTurnItIs].timeUsed += newTime - prevTime;
+      return old;
+    });
+  }, 1000);
+}
+
+function stopTimer(): void {
+  clearInterval(timer);
 }
