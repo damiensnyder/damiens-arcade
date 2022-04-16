@@ -1,3 +1,13 @@
+@font-face {
+  font-family: "Watchtower Expanded";
+  src: url(/static/watchtowerexpand.woff2);
+}
+
+@font-face {
+  font-family: "Watchtower Gradient Italic";
+  src: url(/static/watchtowergradital.woff2);
+}
+
 :root {
   --bg-1: #00001a;
   --bg-2: #113;
