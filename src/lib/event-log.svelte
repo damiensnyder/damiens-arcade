@@ -3,16 +3,22 @@
   import { afterUpdate } from "svelte";
 
   let innerDiv: HTMLDivElement;
+  let shadow: HTMLDivElement;
   let disappearTimeout: NodeJS.Timeout;
 
   function scrollToBottom() {
     innerDiv.scrollTo(0, innerDiv.scrollHeight);
     innerDiv.classList.remove("no-recent-events");
+    shadow.scrollTo(0, innerDiv.scrollHeight);
+    shadow.classList.remove("no-recent-events");
     clearTimeout(disappearTimeout);
     disappearTimeout = setTimeout(
       function() {
         if (innerDiv !== null) {
           innerDiv.classList.add("no-recent-events");
+        }
+        if (shadow != null) {
+          shadow.classList.add("no-recent-events");
         }
       },
       5000
@@ -24,9 +30,7 @@
 </script>
 
 <div class="outer">
-  <div class="shadow">
-
-  </div>
+  <div class="shadow" bind:this={shadow}></div>
   <div class="inner no-recent-events" bind:this={innerDiv}>
     {#each $eventLog as event}
       <p class="event">{event}</p>

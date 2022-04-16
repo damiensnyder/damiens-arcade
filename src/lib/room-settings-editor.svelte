@@ -5,10 +5,8 @@ import { host, isPublic, lastAction, pov, roomName } from "$lib/stores";
 function changeRoomSettings() {
   lastAction.set({
     type: "changeRoomSettings",
-    settings: {
-      roomName: roomName,
-      isPublic: isPublic
-    }
+    roomName: $roomName,
+    isPublic: $isPublic
   });
 }
 </script>
