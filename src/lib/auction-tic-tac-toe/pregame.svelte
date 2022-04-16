@@ -1,9 +1,8 @@
 <script lang="ts">
   import RoomSettingsEditor from "$lib/room-settings-editor.svelte";
   import InviteLink from "$lib/invite-link.svelte";
-  import GameSettingsEditor from "./game-settings-editor.svelte";
-  import PlayerSelect from "./player-select.svelte";
-import EventLog from "./event-log.svelte";
+  import GameSettingsEditor from "$lib/auction-tic-tac-toe/game-settings-editor.svelte";
+  import PlayerSelect from "$lib/auction-tic-tac-toe/player-select.svelte";
 </script>
   
 <h1>Damien's Arcade</h1>
@@ -14,7 +13,6 @@ import EventLog from "./event-log.svelte";
     <InviteLink />
   </div>
   <PlayerSelect />
-  <EventLog />
 </div>
 
 <style>

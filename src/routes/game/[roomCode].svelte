@@ -7,6 +7,7 @@ import type { Viewpoint } from "$lib/types";
 import AuctionTicTacToe from "$lib/auction-tic-tac-toe/frontend-main.svelte";
 import NoGameSelected from "$lib/no-game-selected/frontend-main.svelte";
 import { eventHandler as auctionTTTEventHandler, handleGamestate, switchToType as switchToAuctionTTT } from "$lib/auction-tic-tac-toe/event-handler";
+import EventLog from "$lib/event-log.svelte";
 import "../../styles/global.css";
 
 const relativeUrl = $page.url.pathname;
@@ -91,3 +92,4 @@ lastAction.subscribe((action: Action) => {
   <h1>Damien's Arcade</h1>
   <p>Connecting to game...</p>
 {/if}
+<EventLog />

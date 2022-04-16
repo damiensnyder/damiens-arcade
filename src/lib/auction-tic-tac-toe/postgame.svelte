@@ -3,7 +3,6 @@
   import Player from "$lib/auction-tic-tac-toe/player.svelte";
   import { Side } from "$lib/auction-tic-tac-toe/types";
   import { host, lastAction, pov } from "$lib/stores";
-import EventLog from "$lib/auction-tic-tac-toe/event-log.svelte";
 
   function rematch() {
     lastAction.set({
@@ -24,7 +23,6 @@ import EventLog from "$lib/auction-tic-tac-toe/event-log.svelte";
     <Gameboard />
     <Player side={Side.O} />
   </div>
-  <EventLog />
   <div class="horiz">
     <button class="big-button"
         on:click={rematch}

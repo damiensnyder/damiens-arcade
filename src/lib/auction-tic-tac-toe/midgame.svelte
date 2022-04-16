@@ -3,7 +3,6 @@
   import Player from "$lib/auction-tic-tac-toe/player.svelte";
   import Instruction from "$lib/auction-tic-tac-toe/instruction.svelte";
   import { Side } from "$lib/auction-tic-tac-toe/types";
-  import EventLog from "$lib/auction-tic-tac-toe/event-log.svelte";
 </script>
   
 <div class="center-on-page">
@@ -12,7 +11,6 @@
     <Gameboard />
     <Player side={Side.O} />
   </div>
-  <EventLog />
   <Instruction />
 </div>
 
