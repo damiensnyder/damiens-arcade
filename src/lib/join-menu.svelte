@@ -75,4 +75,8 @@
   .big-button {
     margin-top: 0;
   }
+
+  .top-level-menu {
+    width: 25%;
+  }
 </style>

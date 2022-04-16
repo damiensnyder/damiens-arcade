@@ -16,8 +16,4 @@ import "../styles/global.css";
     justify-content: center;
     align-items: flex-start;
   }
-
-  :global(.top-level-menu) {
-    width: 25%;
-  }
 </style>

@@ -29,4 +29,8 @@
     width: min-content;
     align-self: center;
   }
+
+  .top-level-menu {
+    width: 25%;
+  }
 </style>
