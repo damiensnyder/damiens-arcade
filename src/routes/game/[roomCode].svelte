@@ -13,17 +13,30 @@ import "../../styles/global.css";
 const relativeUrl = $page.url.pathname;
 const socket = io(relativeUrl);
 
+let checkForDisconnect;
+
+function handleDisconnect() {
+  $connected = false
+  $pov = -1;
+  $lastAction = null;
+  eventLog.append("You have disconnected from the game.");
+  clearInterval(checkForDisconnect);
+  socket.connect();
+}
+
 socket.on('connect', () => {
   $connected = true;
   eventLog.append("You have connected to the game.")
+
+  checkForDisconnect = setInterval(function() {
+    if (!socket.connected) {
+      clearInterval(checkForDisconnect);
+      handleDisconnect();
+    }
+  }, 5000)
 });
 
-socket.on('disconnect', () => {
-  $connected = false
-  $pov = -1;
-  $lastAction.set(null);
-  eventLog.append("You have disconnected from the game.");
-});
+socket.on('disconnect', handleDisconnect);
 
 socket.on('gamestate', (gamestate: Viewpoint) => {
   $roomCode = gamestate.roomCode;

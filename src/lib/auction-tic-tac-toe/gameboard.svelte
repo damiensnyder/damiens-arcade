@@ -23,9 +23,9 @@ import { winningSide } from "./utils";
     <div class="winner-name">
       <span>{$winner.winningSide} wins!</span>
     </div>
-  {:else}
+  {:else if $gameStatus === "postgame"}
     <div class="winner-name">
-      <span>It's a draw!</span>
+      <span style="font-size: 1.5rem;">It's a draw.</span>
     </div>
   {/if}
 </div>
