@@ -1,5 +1,5 @@
 import { writable } from "svelte/store";
-import { Side, TurnPart, type AuctionTTTGameStatus, type Player } from "$lib/auction-tic-tac-toe/types";
+import { Side, TurnPart, type AuctionTTTGameStatus, type Player, type Winner } from "$lib/auction-tic-tac-toe/types";
 
 export const players = writable({
   X: { money: 15 },
@@ -24,4 +24,4 @@ export const settings = writable({
   startingPlayer: Side.None,
   useTiebreaker: false
 });
-export const winner = writable({ winningSide: Side.None });
+export const winner = writable({ winningSide: Side.None } as Winner);

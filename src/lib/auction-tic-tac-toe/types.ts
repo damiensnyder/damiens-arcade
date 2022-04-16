@@ -59,13 +59,17 @@ export interface Player {
   timeUsed?: number
 }
 
-export type Winner = {
-  winningSide: Side.None
-} | {
-  winningSide: Side.X | Side.O,
-  start: [number, number],
+interface NoWinner {
+  winningSide: Side.None;
+}
+
+interface WinnerExists {
+  winningSide: Side.X | Side.O
+  start: [number, number]
   end: [number, number]
-};
+}
+
+export type Winner = NoWinner | WinnerExists;
 
 export enum Side {
   X = "X",

@@ -41,7 +41,7 @@ export function winningSide(squares: Side[][]): Winner {
           squares[0][2] === side)) {
       return {
         winningSide: side,
-        start: [2, 0],
+        start: [0, 2],
         end: [2, 0]
       };
     }
