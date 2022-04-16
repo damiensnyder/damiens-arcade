@@ -49,9 +49,7 @@ export const eventHandler: AuctionTTTEventHandler = {
       delete old[event.side].controller;
       return old;
     });
-    if (get(gameStatus) !== "pregame") {
-      eventLog.append(`The player playing ${event.side} has left.`)
-    }
+    eventLog.append(`The player playing ${event.side} has left.`);
   },
   changeGameSettings: function (event): void {
     settings.set(event.settings);
