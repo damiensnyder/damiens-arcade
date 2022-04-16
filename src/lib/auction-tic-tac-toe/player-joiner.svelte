@@ -2,8 +2,9 @@
   import { Side } from "$lib/auction-tic-tac-toe/types";
   import { lastAction, pov } from "$lib/stores";
   import { players } from "$lib/auction-tic-tac-toe/stores";
-  import X from "./x.svelte";
-  import O from "./o.svelte";
+  import X from "$lib/auction-tic-tac-toe/x.svelte";
+  import O from "$lib/auction-tic-tac-toe/o.svelte";
+  import { oppositeSideOf } from "$lib/auction-tic-tac-toe/utils";
 
   export let side: Side.X | Side.O;
 
@@ -11,6 +12,9 @@
   $: canJoinAsSide = $players[side].controller === undefined;
 
   function join() {
+    if ($players[oppositeSideOf(side)].controller === $pov) {
+      leave();
+    }
     lastAction.set({
       type: "join",
       side: side
