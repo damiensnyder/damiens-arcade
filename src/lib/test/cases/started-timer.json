@@ -1,0 +1,54 @@
+{
+  "actions": [
+    {
+      "type": "connect",
+      "index": 1
+    },
+    {
+      "type": "connect",
+      "index": 2
+    },
+    {
+      "type": "changeRoomSettings",
+      "roomName": "started",
+      "isPublic": true,
+      "index": 1
+    },
+    {
+      "type": "changeGameType",
+      "newGameType": "Auction Tic-Tac-Toe",
+      "index": 1
+    },
+    {
+      "type": "changeGameSettings",
+      "settings": {
+        "startingMoney": 15,
+        "startingPlayer": "X",
+        "useTiebreaker": true
+      },
+      "index": 1
+    },
+    {
+      "type": "join",
+      "side": "X",
+      "index": 1
+    },
+    {
+      "type": "join",
+      "side": "O",
+      "index": 2
+    },
+    {
+      "type": "start",
+      "index": 1
+    },
+    {
+      "type": "disconnect",
+      "index": 1
+    },
+    {
+      "type": "disconnect",
+      "index": 2
+    }
+  ]
+}

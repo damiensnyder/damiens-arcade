@@ -1,7 +1,8 @@
 import type RoomManager from "$lib/backend/room-manager";
-import { readFileSync } from "fs";
+import { readFileSync, readdirSync } from "fs";
 import { PacketType, type Action, type Viewer } from "$lib/types";
 import type { Socket } from "socket.io";
+import type GameRoom from "$lib/backend/game-room";
 
 interface ConnectAction {
   type: PacketType.Connect
@@ -21,30 +22,35 @@ type ActionWithIndex = Action & HasViewerIndex;
 
 interface TestRoomScript {
   actions: ActionWithIndex[]
-  roomCode: string
+  seed?: number
+  expected?: any
 }
 
 export default function setUpTestRooms(roomManager: RoomManager) {
-  const testFileText = readFileSync("src/lib/test/test-rooms.json").toString();
-  const roomScripts: TestRoomScript[] = JSON.parse(testFileText)['rooms'];
-  for (const roomScript of roomScripts) {
-    roomManager.createRoom(roomScript.roomCode);
-    const room = roomManager.activeRooms[roomScript.roomCode];
+  const testFiles = readdirSync("src/lib/test/cases");
+  for (const fileName of testFiles) {
+    const testFileText = readFileSync("src/lib/test/cases/" + fileName).toString();
+    const roomScript: TestRoomScript = JSON.parse(testFileText);
+    roomManager.createRoom(fileName.split(".")[0]);
+    const room = roomManager.activeRooms[fileName.split(".")[0]];
+    setUpTestRoom(room, roomScript);
+  }
+}
 
-    for (const action of roomScript.actions) {
-      const fakeViewer: Viewer = {
-        index: -1 * action.index,
-        socket: new FakeSocket() as unknown as Socket
-      };
-      delete action.index;
-      if (action.type === PacketType.Connect) {
-        room.viewers.push(fakeViewer);
-        room.enqueuePacket(fakeViewer, action.type);
-      } else if (action.type === PacketType.Disconnect) {
-        room.enqueuePacket(fakeViewer, action.type);
-      } else {
-        room.enqueuePacket(fakeViewer, PacketType.Action, action as Action);
-      }
+function setUpTestRoom(room: GameRoom, roomScript: TestRoomScript): void {
+  for (const action of roomScript.actions) {
+    const fakeViewer: Viewer = {
+      index: action.index + 0.5,
+      socket: new FakeSocket() as unknown as Socket
+    };
+    delete action.index;
+    if (action.type === PacketType.Connect) {
+      room.viewers.push(fakeViewer);
+      room.enqueuePacket(fakeViewer, action.type);
+    } else if (action.type === PacketType.Disconnect) {
+      room.enqueuePacket(fakeViewer, action.type);
+    } else {
+      room.enqueuePacket(fakeViewer, PacketType.Action, action as Action);
     }
   }
 }
