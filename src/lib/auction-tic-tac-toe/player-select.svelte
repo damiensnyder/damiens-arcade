@@ -10,7 +10,7 @@
 
   function startGame() {
     lastAction.set({
-      type: "startGame"
+      type: "start"
     });
   }
 </script>

@@ -100,7 +100,7 @@ interface LeaveAction {
 }
 
 interface StartGameAction {
-  type: "startGame"
+  type: "start"
 }
 
 interface NominateAction {

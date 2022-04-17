@@ -26,7 +26,7 @@ const leaveSchema = object({
 });
 
 const startGameSchema = object({
-  type: string().required().equals(["startGame"])
+  type: string().required().equals(["start"])
 });
 
 const nominateSchema = object({
