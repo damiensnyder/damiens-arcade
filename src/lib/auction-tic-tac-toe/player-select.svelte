@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Side } from "$lib/auction-tic-tac-toe/types";
-  import PlayerJoiner from "$lib/auction-tic-tac-toe/player-joiner.svelte";
+  import PregamePlayer from "$lib/auction-tic-tac-toe/pregame-player.svelte";
   import { host, lastAction, pov } from "$lib/stores";
   import { players } from "$lib/auction-tic-tac-toe/stores";
 
@@ -17,8 +17,8 @@
 
 <div class="outer">
   <div class="inner">
-    <PlayerJoiner side={Side.X} />
-    <PlayerJoiner side={Side.O} />
+    <PregamePlayer side={Side.X} />
+    <PregamePlayer side={Side.O} />
   </div>
   {#if canStartGame}
     <button class="big-button" on:submit={startGame} on:click={startGame}>

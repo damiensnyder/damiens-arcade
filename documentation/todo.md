@@ -4,6 +4,7 @@
 - add a tiebreaker for amount of money remaining
 - log settings change events
 - say "You" instead of "A player" when logging events the viewer did
+- make the game listing on the front page even decent
 
 ## Medium things
 - improve testing infrastructure

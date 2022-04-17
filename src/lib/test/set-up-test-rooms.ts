@@ -1,4 +1,4 @@
-import type RoomManager from "./room-manager";
+import type RoomManager from "$lib/backend/room-manager";
 import { readFileSync } from "fs";
 import { PacketType, type Action, type Viewer } from "$lib/types";
 import type { Socket } from "socket.io";
@@ -25,7 +25,7 @@ interface TestRoomScript {
 }
 
 export default function setUpTestRooms(roomManager: RoomManager) {
-  const testFileText = readFileSync("src/lib/backend/test-rooms.json").toString();
+  const testFileText = readFileSync("src/lib/test/test-rooms.json").toString();
   const roomScripts: TestRoomScript[] = JSON.parse(testFileText)['rooms'];
   for (const roomScript of roomScripts) {
     roomManager.createRoom(roomScript.roomCode);

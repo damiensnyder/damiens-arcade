@@ -1,7 +1,7 @@
 import type { Socket } from "socket.io";
 import type { AuctionTTTAction, AuctionTTTEvent, AuctionTTTGameStatus, AuctionTTTPublicState, AuctionTTTViewpoint } from "$lib/auction-tic-tac-toe/types";
 import type { NoneGameStatus, NonePublicState, NoneViewpoint } from "$lib/no-game-selected/types";
-import type { TestRoomAction } from "$lib/backend/set-up-test-rooms";
+import type { TestRoomAction } from "$lib/test/set-up-test-rooms";
 
 export interface PublicRoomInfo {
   roomName: string
