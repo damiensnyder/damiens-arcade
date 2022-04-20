@@ -5,9 +5,10 @@
 - log settings change events
 - say "You" instead of "A player" when logging events the viewer did
 - make the game listing on the front page even decent
+- improve testing infrastructure
 
 ## Medium things
-- improve testing infrastructure
+- add a tutorial
 - make it work on mobile
 - add a bot
 - Ultimate Auction Tic-Tac-Toe
