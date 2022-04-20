@@ -2,7 +2,6 @@
   import Square from "$lib/auction-tic-tac-toe/square.svelte";
   import { gameStatus, winner } from "$lib/auction-tic-tac-toe/stores";
   import { Side } from "$lib/auction-tic-tac-toe/types";
-import { winningSide } from "./utils";
 </script>
 
 <div class="outer">
@@ -15,7 +14,7 @@ import { winningSide } from "./utils";
     <svg viewBox="0 0 300 300">
       <line x1={$winner.start[1] === $winner.end[1] ? 50 + 100 * $winner.start[1] : 10 + 140 * $winner.start[1]}
             y1={$winner.start[0] === $winner.end[0] ? 50 + 100 * $winner.start[0] : 10 + 140 * $winner.start[0]}
-            x2={$winner.start[1] === $winner.end[1] ? 50 + 100 * $winner.end[1] : 10 + 140 * $winner.end[0]}
+            x2={$winner.start[1] === $winner.end[1] ? 50 + 100 * $winner.end[1] : 10 + 140 * $winner.end[1]}
             y2={$winner.start[0] === $winner.end[0] ? 50 + 100 * $winner.end[0] : 10 + 140 * $winner.end[0]}
             stroke={$winner.winningSide === Side.X ? "#d48" : "#3bd"}
             stroke-width={3} />
