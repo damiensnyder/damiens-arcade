@@ -98,13 +98,13 @@ export const eventHandler: AuctionTTTEventHandler = {
     timeOfLastMove.set(event.timeOfLastMove);
   },
   nominate: function (event): void {
+    eventLog.append(`${get(whoseTurnToNominate)} nominated a square with a starting bid of $${event.startingBid}.`)
     whoseTurnToBid.set(oppositeSideOf(get(whoseTurnToNominate)));
     currentlyNominatedSquare.set(event.square);
     turnPart.set(TurnPart.Bidding);
     lastBid.set(event.startingBid);
     currentBid.set(event.startingBid + 1);
     nominating.set(null);
-    eventLog.append(`${get(whoseTurnToBid)} nominated a square with a starting bid of $${event.startingBid}.`)
   },
   bid: function (event): void {
     lastBid.set(event.amount);
