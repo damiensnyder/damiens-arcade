@@ -1,6 +1,6 @@
 import type { Socket } from "socket.io";
-import type { AuctionTTTAction, AuctionTTTEvent, AuctionTTTGameStatus, AuctionTTTPublicState, AuctionTTTViewpoint } from "$lib/auction-tic-tac-toe/types";
-import type { NoneGameStatus, NonePublicState, NoneViewpoint } from "$lib/no-game-selected/types";
+import type { AuctionTTTAction, AuctionTTTEvent, AuctionTTTGameStatus, AuctionTTTViewpoint } from "$lib/auction-tic-tac-toe/types";
+import type { NoneGameStatus, NoneViewpoint } from "$lib/no-game-selected/types";
 import type { TestRoomAction } from "$lib/test/set-up-test-rooms";
 
 export interface PublicRoomInfo {
@@ -19,7 +19,8 @@ export enum PacketType {
 
 export enum GameType {
   NoGameSelected = "[none selected]",
-  AuctionTTT = "Auction Tic-Tac-Toe"
+  AuctionTTT = "Auction Tic-Tac-Toe",
+  Tourney = "Colosseum Clash"
 }
 
 export type GameStatus = NoneGameStatus |

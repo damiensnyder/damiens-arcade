@@ -4,11 +4,6 @@ import type { NoneViewpoint } from "$lib/no-game-selected/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
 
-export interface NonePublicState {
-  gameType: GameType.NoGameSelected
-  gameStatus: "pregame"
-}
-
 export default class NoGameSelected extends GameLogicHandlerBase {
   room: GameRoom
   gameStatus: GameStatus

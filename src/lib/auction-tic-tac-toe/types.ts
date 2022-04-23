@@ -8,12 +8,6 @@ export enum TurnPart {
   None
 }
 
-export interface AuctionTTTPublicState {
-  gameType: GameType.AuctionTTT
-  gameStatus: AuctionTTTGameStatus
-  numPlayers: number
-}
-
 export type AuctionTTTViewpoint = PregameViewpoint |
     MidgameViewpoint | PostgameViewpoint;
 
