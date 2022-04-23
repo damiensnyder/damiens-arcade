@@ -5,6 +5,7 @@ import NoGameSelected from "../no-game-selected/game-logic-handler";
 import { GameType, PacketType } from "../types";
 import type { PacketInfo, PublicRoomInfo, TeardownCallback, Viewer } from "../types";
 import { boolean, object, string } from "yup";
+import Tourney from "../tourney/game-logic-handler";
 
 const TEARDOWN_TIME: number = 60 * 60 * 1000; // one hour
 
@@ -184,6 +185,8 @@ export default class GameRoom {
       this.gameLogicHandler = new NoGameSelected(this);
     } else if (newGameType === GameType.AuctionTTT) {
       this.gameLogicHandler = new AuctionTicTacToe(this);
+    } else if (newGameType === GameType.Tourney) {
+      this.gameLogicHandler = new Tourney(this);
     }
 
     this.gameLogicHandler.emitEventToAll({

@@ -31,7 +31,6 @@ function changeGameSettings() {
     </label>
   {#if $host === $pov}
     <input type="submit"
-       
         value="UPDATE SETTINGS" />
   {/if}
 </form>

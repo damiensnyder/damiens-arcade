@@ -26,6 +26,7 @@
   --font-main: Helvetica, sans-serif;
   --font-title: "Watchtower Gradient Italic";
   --font-subtitle: "Watchtower Expanded";
+  --font-mono: Menlo, monospace;
 }
 
 html,
@@ -111,6 +112,14 @@ select {
 
 option {
   padding: 0.25rem 0.25rem 0.1rem 0.25rem;
+}
+
+textarea {
+  background-color: var(--bg-2);
+  color: var(--text-1);
+  border: 2px solid var(--text-3);
+  border-radius: 0.4rem;
+  font-family: var(--font-mono);
 }
 
 button,
