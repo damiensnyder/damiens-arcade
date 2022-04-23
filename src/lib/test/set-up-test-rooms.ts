@@ -20,14 +20,22 @@ interface HasViewerIndex {
 
 type ActionWithIndex = Action & HasViewerIndex;
 
+interface MacroAction {
+  macro: string
+  dynamicParams: any[]
+}
+
 interface TestRoomScript {
-  actions: ActionWithIndex[]
+  actions: (ActionWithIndex | MacroAction)[]
   seed?: number
   expected?: any
 }
 
+let macros: Record<string, (ActionWithIndex | MacroAction)[]>;
+
 export default function setUpTestRooms(roomManager: RoomManager) {
   const testFiles = readdirSync("src/lib/test/cases");
+  macros = JSON.parse(readFileSync("src/lib/test/macros.json").toString());
   for (const fileName of testFiles) {
     const testFileText = readFileSync("src/lib/test/cases/" + fileName).toString();
     const roomScript: TestRoomScript = JSON.parse(testFileText);
@@ -39,6 +47,25 @@ export default function setUpTestRooms(roomManager: RoomManager) {
 
 function setUpTestRoom(room: GameRoom, roomScript: TestRoomScript): void {
   for (const action of roomScript.actions) {
+    enqueueAction(action as ActionWithIndex, room);
+  }
+}
+
+function enqueueAction(action: ActionWithIndex | MacroAction, room: GameRoom) {
+  if ("macro" in action) {
+    const macroApplied = macros[action.macro];
+    for (const macroAction of macroApplied) {
+      let editedAction = macroAction as any;
+      if (editedAction.dynamicParams !== undefined) {
+        const dynamicParams = editedAction.dynamicParams;
+        delete editedAction.dynamicParams;
+        for (const key of Object.keys(dynamicParams)) {
+          editedAction[key] = action.dynamicParams[dynamicParams[key]];
+        }
+      }
+      enqueueAction(editedAction, room);
+    }
+  } else {
     const fakeViewer: Viewer = {
       index: action.index + 0.5,
       socket: new FakeSocket() as unknown as Socket
