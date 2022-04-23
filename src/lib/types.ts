@@ -2,6 +2,7 @@ import type { Socket } from "socket.io";
 import type { AuctionTTTAction, AuctionTTTEvent, AuctionTTTGameStatus, AuctionTTTViewpoint } from "$lib/auction-tic-tac-toe/types";
 import type { NoneGameStatus, NoneViewpoint } from "$lib/no-game-selected/types";
 import type { TestRoomAction } from "$lib/test/set-up-test-rooms";
+import type { TourneyAction, TourneyEvent, TourneyGameStatus, TourneyViewpoint } from "$lib/tourney/types";
 
 export interface PublicRoomInfo {
   roomName: string
@@ -24,7 +25,8 @@ export enum GameType {
 }
 
 export type GameStatus = NoneGameStatus |
-    AuctionTTTGameStatus;
+    AuctionTTTGameStatus |
+    TourneyGameStatus;
 
 export interface BasicViewpointInfo {
   roomCode: string
@@ -36,7 +38,8 @@ export interface BasicViewpointInfo {
 }
 
 export type Viewpoint = NoneViewpoint |
-    AuctionTTTViewpoint;
+    AuctionTTTViewpoint |
+    TourneyViewpoint;
 
 interface ChangeGameTypeAction {
   type: "changeGameType"
@@ -53,7 +56,8 @@ export type RoomAction = ChangeGameTypeAction | ChangeSettingsAction;
 
 export type Action = RoomAction |
     TestRoomAction |
-    AuctionTTTAction;
+    AuctionTTTAction |
+    TourneyAction;
 
 interface ChangeRoomSettingsEvent {
   type: "changeRoomSettings"
@@ -76,7 +80,8 @@ type RoomEvent = ChangeRoomSettingsEvent |
     ChangeHostEvent;
 
 export type Event = RoomEvent |
-    AuctionTTTEvent;
+    AuctionTTTEvent |
+    TourneyEvent;
 
 // The information contained in a packet sent from a viewer
 export interface PacketInfo {

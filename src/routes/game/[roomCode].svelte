@@ -4,9 +4,11 @@ import { connected, eventLog, gameType, host, isPublic, lastAction, pov, roomCod
 import { io } from "socket.io-client";
 import { GameType, type Action, type Event } from "$lib/types";
 import type { Viewpoint } from "$lib/types";
-import AuctionTicTacToe from "$lib/auction-tic-tac-toe/frontend-main.svelte";
 import NoGameSelected from "$lib/no-game-selected/frontend-main.svelte";
-import { eventHandler as auctionTTTEventHandler, handleGamestate, switchToType as switchToAuctionTTT } from "$lib/auction-tic-tac-toe/event-handler";
+import AuctionTicTacToe from "$lib/auction-tic-tac-toe/frontend-main.svelte";
+import Tourney from "$lib/tourney/frontend-main.svelte";
+import { eventHandler as auctionTTTEventHandler, handleGamestate as handleAuctionTTTGamestate, switchToType as switchToAuctionTTT } from "$lib/auction-tic-tac-toe/event-handler";
+import { eventHandler as tourneyEventHandler, handleGamestate as handleTourneyGamestate, switchToType as switchToTourney } from "$lib/tourney/event-handler";
 import EventLog from "$lib/event-log.svelte";
 import "../../styles/global.css";
 
@@ -46,7 +48,9 @@ socket.on('gamestate', (gamestate: Viewpoint) => {
   $pov = gamestate.pov;
   $gameType = gamestate.gameType;
   if (gamestate.gameType === GameType.AuctionTTT) {
-    handleGamestate(gamestate);
+    handleAuctionTTTGamestate(gamestate);
+  } else if (gamestate.gameType === GameType.Tourney) {
+    handleTourneyGamestate(gamestate);
   }
   // console.log(gamestate);
 });
@@ -78,6 +82,11 @@ socket.on("event", (event: Event) => {
     // @ts-ignore — "union type too complex to represent"?? maybe for you...
     // anyway this calls the event handler corresponding to the event's type
     auctionTTTEventHandler[event.type](event);
+
+  // HANDLE TOURNEY EVENTS
+  } else if ($gameType === GameType.Tourney) {
+    // @ts-ignore
+    tourneyEventHandler[event.type](event);
   }
 });
 
@@ -97,6 +106,8 @@ lastAction.subscribe((action: Action) => {
     <NoGameSelected />
   {:else if $gameType === GameType.AuctionTTT}
     <AuctionTicTacToe />
+  {:else if $gameType === GameType.Tourney}
+    <Tourney />
   {/if}
 {:else}
   <h1>Damien's Arcade</h1>

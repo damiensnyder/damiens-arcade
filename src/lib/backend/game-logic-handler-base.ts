@@ -40,7 +40,7 @@ export default class GameLogicHandlerBase {
     }
   }
 
-  emitEventToAll(event: Event):void {
+  emitEventToAll(event: Event): void {
     for (const viewer of this.room.viewers) {
       this.emitEventTo(viewer, event);
     }
