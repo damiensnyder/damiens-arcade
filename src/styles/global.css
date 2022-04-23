@@ -137,7 +137,8 @@ a {
   background-color: var(--bg-3);
 }
 
-.big-button {
+button,
+input[type="submit"] {
   padding: 0.18rem 0.5rem;
   margin-top: 1rem;
   justify-self: last baseline;
@@ -152,12 +153,14 @@ a {
   transition: background-color 0.05s ease-in-out;
 }
 
-.big-button:hover {
+button:hover,
+input[type="submit"]:hover {
   color: var(--text-3);
   transition: color 0.05s ease-in-out;
 }
 
-.big-button:active {
+button:active,
+input[type="submit"]:active {
   color: var(--text-3);
   background-color: var(--accent-3);
   transition: color 0.05s ease-in-out;

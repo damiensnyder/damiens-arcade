@@ -1,8 +1,7 @@
 <script lang="ts">
   import { createForm } from "svelte-forms-lib";
   import { goto } from "$app/navigation";
-  import type { PublicRoomInfo } from "./types";
-import { roomCode } from "./stores";
+  import type { PublicRoomInfo } from "$lib/types";
 
   const { form, handleChange, handleSubmit } = createForm({
     initialValues: {
@@ -49,7 +48,7 @@ import { roomCode } from "./stores";
           minlength="4"
           on:change={handleChange}
           bind:value={$form.roomCode}>
-      <input class="big-button" type="submit" value="JOIN">
+      <input type="submit" value="JOIN">
     </div>
   </form>
 </div>
@@ -78,7 +77,7 @@ import { roomCode } from "./stores";
     overflow-y: scroll;
   }
 
-  .big-button {
+  input[type="submit"] {
     margin-top: 0;
   }
 

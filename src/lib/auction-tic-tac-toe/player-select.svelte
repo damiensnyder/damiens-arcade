@@ -21,11 +21,11 @@
     <PregamePlayer side={Side.O} />
   </div>
   {#if canStartGame}
-    <button class="big-button" on:submit={startGame} on:click={startGame}>
+    <button on:submit={startGame} on:click={startGame}>
       START
     </button>
   {:else if $host === $pov}
-    <button class="big-button" disabled>
+    <button disabled>
       START
     </button>
   {/if}

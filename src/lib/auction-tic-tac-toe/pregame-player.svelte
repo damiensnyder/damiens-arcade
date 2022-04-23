@@ -35,15 +35,15 @@
     <O size={50} />
   {/if}
   {#if canJoinAsSide}
-    <button class="big-button" on:submit={join} on:click={join}>
+    <button on:submit={join} on:click={join}>
       JOIN
     </button>
   {:else if isSide}
-    <button class="big-button" on:submit={leave} on:click={leave}>
+    <button on:submit={leave} on:click={leave}>
       LEAVE
     </button>
   {:else}
-    <button class="big-button" disabled>
+    <button disabled>
       JOIN
     </button>
   {/if}

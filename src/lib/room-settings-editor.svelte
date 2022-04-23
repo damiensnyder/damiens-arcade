@@ -23,7 +23,7 @@ function changeRoomSettings() {
       <input id="public" type="checkbox" disabled={$host !== $pov} bind:checked={$isPublic} />
     </label>
     {#if $host === $pov}
-      <input type="submit" class="big-button" value="UPDATE SETTINGS" />
+      <input type="submit" value="UPDATE SETTINGS" />
     {/if}
   </div>
 </form>
@@ -39,5 +39,9 @@ function changeRoomSettings() {
 
   input[type=text] {
     margin-right: 0;
+  }
+
+  input[type="submit"] {
+    margin-top: 0;
   }
 </style>

@@ -24,11 +24,11 @@
     <Player side={Side.O} />
   </div>
   <div class="horiz">
-    <button class="big-button"
+    <button
         on:click={rematch}
         on:submit={rematch}
         disabled={$pov !== $host}>REMATCH</button>
-    <button class="big-button"
+    <button
         on:click={backToSettings}
         on:submit={backToSettings}
         disabled={$pov !== $host}>BACK TO LOBBY</button>

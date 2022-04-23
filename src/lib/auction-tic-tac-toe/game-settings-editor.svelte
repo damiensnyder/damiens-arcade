@@ -31,7 +31,7 @@ function changeGameSettings() {
     </label>
   {#if $host === $pov}
     <input type="submit"
-        class="big-button"
+       
         value="UPDATE SETTINGS" />
   {/if}
 </form>
@@ -43,5 +43,9 @@ function changeGameSettings() {
 
   input[type=number] {
     margin-right: 0;
+  }
+
+  input[type="submit"] {
+    margin-top: 0;
   }
 </style>
