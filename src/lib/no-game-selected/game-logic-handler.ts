@@ -1,5 +1,5 @@
 import { GameType } from "$lib/types";
-import type { GameStatus, PublicRoomState, Viewer } from "$lib/types";
+import type { GameStatus, Viewer } from "$lib/types";
 import type { NoneViewpoint } from "$lib/no-game-selected/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
@@ -22,13 +22,6 @@ export default class NoGameSelected extends GameLogicHandlerBase {
   viewpointOf(viewer: Viewer): NoneViewpoint {
     return {
       ...this.basicViewpointInfo(viewer),
-      gameType: GameType.NoGameSelected,
-      gameStatus: "pregame"
-    };
-  }
-
-  publicRoomState(): PublicRoomState {
-    return {
       gameType: GameType.NoGameSelected,
       gameStatus: "pregame"
     };

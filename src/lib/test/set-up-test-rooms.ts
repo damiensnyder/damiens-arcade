@@ -59,8 +59,8 @@ function enqueueAction(action: ActionWithIndex | MacroAction, room: GameRoom) {
       if (editedAction.dynamicParams !== undefined) {
         const dynamicParams = editedAction.dynamicParams;
         delete editedAction.dynamicParams;
-        for (const key of Object.keys(dynamicParams)) {
-          editedAction[key] = action.dynamicParams[dynamicParams[key]];
+        for (const [key, index] of Object.entries(dynamicParams)) {
+          editedAction[key] = action.dynamicParams[index as number];
         }
       }
       enqueueAction(editedAction, room);

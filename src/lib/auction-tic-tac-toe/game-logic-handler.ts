@@ -1,5 +1,5 @@
 import { GameType } from "$lib/types";
-import type { PublicRoomState, Viewer } from "$lib/types";
+import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
 import { Side, TurnPart, type Winner } from "$lib/auction-tic-tac-toe/types";
@@ -358,14 +358,5 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
         winner: this.winner
       };
     }
-  }
-
-  publicRoomState(): PublicRoomState {
-    return {
-      gameType: GameType.AuctionTTT,
-      gameStatus: "pregame",
-      numPlayers: (this.players.X.controller !== undefined ? 1 : 0) +
-          (this.players.X.controller !== undefined ? 1 : 0)
-    };
   }
 }

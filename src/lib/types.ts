@@ -7,7 +7,8 @@ export interface PublicRoomInfo {
   roomName: string
   roomCode: string
   isPublic: boolean
-  roomState: PublicRoomState
+  gameType: GameType
+  gameStatus: GameStatus
 }
 
 export enum PacketType {
@@ -20,10 +21,6 @@ export enum GameType {
   NoGameSelected = "[none selected]",
   AuctionTTT = "Auction Tic-Tac-Toe"
 }
-
-// The information shown about a game on the join menu
-export type PublicRoomState = NonePublicState |
-    AuctionTTTPublicState;
 
 export type GameStatus = NoneGameStatus |
     AuctionTTTGameStatus;

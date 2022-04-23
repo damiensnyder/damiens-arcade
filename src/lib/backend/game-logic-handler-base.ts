@@ -1,16 +1,14 @@
 import { GameType, type BasicViewpointInfo, type Event } from "$lib/types";
-import type { GameStatus, PublicRoomState, Viewer, Viewpoint } from "$lib/types";
+import type { GameStatus, Viewer, Viewpoint } from "$lib/types";
 import type GameRoom from "$lib/backend/game-room";
 
 export default class GameLogicHandlerBase {
   room: GameRoom
   gameStatus: GameStatus
-  gameType: GameType
 
   constructor(room: GameRoom) {
     this.room = room;
     this.gameStatus = "pregame";
-    this.gameType = this.room.basicRoomInfo.roomState.gameType;
   }
 
   handleConnect(viewer: Viewer): void {
@@ -54,19 +52,12 @@ export default class GameLogicHandlerBase {
 
   basicViewpointInfo(viewer: Viewer): BasicViewpointInfo {
     return {
-      roomCode: this.room.basicRoomInfo.roomCode,
-      roomName: this.room.basicRoomInfo.roomName,
-      isPublic: this.room.basicRoomInfo.isPublic,
+      roomCode: this.room.publicRoomInfo.roomCode,
+      roomName: this.room.publicRoomInfo.roomName,
+      isPublic: this.room.publicRoomInfo.isPublic,
       host: this.room.host,
       pov: viewer.index,
       gameType: GameType.NoGameSelected
-    };
-  }
-
-  publicRoomState(): PublicRoomState {
-    return {
-      gameType: GameType.NoGameSelected,
-      gameStatus: "pregame"
     };
   }
 }

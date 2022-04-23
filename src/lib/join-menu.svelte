@@ -2,6 +2,7 @@
   import { createForm } from "svelte-forms-lib";
   import { goto } from "$app/navigation";
   import type { PublicRoomInfo } from "./types";
+import { roomCode } from "./stores";
 
   const { form, handleChange, handleSubmit } = createForm({
     initialValues: {
@@ -27,7 +28,11 @@
       <p>Loading active games...</p>
     {:then rooms}
       {#each rooms as room}
-        <p><a href={`/game/${room.roomCode}`}>{room.roomName}</a></p>
+        <p>
+          <a href={`/game/${room.roomCode}`}>{room.roomName}</a> &middot;
+          {room.gameType} &middot;
+          {room.gameStatus}
+        </p>
       {/each}
       {#if rooms.length === 0}
         <p>No public games found.</p>
@@ -69,6 +74,7 @@
     border: 2px solid var(--text-4);
     border-radius: 0.4rem;
     font-size: 0.9rem;
+    overflow-x: hidden;
     overflow-y: scroll;
   }
 
