@@ -40,7 +40,7 @@
   {#if $pov === $players[side].controller}
     <span class="controller">(you)</span>
   {:else if $players[side].controller === undefined && $players[oppositeSideOf(side)].controller !== $pov}
-    <button class="big-button" on:click={replace} on:submit={replace}>REPLACE</button>
+    <button on:click={replace} on:submit={replace}>REPLACE</button>
   {:else if $players[side].controller === undefined}
     <span class="controller">(disconnected)</span>
   {/if}

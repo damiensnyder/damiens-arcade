@@ -61,14 +61,14 @@
             max={$players[$whoseTurnToBid].money}
             bind:value={$currentBid}>
         <input type="submit"
-            class="big-button"
             value="BID"
+            style="margin-top: 0;"
             on:submit={bid}
             on:click={bid}>
       </div>
       <div class="form-field">
         <input type="submit"
-            class="big-button cancel"
+            class="cancel"
             value="PASS"
             on:submit={pass}
             on:click={pass}>
@@ -83,14 +83,14 @@
             max={$players[$whoseTurnToNominate].money}
             bind:value={$currentBid}>
         <input type="submit"
-            class="big-button"
             value="BID"
+            style="margin-top: 0;"
             on:submit={nominate}
             on:click={nominate}>
       </div>
       <div class="form-field">
         <input type="submit"
-            class="big-button cancel"
+            class="cancel"
             value="CANCEL"
             on:submit={cancel}
             on:click={cancel}>
@@ -117,6 +117,12 @@
   }
 
   .nominate {
+    /* undo default styling */
+    padding: 0;
+    margin-top: 0;
+    justify-self: unset;
+    font-family: var(--font-main);
+
     height: 70%;
     width: 70%;
     border-radius: 0.75rem;

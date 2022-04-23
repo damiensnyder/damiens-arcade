@@ -15,11 +15,11 @@
 <h3>Invite a Friend</h3>
 <div class="form-field">
   <input type="text" value={absoluteUrl} on:focus={highlightText} readonly />
-  <button class="big-button" on:click={copyInviteLink}>COPY</button>
+  <button on:click={copyInviteLink}>COPY</button>
 </div>
 
 <style>
-  .big-button {
+  button {
     margin: 0;
   }
 

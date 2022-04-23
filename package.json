@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "yarn build:backend && svelte-kit dev",
     "build": "yarn build:backend && svelte-kit build",
-    "build:backend": "esbuild src/lib/backend/room-manager.ts --bundle --outfile=dist/room-manager.js --platform=node --format=esm && esbuild src/lib/backend/set-up-test-rooms.ts --bundle --outfile=dist/set-up-test-rooms.js --platform=node --format=esm",
+    "build:backend": "esbuild src/lib/backend/room-manager.ts --bundle --outfile=dist/room-manager.js --platform=node --format=esm && esbuild src/lib/test/set-up-test-rooms.ts --bundle --outfile=dist/set-up-test-rooms.js --platform=node --format=esm",
     "start": "node app.js",
     "package": "svelte-kit package",
     "preview": "svelte-kit preview",

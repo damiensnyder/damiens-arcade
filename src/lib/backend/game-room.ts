@@ -20,7 +20,7 @@ const changeSettingsSchema = object({
 });
 
 export default class GameRoom {
-  basicRoomInfo: PublicRoomInfo;
+  publicRoomInfo: PublicRoomInfo;
   gameLogicHandler: GameLogicHandler;
   viewers: Viewer[];
   host?: number
@@ -38,14 +38,12 @@ export default class GameRoom {
   ) {
     this.viewers = [];
     this.connectionsStarted = 0;
-    this.basicRoomInfo = {
+    this.publicRoomInfo = {
       roomCode: roomCode,
       roomName: "Untitled Room",
       isPublic: false,
-      roomState: {
-        gameType: GameType.NoGameSelected,
-        gameStatus: "pregame"
-      }
+      gameType: GameType.NoGameSelected,
+      gameStatus: "pregame"
     };
     this.gameLogicHandler = new NoGameSelected(this);
 
@@ -139,7 +137,7 @@ export default class GameRoom {
     // reset the timer for tearing down this room
     clearTimeout(this.teardownTimer);
     this.teardownTimer = setTimeout(
-        () => this.teardownCallback(this.basicRoomInfo.roomCode),
+        () => this.teardownCallback(this.publicRoomInfo.roomCode),
         TEARDOWN_TIME
     );
     
@@ -149,14 +147,6 @@ export default class GameRoom {
     } else {
       this.handlingPacket = false;
     }
-  }
-
-  // Return the information shown in the joiner
-  publicRoomState(): PublicRoomInfo {
-    return {
-      ...this.basicRoomInfo,
-      roomState: this.gameLogicHandler.publicRoomState()
-    };
   }
 
   shouldChangeSettings(viewer: Viewer, data?: any): boolean {
@@ -170,8 +160,8 @@ export default class GameRoom {
     if (newSettings.roomName.length === 0) {
       newSettings.roomName = "Untitled Room";
     }
-    this.basicRoomInfo.roomName = newSettings.roomName;
-    this.basicRoomInfo.isPublic = newSettings.isPublic;
+    this.publicRoomInfo.roomName = newSettings.roomName;
+    this.publicRoomInfo.isPublic = newSettings.isPublic;
 
     this.gameLogicHandler.emitEventToAll({
       type: "changeRoomSettings",
@@ -184,12 +174,12 @@ export default class GameRoom {
     return viewer.index === this.host &&
         this.gameLogicHandler.gameStatus === "pregame" &&
         changeGameTypeSchema.isValidSync(data) &&
-        data.newGameType !== this.basicRoomInfo.roomState.gameType;
+        data.newGameType !== this.publicRoomInfo.gameType;
   }
 
   // Change to a new type of game
   changeGameType(newGameType: GameType): void {
-    this.basicRoomInfo.roomState.gameType = newGameType;
+    this.publicRoomInfo.gameType = newGameType;
     if (newGameType === GameType.NoGameSelected) {
       this.gameLogicHandler = new NoGameSelected(this);
     } else if (newGameType === GameType.AuctionTTT) {

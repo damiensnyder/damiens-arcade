@@ -20,12 +20,12 @@
   <h2>Create a game</h2>
 
   <form on:submit={handleSubmit}>
-    <input class="big-button" type="submit" value="CREATE">
+    <input type="submit" value="CREATE">
   </form>
 </div>
 
 <style>
-  .big-button {
+  input[type="submit"] {
     width: min-content;
     align-self: center;
   }
