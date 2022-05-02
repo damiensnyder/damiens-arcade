@@ -32,6 +32,7 @@ export default class Tourney extends GameLogicHandlerBase {
   gameType: GameType.Tourney
   gameStatus: TourneyGameStatus
   teams: Team[]
+  draftOrder?: number[]
 
   constructor(room: GameRoom) {
     super(room);
@@ -42,7 +43,6 @@ export default class Tourney extends GameLogicHandlerBase {
     };
     this.teams = [];
   }
-
   handleAction(viewer: Viewer, action?: any): void {
     const indexControlledByViewer = getIndexByController(this.teams, viewer.index);
     const teamControlledByViewer = getTeamByController(this.teams, viewer.index);
@@ -54,7 +54,9 @@ export default class Tourney extends GameLogicHandlerBase {
         this.teams.length < 16) {
       this.teams.push({
         controller: viewer.index,
-        money: 0
+        money: 0,
+        fighters: [],
+        equipment: []
       });
       this.emitEventToAll({
         type: "join",
@@ -92,7 +94,24 @@ export default class Tourney extends GameLogicHandlerBase {
   }
 
   startGame(): void {
-    this.gameStatus = "preseason";
+    this.gameStatus = "draft";
+    for (const team of this.teams) {
+      team.money = 100;
+    }
+
+    // shuffle the draft order to start
+    this.draftOrder = [];
+    for (let i = 0; i < this.teams.length; i++) {
+      this.draftOrder.push(i);
+    }
+    let currentIndex = this.draftOrder.length;
+    let randomIndex;
+    while (currentIndex != 0) {
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex--;
+      [this.draftOrder[currentIndex], this.draftOrder[randomIndex]] =
+          [this.draftOrder[randomIndex], this.draftOrder[currentIndex]];
+    }
   }
 
   handleDisconnect(viewer: Viewer, wasHost: boolean): void {

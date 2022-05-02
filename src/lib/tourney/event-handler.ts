@@ -16,16 +16,18 @@ export function handleGamestate(gamestate: TourneyViewpoint): void {
   teams.set(gamestate.teams);
 }
 
-type AuctionTTTEventHandler = {
+type TourneyEventHandler = {
   [key in TourneyEvent["type"]]: (event: TourneyEvent & { type: key }) => void;
 };
 
-export const eventHandler: AuctionTTTEventHandler = {
+export const eventHandler: TourneyEventHandler = {
   join: function (event): void {
     teams.update((old) => {
       old.push({
+        controller: event.controller,
         money: 0,
-        controller: event.controller
+        fighters: [],
+        equipment: []
       });
       return old;
     });
@@ -43,6 +45,6 @@ export const eventHandler: AuctionTTTEventHandler = {
     rawSettings.set(JSON.stringify(event.settings));
   },
   start: function (_event): void {
-    
+    gameStatus.set("draft");
   }
 }
