@@ -1,6 +1,6 @@
 import type { BasicViewpointInfo, GameType } from "$lib/types";
 
-export type TourneyGameStatus = "pregame" |
+export type TourneyGameStage = "pregame" |
     "preseason" |
     "draft" |
     "free agency" |
@@ -13,14 +13,14 @@ export type TourneyGameStatus = "pregame" |
 export type TourneyViewpoint = PregameViewpoint;
 
 interface ViewpointBase extends BasicViewpointInfo {
-  gameStatus: TourneyGameStatus
+  gameStage: TourneyGameStage
   gameType: GameType.Tourney
   settings: Settings
   teams: Team[]
 }
 
 export interface PregameViewpoint extends ViewpointBase {
-  gameStatus: "pregame"
+  gameStage: "pregame"
 }
 
 export interface Team {

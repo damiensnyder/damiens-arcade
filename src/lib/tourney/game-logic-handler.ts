@@ -2,7 +2,7 @@ import { GameType } from "$lib/types";
 import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
-import type { TourneyGameStatus, TourneyViewpoint, Team, Settings } from "$lib/tourney/types";
+import type { TourneyGameStage, TourneyViewpoint, Team, Settings } from "$lib/tourney/types";
 import { array, boolean, number, object, string } from "yup";
 import { getIndexByController, getTeamByController } from "$lib/tourney/utils";
 
@@ -30,7 +30,7 @@ const startGameSchema = object({
 export default class Tourney extends GameLogicHandlerBase {
   settings: Settings
   gameType: GameType.Tourney
-  gameStatus: TourneyGameStatus
+  gameStage: TourneyGameStage
   teams: Team[]
   draftOrder?: number[]
 
@@ -65,7 +65,7 @@ export default class Tourney extends GameLogicHandlerBase {
 
       // LEAVE
     } else if (leaveSchema.isValidSync(action) &&
-        this.gameStatus === "pregame" &&
+        this.gameStage === "pregame" &&
         teamControlledByViewer !== null) {
       teamControlledByViewer.controller = "bot";
       this.emitEventToAll({
@@ -82,7 +82,7 @@ export default class Tourney extends GameLogicHandlerBase {
 
       // START
     } else if (startGameSchema.isValidSync(action) &&
-        this.gameStatus === "pregame" &&
+        this.gameStage === "pregame" &&
         isHost) {
       this.startGame();
       this.emitEventToAll({
@@ -94,7 +94,7 @@ export default class Tourney extends GameLogicHandlerBase {
   }
 
   startGame(): void {
-    this.gameStatus = "draft";
+    this.gameStage = "draft";
     for (const team of this.teams) {
       team.money = 100;
     }
@@ -131,7 +131,7 @@ export default class Tourney extends GameLogicHandlerBase {
     return {
       ...this.basicViewpointInfo(viewer),
       gameType: GameType.Tourney,
-      gameStatus: this.gameStatus as "pregame",
+      gameStage: this.gameStage as "pregame",
       settings: this.settings,
       teams: this.teams
     };

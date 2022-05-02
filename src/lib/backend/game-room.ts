@@ -44,7 +44,7 @@ export default class GameRoom {
       roomName: "Untitled Room",
       isPublic: false,
       gameType: GameType.NoGameSelected,
-      gameStatus: "pregame"
+      gameStage: "pregame"
     };
     this.gameLogicHandler = new NoGameSelected(this);
 
@@ -152,7 +152,7 @@ export default class GameRoom {
 
   shouldChangeSettings(viewer: Viewer, data?: any): boolean {
     return viewer.index === this.host &&
-        this.gameLogicHandler.gameStatus === "pregame" &&
+        this.gameLogicHandler.gameStage === "pregame" &&
         changeSettingsSchema.isValidSync(data);
   }
 
@@ -173,7 +173,7 @@ export default class GameRoom {
 
   shouldChangeGameType(viewer: Viewer, data?: any) {
     return viewer.index === this.host &&
-        this.gameLogicHandler.gameStatus === "pregame" &&
+        this.gameLogicHandler.gameStage === "pregame" &&
         changeGameTypeSchema.isValidSync(data) &&
         data.newGameType !== this.publicRoomInfo.gameType;
   }

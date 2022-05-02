@@ -1,8 +1,8 @@
 import type { BasicViewpointInfo, GameType } from "$lib/types"
 
-export type NoneGameStatus = "pregame";
+export type NoneGameStage = "pregame";
 
 export interface NoneViewpoint extends BasicViewpointInfo {
-  gameStatus: "pregame"
+  gameStage: "pregame"
   gameType: GameType.NoGameSelected
 }

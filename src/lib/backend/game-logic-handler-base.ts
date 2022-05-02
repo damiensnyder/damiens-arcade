@@ -1,14 +1,14 @@
 import { GameType, type BasicViewpointInfo, type Event } from "$lib/types";
-import type { GameStatus, Viewer, Viewpoint } from "$lib/types";
+import type { GameStage, Viewer, Viewpoint } from "$lib/types";
 import type GameRoom from "$lib/backend/game-room";
 
 export default class GameLogicHandlerBase {
   room: GameRoom
-  gameStatus: GameStatus
+  gameStage: GameStage
 
   constructor(room: GameRoom) {
     this.room = room;
-    this.gameStatus = "pregame";
+    this.gameStage = "pregame";
   }
 
   handleConnect(viewer: Viewer): void {

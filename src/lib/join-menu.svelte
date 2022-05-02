@@ -30,7 +30,7 @@
         <p>
           <a href={`/game/${room.roomCode}`}>{room.roomName}</a> &middot;
           {room.gameType} &middot;
-          {room.gameStatus}
+          {room.gameStage}
         </p>
       {/each}
       {#if rooms.length === 0}

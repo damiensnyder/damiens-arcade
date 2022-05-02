@@ -1,5 +1,5 @@
 import { Side, TurnPart, type AuctionTTTEvent, type AuctionTTTViewpoint } from "$lib/auction-tic-tac-toe/types";
-import { currentBid, currentlyNominatedSquare, gameStatus, nominating, lastBid, players, settings, squares, turnPart, whoseTurnToBid, whoseTurnToNominate, winner, timeOfLastMove } from "$lib/auction-tic-tac-toe/stores";
+import { currentBid, currentlyNominatedSquare, gameStage, nominating, lastBid, players, settings, squares, turnPart, whoseTurnToBid, whoseTurnToNominate, winner, timeOfLastMove } from "$lib/auction-tic-tac-toe/stores";
 import { oppositeSideOf } from "$lib/auction-tic-tac-toe/utils";
 import { get } from "svelte/store";
 import { eventLog, pov } from "$lib/stores";
@@ -10,15 +10,15 @@ export function switchToType(): void {
     startingPlayer: Side.None,
     useTiebreaker: false
   });
-  gameStatus.set("pregame");
+  gameStage.set("pregame");
   players.set({ X: { money: 15 }, O: { money: 15 } });
 }
 
 export function handleGamestate(gamestate: AuctionTTTViewpoint): void {
   settings.set(gamestate.settings);
-  gameStatus.set(gamestate.gameStatus);
+  gameStage.set(gamestate.gameStage);
   players.set(gamestate.players);
-  if (gamestate.gameStatus === "midgame") {
+  if (gamestate.gameStage === "midgame") {
     squares.set(gamestate.squares);
     whoseTurnToNominate.set(gamestate.whoseTurnToNominate);
     turnPart.set(gamestate.turnPart);
@@ -31,7 +31,7 @@ export function handleGamestate(gamestate: AuctionTTTViewpoint): void {
       timeOfLastMove.set(gamestate.timeOfLastMove);
       startTimer();
     }
-  } else if (gamestate.gameStatus === "postgame") {
+  } else if (gamestate.gameStage === "postgame") {
     squares.set(gamestate.squares);
     turnPart.set(TurnPart.None);
     winner.set(gamestate.winner);
@@ -77,12 +77,12 @@ export const eventHandler: AuctionTTTEventHandler = {
       }
       return old;
     });
-    if (get(gameStatus) === "pregame") {
+    if (get(gameStage) === "pregame") {
       eventLog.append("The game has started.");
     } else {
       eventLog.append("A new game has started.");
     }
-    gameStatus.set("midgame");
+    gameStage.set("midgame");
     squares.set([
       [Side.None, Side.None, Side.None],
       [Side.None, Side.None, Side.None],
@@ -132,7 +132,7 @@ export const eventHandler: AuctionTTTEventHandler = {
     eventLog.append(`The square has been awarded to ${whoWonTheSquare}.`);
   },
   gameOver: function (event): void {
-    gameStatus.set("postgame");
+    gameStage.set("postgame");
     turnPart.set(TurnPart.None);
     delete event.type;
     winner.set(event);
@@ -146,7 +146,7 @@ export const eventHandler: AuctionTTTEventHandler = {
     }
   },
   backToSettings: function (_event): void {
-    gameStatus.set("pregame");
+    gameStage.set("pregame");
   }
 }
 

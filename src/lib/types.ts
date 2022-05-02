@@ -1,15 +1,15 @@
 import type { Socket } from "socket.io";
-import type { AuctionTTTAction, AuctionTTTEvent, AuctionTTTGameStatus, AuctionTTTViewpoint } from "$lib/auction-tic-tac-toe/types";
-import type { NoneGameStatus, NoneViewpoint } from "$lib/no-game-selected/types";
+import type { AuctionTTTAction, AuctionTTTEvent, AuctionTTTGameStage, AuctionTTTViewpoint } from "$lib/auction-tic-tac-toe/types";
+import type { NoneGameStage, NoneViewpoint } from "$lib/no-game-selected/types";
 import type { TestRoomAction } from "$lib/test/set-up-test-rooms";
-import type { TourneyAction, TourneyEvent, TourneyGameStatus, TourneyViewpoint } from "$lib/tourney/types";
+import type { TourneyAction, TourneyEvent, TourneyGameStage, TourneyViewpoint } from "$lib/tourney/types";
 
 export interface PublicRoomInfo {
   roomName: string
   roomCode: string
   isPublic: boolean
   gameType: GameType
-  gameStatus: GameStatus
+  gameStage: GameStage
 }
 
 export enum PacketType {
@@ -24,9 +24,9 @@ export enum GameType {
   Tourney = "Colosseum Clash"
 }
 
-export type GameStatus = NoneGameStatus |
-    AuctionTTTGameStatus |
-    TourneyGameStatus;
+export type GameStage = NoneGameStage |
+    AuctionTTTGameStage |
+    TourneyGameStage;
 
 export interface BasicViewpointInfo {
   roomCode: string

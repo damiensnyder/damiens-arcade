@@ -59,7 +59,7 @@ export default class RoomManager {
 
     for (const [, room] of Object.entries(this.activeRooms)) {
       const roomInfo = room.publicRoomInfo;
-      roomInfo.gameStatus = room.gameLogicHandler.gameStatus;
+      roomInfo.gameStage = room.gameLogicHandler.gameStage;
       if (roomInfo.isPublic) {
         activeRooms.push(roomInfo);
       }

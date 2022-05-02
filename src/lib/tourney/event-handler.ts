@@ -1,18 +1,18 @@
 import type { Settings, TourneyEvent, TourneyViewpoint } from "$lib/tourney/types";
-import { gameStatus, teams, rawSettings, settings } from "$lib/tourney/stores";
+import { gameStage, teams, rawSettings, settings } from "$lib/tourney/stores";
 import { get } from "svelte/store";
 import { eventLog, pov } from "$lib/stores";
 
 export function switchToType(): void {
   rawSettings.set("{}");
   settings.set({});
-  gameStatus.set("pregame");
+  gameStage.set("pregame");
   teams.set([]);
 }
 
 export function handleGamestate(gamestate: TourneyViewpoint): void {
   rawSettings.set(JSON.stringify(gamestate.settings));
-  gameStatus.set(gamestate.gameStatus);
+  gameStage.set(gamestate.gameStage);
   teams.set(gamestate.teams);
 }
 
@@ -45,6 +45,6 @@ export const eventHandler: TourneyEventHandler = {
     rawSettings.set(JSON.stringify(event.settings));
   },
   start: function (_event): void {
-    gameStatus.set("draft");
+    gameStage.set("draft");
   }
 }

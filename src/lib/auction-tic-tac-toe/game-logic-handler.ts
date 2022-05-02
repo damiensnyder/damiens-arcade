@@ -3,7 +3,7 @@ import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
 import { Side, TurnPart, type Winner } from "$lib/auction-tic-tac-toe/types";
-import type { AuctionTTTGameStatus, AuctionTTTViewpoint, Player, Settings } from "$lib/auction-tic-tac-toe/types";
+import type { AuctionTTTGameStage, AuctionTTTViewpoint, Player, Settings } from "$lib/auction-tic-tac-toe/types";
 import { getPlayerByController, getSideByController, oppositeSideOf, winningSide } from "$lib/auction-tic-tac-toe/utils";
 import { array, boolean, number, object, string } from "yup";
 
@@ -55,7 +55,7 @@ const backToSettingsSchema = object({
 export default class AuctionTicTacToe extends GameLogicHandlerBase {
   settings: Settings
   gameType: GameType.AuctionTTT
-  gameStatus: AuctionTTTGameStatus
+  gameStage: AuctionTTTGameStage
   players: Record<Side.X | Side.O, Player>
   turnPart: TurnPart
   whoseTurnToNominate?: Side
@@ -101,7 +101,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
 
       // LEAVE
     } else if (leaveSchema.isValidSync(action) &&
-        this.gameStatus === "pregame" &&
+        this.gameStage === "pregame" &&
         playerControlledByViewer !== null) {
       delete playerControlledByViewer.controller;
       this.emitEventToAll({
@@ -118,7 +118,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
 
       // START
     } else if (startGameSchema.isValidSync(action) &&
-        this.gameStatus === "pregame" &&
+        this.gameStage === "pregame" &&
         isHost &&
         this.players.X.controller !== undefined &&
         this.players.O.controller !== undefined) {
@@ -130,7 +130,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
 
       // NOMINATE
     } else if (nominateSchema.isValidSync(action) &&
-        this.gameStatus === "midgame" &&
+        this.gameStage === "midgame" &&
         this.squares[action.square[0]][action.square[1]] === Side.None &&
         sideControlledByViewer === this.whoseTurnToNominate &&
         this.lastBid === undefined &&
@@ -155,7 +155,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
 
       // BID
     } else if (bidSchema.isValidSync(action) &&
-        this.gameStatus === "midgame" &&
+        this.gameStage === "midgame" &&
         sideControlledByViewer === this.whoseTurnToBid &&
         action.amount <= playerControlledByViewer.money &&
         action.amount > this.lastBid) {
@@ -174,7 +174,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
 
       // PASS
     } else if (passSchema.isValidSync(action) &&
-        this.gameStatus === "midgame" &&
+        this.gameStage === "midgame" &&
         sideControlledByViewer === this.whoseTurnToBid) {
       this.emitEventToAll({ type: "pass" });
       this.updateTiming(sideControlledByViewer);
@@ -182,7 +182,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
 
       // REMATCH
     } else if (rematchSchema.isValidSync(action) &&
-        this.gameStatus === "postgame" &&
+        this.gameStage === "postgame" &&
         this.players.X.controller !== undefined &&
         this.players.O.controller !== undefined &&
         this.room.host === viewer.index) {
@@ -194,9 +194,9 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
     
       // BACK TO SETTINGS
     } else if (backToSettingsSchema.isValidSync(action) &&
-        this.gameStatus === "postgame" &&
+        this.gameStage === "postgame" &&
         this.room.host === viewer.index) {
-      this.gameStatus = "pregame";
+      this.gameStage = "pregame";
       delete this.squares;
       this.emitEventToAll({ type: "backToSettings" });
     } else {
@@ -225,7 +225,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
   }
 
   startGame(): void {
-    this.gameStatus = "midgame";
+    this.gameStage = "midgame";
     this.turnPart = TurnPart.Nominating;
     this.players.X.money = this.settings.startingMoney;
     this.players.O.money = this.settings.startingMoney;
@@ -279,7 +279,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
         };
       }
 
-      this.gameStatus = "postgame";
+      this.gameStage = "postgame";
       this.emitEventToAll({
         type: "gameOver",
         ...this.winner
@@ -310,20 +310,20 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
   }
 
   viewpointOf(viewer: Viewer): AuctionTTTViewpoint {
-    if (this.gameStatus === "pregame") {
+    if (this.gameStage === "pregame") {
       return {
         ...this.basicViewpointInfo(viewer),
         gameType: GameType.AuctionTTT,
-        gameStatus: this.gameStatus,
+        gameStage: this.gameStage,
         settings: this.settings,
         players: this.players
       };
-    } else if (this.gameStatus === "midgame") {
+    } else if (this.gameStage === "midgame") {
       if (this.turnPart === TurnPart.Bidding) {
         return {
           ...this.basicViewpointInfo(viewer),
           gameType: GameType.AuctionTTT,
-          gameStatus: this.gameStatus,
+          gameStage: this.gameStage,
           settings: this.settings,
           turnPart: this.turnPart,
           players: this.players,
@@ -338,7 +338,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
         return {
           ...this.basicViewpointInfo(viewer),
           gameType: GameType.AuctionTTT,
-          gameStatus: this.gameStatus,
+          gameStage: this.gameStage,
           settings: this.settings,
           turnPart: TurnPart.Nominating,
           players: this.players,
@@ -347,11 +347,11 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
           timeOfLastMove: this.timeOfLastMove
         };
       }
-    } else if (this.gameStatus === "postgame") {
+    } else if (this.gameStage === "postgame") {
       return {
         ...this.basicViewpointInfo(viewer),
         gameType: GameType.AuctionTTT,
-        gameStatus: this.gameStatus,
+        gameStage: this.gameStage,
         settings: this.settings,
         players: this.players,
         squares: this.squares,

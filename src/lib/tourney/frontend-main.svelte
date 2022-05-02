@@ -1,6 +1,6 @@
 <script lang="ts">
   import Pregame from "$lib/tourney/pregame.svelte";
-  import { gameStatus } from "$lib/tourney/stores";
+  import { gameStage } from "$lib/tourney/stores";
   import { roomName } from "$lib/stores";
 </script>
 
@@ -8,6 +8,6 @@
   <title>Damien's Arcade | Colosseum Clash | {$roomName}</title>
 </svelte:head>
 
-{#if $gameStatus === "pregame"}
+{#if $gameStage === "pregame"}
   <Pregame />
 {/if}

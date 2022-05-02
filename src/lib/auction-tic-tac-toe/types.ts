@@ -1,6 +1,6 @@
 import type { BasicViewpointInfo, GameType } from "$lib/types";
 
-export type AuctionTTTGameStatus = "pregame" | "midgame" | "postgame";
+export type AuctionTTTGameStage = "pregame" | "midgame" | "postgame";
 
 export enum TurnPart {
   Nominating,
@@ -12,18 +12,18 @@ export type AuctionTTTViewpoint = PregameViewpoint |
     MidgameViewpoint | PostgameViewpoint;
 
 interface ViewpointBase extends BasicViewpointInfo {
-  gameStatus: AuctionTTTGameStatus
+  gameStage: AuctionTTTGameStage
   gameType: GameType.AuctionTTT
   settings: Settings
   players: Record<Side.X | Side.O, Player>
 }
 
 export interface PregameViewpoint extends ViewpointBase {
-  gameStatus: "pregame"
+  gameStage: "pregame"
 }
 
 export interface MidgameViewpointBase extends ViewpointBase {
-  gameStatus: "midgame"
+  gameStage: "midgame"
   squares: Side[][]
   turnPart: TurnPart
   whoseTurnToNominate: Side
@@ -44,7 +44,7 @@ interface NominatingViewpoint extends MidgameViewpointBase {
 type MidgameViewpoint = BiddingViewpoint | NominatingViewpoint;
 
 interface PostgameViewpoint extends ViewpointBase {
-  gameStatus: "postgame"
+  gameStage: "postgame"
   squares: Side[][]
   winner: Winner
 }
