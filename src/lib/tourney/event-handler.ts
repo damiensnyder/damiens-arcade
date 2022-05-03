@@ -23,11 +23,12 @@ type TourneyEventHandler = {
 export const eventHandler: TourneyEventHandler = {
   join: function (event): void {
     teams.update((old) => {
+      delete event.type;
       old.push({
-        controller: event.controller,
         money: 0,
         fighters: [],
-        equipment: []
+        equipment: [],
+        ...event
       });
       return old;
     });

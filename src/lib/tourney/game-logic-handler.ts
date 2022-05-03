@@ -54,13 +54,15 @@ export default class Tourney extends GameLogicHandlerBase {
         this.teams.length < 16) {
       this.teams.push({
         controller: viewer.index,
+        name: `Team ${this.teams.length + 1}`,
         money: 0,
         fighters: [],
         equipment: []
       });
       this.emitEventToAll({
         type: "join",
-        controller: viewer.index
+        controller: viewer.index,
+        name: this.teams[this.teams.length - 1].name
       });
 
       // LEAVE
@@ -83,10 +85,12 @@ export default class Tourney extends GameLogicHandlerBase {
       // START
     } else if (startGameSchema.isValidSync(action) &&
         this.gameStage === "pregame" &&
+        this.teams.length > 1 &&
         isHost) {
       this.startGame();
       this.emitEventToAll({
-        type: "start"
+        type: "start",
+        draftOrder: this.draftOrder
       });
     } else {
       console.debug("INVALID ACTION");

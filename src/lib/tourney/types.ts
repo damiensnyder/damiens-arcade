@@ -25,6 +25,7 @@ export interface PregameViewpoint extends ViewpointBase {
 
 export interface Team {
   controller: number | "bot"
+  name: string
   money: number
   fighters: Fighter[]
   equipment: Equipment[]
@@ -95,6 +96,7 @@ interface ChangeGameSettingsEvent {
 interface JoinEvent {
   type: "join"
   controller: number | "bot"
+  name: string
 }
 
 interface LeaveEvent {
@@ -103,7 +105,8 @@ interface LeaveEvent {
 }
 
 interface StartEvent {
-  type: "start"
+  type: "start",
+  draftOrder: number[]
 }
 
 export type TourneyEvent = ChangeGameSettingsEvent |
