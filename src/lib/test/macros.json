@@ -50,5 +50,26 @@
       "type": "disconnect",
       "index": 2
     }
+  ],
+  "startTourney": [
+    {
+      "type": "connect",
+      "index": 1
+    },
+    {
+      "type": "changeGameType",
+      "newGameType": "Colosseum Clash",
+      "index": 1
+    },
+    {
+      "type": "changeRoomSettings",
+      "dynamicParams": { "roomName": 0 },
+      "isPublic": true,
+      "index": 1
+    },
+    {
+      "type": "start",
+      "index": 1
+    }
   ]
 }

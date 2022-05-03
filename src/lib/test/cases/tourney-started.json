@@ -1,0 +1,8 @@
+{
+  "actions": [
+    {
+      "macro": "startTourney",
+      "dynamicParams": ["tourney"]
+    }
+  ]
+}
