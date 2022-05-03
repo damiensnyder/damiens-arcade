@@ -1,9 +1,14 @@
 :root {
-  --bg-fun: #888;
-  --bg-fun-dark: #777;
-  --bg-fun-darker: #555;
-  --bg-fun-light: #999;
-  --text-fun: #111;
+  --bg-fun-1: #311;
+  --bg-fun-2: #766;
+  --bg-fun-3: #632;
+  --text-fun-1: #ddd;
+  --text-fun-2: #aaa;
+  --text-fun-3: #111;
+  --text-fun-4: #d7d7d7;
+  --accent-fun-1: #e99;
+  --accent-fun-2: #633;
+  --accent-fun-3: #522;
 
   --font-fun: "Comic Sans MS", "Chalkduster";
 }
@@ -11,12 +16,27 @@
 html,
 body,
 #svelte {
-  position: absolute;
   min-height: 100vh;
   justify-content: stretch;
   align-items: stretch;
 
-  background-color: var(--bg-fun);
-  color: var(--text-fun);
+  background-color: var(--bg-fun-1);
+  color: var(--text-fun-1);
   font-family: var(--font-fun);
+}
+
+button {
+  font-family: inherit;
+  color: inherit;
+  background-color: var(--bg-fun-2);
+  border-color: var(--text-fun-2);
+}
+
+button:hover {
+  color: var(--text-fun-4);
+  background-color: var(--accent-fun-2);
+}
+
+button:active {
+  background-color: var(--accent-fun-3);
 }
