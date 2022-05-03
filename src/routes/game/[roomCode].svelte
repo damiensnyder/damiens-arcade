@@ -52,11 +52,11 @@ socket.on('gamestate', (gamestate: Viewpoint) => {
   } else if (gamestate.gameType === GameType.Tourney) {
     handleTourneyGamestate(gamestate);
   }
-  // console.log(gamestate);
+  console.log(gamestate);
 });
 
 socket.on("event", (event: Event) => {
-  // console.log(event);
+  console.log(event);
 
   // CHANGE GAME TYPE
   if (event.type === "changeGameType") {
@@ -93,7 +93,7 @@ socket.on("event", (event: Event) => {
 // emit every action sent via this store to the server
 lastAction.subscribe((action: Action) => {
   socket.emit('action', action);
-  // console.log($lastAction);
+  console.log($lastAction);
 });
 </script>
 

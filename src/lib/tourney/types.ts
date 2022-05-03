@@ -105,8 +105,7 @@ interface LeaveEvent {
 }
 
 interface StartEvent {
-  type: "start",
-  draftOrder: number[]
+  type: "start"
 }
 
 export type TourneyEvent = ChangeGameSettingsEvent |

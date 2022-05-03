@@ -50,6 +50,7 @@ export default class Tourney extends GameLogicHandlerBase {
 
     // JOIN
     if (joinSchema.isValidSync(action) &&
+        this.gameStage === "preseason" &&
         teamControlledByViewer === null &&
         this.teams.length < 16) {
       this.teams.push({
@@ -67,7 +68,6 @@ export default class Tourney extends GameLogicHandlerBase {
 
       // LEAVE
     } else if (leaveSchema.isValidSync(action) &&
-        this.gameStage === "pregame" &&
         teamControlledByViewer !== null) {
       teamControlledByViewer.controller = "bot";
       this.emitEventToAll({
@@ -85,12 +85,10 @@ export default class Tourney extends GameLogicHandlerBase {
       // START
     } else if (startGameSchema.isValidSync(action) &&
         this.gameStage === "pregame" &&
-        this.teams.length > 1 &&
         isHost) {
       this.startGame();
       this.emitEventToAll({
-        type: "start",
-        draftOrder: this.draftOrder
+        type: "start"
       });
     } else {
       console.debug("INVALID ACTION");
@@ -98,6 +96,10 @@ export default class Tourney extends GameLogicHandlerBase {
   }
 
   startGame(): void {
+    this.gameStage = "preseason";
+  }
+
+  startSeason(): void {
     this.gameStage = "draft";
     for (const team of this.teams) {
       team.money = 100;

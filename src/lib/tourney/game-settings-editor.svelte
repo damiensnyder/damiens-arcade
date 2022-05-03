@@ -8,16 +8,22 @@ function changeGameSettings() {
     settings: JSON.parse($rawSettings)
   });
 }
+
+function start() {
+  lastAction.set({
+    type: "start"
+  });
+}
 </script>
 
 <h3>Game Settings</h3>
-<form on:submit|preventDefault={changeGameSettings}>
+<form>
   <label for="settings" style="margin-bottom: 0.3rem;">Settings:</label>
   <textarea disabled={$host !== $pov} name="settings" bind:value={$rawSettings}></textarea>
   {#if $host === $pov}
     <div class="horiz">
-      <input type="submit" value="UPDATE SETTINGS" />
-      <button>START</button>
+      <button on:submit|preventDefault={changeGameSettings} on:click|preventDefault={changeGameSettings}>UPDATE SETTINGS</button>
+      <button on:submit|preventDefault={start} on:click|preventDefault={start}>START</button>
     </div>
   {/if}
 </form>
@@ -27,8 +33,7 @@ function changeGameSettings() {
     justify-content: space-between;
   }
 
-  button,
-  input[type="submit"] {
+  button {
     margin-top: 0.5rem;
   }
 </style>
