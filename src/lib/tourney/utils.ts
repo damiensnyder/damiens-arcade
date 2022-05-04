@@ -1,7 +1,7 @@
 import type { Team } from "$lib/tourney/types";
 
 export function getIndexByController(teams: Team[], controller: number): number | null {
-  for (let i = 0; i++; i < teams.length) {
+  for (let i = 0; i < teams.length; i++) {
     if (teams[i].controller === controller) {
       return i;
     }

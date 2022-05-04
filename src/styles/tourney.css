@@ -13,7 +13,7 @@
   --font-fun: "Comic Sans MS", "Chalkduster";
 }
 
-.whole-game-container {
+ .fun {
   position: absolute;
   top: 0;
   left: 0;
@@ -27,28 +27,28 @@
   font-family: var(--font-fun);
 }
 
-.whole-game-container button {
+ .fun button {
   font-family: inherit;
   color: inherit;
   background-color: var(--bg-fun-2);
   border-color: var(--text-fun-2);
 }
 
-.whole-game-container button:hover,
-.whole-game-container button:active {
+ .fun button:hover,
+ .fun button:active {
   background-color: var(--accent-fun-2);
 }
 
-.whole-game-container button:hover {
+ .fun button:hover {
   color: var(--text-fun-4);
 }
 
-.whole-game-container button:hover:active,
-.whole-game-container button:active {
+ .fun button:hover:active,
+ .fun button:active {
   color: var(--text-fun-1);
 }
 
-.whole-game-container h2 {
+ .fun h2 {
   font-family: inherit;
   font-weight: 600;
   color: var(text-fun-2);

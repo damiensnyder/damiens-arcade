@@ -3,7 +3,7 @@
   import Preseason from "$lib/tourney/preseason.svelte";
 </script>
 
-<div class="whole-game-container">
+<div class="fun">
   <div class="top-icons horiz">
     <button>Preseason</button>
     <button>Draft</button>
@@ -16,7 +16,7 @@
   
   <div class="container horiz">
     {#if $gameStage === "preseason"}
-    <Preseason />
+      <Preseason />
     {/if}
   </div>
 </div>
