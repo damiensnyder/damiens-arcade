@@ -1,5 +1,5 @@
 import type { TourneyEvent, TourneyViewpoint } from "$lib/tourney/types";
-import { draftOrder, gameStage, rawSettings, settings, teams } from "$lib/tourney/stores";
+import { draftOrder, gameStage, rawSettings, settings, teams, spotInDraftOrder } from "$lib/tourney/stores";
 import { get } from "svelte/store";
 import { eventLog, pov } from "$lib/stores";
 
@@ -71,5 +71,6 @@ export const eventHandler: TourneyEventHandler = {
   goToDraft: function (event): void {
     gameStage.set("draft");
     draftOrder.set(event.draftOrder);
+    spotInDraftOrder.set(0);
   }
 }

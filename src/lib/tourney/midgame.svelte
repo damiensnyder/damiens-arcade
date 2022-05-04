@@ -1,31 +1,29 @@
 <script lang="ts">
   import { gameStage } from "$lib/tourney/stores";
   import Preseason from "$lib/tourney/preseason.svelte";
+  import Draft from "$lib/tourney/draft.svelte";
 </script>
 
 <div class="fun">
-  <!-- <div class="top-icons horiz">
-    <button>Preseason</button>
-    <button>Draft</button>
-    <button>Free agency</button>
-    <button>Equipment</button>
-    <button>Practice</button>
-    <button>Battle royale</button>
-    <button>Tourney time!</button>
-  </div> -->
+  <div class="top-icons horiz">
+    <h2>{$gameStage}</h2>
+    <button>My Team</button>
+    <button>All teams</button>
+  </div>
   
   <div class="container horiz">
     {#if $gameStage === "preseason"}
       <Preseason />
     {:else if $gameStage === "draft"}
-      <p>draft</p>
+      <Draft />
     {/if}
   </div>
 </div>
   
 <style>
   .top-icons {
-    justify-content: center;
+    justify-content: stretch;
+    margin: 0 1.5rem;
   }
 
   .container {
@@ -38,11 +36,12 @@
     border: 3px solid var(--bg-fun-2);
   }
 
+  h2 {
+    margin: 0 0.5rem;
+    flex: 1;
+  }
+
   button {
-    width: 5rem;
-    height: 5rem;
-    margin: 1rem;
-    font-size: 0.8rem;
-    border-radius: 50%;
+    margin: 0 0.5rem;
   }
 </style>

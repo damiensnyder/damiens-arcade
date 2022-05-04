@@ -116,6 +116,11 @@ interface AdvanceAction {
   type: "advance"
 }
 
+interface DraftAction {
+  type: "draft",
+  fighter: number
+}
+
 export type TourneyAction = ChangeGameSettingsAction |
     JoinAction |
     LeaveAction |
@@ -123,7 +128,8 @@ export type TourneyAction = ChangeGameSettingsAction |
     ReplaceAction |
     RemoveAction |
     AddBotAction |
-    AdvanceAction;
+    AdvanceAction |
+    DraftAction;
 
 interface ChangeGameSettingsEvent {
   type: "changeGameSettings"
