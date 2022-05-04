@@ -4,7 +4,7 @@
 </script>
 
 <div class="fun">
-  <div class="top-icons horiz">
+  <!-- <div class="top-icons horiz">
     <button>Preseason</button>
     <button>Draft</button>
     <button>Free agency</button>
@@ -12,11 +12,13 @@
     <button>Practice</button>
     <button>Battle royale</button>
     <button>Tourney time!</button>
-  </div>
+  </div> -->
   
   <div class="container horiz">
     {#if $gameStage === "preseason"}
       <Preseason />
+    {:else if $gameStage === "draft"}
+      <p>draft</p>
     {/if}
   </div>
 </div>

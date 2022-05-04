@@ -41,12 +41,17 @@ const addBotSchema = object({
   type: string().required().equals(["addBot"])
 });
 
+const advanceSchema = object({
+  type: string().required().equals(["advance"])
+});
+
 export default class Tourney extends GameLogicHandlerBase {
   settings: Settings
   gameType: GameType.Tourney
   gameStage: TourneyGameStage
   teams?: Team[]
   draftOrder?: number[]
+  tourneyResults?: number[]
 
   constructor(room: GameRoom) {
     super(room);
@@ -148,6 +153,14 @@ export default class Tourney extends GameLogicHandlerBase {
         controller: "bot",
         name: this.teams[this.teams.length - 1].name
       });
+
+      // ADVANCE
+    } else if (advanceSchema.isValidSync(action) &&
+        this.gameStage !== "pregame" &&
+        isHost) {
+      if (this.gameStage === "preseason") {
+        this.advanceToDraft();
+      }
     } else {
       console.debug("INVALID ACTION");
     }
@@ -158,10 +171,11 @@ export default class Tourney extends GameLogicHandlerBase {
     this.teams = [];
   }
 
-  startSeason(): void {
+  advanceToDraft(): void {
     this.gameStage = "draft";
 
     // shuffle the draft order to start
+    // in the future this should go in reverse order of results of previous tourney
     this.draftOrder = [];
     for (let i = 0; i < this.teams.length; i++) {
       this.draftOrder.push(i);
@@ -174,6 +188,11 @@ export default class Tourney extends GameLogicHandlerBase {
       [this.draftOrder[currentIndex], this.draftOrder[randomIndex]] =
           [this.draftOrder[randomIndex], this.draftOrder[currentIndex]];
     }
+
+    this.emitEventToAll({
+      type: "goToDraft",
+      draftOrder: this.draftOrder
+    });
   }
 
   handleDisconnect(viewer: Viewer, wasHost: boolean): void {
@@ -197,11 +216,28 @@ export default class Tourney extends GameLogicHandlerBase {
         gameStage: "pregame",
         settings: this.settings
       };
-    } else {
+    } else if (this.gameStage === "preseason") {
       return {
         ...this.basicViewpointInfo(viewer),
         gameType: GameType.Tourney,
         gameStage: this.gameStage,
+        settings: this.settings,
+        teams: this.teams
+      }
+    } else if (this.gameStage === "draft") {
+      return {
+        ...this.basicViewpointInfo(viewer),
+        gameType: GameType.Tourney,
+        gameStage: this.gameStage,
+        settings: this.settings,
+        teams: this.teams,
+        draftOrder: this.draftOrder
+      }
+    } else {
+      return {
+        ...this.basicViewpointInfo(viewer),
+        gameType: GameType.Tourney,
+        gameStage: this.gameStage as "preseason",
         settings: this.settings,
         teams: this.teams
       }

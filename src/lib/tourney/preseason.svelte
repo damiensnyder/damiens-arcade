@@ -33,6 +33,12 @@
       type: "addBot"
     });
   }
+
+  function advance() {
+    lastAction.set({
+      type: "advance"
+    });
+  }
 </script>
 
 <div>
@@ -61,8 +67,11 @@
       {/if}
     </div>
   {/each}
-  {#if $host === $pov && $teams.length < 16}
-    <button on:click={addBot} on:submit={addBot}>Add Bot</button>
+  {#if $host === $pov}
+    {#if $teams.length < 16}
+      <button on:click={addBot} on:submit={addBot}>Add Bot</button>
+    {/if}
+    <button on:click={advance} on:submit={advance}>Go to draft</button>
   {/if}
 </div>
 

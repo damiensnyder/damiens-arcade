@@ -18,12 +18,24 @@ interface ViewpointBase extends BasicViewpointInfo {
   settings: Settings
 }
 
-export interface PregameViewpoint extends ViewpointBase {
+interface PregameViewpoint extends ViewpointBase {
   gameStage: "pregame"
 }
 
-export interface MidgameViewpoint extends ViewpointBase {
+export type MidgameViewpoint = PreseasonViewpoint |
+    DraftViewpoint;
+
+interface MidgameViewpointBase extends ViewpointBase {
   teams: Team[]
+}
+
+interface PreseasonViewpoint extends MidgameViewpointBase {
+  gameStage: "preseason"
+}
+
+interface DraftViewpoint extends MidgameViewpointBase {
+  gameStage: "draft"
+  draftOrder: number[]
 }
 
 export interface Team {
@@ -100,13 +112,18 @@ interface AddBotAction {
   type: "addBot"
 }
 
+interface AdvanceAction {
+  type: "advance"
+}
+
 export type TourneyAction = ChangeGameSettingsAction |
     JoinAction |
     LeaveAction |
     StartAction |
     ReplaceAction |
     RemoveAction |
-    AddBotAction;
+    AddBotAction |
+    AdvanceAction;
 
 interface ChangeGameSettingsEvent {
   type: "changeGameSettings"
@@ -139,9 +156,15 @@ interface RemoveEvent {
   team: number
 }
 
+interface GoToDraftEvent {
+  type: "goToDraft"
+  draftOrder: number[]
+}
+
 export type TourneyEvent = ChangeGameSettingsEvent |
     JoinEvent |
     LeaveEvent |
     StartEvent |
     ReplaceEvent |
-    RemoveEvent;
+    RemoveEvent |
+    GoToDraftEvent;
