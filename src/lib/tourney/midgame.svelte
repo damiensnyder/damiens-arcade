@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { gameStage } from "$lib/tourney/stores";
+  import { gameStage, ownTeam } from "$lib/tourney/stores";
   import Preseason from "$lib/tourney/preseason.svelte";
   import Draft from "$lib/tourney/draft.svelte";
 </script>
@@ -7,7 +7,9 @@
 <div class="fun">
   <div class="top-icons horiz">
     <h2>{$gameStage}</h2>
-    <button>My Team</button>
+    {#if ownTeam !== null}
+      <button>My Team</button>
+    {/if}
     <button>All teams</button>
   </div>
   

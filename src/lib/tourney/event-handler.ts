@@ -1,5 +1,5 @@
 import type { TourneyEvent, TourneyViewpoint } from "$lib/tourney/types";
-import { draftOrder, gameStage, rawSettings, settings, teams, spotInDraftOrder } from "$lib/tourney/stores";
+import { draftOrder, gameStage, rawSettings, settings, teams, spotInDraftOrder, fighters } from "$lib/tourney/stores";
 import { get } from "svelte/store";
 import { eventLog, pov } from "$lib/stores";
 
@@ -17,6 +17,7 @@ export function handleGamestate(gamestate: TourneyViewpoint): void {
     teams.set(gamestate.teams);
     if (gamestate.gameStage === "draft") {
       draftOrder.set(gamestate.draftOrder);
+      fighters.set(gamestate.fighters);
     }
   }
 }
@@ -72,5 +73,6 @@ export const eventHandler: TourneyEventHandler = {
     gameStage.set("draft");
     draftOrder.set(event.draftOrder);
     spotInDraftOrder.set(0);
+    fighters.set(event.fighters);
   }
 }

@@ -2,7 +2,7 @@ import { GameType } from "$lib/types";
 import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
-import type { TourneyGameStage, TourneyViewpoint, Team, Settings } from "$lib/tourney/types";
+import type { TourneyGameStage, TourneyViewpoint, ViewpointBase, Team, Settings, Fighter } from "$lib/tourney/types";
 import { array, boolean, number, object, string } from "yup";
 import { getIndexByController, getTeamByController } from "$lib/tourney/utils";
 
@@ -51,6 +51,7 @@ export default class Tourney extends GameLogicHandlerBase {
   gameStage: TourneyGameStage
   teams?: Team[]
   draftOrder?: number[]
+  fighters?: Fighter[]
   tourneyResults?: number[]
 
   constructor(room: GameRoom) {
@@ -189,10 +190,32 @@ export default class Tourney extends GameLogicHandlerBase {
           [this.draftOrder[randomIndex], this.draftOrder[currentIndex]];
     }
 
+    this.fighters = [];
+    for (let i = 0; i < this.teams.length + 4; i++) {
+      this.fighters.push(this.generateFighter());
+    }
+
     this.emitEventToAll({
       type: "goToDraft",
-      draftOrder: this.draftOrder
+      draftOrder: this.draftOrder,
+      fighters: this.fighters
     });
+  }
+
+  generateFighter(): Fighter {
+    return {
+      name: "John",
+      imgUrl: "",
+      stats: {
+        strength: Math.round(Math.random() * 10),
+        accuracy: Math.round(Math.random() * 10),
+        reflexes: Math.round(Math.random() * 10),
+        energy: Math.round(Math.random() * 10),
+        speed: Math.round(Math.random() * 10),
+        toughness: Math.round(Math.random() * 10)
+      },
+      abilities: []
+    }
   }
 
   handleDisconnect(viewer: Viewer, wasHost: boolean): void {
@@ -208,37 +231,36 @@ export default class Tourney extends GameLogicHandlerBase {
     super.handleDisconnect(viewer, wasHost);
   }
 
+  basicViewpointInfo(viewer: Viewer): ViewpointBase {
+    return {
+      ...super.basicViewpointInfo(viewer),
+      gameType: GameType.Tourney,
+      gameStage: this.gameStage,
+      settings: this.settings
+    }
+  }
+
   viewpointOf(viewer: Viewer): TourneyViewpoint {
     if (this.gameStage === "pregame") {
-      return {
-        ...this.basicViewpointInfo(viewer),
-        gameType: GameType.Tourney,
-        gameStage: "pregame",
-        settings: this.settings
-      };
+      this.basicViewpointInfo(viewer);
     } else if (this.gameStage === "preseason") {
       return {
         ...this.basicViewpointInfo(viewer),
-        gameType: GameType.Tourney,
-        gameStage: this.gameStage,
-        settings: this.settings,
+        gameStage: "preseason",
         teams: this.teams
       }
     } else if (this.gameStage === "draft") {
       return {
         ...this.basicViewpointInfo(viewer),
-        gameType: GameType.Tourney,
-        gameStage: this.gameStage,
-        settings: this.settings,
+        gameStage: "draft",
         teams: this.teams,
-        draftOrder: this.draftOrder
+        draftOrder: this.draftOrder,
+        fighters: this.fighters
       }
     } else {
       return {
         ...this.basicViewpointInfo(viewer),
-        gameType: GameType.Tourney,
         gameStage: this.gameStage as "preseason",
-        settings: this.settings,
         teams: this.teams
       }
     }

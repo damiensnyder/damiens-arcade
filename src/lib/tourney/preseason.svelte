@@ -53,7 +53,7 @@
 <div>
   <h2>Players</h2>
   {#each $teams as team, index}
-    <div>
+    <div class="horiz">
       {team.name}: ${team.money} ({team.controller})
       {#if team.controller === "bot"}
         {#if $ownTeamIndex === null}

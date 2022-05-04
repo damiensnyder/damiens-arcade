@@ -12,7 +12,7 @@ export type TourneyGameStage = "pregame" |
 
 export type TourneyViewpoint = PregameViewpoint | MidgameViewpoint;
 
-interface ViewpointBase extends BasicViewpointInfo {
+export interface ViewpointBase extends BasicViewpointInfo {
   gameStage: TourneyGameStage
   gameType: GameType.Tourney
   settings: Settings
@@ -36,6 +36,7 @@ interface PreseasonViewpoint extends MidgameViewpointBase {
 interface DraftViewpoint extends MidgameViewpointBase {
   gameStage: "draft"
   draftOrder: number[]
+  fighters: Fighter[]
 }
 
 export interface Team {
@@ -165,6 +166,7 @@ interface RemoveEvent {
 interface GoToDraftEvent {
   type: "goToDraft"
   draftOrder: number[]
+  fighters: Fighter[]
 }
 
 export type TourneyEvent = ChangeGameSettingsEvent |
