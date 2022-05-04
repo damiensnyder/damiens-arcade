@@ -46,6 +46,6 @@ export const eventHandler: TourneyEventHandler = {
     rawSettings.set(JSON.stringify(event.settings));
   },
   start: function (_event): void {
-    gameStage.set("draft");
+    gameStage.set("preseason");
   }
 }

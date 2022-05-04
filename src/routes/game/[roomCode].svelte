@@ -11,6 +11,7 @@ import { eventHandler as auctionTTTEventHandler, handleGamestate as handleAuctio
 import { eventHandler as tourneyEventHandler, handleGamestate as handleTourneyGamestate, switchToType as switchToTourney } from "$lib/tourney/event-handler";
 import EventLog from "$lib/event-log.svelte";
 import "../../styles/global.css";
+import "../../styles/tourney.css";
 
 const relativeUrl = $page.url.pathname;
 const socket = io(relativeUrl);

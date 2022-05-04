@@ -1,6 +1,6 @@
 :root {
   --bg-fun-1: #311;
-  --bg-fun-2: #766;
+  --bg-fun-2: #755;
   --bg-fun-3: #632;
   --text-fun-1: #ddd;
   --text-fun-2: #aaa;
@@ -13,9 +13,11 @@
   --font-fun: "Comic Sans MS", "Chalkduster";
 }
 
-html,
-body,
-#svelte {
+.whole-game-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   min-height: 100vh;
   justify-content: stretch;
   align-items: stretch;
@@ -25,18 +27,29 @@ body,
   font-family: var(--font-fun);
 }
 
-button {
+.whole-game-container button {
   font-family: inherit;
   color: inherit;
   background-color: var(--bg-fun-2);
   border-color: var(--text-fun-2);
 }
 
-button:hover {
-  color: var(--text-fun-4);
+.whole-game-container button:hover,
+.whole-game-container button:active {
   background-color: var(--accent-fun-2);
 }
 
-button:active {
-  background-color: var(--accent-fun-3);
+.whole-game-container button:hover {
+  color: var(--text-fun-4);
+}
+
+.whole-game-container button:hover:active,
+.whole-game-container button:active {
+  color: var(--text-fun-1);
+}
+
+.whole-game-container h2 {
+  font-family: inherit;
+  font-weight: 600;
+  color: var(text-fun-2);
 }
