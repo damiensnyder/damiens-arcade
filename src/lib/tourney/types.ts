@@ -10,17 +10,20 @@ export type TourneyGameStage = "pregame" |
     "tournament" |
     "offseason";
 
-export type TourneyViewpoint = PregameViewpoint;
+export type TourneyViewpoint = PregameViewpoint | MidgameViewpoint;
 
 interface ViewpointBase extends BasicViewpointInfo {
   gameStage: TourneyGameStage
   gameType: GameType.Tourney
   settings: Settings
-  teams: Team[]
 }
 
 export interface PregameViewpoint extends ViewpointBase {
   gameStage: "pregame"
+}
+
+export interface MidgameViewpoint extends ViewpointBase {
+  teams: Team[]
 }
 
 export interface Team {
@@ -71,6 +74,10 @@ interface ChangeGameSettingsAction {
   settings: Settings
 }
 
+interface StartAction {
+  type: "start"
+}
+
 interface JoinAction {
   type: "join"
 }
@@ -79,18 +86,35 @@ interface LeaveAction {
   type: "leave"
 }
 
-interface StartGameAction {
+interface ReplaceAction {
   type: "start"
+  team: number
+}
+
+interface RemoveAction {
+  type: "start"
+  team: number
+}
+
+interface AddBotAction {
+  type: "addBot"
 }
 
 export type TourneyAction = ChangeGameSettingsAction |
     JoinAction |
     LeaveAction |
-    StartGameAction;
+    StartAction |
+    ReplaceAction |
+    RemoveAction |
+    AddBotAction;
 
 interface ChangeGameSettingsEvent {
   type: "changeGameSettings"
   settings: Settings
+}
+
+interface StartEvent {
+  type: "start"
 }
 
 interface JoinEvent {
@@ -104,11 +128,20 @@ interface LeaveEvent {
   team: number
 }
 
-interface StartEvent {
-  type: "start"
+interface ReplaceEvent {
+  type: "replace"
+  team: number
+  controller: number
+}
+
+interface RemoveEvent {
+  type: "remove"
+  team: number
 }
 
 export type TourneyEvent = ChangeGameSettingsEvent |
     JoinEvent |
     LeaveEvent |
-    StartEvent;
+    StartEvent |
+    ReplaceEvent |
+    RemoveEvent;

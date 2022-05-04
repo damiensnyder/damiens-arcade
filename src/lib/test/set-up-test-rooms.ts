@@ -77,7 +77,12 @@ function enqueueAction(action: ActionWithIndex | MacroAction, room: GameRoom) {
     } else if (action.type === PacketType.Disconnect) {
       room.enqueuePacket(fakeViewer, action.type);
     } else {
+      try {
       room.enqueuePacket(fakeViewer, PacketType.Action, action as Action);
+      } catch (e) {
+        console.log(e);
+        console.log(action);
+      }
     }
   }
 }

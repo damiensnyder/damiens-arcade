@@ -70,6 +70,10 @@
     {
       "type": "start",
       "index": 1
+    },
+    {
+      "type": "disconnect",
+      "index": 1
     }
   ]
 }

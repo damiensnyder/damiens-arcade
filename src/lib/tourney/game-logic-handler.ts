@@ -15,6 +15,10 @@ const changeGameSettingsSchema = object({
   })
 });
 
+const startGameSchema = object({
+  type: string().required().equals(["start"])
+});
+
 const joinSchema = object({
   type: string().required().equals(["join"])
 });
@@ -23,15 +27,25 @@ const leaveSchema = object({
   type: string().required().equals(["leave"])
 });
 
-const startGameSchema = object({
-  type: string().required().equals(["start"])
+const replaceSchema = object({
+  type: string().required().equals(["replace"]),
+  team: number().integer().required().min(0)
+});
+
+const removeSchema = object({
+  type: string().required().equals(["remove"]),
+  team: number().integer().required().min(0)
+});
+
+const addBotSchema = object({
+  type: string().required().equals(["addBot"])
 });
 
 export default class Tourney extends GameLogicHandlerBase {
   settings: Settings
   gameType: GameType.Tourney
   gameStage: TourneyGameStage
-  teams: Team[]
+  teams?: Team[]
   draftOrder?: number[]
 
   constructor(room: GameRoom) {
@@ -41,22 +55,40 @@ export default class Tourney extends GameLogicHandlerBase {
       fighters: [],
       equipment: []
     };
-    this.teams = [];
   }
+
   handleAction(viewer: Viewer, action?: any): void {
     const indexControlledByViewer = getIndexByController(this.teams, viewer.index);
     const teamControlledByViewer = getTeamByController(this.teams, viewer.index);
     const isHost = this.room.host === viewer.index;
 
-    // JOIN
-    if (joinSchema.isValidSync(action) &&
+    // CHANGE GAME SETTINGS
+    if (changeGameSettingsSchema.isValidSync(action) &&
+        this.room.host === viewer.index) {
+      this.settings = action.settings as Settings;
+      this.emitEventToAll({
+        type: "changeGameSettings",
+        settings: action.settings as any
+      });
+
+      // START
+    } else if (startGameSchema.isValidSync(action) &&
+        this.gameStage === "pregame" &&
+        isHost) {
+      this.startGame();
+      this.emitEventToAll({
+        type: "start"
+      });
+
+      // JOIN
+    } else if (joinSchema.isValidSync(action) &&
         this.gameStage === "preseason" &&
         teamControlledByViewer === null &&
         this.teams.length < 16) {
       this.teams.push({
         controller: viewer.index,
         name: `Team ${this.teams.length + 1}`,
-        money: 0,
+        money: 100,
         fighters: [],
         equipment: []
       });
@@ -74,21 +106,47 @@ export default class Tourney extends GameLogicHandlerBase {
         type: "leave",
         team: indexControlledByViewer
       });
-    } else if (changeGameSettingsSchema.isValidSync(action) &&
-        this.room.host === viewer.index) {
-      this.settings = action.settings as Settings;
+
+      // REPLACE
+    } else if (replaceSchema.isValidSync(action) &&
+        this.gameStage !== "pregame" &&
+        teamControlledByViewer === null &&
+        action.team < this.teams.length &&
+        this.teams[action.team].controller === "bot") {
+      this.teams[action.team].controller = viewer.index;
       this.emitEventToAll({
-        type: "changeGameSettings",
-        settings: action.settings as any
+        type: "replace",
+        team: action.team,
+        controller: viewer.index
       });
 
-      // START
-    } else if (startGameSchema.isValidSync(action) &&
-        this.gameStage === "pregame" &&
-        isHost) {
-      this.startGame();
+      // REMOVE
+    } else if (removeSchema.isValidSync(action) &&
+        this.gameStage === "preseason" &&
+        isHost &&
+        action.team < this.teams.length) {
+      this.teams.splice(action.team, 1);
       this.emitEventToAll({
-        type: "start"
+        type: "remove",
+        team: action.team
+      });
+
+      // ADD BOT
+    } else if (addBotSchema.isValidSync(action) &&
+        this.gameStage === "preseason" &&
+        isHost &&
+        this.teams.length < 16) {
+      this.teams.push({
+        controller: "bot",
+        name: `Team ${this.teams.length + 1}`,
+        money: 100,
+        fighters: [],
+        equipment: []
+      });
+      this.emitEventToAll({
+        type: "join",
+        controller: "bot",
+        name: this.teams[this.teams.length - 1].name
       });
     } else {
       console.debug("INVALID ACTION");
@@ -97,13 +155,11 @@ export default class Tourney extends GameLogicHandlerBase {
 
   startGame(): void {
     this.gameStage = "preseason";
+    this.teams = [];
   }
 
   startSeason(): void {
     this.gameStage = "draft";
-    for (const team of this.teams) {
-      team.money = 100;
-    }
 
     // shuffle the draft order to start
     this.draftOrder = [];
@@ -134,12 +190,21 @@ export default class Tourney extends GameLogicHandlerBase {
   }
 
   viewpointOf(viewer: Viewer): TourneyViewpoint {
-    return {
-      ...this.basicViewpointInfo(viewer),
-      gameType: GameType.Tourney,
-      gameStage: this.gameStage as "pregame",
-      settings: this.settings,
-      teams: this.teams
-    };
+    if (this.gameStage === "pregame") {
+      return {
+        ...this.basicViewpointInfo(viewer),
+        gameType: GameType.Tourney,
+        gameStage: "pregame",
+        settings: this.settings
+      };
+    } else {
+      return {
+        ...this.basicViewpointInfo(viewer),
+        gameType: GameType.Tourney,
+        gameStage: this.gameStage,
+        settings: this.settings,
+        teams: this.teams
+      }
+    }
   }
 }
