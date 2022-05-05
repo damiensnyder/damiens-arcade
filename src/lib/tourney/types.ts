@@ -90,8 +90,8 @@ export enum EquipmentSlot {
 }
 
 export interface Equipment {
-  id: string
   name: string
+  imgUrl: string
   stats: FighterStats
   slot: EquipmentSlot
   abilities: Ability[]
@@ -151,8 +151,7 @@ interface PickAction {
 
 interface PracticeAction {
   type: "practice"
-  fighter: number
-  skill: keyof FighterStats | number
+  skills: (keyof FighterStats | number)[]
 }
 
 interface PickBRFighterAction {

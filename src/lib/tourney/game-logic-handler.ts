@@ -2,8 +2,8 @@ import { GameType } from "$lib/types";
 import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
-import type { TourneyGameStage, TourneyViewpoint, ViewpointBase, Team, Settings, Fighter } from "$lib/tourney/types";
-import { array, boolean, number, object, string } from "yup";
+import type { TourneyGameStage, TourneyViewpoint, ViewpointBase, Team, Settings, Fighter, FighterStats } from "$lib/tourney/types";
+import { array, boolean, mixed, number, object, string } from "yup";
 import { getIndexByController, getTeamByController } from "$lib/tourney/utils";
 
 const changeGameSettingsSchema = object({
@@ -43,6 +43,41 @@ const addBotSchema = object({
 
 const advanceSchema = object({
   type: string().required().equals(["advance"])
+});
+
+const pickSchema = object({
+  type: string().required().equals(["draft"]),
+  index: number().integer().min(0)
+});
+
+const practiceSchema = object({
+  type: string().required().equals(["practice"]),
+  skills: array(mixed())
+});
+
+const strategySchema = object({});
+
+const pickBRFighterSchema = object({
+  type: string().required().equals(["pickBRFighter"]),
+  fighter: number().integer().min(0),
+  equipment: number().integer().min(0),
+  strategy: strategySchema
+});
+
+const pickFightersSchema = object({
+  type: string().required().equals(["pickFighters"]),
+  equipment: array(number().integer().min(0)),
+  strategy: array(strategySchema)
+});
+
+const resignSchema = object({
+  type: string().required().equals(["pickBRFighter"]),
+  fighter: number().integer().min(0)
+});
+
+const repairSchema = object({
+  type: string().required().equals(["repair"]),
+  fighter: number().integer().min(0)
 });
 
 export default class Tourney extends GameLogicHandlerBase {
