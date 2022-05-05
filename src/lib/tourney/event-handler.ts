@@ -78,10 +78,7 @@ export const eventHandler: EventHandler<TourneyEvent> = {
   goToFA: function (event): void {
     throw new Error("Function not implemented.");
   },
-  goToEquipment: function (event): void {
-    throw new Error("Function not implemented.");
-  },
-  goToPractice: function (event): void {
+  goToTraining: function (event): void {
     throw new Error("Function not implemented.");
   },
   goToBR: function (event): void {

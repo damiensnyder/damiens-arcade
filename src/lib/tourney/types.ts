@@ -4,9 +4,8 @@ export type TourneyGameStage = "pregame" |
     "preseason" |
     "draft" |
     "free agency" |
-    "equipment shop" |
-    "practice" |
-    "seeding challenge" |
+    "training" |
+    "battle royale" |
     "tournament" |
     "offseason";
 
@@ -23,7 +22,11 @@ interface PregameViewpoint extends ViewpointBase {
 }
 
 export type MidgameViewpoint = PreseasonViewpoint |
-    DraftViewpoint;
+    DraftViewpoint |
+    FAViewpoint |
+    TrainingViewpoint |
+    BRViewpoint |
+    TournamentViewpoint;
 
 interface MidgameViewpointBase extends ViewpointBase {
   teams: Team[]
@@ -37,6 +40,29 @@ interface DraftViewpoint extends MidgameViewpointBase {
   gameStage: "draft"
   draftOrder: number[]
   fighters: Fighter[]
+}
+
+interface FAViewpoint extends MidgameViewpointBase {
+  gameStage: "free agency"
+  draftOrder: number[]
+  fighters: Fighter[]
+}
+
+interface TrainingViewpoint extends MidgameViewpointBase {
+  gameStage: "training"
+}
+
+interface BRViewpoint extends MidgameViewpointBase {
+  gameStage: "battle royale"
+  fightersInBattle?: FighterInBattle[]
+  map?: string
+}
+
+interface TournamentViewpoint extends MidgameViewpointBase {
+  gameStage: "tournament"
+  bracket: Bracket
+  fightersInBattle?: FighterInBattle[]
+  map?: string
 }
 
 export interface Team {
@@ -239,13 +265,9 @@ interface GoToFAEvent {
   fighters: Fighter[]
 }
 
-interface GoToEquipmentEvent {
-  type: "goToEquipment"
-  equipment: Equipment[]
-}
-
-interface GoToPracticeEvent {
-  type: "goToPractice"
+interface GoToTrainingEvent {
+  type: "goToTraining"
+  equipment?: Equipment[]
 }
 
 interface GoToBREvent {
@@ -286,8 +308,7 @@ export type TourneyEvent = ChangeGameSettingsEvent |
     GoToDraftEvent |
     PickEvent |
     GoToFAEvent |
-    GoToEquipmentEvent |
-    GoToPracticeEvent |
+    GoToTrainingEvent |
     GoToBREvent |
     FightEvent |
     BracketEvent |

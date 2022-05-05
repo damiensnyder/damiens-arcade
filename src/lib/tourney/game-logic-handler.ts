@@ -2,7 +2,7 @@ import { GameType } from "$lib/types";
 import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
-import type { TourneyGameStage, TourneyViewpoint, ViewpointBase, Team, Settings, Fighter, FighterStats } from "$lib/tourney/types";
+import type { TourneyGameStage, TourneyViewpoint, ViewpointBase, Team, Settings, Fighter, FighterStats, Bracket, FighterInBattle } from "$lib/tourney/types";
 import { array, boolean, mixed, number, object, string } from "yup";
 import { getIndexByController, getTeamByController } from "$lib/tourney/utils";
 
@@ -88,6 +88,9 @@ export default class Tourney extends GameLogicHandlerBase {
   draftOrder?: number[]
   fighters?: Fighter[]
   tourneyResults?: number[]
+  fightersInBattle?: FighterInBattle[]
+  map?: string
+  bracket?: Bracket
 
   constructor(room: GameRoom) {
     super(room);
@@ -279,25 +282,38 @@ export default class Tourney extends GameLogicHandlerBase {
   viewpointOf(viewer: Viewer): TourneyViewpoint {
     if (this.gameStage === "pregame") {
       this.basicViewpointInfo(viewer);
-    } else if (this.gameStage === "preseason") {
+    } else if (this.gameStage === "preseason" ||
+        this.gameStage === "training") {
       return {
         ...this.basicViewpointInfo(viewer),
         gameStage: "preseason",
         teams: this.teams
       }
-    } else if (this.gameStage === "draft") {
+    } else if (this.gameStage === "draft" ||
+        this.gameStage === "free agency") {
       return {
         ...this.basicViewpointInfo(viewer),
-        gameStage: "draft",
+        gameStage: this.gameStage,
         teams: this.teams,
         draftOrder: this.draftOrder,
         fighters: this.fighters
       }
-    } else {
+    } else if (this.gameStage === "battle royale") {
       return {
         ...this.basicViewpointInfo(viewer),
-        gameStage: this.gameStage as "preseason",
-        teams: this.teams
+        gameStage: this.gameStage,
+        teams: this.teams,
+        fightersInBattle: this.fightersInBattle,
+        map: this.map
+      }
+    } else if (this.gameStage === "tournament") {
+      return {
+        ...this.basicViewpointInfo(viewer),
+        gameStage: this.gameStage,
+        teams: this.teams,
+        bracket: this.bracket,
+        fightersInBattle: this.fightersInBattle,
+        map: this.map
       }
     }
   }
