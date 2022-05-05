@@ -182,7 +182,7 @@ export default class Tourney extends GameLogicHandlerBase {
       this.draftOrder.push(i);
     }
     let currentIndex = this.draftOrder.length;
-    let randomIndex;
+    let randomIndex: number;
     while (currentIndex != 0) {
       randomIndex = Math.floor(Math.random() * currentIndex);
       currentIndex--;
@@ -214,7 +214,8 @@ export default class Tourney extends GameLogicHandlerBase {
         speed: Math.round(Math.random() * 10),
         toughness: Math.round(Math.random() * 10)
       },
-      abilities: []
+      abilities: [],
+      yearsLeft: 2
     }
   }
 

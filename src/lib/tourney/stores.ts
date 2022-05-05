@@ -1,5 +1,5 @@
 import { derived, writable } from "svelte/store";
-import type { TourneyGameStage, Team, Settings, Fighter } from "$lib/tourney/types";
+import type { TourneyGameStage, Team, Settings, Fighter, Equipment, Bracket, FighterInBattle, Strategy } from "$lib/tourney/types";
 import { pov } from "$lib/stores";
 import { getIndexByController, getTeamByController } from "$lib/tourney/utils";
 
@@ -10,6 +10,14 @@ export const teams = writable([] as Team[]);
 export const draftOrder = writable([] as number[]);
 export const spotInDraftOrder = writable(0);
 export const fighters = writable([] as Fighter[]);
+export const equipment = writable([] as Equipment[]);
+export const bracket = writable({ winner: -1 } as Bracket);
+export const fightersInBattle = writable([] as FighterInBattle[]);
+export const brFighterPicked = writable(null as Fighter | null);
+export const brEquipmentPicked = writable(null as Equipment[] | null);
+export const brStrategyPicked = writable(null as Strategy | null);
+export const equipmentPicked = writable([] as Equipment[]);
+export const strategyPicked = writable([] as Strategy[]);
 
 export const ownTeamIndex = derived([teams, pov], ([$teams, $pov]) => getIndexByController($teams, $pov));
 export const ownTeam = derived([teams, pov], ([$teams, $pov]) => getTeamByController($teams, $pov));

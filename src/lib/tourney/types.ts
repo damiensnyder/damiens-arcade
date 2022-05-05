@@ -57,6 +57,8 @@ export interface Fighter {
   imgUrl: string
   stats: FighterStats
   abilities: Ability
+  yearsLeft: number
+  price?: number
 }
 
 export interface FighterStats {
@@ -68,7 +70,7 @@ export interface FighterStats {
   toughness: number
 }
 
-interface FighterInBattle {
+export interface FighterInBattle {
   team: number
   hp: number
   maxHP: number
@@ -93,6 +95,8 @@ export interface Equipment {
   stats: FighterStats
   slot: EquipmentSlot
   abilities: Ability[]
+  durability: number
+  price?: number
 }
 
 export interface Ability {}
