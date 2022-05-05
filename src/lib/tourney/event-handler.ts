@@ -1,5 +1,5 @@
-import type { TourneyEvent, TourneyViewpoint } from "$lib/tourney/types";
-import { draftOrder, gameStage, rawSettings, settings, teams, spotInDraftOrder, fighters } from "$lib/tourney/stores";
+import type { Fighter, TourneyEvent, TourneyViewpoint } from "$lib/tourney/types";
+import { bracket, draftOrder, gameStage, rawSettings, settings, teams, spotInDraftOrder, fighters, map, fightersInBattle, equipment } from "$lib/tourney/stores";
 import { get } from "svelte/store";
 import { eventLog, pov } from "$lib/stores";
 import type { EventHandler } from "$lib/types";
@@ -73,24 +73,41 @@ export const eventHandler: EventHandler<TourneyEvent> = {
     fighters.set(event.fighters);
   },
   pick: function (event): void {
-    throw new Error("Function not implemented.");
+    let fighterPicked: Fighter;
+    fighters.update((old) => {
+      fighterPicked = old.splice(event.fighter, 1)[0];
+      return old;
+    });
+    teams.update((old) => {
+      const teamThatPicked = old[get(draftOrder)[get(spotInDraftOrder)]];
+      teamThatPicked.fighters.push(fighterPicked);
+      if (typeof fighterPicked.price === "number") {
+        teamThatPicked.money == fighterPicked.price;
+      }
+      return old;
+    });
   },
   goToFA: function (event): void {
-    throw new Error("Function not implemented.");
+    gameStage.set("free agency");
+    fighters.set(event.fighters);
   },
   goToTraining: function (event): void {
-    throw new Error("Function not implemented.");
+    gameStage.set("training");
+    equipment.set(event.equipment);
   },
   goToBR: function (event): void {
-    throw new Error("Function not implemented.");
+    gameStage.set("battle royale");
   },
   fight: function (event): void {
-    throw new Error("Function not implemented.");
+    fightersInBattle.set(event.fighters);
+    map.set(event.map);
   },
   bracket: function (event): void {
-    throw new Error("Function not implemented.");
+    gameStage.set("tournament");
+    bracket.set(event.bracket);
   },
   goToPreseason: function (event): void {
-    throw new Error("Function not implemented.");
+    gameStage.set("preseason");
+    teams.set(event.teams);
   }
 }

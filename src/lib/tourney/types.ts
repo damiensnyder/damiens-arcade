@@ -6,8 +6,7 @@ export type TourneyGameStage = "pregame" |
     "free agency" |
     "training" |
     "battle royale" |
-    "tournament" |
-    "offseason";
+    "tournament";
 
 export type TourneyViewpoint = PregameViewpoint | MidgameViewpoint;
 
@@ -55,14 +54,14 @@ interface TrainingViewpoint extends MidgameViewpointBase {
 interface BRViewpoint extends MidgameViewpointBase {
   gameStage: "battle royale"
   fightersInBattle?: FighterInBattle[]
-  map?: string
+  map?: number
 }
 
 interface TournamentViewpoint extends MidgameViewpointBase {
   gameStage: "tournament"
   bracket: Bracket
   fightersInBattle?: FighterInBattle[]
-  map?: string
+  map?: number
 }
 
 export interface Team {

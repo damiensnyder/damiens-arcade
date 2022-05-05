@@ -13,6 +13,7 @@ export const fighters = writable([] as Fighter[]);
 export const equipment = writable([] as Equipment[]);
 export const bracket = writable({ winner: -1 } as Bracket);
 export const fightersInBattle = writable([] as FighterInBattle[]);
+export const map = writable(-1);
 export const practicePicked = writable([] as (keyof FighterStats | number)[]);
 export const brFighterPicked = writable(null as Fighter | null);
 export const brEquipmentPicked = writable(null as Equipment[] | null);

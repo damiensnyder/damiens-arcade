@@ -3,7 +3,7 @@ import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
 import type { TourneyGameStage, TourneyViewpoint, ViewpointBase, Team, Settings, Fighter, FighterStats, Bracket, FighterInBattle } from "$lib/tourney/types";
-import { array, boolean, mixed, number, object, string } from "yup";
+import { array, mixed, number, object, string } from "yup";
 import { getIndexByController, getTeamByController } from "$lib/tourney/utils";
 
 const changeGameSettingsSchema = object({
@@ -89,7 +89,7 @@ export default class Tourney extends GameLogicHandlerBase {
   fighters?: Fighter[]
   tourneyResults?: number[]
   fightersInBattle?: FighterInBattle[]
-  map?: string
+  map?: number
   bracket?: Bracket
 
   constructor(room: GameRoom) {
