@@ -74,5 +74,29 @@ export const eventHandler: TourneyEventHandler = {
     draftOrder.set(event.draftOrder);
     spotInDraftOrder.set(0);
     fighters.set(event.fighters);
+  },
+  pick: function (event): void {
+    throw new Error("Function not implemented.");
+  },
+  goToFA: function (event): void {
+    throw new Error("Function not implemented.");
+  },
+  goToEquipment: function (event): void {
+    throw new Error("Function not implemented.");
+  },
+  goToPractice: function (event): void {
+    throw new Error("Function not implemented.");
+  },
+  goToBR: function (event): void {
+    throw new Error("Function not implemented.");
+  },
+  fight: function (event): void {
+    throw new Error("Function not implemented.");
+  },
+  bracket: function (event): void {
+    throw new Error("Function not implemented.");
+  },
+  goToPreseason: function (event): void {
+    throw new Error("Function not implemented.");
   }
 }

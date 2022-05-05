@@ -237,6 +237,7 @@ interface GoToFAEvent {
 }
 
 interface GoToEquipmentEvent {
+  type: "goToEquipment"
   equipment: Equipment[]
 }
 
