@@ -47,7 +47,7 @@
 </div>
 
 <style>
-  p {
+  .horiz {
     text-align: left;
   }
 </style>

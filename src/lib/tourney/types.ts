@@ -47,11 +47,14 @@ export interface Team {
   equipment: Equipment[]
 }
 
+export interface PreseasonTeam extends Team {
+  needsResigning: Fighter[]
+  needsRepair: Equipment[]
+}
+
 export interface Fighter {
   name: string
   imgUrl: string
-  team?: number
-  damageTaken?: number
   stats: FighterStats
   abilities: Ability
 }
@@ -65,16 +68,36 @@ export interface FighterStats {
   toughness: number
 }
 
+interface FighterInBattle {
+  team: number
+  hp: number
+  maxHP: number
+  damageTaken: number
+  equipment: Equipment[]
+  x: number
+  y: number
+}
+
+export enum EquipmentSlot {
+  Head,
+  LeftArm,
+  RightArm,
+  Torso,
+  Legs,
+  Feet
+}
+
 export interface Equipment {
   id: string
   name: string
   stats: FighterStats
+  slot: EquipmentSlot
   abilities: Ability[]
 }
 
-export interface Ability {
+export interface Ability {}
 
-}
+export interface Strategy {}
 
 export interface Settings {
   stages?: any
@@ -117,9 +140,38 @@ interface AdvanceAction {
   type: "advance"
 }
 
-interface DraftAction {
-  type: "draft",
+interface PickAction {
+  type: "draft"
+  index: number
+}
+
+interface PracticeAction {
+  type: "practice"
   fighter: number
+  skill: keyof FighterStats | number
+}
+
+interface PickBRFighterAction {
+  type: "pickBRFighter"
+  fighter: number
+  equipment: number
+  strategy: Strategy
+}
+
+interface PickFightersAction {
+  type: "pickFighters"
+  equipment: number[]
+  strategy: Strategy[]
+}
+
+interface ResignAction {
+  type: "resign"
+  fighter: number
+}
+
+interface RepairAction {
+  type: "repair"
+  equipment: number
 }
 
 export type TourneyAction = ChangeGameSettingsAction |
@@ -130,7 +182,12 @@ export type TourneyAction = ChangeGameSettingsAction |
     RemoveAction |
     AddBotAction |
     AdvanceAction |
-    DraftAction;
+    PickAction |
+    PracticeAction |
+    PickBRFighterAction |
+    PickFightersAction |
+    RepairAction |
+    ResignAction;
 
 interface ChangeGameSettingsEvent {
   type: "changeGameSettings"
@@ -169,10 +226,65 @@ interface GoToDraftEvent {
   fighters: Fighter[]
 }
 
+interface PickEvent {
+  type: "pick"
+  fighter: number
+}
+
+interface GoToFAEvent {
+  type: "goToFA"
+  fighters: Fighter[]
+}
+
+interface GoToEquipmentEvent {
+  equipment: Equipment[]
+}
+
+interface GoToPracticeEvent {
+  type: "goToPractice"
+}
+
+interface GoToBREvent {
+  type: "goToBR"
+  teams: Team[]
+}
+
+interface FightEvent {
+  type: "fight"
+  fighters: FighterInBattle[]
+  map: number
+}
+
+export type Bracket = {
+  left: Bracket
+  right: Bracket
+  winner: number
+} | {
+  winner: number
+}
+
+interface BracketEvent {
+  type: "bracket"
+  bracket: Bracket
+}
+
+interface GoToPreseasonEvent {
+  type: "goToPreseason"
+  teams: PreseasonTeam[]
+}
+
 export type TourneyEvent = ChangeGameSettingsEvent |
     JoinEvent |
     LeaveEvent |
     StartEvent |
     ReplaceEvent |
     RemoveEvent |
-    GoToDraftEvent;
+    GoToDraftEvent |
+    PickEvent |
+    GoToFAEvent |
+    GoToEquipmentEvent |
+    GoToPracticeEvent |
+    GoToBREvent |
+    FightEvent |
+    BracketEvent |
+    GoToPreseasonEvent;
