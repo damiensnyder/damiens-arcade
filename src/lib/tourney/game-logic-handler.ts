@@ -2,7 +2,7 @@ import { GameType } from "$lib/types";
 import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
-import type { TourneyGameStage, TourneyViewpoint, ViewpointBase, Team, Settings, Fighter, FighterStats, Bracket, FighterInBattle } from "$lib/tourney/types";
+import type { TourneyGameStage, TourneyViewpoint, ViewpointBase, Team, Settings, Fighter, FighterStats, Bracket, FighterInBattle, Equipment } from "$lib/tourney/types";
 import { array, mixed, number, object, string } from "yup";
 import { getIndexByController, getTeamByController } from "$lib/tourney/utils";
 
@@ -86,8 +86,9 @@ export default class Tourney extends GameLogicHandlerBase {
   gameStage: TourneyGameStage
   teams?: Team[]
   draftOrder?: number[]
+  spotInDraftOrder?: number
   fighters?: Fighter[]
-  tourneyResults?: number[]
+  equipmentAvailable?: Equipment[][]
   fightersInBattle?: FighterInBattle[]
   map?: number
   bracket?: Bracket
@@ -197,9 +198,48 @@ export default class Tourney extends GameLogicHandlerBase {
     } else if (advanceSchema.isValidSync(action) &&
         this.gameStage !== "pregame" &&
         isHost) {
-      if (this.gameStage === "preseason") {
+      if (this.gameStage === "preseason" &&
+          this.teams.length >= 1) {
         this.advanceToDraft();
+      } else if (this.gameStage === "draft" &&
+          this.spotInDraftOrder === this.draftOrder.length) {
+
+      } else if (this.gameStage === "free agency" &&
+          this.spotInDraftOrder === this.draftOrder.length) {
+        
+      } else if (this.gameStage === "training") {
+        
+      } else if (this.gameStage === "battle royale") {
+        
+      } else if (this.gameStage === "tournament" &&
+          this.bracket.winner !== -1) {
+        
       }
+
+      // PICK
+    } else if (pickSchema.isValidSync(action) &&
+        ["draft", "free agency", "training"].includes(this.gameStage)) {
+
+      // PRACTICE
+    } else if (practiceSchema.isValidSync(action) &&
+        this.gameStage === "training") {
+
+      // PICK BR FIGHTER
+    } else if (pickBRFighterSchema.isValidSync(action) &&
+        this.gameStage === "battle royale") {
+
+      // PICK FIGHTERS
+    } else if (pickSchema.isValidSync(action) &&
+        this.gameStage === "tournament") {
+
+      // RESIGN
+    } else if (pickSchema.isValidSync(action) &&
+        this.gameStage === "preseason") {
+
+      // REPAIR
+    } else if (pickSchema.isValidSync(action) &&
+        this.gameStage === "preseason") {
+
     } else {
       console.debug("INVALID ACTION");
     }
@@ -227,6 +267,7 @@ export default class Tourney extends GameLogicHandlerBase {
       [this.draftOrder[currentIndex], this.draftOrder[randomIndex]] =
           [this.draftOrder[randomIndex], this.draftOrder[currentIndex]];
     }
+    this.spotInDraftOrder = 0;
 
     this.fighters = [];
     for (let i = 0; i < this.teams.length + 4; i++) {
@@ -238,6 +279,18 @@ export default class Tourney extends GameLogicHandlerBase {
       draftOrder: this.draftOrder,
       fighters: this.fighters
     });
+  }
+
+  advanceToFreeAgency(): void {
+    this.gameStage = "free agency";
+    this.draftOrder.reverse();
+    this.spotInDraftOrder = 0;
+    while (this.fighters.length < this.teams.length + 4) {
+      this.fighters.push(this.generateFighter());
+    }
+    for (const fighter of this.fighters) {
+      fighter.price = 20;
+    }
   }
 
   generateFighter(): Fighter {

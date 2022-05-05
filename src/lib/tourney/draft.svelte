@@ -40,7 +40,7 @@
     <div class="horiz">
       {index + 1}. {team.name}: ${team.money} ({team.controller})
       {#if $ownTeam === null && team.controller === "bot"}
-        <button on:click={() => replace(0)} on:submit={() => replace(0)}>Replace</button>
+        <button on:click={() => replace($draftOrder[index])} on:submit={() => replace($draftOrder[index])}>Replace</button>
       {/if}
     </div>
   {/each}
