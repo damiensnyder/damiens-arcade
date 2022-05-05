@@ -3,6 +3,7 @@ import { currentBid, currentlyNominatedSquare, gameStage, nominating, lastBid, p
 import { oppositeSideOf } from "$lib/auction-tic-tac-toe/utils";
 import { get } from "svelte/store";
 import { eventLog, pov } from "$lib/stores";
+import type { EventHandler } from "$lib/types";
 
 export function switchToType(): void {
   settings.set({
@@ -38,11 +39,7 @@ export function handleGamestate(gamestate: AuctionTTTViewpoint): void {
   }
 }
 
-type AuctionTTTEventHandler = {
-  [key in AuctionTTTEvent["type"]]: (event: AuctionTTTEvent & { type: key }) => void;
-};
-
-export const eventHandler: AuctionTTTEventHandler = {
+export const eventHandler: EventHandler<AuctionTTTEvent> = {
   join: function (event): void {
     players.update((old) => {
       old[event.side].controller = event.controller;

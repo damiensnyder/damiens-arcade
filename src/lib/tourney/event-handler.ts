@@ -2,6 +2,7 @@ import type { TourneyEvent, TourneyViewpoint } from "$lib/tourney/types";
 import { draftOrder, gameStage, rawSettings, settings, teams, spotInDraftOrder, fighters } from "$lib/tourney/stores";
 import { get } from "svelte/store";
 import { eventLog, pov } from "$lib/stores";
+import type { EventHandler } from "$lib/types";
 
 export function switchToType(): void {
   rawSettings.set("{}");
@@ -22,11 +23,7 @@ export function handleGamestate(gamestate: TourneyViewpoint): void {
   }
 }
 
-type TourneyEventHandler = {
-  [key in TourneyEvent["type"]]: (event: TourneyEvent & { type: key }) => void;
-};
-
-export const eventHandler: TourneyEventHandler = {
+export const eventHandler: EventHandler<TourneyEvent> = {
   changeGameSettings: function (event): void {
     settings.set(event.settings);
     rawSettings.set(JSON.stringify(event.settings));

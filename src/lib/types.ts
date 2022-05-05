@@ -99,3 +99,7 @@ export interface Viewer {
 export type TeardownCallback = (roomCode: string) => void;
 
 export type ActionCallback = (action: Action) => void;
+
+export type EventHandler<T extends { type: string }> = {
+  [key in T["type"]]: (event: T & { type: key }) => void;
+};
