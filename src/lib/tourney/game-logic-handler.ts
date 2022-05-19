@@ -203,35 +203,39 @@ export default class Tourney extends GameLogicHandlerBase {
         this.teams.length >= 1) {
       this.advanceToDraft();
       
-      // PICK
+      // PICK (draft)
     } else if (pickSchema.isValidSync(action) &&
         indexControlledByViewer !== null &&
-        ((this.gameStage === "draft" &&
-          action.index < this.fighters.length &&
-          this.draftOrder[this.spotInDraftOrder] === indexControlledByViewer) ||
-         (this.gameStage === "free agency" &&
-          action.index < this.fighters.length &&
-          this.draftOrder[this.spotInDraftOrder] === indexControlledByViewer &&
-          teamControlledByViewer.money >= this.fighters[action.index].price) ||
-         (this.gameStage === "training" &&
-          action.index < this.equipmentAvailable.length &&
-          teamControlledByViewer.money >= this.equipmentAvailable[indexControlledByViewer][action.index].price))) {
-      if (this.gameStage === "draft") {
-        const fighterPicked = this.fighters.splice(action.index, 1)[0];
-        teamControlledByViewer.fighters.push(fighterPicked);
-        fighterPicked.yearsLeft = 2;
-        this.emitEventToAll(action);
-      } else if (this.gameStage === "free agency") {
-        const fighterPicked = this.fighters.splice(action.index, 1)[0];
-        teamControlledByViewer.fighters.push(fighterPicked);
-        teamControlledByViewer.money -= fighterPicked.price;
-        fighterPicked.yearsLeft = 2;
-        this.emitEventToAll(action);
-      } else if (this.gameStage === "training") {
-        const equipmentPicked = this.equipmentAvailable[indexControlledByViewer].splice(action.index, 1)[0];
-        teamControlledByViewer.equipment.push(equipmentPicked);
-        teamControlledByViewer.money -= equipmentPicked.price;
-      }
+        this.gameStage === "draft" &&
+        action.index < this.fighters.length &&
+        this.draftOrder[this.spotInDraftOrder] === indexControlledByViewer) {
+      const fighterPicked = this.fighters.splice(action.index, 1)[0];
+      teamControlledByViewer.fighters.push(fighterPicked);
+      fighterPicked.yearsLeft = 2;
+      this.emitEventToAll(action);
+
+      // PICK (free agency)
+    } else if (pickSchema.isValidSync(action) &&
+        indexControlledByViewer !== null &&
+        this.gameStage === "free agency" &&
+        action.index < this.fighters.length &&
+        this.draftOrder[this.spotInDraftOrder] === indexControlledByViewer &&
+        teamControlledByViewer.money >= this.fighters[action.index].price) {
+      const fighterPicked = this.fighters.splice(action.index, 1)[0];
+      teamControlledByViewer.fighters.push(fighterPicked);
+      teamControlledByViewer.money -= fighterPicked.price;
+      fighterPicked.yearsLeft = 2;
+      this.emitEventToAll(action);
+
+      // PICK (training)
+    } else if (pickSchema.isValidSync(action) &&
+        indexControlledByViewer !== null &&
+        this.gameStage === "training" &&
+        action.index < this.equipmentAvailable.length &&
+        teamControlledByViewer.money >= this.equipmentAvailable[indexControlledByViewer][action.index].price) {
+      const equipmentPicked = this.equipmentAvailable[indexControlledByViewer].splice(action.index, 1)[0];
+      teamControlledByViewer.equipment.push(equipmentPicked);
+      teamControlledByViewer.money -= equipmentPicked.price;
 
       // PRACTICE
     } else if (practiceSchema.isValidSync(action) &&
@@ -266,6 +270,7 @@ export default class Tourney extends GameLogicHandlerBase {
         (teamControlledByViewer as PreseasonTeam).needsResigning[action.fighter].price < teamControlledByViewer.money) {
       teamControlledByViewer.money -= (teamControlledByViewer as PreseasonTeam).needsResigning[action.fighter].price;
       teamControlledByViewer.fighters.push((teamControlledByViewer as PreseasonTeam).needsResigning[action.fighter]);
+      
       // REPAIR
     } else if (repairSchema.isValidSync(action) &&
         this.gameStage === "preseason" &&
