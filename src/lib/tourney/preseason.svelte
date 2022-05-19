@@ -50,11 +50,11 @@
     </div>
   {/if}
 </div>
-<div>
+<div class="players-list">
   <h2>Players</h2>
   {#each $teams as team, index}
     <div class="horiz">
-      {team.name}: ${team.money} ({team.controller})
+      <span class="team-info">{team.name}: ${team.money} ({team.controller})</span>
       {#if team.controller === "bot"}
         {#if $ownTeamIndex === null}
           <button on:click={() => replace(index)} on:submit={() => replace(index)}>Replace</button>
@@ -68,13 +68,39 @@
     </div>
   {/each}
   {#if $host === $pov}
-    {#if $teams.length < 16}
-      <button on:click={addBot} on:submit={addBot}>Add Bot</button>
-    {/if}
-    <button on:click={advance} on:submit={advance}>Go to draft</button>
+    <div class="horiz host-controls">
+      {#if $teams.length < 16}
+        <button on:click={addBot} on:submit={addBot}>Add Bot</button>
+      {/if}
+      <button on:click={advance} on:submit={advance}>Go to draft</button>
+    </div>
   {/if}
 </div>
 
 <style>
+  h2 {
+    padding-bottom: 1rem;
+  }
 
+  .players-list > .horiz {
+    align-self: flex-start;
+    align-items: center;
+  }
+
+  .players-list > .host-controls {
+    align-self: center;
+    margin-top: 1rem;
+  }
+
+  button {
+    margin: 0 0.25rem;
+  }
+  
+  button:last-child {
+    margin-right: 0;
+  }
+
+  .team-info {
+    padding: 0.3rem;
+  }
 </style>
