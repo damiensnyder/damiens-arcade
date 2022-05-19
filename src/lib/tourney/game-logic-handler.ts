@@ -270,7 +270,7 @@ export default class Tourney extends GameLogicHandlerBase {
         (teamControlledByViewer as PreseasonTeam).needsResigning[action.fighter].price < teamControlledByViewer.money) {
       teamControlledByViewer.money -= (teamControlledByViewer as PreseasonTeam).needsResigning[action.fighter].price;
       teamControlledByViewer.fighters.push((teamControlledByViewer as PreseasonTeam).needsResigning[action.fighter]);
-      
+
       // REPAIR
     } else if (repairSchema.isValidSync(action) &&
         this.gameStage === "preseason" &&
@@ -308,6 +308,7 @@ export default class Tourney extends GameLogicHandlerBase {
     }
     this.spotInDraftOrder = 0;
 
+    // generate n + 4 random fighters to draft, where n is the number of teams
     this.fighters = [];
     for (let i = 0; i < this.teams.length + 4; i++) {
       this.fighters.push(this.generateFighter());
@@ -322,16 +323,22 @@ export default class Tourney extends GameLogicHandlerBase {
 
   advanceToFreeAgency(): void {
     this.gameStage = "free agency";
-    this.draftOrder.reverse();
+    this.draftOrder.reverse(); // free agency has reverse pick order from the draft
     this.spotInDraftOrder = 0;
+
+    // for now we are generating random fighters, but in the future they should be fighters who
+    // have already been generated but their contracts ran out or they weren't picked
     while (this.fighters.length < this.teams.length + 4) {
       this.fighters.push(this.generateFighter());
     }
+
+    // in the future, fighters should have prices based on how good they are
     for (const fighter of this.fighters) {
       fighter.price = 20;
     }
   }
 
+  // generate a random fighter. in the future this generation should be more advanced
   generateFighter(): Fighter {
     return {
       name: "John",
@@ -355,6 +362,7 @@ export default class Tourney extends GameLogicHandlerBase {
     const teamControlledByViewer = getTeamByController(this.teams, viewer.index);
     if (teamControlledByViewer !== null) {
       teamControlledByViewer.controller = "bot";
+      // in the future we will also want to make the bot finish the player's turn, if applicable
       this.emitEventToAll({
         type: "leave",
         team: indexControlledByViewer
