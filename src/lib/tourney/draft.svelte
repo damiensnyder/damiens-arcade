@@ -21,8 +21,8 @@ import FighterInfo from "./fighter-info.svelte";
 <div>
   <h2>Fighters</h2>
   <div class="fighters">
-    {#each $fighters as fighter}
-      <FighterInfo {...fighter} />
+    {#each $fighters as fighter, index}
+      <FighterInfo {...fighter} {index} />
     {/each}
   </div>
 </div>
@@ -32,7 +32,7 @@ import FighterInfo from "./fighter-info.svelte";
     <div class="horiz">
       {index + 1}. {$teams[index].name}
       {#if $ownTeam === null && $teams[index].controller === "bot"}
-        <button on:click={() => replace($draftOrder[index])} on:submit={() => replace($draftOrder[index])}>
+        <button on:click={() => replace(index)} on:submit={() => replace(index)}>
           Replace
         </button>
       {/if}

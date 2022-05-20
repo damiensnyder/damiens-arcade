@@ -1,14 +1,23 @@
 <script lang="ts">
+  import { lastAction } from "$lib/stores";
   import type { FighterStats } from "$lib/tourney/types";
   import { StatName } from "$lib/tourney/types";
 
   export let name: string;
   export let stats: FighterStats;
+  export let index: number;
+
+  function pick() {
+    lastAction.set({
+      type: "pick",
+      index
+    });
+  }
 </script>
 
 <div class="horiz top-bar">
   <h3>{name}</h3>
-  <button>Pick</button>
+  <button on:click={pick} on:submit={pick}>Pick</button>
 </div>
 <div class="horiz">
   <img src="../favicon.ico" width="150" height="150" alt={name} />

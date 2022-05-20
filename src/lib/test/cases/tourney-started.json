@@ -2,7 +2,7 @@
   "actions": [
     {
       "macro": "startTourney",
-      "dynamicParams": ["tourney"]
+      "dynamicParams": ["tourney started"]
     }
   ]
 }

@@ -2,7 +2,7 @@ import { GameType } from "$lib/types";
 import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
-import type { TourneyGameStage, TourneyViewpoint, ViewpointBase, Team, Settings, Fighter, FighterStats, Bracket, FighterInBattle, Equipment, PreseasonTeam } from "$lib/tourney/types";
+import { type TourneyGameStage, type TourneyViewpoint, type ViewpointBase, type Team, type Settings, type Fighter, type FighterStats, type Bracket, type FighterInBattle, type Equipment, type PreseasonTeam, StatName } from "$lib/tourney/types";
 import { array, mixed, number, object, string } from "yup";
 import { getIndexByController, getTeamByController } from "$lib/tourney/utils";
 
@@ -46,7 +46,7 @@ const advanceSchema = object({
 });
 
 const pickSchema = object({
-  type: string().required().equals(["draft"]),
+  type: string().required().equals(["pick"]),
   index: number().integer().min(0)
 });
 
@@ -240,7 +240,7 @@ export default class Tourney extends GameLogicHandlerBase {
         this.gameStage === "training" &&
         indexControlledByViewer !== null &&
         action.skills.length === teamControlledByViewer.fighters.length &&
-        action.skills.every(skill => STAT_NAMES.includes(skill) ||
+        action.skills.every(skill => typeof StatName[skill] === "string" ||
                                      (typeof skill === "number" &&
                                       skill > 0 &&
                                       skill < teamControlledByViewer.equipment.length))) {

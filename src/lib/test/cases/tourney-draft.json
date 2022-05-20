@@ -1,0 +1,28 @@
+{
+  "actions": [
+    {
+      "macro": "startTourney",
+      "dynamicParams": ["tourney draft"]
+    },
+    {
+      "type": "connect",
+      "index": 2
+    },
+    {
+      "type": "addBot",
+      "index": 2
+    },
+    {
+      "type": "addBot",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "disconnect",
+      "index": 2
+    }
+  ]
+}

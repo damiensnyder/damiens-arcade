@@ -175,7 +175,7 @@ interface AdvanceAction {
 }
 
 interface PickAction {
-  type: "draft"
+  type: "pick"
   index: number
 }
 

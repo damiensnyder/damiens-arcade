@@ -2,7 +2,7 @@
   "actions": [
     {
       "macro": "startATTT",
-      "dynamicParams": ["started"]
+      "dynamicParams": ["ATTT started"]
     }
   ]
 }
