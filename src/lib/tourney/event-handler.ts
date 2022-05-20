@@ -19,6 +19,13 @@ export function handleGamestate(gamestate: TourneyViewpoint): void {
     if (gamestate.gameStage === "draft" || gamestate.gameStage === "free agency") {
       draftOrder.set(gamestate.draftOrder);
       fighters.set(gamestate.fighters);
+    } else if (gamestate.gameStage === "tournament") {
+      bracket.set(gamestate.bracket);
+    }
+    if ((gamestate.gameStage === "battle royale" || gamestate.gameStage === "tournament") &&
+        gamestate.fightersInBattle) {
+      fightersInBattle.set(gamestate.fightersInBattle);
+      map.set(gamestate.map);
     }
   }
 }
