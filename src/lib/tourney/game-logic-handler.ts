@@ -6,7 +6,7 @@ import type { TourneyGameStage, TourneyViewpoint, ViewpointBase, Team, Settings,
 import { StatName } from "$lib/tourney/types";
 import { array, mixed, number, object, string } from "yup";
 import { getIndexByController, getTeamByController } from "$lib/tourney/utils";
-import { settingsAreValid, addDefaultsIfApplicable, isValidEquipment } from "$lib/tourney/battle-logic";
+import { settingsAreValid, addDefaultsIfApplicable, isValidEquipmentTournament, isValidEquipmentBR } from "$lib/tourney/battle-logic";
 // ms to wait before advancing to next stage automatically
 // 0 in dev mode, 3000 in production
 const ADVANCEMENT_DELAY = 0; 
@@ -248,7 +248,9 @@ export default class Tourney extends GameLogicHandlerBase {
                                       skill < teamControlledByViewer.equipment.length))) {
       action.skills.forEach((skill, i) => {
         if (typeof skill === "number") {
-          teamControlledByViewer.fighters[i].attunements.push(skill);
+          teamControlledByViewer.fighters[i].attunements.push(
+            teamControlledByViewer.equipment[skill].name
+          );
         } else {
           teamControlledByViewer.fighters[i].abilities[skill]++;
         }
@@ -264,7 +266,7 @@ export default class Tourney extends GameLogicHandlerBase {
         indexControlledByViewer !== null &&
         !this.ready[indexControlledByViewer] &&
         action.fighter < teamControlledByViewer.fighters.length &&
-        isValidEquipment(teamControlledByViewer, action.equipment)) {
+        isValidEquipmentBR(teamControlledByViewer, action.equipment)) {
       this.ready[indexControlledByViewer] = true;
       this.fightersInBattle.push({
         ...teamControlledByViewer.fighters[action.fighter],
@@ -283,7 +285,8 @@ export default class Tourney extends GameLogicHandlerBase {
     } else if (pickFightersSchema.isValidSync(action) &&
         this.gameStage === "tournament" &&
         indexControlledByViewer !== null &&
-        !this.ready[indexControlledByViewer]) {
+        !this.ready[indexControlledByViewer] &&
+        isValidEquipmentTournament(teamControlledByViewer, action.equipment)) {
       // TODO: this isnt enough
 
       // RESIGN

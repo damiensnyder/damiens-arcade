@@ -1,6 +1,6 @@
 import { array, boolean, number, object, string } from "yup";
 import { readFileSync } from "fs";
-import type { Settings, Team } from "$lib/tourney/types";
+import type { EquipmentSlot, Settings, Team } from "$lib/tourney/types";
 
 const fighterStatsSchema = array(
   number().min(0).max(10).integer()
@@ -77,7 +77,37 @@ export function addDefaultsIfApplicable(settings: any): void {
   delete settings.excludeDefaultEquipment;
 }
 
-// TODO
-export function isValidEquipment(team: Team, equipment: number[]): boolean {
+export function isValidEquipmentBR(team: Team, equipment: number[]): boolean {
+  const usedSlots: EquipmentSlot[] = [];
+  for (const e of equipment) {
+    if (e < 0 || e >= team.equipment.length) {
+      return false;
+    }
+    if (usedSlots.includes(team.equipment[e].slot)) {
+      return false;
+    }
+    usedSlots.push(team.equipment[e].slot);
+  }
+  return true;
+}
+
+export function isValidEquipmentTournament(team: Team, equipment: number[][]): boolean {
+  if (equipment.length !== team.fighters.length) {
+    return false;
+  }
+  const usedEquipment: number[] = [];
+  for (const f of equipment) {
+    const usedSlots: EquipmentSlot[] = [];
+    for (const e of f) {
+      if (e < 0 || e >= team.equipment.length) {
+        return false;
+      }
+      if (usedSlots.includes(team.equipment[e].slot) || usedEquipment.includes(e)) {
+        return false;
+      }
+      usedSlots.push(team.equipment[e].slot);
+      usedEquipment.push(e);
+    }
+  }
   return true;
 }

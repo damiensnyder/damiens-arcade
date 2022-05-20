@@ -81,7 +81,7 @@ export interface Fighter {
   name: string
   imgUrl: string
   stats: FighterStats
-  attunements: number[]
+  attunements: string[]
   abilities: Ability
   yearsLeft: number
   price?: number
