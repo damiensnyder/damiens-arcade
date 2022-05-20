@@ -85,6 +85,8 @@ export interface Fighter {
   abilities: Ability
   yearsLeft: number
   price?: number
+  description?: string
+  flavor?: string
 }
 
 export enum StatName {
@@ -127,14 +129,20 @@ export interface Equipment {
   abilities: Ability[]
   durability: number
   price: number
+  description?: string
+  flavor?: string
 }
 
 export interface Ability {}
 
+export interface Map {
+  name: string
+}
+
 export interface Strategy {}
 
 export interface Settings {
-  stages?: any
+  maps?: Map[]
   fighters?: Fighter[]
   equipment?: Equipment[]
 }

@@ -6,17 +6,9 @@ import type { TourneyGameStage, TourneyViewpoint, ViewpointBase, Team, Settings,
 import { StatName } from "$lib/tourney/types";
 import { array, mixed, number, object, string } from "yup";
 import { getIndexByController, getTeamByController } from "$lib/tourney/utils";
+import { settingsAreValid, addDefaultsIfApplicable } from "$lib/tourney/battle-logic";
 
 const ADVANCEMENT_DELAY = 3000; // ms to wait before advancing to next stage automatically
-
-const changeGameSettingsSchema = object({
-  type: string().required().equals(["changeGameSettings"]),
-  settings: object({
-    stages: string(),
-    fighters: string(),
-    equipment: string()
-  })
-});
 
 const startGameSchema = object({
   type: string().required().equals(["start"])
@@ -98,11 +90,7 @@ export default class Tourney extends GameLogicHandlerBase {
 
   constructor(room: GameRoom) {
     super(room);
-    this.settings = {
-      stages: [],
-      fighters: [],
-      equipment: []
-    };
+    this.settings = {};
   }
 
   handleAction(viewer: Viewer, action?: any): void {
@@ -111,7 +99,7 @@ export default class Tourney extends GameLogicHandlerBase {
     const isHost = this.room.host === viewer.index;
 
     // CHANGE GAME SETTINGS
-    if (changeGameSettingsSchema.isValidSync(action) &&
+    if (settingsAreValid(action.settings) &&
         this.room.host === viewer.index) {
       this.settings = action.settings as Settings;
       this.emitEventToAll({
@@ -296,6 +284,7 @@ export default class Tourney extends GameLogicHandlerBase {
   startGame(): void {
     this.gameStage = "preseason";
     this.teams = [];
+    addDefaultsIfApplicable(this.settings);
   }
 
   advanceToDraft(): void {

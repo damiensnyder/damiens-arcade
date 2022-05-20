@@ -1,0 +1,21 @@
+{
+  "maps": [
+    {
+      "name": "the chamber of die"
+    }
+  ],
+  "fighters": [
+    {
+      "name": "Fred Funko",
+      "description": "he is a cool guy"
+    }
+  ],
+  "equipment": [
+    {
+      "name": "the shwickety shwack",
+      "slot": 3,
+      "price": 10,
+      "flavor": "git gud"
+    }
+  ]
+}
