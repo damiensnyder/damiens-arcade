@@ -87,14 +87,18 @@ export interface Fighter {
   price?: number
 }
 
-export interface FighterStats {
-  strength: number
-  accuracy: number
-  reflexes: number
-  energy: number
-  speed: number
-  toughness: number
+export enum StatName {
+  Strength = "strength",
+  Accuracy = "accuracy",
+  Reflexes = "reflexes",
+  Energy = "energy",
+  Speed = "speed",
+  Toughness = "toughness"
 }
+
+export type FighterStats = {
+  [key in StatName]: number;
+};
 
 export interface FighterInBattle {
   team: number

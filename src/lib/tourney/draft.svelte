@@ -1,6 +1,7 @@
 <script lang="ts">
   import { host, lastAction, pov } from "$lib/stores";
   import { draftOrder, fighters, ownTeam, ownTeamIndex, teams } from "$lib/tourney/stores";
+import FighterInfo from "./fighter-info.svelte";
 
   function draft(fighter: number) {
     lastAction.set({
@@ -19,28 +20,21 @@
 
 <div>
   <h2>Fighters</h2>
-  {#each $fighters as fighter}
-    <div class="horiz">
-      <h3>{fighter.name}</h3>
-      <div>
-        Strength: {fighter.stats.strength}
-        Accuracy: {fighter.stats.accuracy}
-        Reflexes: {fighter.stats.reflexes}
-        Energy: {fighter.stats.energy}
-        Toughness: {fighter.stats.toughness}
-        Speed: {fighter.stats.speed}
-      </div>
-    </div>
-  {/each}
+  <div class="fighters">
+    {#each $fighters as fighter}
+      <FighterInfo {...fighter} />
+    {/each}
+  </div>
 </div>
 <div>
   <h2>Draft Order</h2>
   {#each $draftOrder as index}
-    {@const team = $teams[index]}
     <div class="horiz">
-      {index + 1}. {team.name}: ${team.money} ({team.controller})
-      {#if $ownTeam === null && team.controller === "bot"}
-        <button on:click={() => replace($draftOrder[index])} on:submit={() => replace($draftOrder[index])}>Replace</button>
+      {index + 1}. {$teams[index].name}
+      {#if $ownTeam === null && $teams[index].controller === "bot"}
+        <button on:click={() => replace($draftOrder[index])} on:submit={() => replace($draftOrder[index])}>
+          Replace
+        </button>
       {/if}
     </div>
   {/each}
@@ -49,5 +43,10 @@
 <style>
   .horiz {
     text-align: left;
+  }
+
+  .fighters {
+    flex: 1;
+    align-items: stretch;
   }
 </style>

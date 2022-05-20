@@ -6,8 +6,6 @@ import type { TourneyGameStage, TourneyViewpoint, ViewpointBase, Team, Settings,
 import { array, mixed, number, object, string } from "yup";
 import { getIndexByController, getTeamByController } from "$lib/tourney/utils";
 
-const STAT_NAMES = ["strength", "accuracy", "reflexes", "energy", "speed", "toughness"];
-
 const changeGameSettingsSchema = object({
   type: string().required().equals(["changeGameSettings"]),
   settings: object({
