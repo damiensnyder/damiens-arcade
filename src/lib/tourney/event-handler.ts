@@ -106,6 +106,8 @@ export const eventHandler: EventHandler<TourneyEvent> = {
   bracket: function (event): void {
     gameStage.set("tournament");
     bracket.set(event.bracket);
+    fightersInBattle.set([]);
+    map.set(-1);
   },
   goToPreseason: function (event): void {
     gameStage.set("preseason");

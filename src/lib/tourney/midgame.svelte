@@ -24,7 +24,7 @@
       <Draft />
     {:else if $gameStage === "training"}
       <Training />
-    {:else if $fightersInBattle !== null}
+    {:else if $fightersInBattle.length > 0}
       <WatchFight />
     {:else if $gameStage === "battle royale"}
       <PickBrFighter />
