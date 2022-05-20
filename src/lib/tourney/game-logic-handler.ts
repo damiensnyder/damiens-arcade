@@ -62,7 +62,7 @@ const pickBRFighterSchema = object({
 
 const pickFightersSchema = object({
   type: string().required().equals(["pickFighters"]),
-  equipment: array(number().integer().min(0)),
+  equipment: array(array(number().integer().min(0))).required(),
   strategy: array(strategySchema)
 });
 
