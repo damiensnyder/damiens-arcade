@@ -2,7 +2,8 @@ import { GameType } from "$lib/types";
 import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
-import { type TourneyGameStage, type TourneyViewpoint, type ViewpointBase, type Team, type Settings, type Fighter, type FighterStats, type Bracket, type FighterInBattle, type Equipment, type PreseasonTeam, StatName } from "$lib/tourney/types";
+import type { TourneyGameStage, TourneyViewpoint, ViewpointBase, Team, Settings, Fighter, FighterStats, Bracket, FighterInBattle, Equipment, PreseasonTeam } from "$lib/tourney/types";
+import { StatName } from "$lib/tourney/types";
 import { array, mixed, number, object, string } from "yup";
 import { getIndexByController, getTeamByController } from "$lib/tourney/utils";
 
@@ -230,6 +231,10 @@ export default class Tourney extends GameLogicHandlerBase {
       teamControlledByViewer.money -= fighterPicked.price;
       fighterPicked.yearsLeft = 2;
       this.emitEventToAll(action);
+      this.spotInDraftOrder++;
+      if (this.spotInDraftOrder == this.draftOrder.length) {
+        setTimeout(this.advanceToTraining.bind(this), ADVANCEMENT_DELAY);
+      }
 
       // PICK (training)
     } else if (pickSchema.isValidSync(action) &&
@@ -340,6 +345,24 @@ export default class Tourney extends GameLogicHandlerBase {
     for (const fighter of this.fighters) {
       fighter.price = 20;
     }
+  }
+
+  advanceToTraining(): void {
+    this.gameStage = "training";
+    this.equipmentAvailable = [];
+    for (let i = 0; i < this.teams.length; i++) {
+      const equipment: Equipment[] = [];
+      for (let j = 0; j < 6; j++) {
+        // this doesn't work at the moment because we have no equipment settings
+        const equipmentIndex = Math.floor(Math.random() * this.settings.equipment.length);
+        equipment.push(this.settings.equipment[equipmentIndex]);
+      }
+      this.equipmentAvailable.push([]);
+    }
+    this.emitEventToAll({
+      type: "goToTraining",
+      equipment: []
+    });
   }
 
   // generate a random fighter. in the future this generation should be more advanced

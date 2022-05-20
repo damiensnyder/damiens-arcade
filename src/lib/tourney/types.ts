@@ -111,12 +111,12 @@ export interface FighterInBattle {
 }
 
 export enum EquipmentSlot {
-  Head,
-  LeftArm,
-  RightArm,
-  Torso,
-  Legs,
-  Feet
+  Head = "head",
+  LeftArm = "left arm",
+  RightArm = "right arm",
+  Torso = "torso",
+  Legs = "legs",
+  Feet = "feet"
 }
 
 export interface Equipment {
@@ -126,7 +126,7 @@ export interface Equipment {
   slot: EquipmentSlot
   abilities: Ability[]
   durability: number
-  price?: number
+  price: number
 }
 
 export interface Ability {}
@@ -135,8 +135,8 @@ export interface Strategy {}
 
 export interface Settings {
   stages?: any
-  fighters?: any
-  equipment?: any
+  fighters?: Fighter[]
+  equipment?: Equipment[]
 }
 
 interface ChangeGameSettingsAction {
