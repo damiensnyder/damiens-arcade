@@ -7,8 +7,9 @@ import { StatName } from "$lib/tourney/types";
 import { array, mixed, number, object, string } from "yup";
 import { getIndexByController, getTeamByController } from "$lib/tourney/utils";
 import { settingsAreValid, addDefaultsIfApplicable } from "$lib/tourney/battle-logic";
-
-const ADVANCEMENT_DELAY = 3000; // ms to wait before advancing to next stage automatically
+// ms to wait before advancing to next stage automatically
+// 0 in dev mode, 3000 in production
+const ADVANCEMENT_DELAY = 0; 
 
 const startGameSchema = object({
   type: string().required().equals(["start"])
@@ -99,7 +100,7 @@ export default class Tourney extends GameLogicHandlerBase {
     const isHost = this.room.host === viewer.index;
 
     // CHANGE GAME SETTINGS
-    if (settingsAreValid(action.settings) &&
+    if (settingsAreValid(action) &&
         this.room.host === viewer.index) {
       this.settings = action.settings as Settings;
       this.emitEventToAll({
@@ -277,7 +278,7 @@ export default class Tourney extends GameLogicHandlerBase {
       teamControlledByViewer.money -= (teamControlledByViewer as PreseasonTeam).needsRepair[action.equipment].price;
       teamControlledByViewer.equipment.push((teamControlledByViewer as PreseasonTeam).needsRepair[action.equipment]);
     } else {
-      console.debug("INVALID ACTION");
+      // console.debug("INVALID ACTION");
     }
   }
 

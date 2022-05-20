@@ -55,22 +55,22 @@ export function settingsAreValid(settings: unknown): boolean {
 
 export function addDefaultsIfApplicable(settings: any): void {
   if (!settings.maps) {
-    settings.maps = []
+    settings.maps = [];
   }
   if (!settings.excludeDefaultMaps || settings.maps.length === 0) {
-    settings.maps.concat(defaultSettings.maps);
+    settings.maps = settings.maps.concat(defaultSettings.maps);
   }
   if (!settings.fighters) {
-    settings.fighters = []
+    settings.fighters = [];
   }
   if (!settings.excludeDefaultFighters || settings.fighters.length === 0) {
-    settings.fighters.concat(defaultSettings.fighters);
+    settings.fighters = settings.fighters.concat(defaultSettings.fighters);
   }
   if (!settings.equipment) {
-    settings.equipment = []
+    settings.equipment = [];
   }
   if (!settings.excludeDefaultEquipment || settings.equipment.length === 0) {
-    settings.equipment.concat(defaultSettings.equipment);
+    settings.equipment = settings.equipment.concat(defaultSettings.equipment);
   }
   delete settings.excludeDefaultMaps;
   delete settings.excludeDefaultFighters;

@@ -100,10 +100,10 @@ export default class GameRoom {
   // queue, show that the queue is empty. Otherwise, handle the next packet.
   handlePacket(): void {
     const { viewer, type, data } = this.packetQueue.splice(0, 1)[0];
-    console.debug(`${viewer.index}\t${type}`);
+    // console.debug(`${viewer.index}\t${type}`);
     
     if (type === PacketType.Action) {
-      console.debug(data);
+      // console.debug(data);
 
       // if the action is changing something basic about the room, handle that manually
       if (this.shouldChangeGameType(viewer, data)) {
