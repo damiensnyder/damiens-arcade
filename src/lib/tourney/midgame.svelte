@@ -2,6 +2,7 @@
   import { gameStage, ownTeam } from "$lib/tourney/stores";
   import Preseason from "$lib/tourney/preseason.svelte";
   import Draft from "$lib/tourney/draft.svelte";
+import FreeAgency from "./free-agency.svelte";
 </script>
 
 <div class="fun">
@@ -16,8 +17,10 @@
   <div class="container horiz">
     {#if $gameStage === "preseason"}
       <Preseason />
-    {:else if $gameStage === "draft"}
+    {:else if $gameStage === "draft" || $gameStage === "free agency"}
       <Draft />
+    {:else if $gameStage === "free agency"}
+      <FreeAgency />
     {/if}
   </div>
 </div>

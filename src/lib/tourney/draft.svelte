@@ -1,14 +1,7 @@
 <script lang="ts">
-  import { host, lastAction, pov } from "$lib/stores";
-  import { draftOrder, fighters, ownTeam, ownTeamIndex, teams } from "$lib/tourney/stores";
-import FighterInfo from "./fighter-info.svelte";
-
-  function draft(fighter: number) {
-    lastAction.set({
-      type: "draft",
-      fighter
-    });
-  }
+  import { lastAction } from "$lib/stores";
+  import { draftOrder, fighters, ownTeam, teams } from "$lib/tourney/stores";
+  import FighterInfo from "./fighter-info.svelte";
 
   function replace(team: number) {
     lastAction.set({
@@ -27,7 +20,7 @@ import FighterInfo from "./fighter-info.svelte";
   </div>
 </div>
 <div>
-  <h2>Draft Order</h2>
+  <h2>Pick Order</h2>
   {#each $draftOrder as index}
     <div class="horiz">
       {index + 1}. {$teams[index].name}

@@ -16,7 +16,7 @@ export function handleGamestate(gamestate: TourneyViewpoint): void {
   gameStage.set(gamestate.gameStage);
   if (gamestate.gameStage !== "pregame") {
     teams.set(gamestate.teams);
-    if (gamestate.gameStage === "draft") {
+    if (gamestate.gameStage === "draft" || gamestate.gameStage === "free agency") {
       draftOrder.set(gamestate.draftOrder);
       fighters.set(gamestate.fighters);
     }
