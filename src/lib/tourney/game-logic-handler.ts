@@ -273,7 +273,7 @@ export default class Tourney extends GameLogicHandlerBase {
         team: indexControlledByViewer,
         hp: teamControlledByViewer.fighters[action.fighter].stats.toughness * 5 + 25,
         maxHP: teamControlledByViewer.fighters[action.fighter].stats.toughness * 5 + 25,
-        equipment: action.equipment.map((i) => teamControlledByViewer.equipment[i]),
+        equipment: action.equipment.map((e) => teamControlledByViewer.equipment[e]),
         x: 0,
         y: 0
       });
@@ -287,7 +287,21 @@ export default class Tourney extends GameLogicHandlerBase {
         indexControlledByViewer !== null &&
         !this.ready[indexControlledByViewer] &&
         isValidEquipmentTournament(teamControlledByViewer, action.equipment)) {
-      // TODO: this isnt enough
+      this.ready[indexControlledByViewer] = true;
+      for (let i = 0; i < teamControlledByViewer.fighters.length; i++) {
+        this.fightersInBattle.push({
+          ...teamControlledByViewer.fighters[i],
+          team: indexControlledByViewer,
+          hp: teamControlledByViewer.fighters[i].stats.toughness * 5 + 25,
+          maxHP: teamControlledByViewer.fighters[i].stats.toughness * 5 + 25,
+          equipment: action.equipment[i].map((e) => teamControlledByViewer.equipment[e]),
+          x: 0,
+          y: 0
+        });
+      }
+      if (this.ready.every(x => x)) {
+        this.simulateBattleRoyale();
+      }
 
       // RESIGN
     } else if (resignSchema.isValidSync(action) &&
