@@ -81,6 +81,7 @@ export default class Tourney extends GameLogicHandlerBase {
   gameType: GameType.Tourney
   gameStage: TourneyGameStage
   teams?: (Team | PreseasonTeam)[]
+  ready?: boolean[]
   draftOrder?: number[]
   spotInDraftOrder?: number
   fighters?: Fighter[]
@@ -340,12 +341,14 @@ export default class Tourney extends GameLogicHandlerBase {
   advanceToTraining(): void {
     this.gameStage = "training";
     this.equipmentAvailable = [];
+    this.ready = [];
     for (let i = 0; i < this.teams.length; i++) {
       const equipment: Equipment[] = [];
       for (let j = 0; j < 8; j++) {
         equipment.push(this.generateEquipment());
       }
-      this.equipmentAvailable.push([]);
+      this.equipmentAvailable.push(equipment);
+      this.ready.push(false);
     }
     for (const viewer of this.room.viewers) {
       const teamIndex = getIndexByController(this.teams, viewer.index);
@@ -360,6 +363,16 @@ export default class Tourney extends GameLogicHandlerBase {
         });
       }
     }
+  }
+
+  advanceToBattleRoyale(): void {
+    this.gameStage = "battle royale";
+    this.emitEventToAll({
+      type: "goToBR",
+      teams: this.teams
+    });
+    this.fightersInBattle = [];
+    this.ready.fill(false);
   }
 
   // generate a random fighter. in the future this generation should be more advanced
