@@ -86,6 +86,7 @@ export const eventHandler: EventHandler<TourneyEvent> = {
       }
       return old;
     });
+    spotInDraftOrder.update(x => x+1);
   },
   goToFA: function (event): void {
     gameStage.set("free agency");
@@ -95,7 +96,7 @@ export const eventHandler: EventHandler<TourneyEvent> = {
     gameStage.set("training");
     equipment.set(event.equipment);
   },
-  goToBR: function (event): void {
+  goToBR: function (_event): void {
     gameStage.set("battle royale");
   },
   fight: function (event): void {

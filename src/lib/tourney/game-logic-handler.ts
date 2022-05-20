@@ -6,6 +6,8 @@ import { type TourneyGameStage, type TourneyViewpoint, type ViewpointBase, type 
 import { array, mixed, number, object, string } from "yup";
 import { getIndexByController, getTeamByController } from "$lib/tourney/utils";
 
+const ADVANCEMENT_DELAY = 3000; // ms to wait before advancing to next stage automatically
+
 const changeGameSettingsSchema = object({
   type: string().required().equals(["changeGameSettings"]),
   settings: object({
@@ -211,6 +213,10 @@ export default class Tourney extends GameLogicHandlerBase {
       teamControlledByViewer.fighters.push(fighterPicked);
       fighterPicked.yearsLeft = 2;
       this.emitEventToAll(action);
+      this.spotInDraftOrder++;
+      if (this.spotInDraftOrder == this.draftOrder.length) {
+        setTimeout(this.advanceToFreeAgency.bind(this), ADVANCEMENT_DELAY);
+      }
 
       // PICK (free agency)
     } else if (pickSchema.isValidSync(action) &&
