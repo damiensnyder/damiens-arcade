@@ -1,7 +1,11 @@
 <script lang="ts">
-  import { gameStage, ownTeam } from "$lib/tourney/stores";
+  import { fightersInBattle, gameStage, ownTeam } from "$lib/tourney/stores";
   import Preseason from "$lib/tourney/preseason.svelte";
   import Draft from "$lib/tourney/draft.svelte";
+  import Training from "$lib/tourney/training.svelte";
+  import WatchFight from "$lib/tourney/watch-fight.svelte";
+  import PickBrFighter from "$lib/tourney/pick-br-fighter.svelte";
+  import PickFighters from "$lib/tourney/pick-fighters.svelte";
 </script>
 
 <div class="fun">
@@ -18,6 +22,14 @@
       <Preseason />
     {:else if $gameStage === "draft" || $gameStage === "free agency"}
       <Draft />
+    {:else if $gameStage === "training"}
+      <Training />
+    {:else if $fightersInBattle !== null}
+      <WatchFight />
+    {:else if $gameStage === "battle royale"}
+      <PickBrFighter />
+    {:else}
+      <PickFighters />
     {/if}
   </div>
 </div>
