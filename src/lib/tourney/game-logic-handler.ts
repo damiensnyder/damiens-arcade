@@ -6,7 +6,7 @@ import type { TourneyGameStage, TourneyViewpoint, ViewpointBase, Team, Settings,
 import { StatName } from "$lib/tourney/types";
 import { array, mixed, number, object, string } from "yup";
 import { getIndexByController, getTeamByController } from "$lib/tourney/utils";
-import { settingsAreValid, addDefaultsIfApplicable } from "$lib/tourney/battle-logic";
+import { settingsAreValid, addDefaultsIfApplicable, isValidEquipment } from "$lib/tourney/battle-logic";
 // ms to wait before advancing to next stage automatically
 // 0 in dev mode, 3000 in production
 const ADVANCEMENT_DELAY = 0; 
@@ -55,8 +55,8 @@ const strategySchema = object({});
 
 const pickBRFighterSchema = object({
   type: string().required().equals(["pickBRFighter"]),
-  fighter: number().integer().min(0),
-  equipment: number().integer().min(0),
+  fighter: number().integer().min(0).required(),
+  equipment: array(number().integer().min(0)).required(),
   strategy: strategySchema
 });
 
@@ -240,6 +240,7 @@ export default class Tourney extends GameLogicHandlerBase {
     } else if (practiceSchema.isValidSync(action) &&
         this.gameStage === "training" &&
         indexControlledByViewer !== null &&
+        !this.ready[indexControlledByViewer] &&
         action.skills.length === teamControlledByViewer.fighters.length &&
         action.skills.every(skill => typeof StatName[skill] === "string" ||
                                      (typeof skill === "number" &&
@@ -252,14 +253,38 @@ export default class Tourney extends GameLogicHandlerBase {
           teamControlledByViewer.fighters[i].abilities[skill]++;
         }
       });
+      this.ready[indexControlledByViewer] = true;
+      if (this.ready.every(x => x)) {
+        this.advanceToBattleRoyale();
+      }
 
       // PICK BR FIGHTER
     } else if (pickBRFighterSchema.isValidSync(action) &&
-        this.gameStage === "battle royale") {
+        this.gameStage === "battle royale" &&
+        indexControlledByViewer !== null &&
+        !this.ready[indexControlledByViewer] &&
+        action.fighter < teamControlledByViewer.fighters.length &&
+        isValidEquipment(teamControlledByViewer, action.equipment)) {
+      this.ready[indexControlledByViewer] = true;
+      this.fightersInBattle.push({
+        ...teamControlledByViewer.fighters[action.fighter],
+        team: indexControlledByViewer,
+        hp: teamControlledByViewer.fighters[action.fighter].stats.toughness * 5 + 25,
+        maxHP: teamControlledByViewer.fighters[action.fighter].stats.toughness * 5 + 25,
+        equipment: action.equipment.map((i) => teamControlledByViewer.equipment[i]),
+        x: 0,
+        y: 0
+      });
+      if (this.ready.every(x => x)) {
+        this.simulateBattleRoyale();
+      }
 
       // PICK FIGHTERS
     } else if (pickFightersSchema.isValidSync(action) &&
-        this.gameStage === "tournament") {
+        this.gameStage === "tournament" &&
+        indexControlledByViewer !== null &&
+        !this.ready[indexControlledByViewer]) {
+      // TODO: this isnt enough
 
       // RESIGN
     } else if (resignSchema.isValidSync(action) &&
@@ -373,6 +398,10 @@ export default class Tourney extends GameLogicHandlerBase {
     });
     this.fightersInBattle = [];
     this.ready.fill(false);
+  }
+
+  simulateBattleRoyale(): void {
+
   }
 
   // generate a random fighter. in the future this generation should be more advanced

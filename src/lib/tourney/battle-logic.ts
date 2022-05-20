@@ -1,6 +1,6 @@
 import { array, boolean, number, object, string } from "yup";
 import { readFileSync } from "fs";
-import type { Settings } from "$lib/tourney/types";
+import type { Settings, Team } from "$lib/tourney/types";
 
 const fighterStatsSchema = array(
   number().min(0).max(10).integer()
@@ -75,4 +75,9 @@ export function addDefaultsIfApplicable(settings: any): void {
   delete settings.excludeDefaultMaps;
   delete settings.excludeDefaultFighters;
   delete settings.excludeDefaultEquipment;
+}
+
+// TODO
+export function isValidEquipment(team: Team, equipment: number[]): boolean {
+  return true;
 }

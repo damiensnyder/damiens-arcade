@@ -106,7 +106,6 @@ export interface FighterInBattle {
   team: number
   hp: number
   maxHP: number
-  damageTaken: number
   equipment: Equipment[]
   x: number
   y: number
@@ -195,7 +194,7 @@ interface PracticeAction {
 interface PickBRFighterAction {
   type: "pickBRFighter"
   fighter: number
-  equipment: number
+  equipment: number[]
   strategy: Strategy
 }
 
