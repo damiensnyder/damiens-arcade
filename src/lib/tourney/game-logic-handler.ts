@@ -341,24 +341,33 @@ export default class Tourney extends GameLogicHandlerBase {
     this.equipmentAvailable = [];
     for (let i = 0; i < this.teams.length; i++) {
       const equipment: Equipment[] = [];
-      for (let j = 0; j < 6; j++) {
-        // this doesn't work at the moment because we have no equipment settings
-        const equipmentIndex = Math.floor(Math.random() * this.settings.equipment.length);
-        equipment.push(this.settings.equipment[equipmentIndex]);
+      for (let j = 0; j < 8; j++) {
+        equipment.push(this.generateEquipment());
       }
       this.equipmentAvailable.push([]);
     }
-    this.emitEventToAll({
-      type: "goToTraining",
-      equipment: []
-    });
+    for (const viewer of this.room.viewers) {
+      const teamIndex = getIndexByController(this.teams, viewer.index);
+      if (teamIndex === null) {
+        this.emitEventTo(viewer, {
+          type: "goToTraining"
+        });
+      } else {
+        this.emitEventTo(viewer, {
+          type: "goToTraining",
+          equipment: this.equipmentAvailable[teamIndex]
+        });
+      }
+    }
   }
 
   // generate a random fighter. in the future this generation should be more advanced
   generateFighter(): Fighter {
+    const base = this.settings.fighters[
+      Math.floor(this.settings.fighters.length * Math.random())
+    ];
     return {
-      name: "John",
-      imgUrl: "",
+      imgUrl: "../favicon.ico",
       stats: {
         strength: Math.round(Math.random() * 10),
         accuracy: Math.round(Math.random() * 10),
@@ -368,9 +377,34 @@ export default class Tourney extends GameLogicHandlerBase {
         toughness: Math.round(Math.random() * 10)
       },
       attunements: [],
-      abilities: [],
-      yearsLeft: 2
-    }
+      yearsLeft: 2,
+      description: "",
+      flavor: "",
+      ...base
+    };
+  }
+
+  // generate a random equipment. in the future this generation should be more advanced
+  generateEquipment(): Equipment {
+    const base = this.settings.equipment[
+      Math.floor(this.settings.equipment.length * Math.random())
+    ];
+    return {
+      imgUrl: "../favicon.ico",
+      stats: {
+        strength: 0,
+        accuracy: 0,
+        reflexes: 0,
+        energy: 0,
+        speed: 0,
+        toughness: 0
+      },
+      durability: 3,
+      price: 10,
+      description: "",
+      flavor: "",
+      ...base
+    };
   }
 
   handleDisconnect(viewer: Viewer, wasHost: boolean): void {
