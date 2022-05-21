@@ -295,10 +295,10 @@ interface FightEvent {
 export type Bracket = {
   left: Bracket
   right: Bracket
-  winner: number
+  winner: number | null
 } | {
   winner: number
-}
+};
 
 interface BracketEvent {
   type: "bracket"

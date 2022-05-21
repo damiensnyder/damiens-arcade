@@ -7,6 +7,7 @@ import { StatName } from "$lib/tourney/types";
 import { array, mixed, number, object, string } from "yup";
 import { getIndexByController, getTeamByController } from "$lib/tourney/utils";
 import { settingsAreValid, addDefaultsIfApplicable, isValidEquipmentTournament, isValidEquipmentBR } from "$lib/tourney/battle-logic";
+
 // ms to wait before advancing to next stage automatically
 // 0 in dev mode, 3000 in production
 const ADVANCEMENT_DELAY = 0; 
@@ -418,7 +419,34 @@ export default class Tourney extends GameLogicHandlerBase {
   }
 
   simulateBattleRoyale(): void {
+    // just say everything goes in order
+    // in the future this should... actually, you know, simulate the battle royale
+    const seeding = Array(this.teams.length).map((_, i) => i);
+    this.bracket = generateBracket(seeding);
+    this.gameStage = "tournament";
+    setTimeout(this.prepareForNextMatch.bind(this), ADVANCEMENT_DELAY);
+  }
 
+  prepareForNextMatch(): void {
+    delete this.fightersInBattle;
+    delete this.map;
+    if (this.bracket.winner !== null) {
+      // TODO: go to preseason
+    }
+    let nextMatch = null;
+    const matchesToCheck: Bracket[] = [this.bracket];
+    while (matchesToCheck.length > 0) {
+      const match = matchesToCheck.splice(0, 1)[0];
+      if (match.winner === null) {
+        nextMatch = match;
+        // @ts-ignore
+        matchesToCheck.push(match.right);
+        // @ts-ignore
+        matchesToCheck.push(match.left);
+      }
+    }
+    this.ready[nextMatch.left.winner] = true;
+    this.ready[nextMatch.right.winner] = true;
   }
 
   // generate a random fighter. in the future this generation should be more advanced
@@ -528,4 +556,18 @@ export default class Tourney extends GameLogicHandlerBase {
       }
     }
   }
+}
+
+function generateBracket(seeding: number[]): Bracket {
+  if (seeding.length === 1) {
+    return {
+      winner: seeding[0]
+    }
+  }
+  const powerOf2Below = Math.pow(2, Math.floor(Math.log2(seeding.length - 1)));
+  return {
+    left: generateBracket(seeding.slice(0, powerOf2Below)),
+    right: generateBracket(seeding.slice(powerOf2Below)),
+    winner: null
+  };
 }
