@@ -6,6 +6,9 @@
   export let name: string;
   export let stats: FighterStats;
   export let index: number;
+  export let imgUrl: string;
+  // export let description: string;
+  // export let yearsLeft: number;
 
   function pick() {
     lastAction.set({
@@ -20,7 +23,7 @@
   <button on:click={pick} on:submit={pick}>Pick</button>
 </div>
 <div class="horiz">
-  <img src="../favicon.ico" width="150" height="150" alt={name} />
+  <img src={imgUrl} width="150" height="150" alt={name} />
   <div class="horiz">
     <div>
       {#each Object.entries(StatName) as statEntry}

@@ -6,6 +6,7 @@
   import WatchFight from "$lib/tourney/watch-fight.svelte";
   import PickBrFighter from "$lib/tourney/pick-br-fighter.svelte";
   import PickFighters from "$lib/tourney/pick-fighters.svelte";
+import FreeAgency from "./free-agency.svelte";
 </script>
 
 <div class="fun">
@@ -20,8 +21,10 @@
   <div class="container horiz">
     {#if $gameStage === "preseason"}
       <Preseason />
-    {:else if $gameStage === "draft" || $gameStage === "free agency"}
+    {:else if $gameStage === "draft"}
       <Draft />
+    {:else if $gameStage === "free agency"}
+      <FreeAgency />
     {:else if $gameStage === "training"}
       <Training />
     {:else if $fightersInBattle.length > 0}

@@ -94,12 +94,13 @@ export const eventHandler: EventHandler<TourneyEvent> = {
       return old;
     });
   },
-  pass: function (event): void {
+  pass: function (_event): void {
     spotInDraftOrder.update(x => x+1);
   },
   goToFA: function (event): void {
     gameStage.set("free agency");
     fighters.set(event.fighters);
+    draftOrder.update(old => old.reverse());
   },
   goToTraining: function (event): void {
     gameStage.set("training");

@@ -227,6 +227,7 @@ export type TourneyAction = ChangeGameSettingsAction |
     AddBotAction |
     AdvanceAction |
     PickAction |
+    PassAction |
     PracticeAction |
     PickBRFighterAction |
     PickFightersAction |
