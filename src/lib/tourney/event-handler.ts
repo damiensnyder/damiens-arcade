@@ -93,6 +93,8 @@ export const eventHandler: EventHandler<TourneyEvent> = {
       }
       return old;
     });
+  },
+  pass: function (event): void {
     spotInDraftOrder.update(x => x+1);
   },
   goToFA: function (event): void {

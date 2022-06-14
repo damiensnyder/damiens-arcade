@@ -47,6 +47,10 @@ const pickSchema = object({
   index: number().integer().min(0)
 });
 
+const passSchema = object({
+  type: string().required().equals(["pass"])
+});
+
 const practiceSchema = object({
   type: string().required().equals(["practice"]),
   skills: array(mixed())
@@ -223,6 +227,12 @@ export default class Tourney extends GameLogicHandlerBase {
       teamControlledByViewer.money -= fighterPicked.price;
       fighterPicked.yearsLeft = 2;
       this.emitEventToAll(action);
+
+      // PASS
+    } else if (passSchema.isValidSync(action) &&
+        indexControlledByViewer !== null &&
+        this.gameStage === "free agency") {
+      this.emitEventToAll(action);
       this.spotInDraftOrder++;
       if (this.spotInDraftOrder == this.draftOrder.length) {
         setTimeout(this.advanceToTraining.bind(this), ADVANCEMENT_DELAY);
@@ -380,6 +390,8 @@ export default class Tourney extends GameLogicHandlerBase {
     for (const fighter of this.fighters) {
       fighter.price = 20;
     }
+
+    this.emitEventToAll({ type: "goToFA", fighters: this.fighters });
   }
 
   advanceToTraining(): void {

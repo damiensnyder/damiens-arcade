@@ -186,6 +186,10 @@ interface PickAction {
   index: number
 }
 
+interface PassAction {
+  type: "pass"
+}
+
 interface PracticeAction {
   type: "practice"
   skills: (keyof FighterStats | number)[]
@@ -271,6 +275,11 @@ interface PickEvent {
   fighter: number
 }
 
+interface PassEvent {
+  type: "pass"
+  fighter: number
+}
+
 interface GoToFAEvent {
   type: "goToFA"
   fighters: Fighter[]
@@ -318,6 +327,7 @@ export type TourneyEvent = ChangeGameSettingsEvent |
     RemoveEvent |
     GoToDraftEvent |
     PickEvent |
+    PassEvent |
     GoToFAEvent |
     GoToTrainingEvent |
     GoToBREvent |
