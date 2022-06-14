@@ -431,7 +431,7 @@ export default class Tourney extends GameLogicHandlerBase {
     delete this.fightersInBattle;
     delete this.map;
     if (this.bracket.winner !== null) {
-      // TODO: go to preseason
+      this.advanceToPreseason();
     }
     let nextMatch = null;
     const matchesToCheck: Bracket[] = [this.bracket];
@@ -447,6 +447,27 @@ export default class Tourney extends GameLogicHandlerBase {
     }
     this.ready[nextMatch.left.winner] = true;
     this.ready[nextMatch.right.winner] = true;
+  }
+
+  advanceToPreseason(): void {
+    this.teams.forEach((team: PreseasonTeam) => {
+      team.needsResigning = team.fighters.filter((fighter) => {
+        fighter.yearsLeft === 0;
+      });
+      team.fighters = team.fighters.filter((fighter) => {
+        fighter.yearsLeft > 0;
+      });
+      team.needsRepair = team.equipment.filter((equipment) => {
+        equipment.durability === 0;
+      });
+      team.equipment = team.equipment.filter((equipment) => {
+        equipment.durability > 0;
+      });
+      team.money = Math.ceil(team.money / 2) + 100;
+    });
+    this.gameStage = "preseason";
+    delete this.fightersInBattle;
+    delete this.map;
   }
 
   // generate a random fighter. in the future this generation should be more advanced
