@@ -1,6 +1,7 @@
 import { array, boolean, number, object, string } from "yup";
 import { readFileSync } from "fs";
-import type { EquipmentSlot, Settings, Team } from "$lib/tourney/types";
+import type { EquipmentSlot, FighterInBattle, Map, Settings, Team, TourneyEvent } from "$lib/tourney/types";
+import type { Socket } from "socket.io";
 
 const fighterStatsSchema = array(
   number().min(0).max(10).integer()
@@ -110,4 +111,11 @@ export function isValidEquipmentTournament(team: Team, equipment: number[][]): b
     }
   }
   return true;
+}
+
+// return true if right wins, false if left wins
+export function simulateFight(
+  eventEmitter: (event: TourneyEvent) => void, map: Map, fighters: FighterInBattle[]
+): boolean {
+  return false;
 }

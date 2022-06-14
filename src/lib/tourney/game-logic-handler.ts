@@ -2,11 +2,11 @@ import { GameType } from "$lib/types";
 import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
-import type { TourneyGameStage, TourneyViewpoint, ViewpointBase, Team, Settings, Fighter, FighterStats, Bracket, FighterInBattle, Equipment, PreseasonTeam } from "$lib/tourney/types";
+import type { TourneyGameStage, TourneyViewpoint, ViewpointBase, Team, Settings, Fighter, FighterStats, Bracket, FighterInBattle, Equipment, PreseasonTeam, Map } from "$lib/tourney/types";
 import { StatName } from "$lib/tourney/types";
 import { array, mixed, number, object, string } from "yup";
 import { getIndexByController, getTeamByController } from "$lib/tourney/utils";
-import { settingsAreValid, addDefaultsIfApplicable, isValidEquipmentTournament, isValidEquipmentBR } from "$lib/tourney/battle-logic";
+import { settingsAreValid, addDefaultsIfApplicable, isValidEquipmentTournament, isValidEquipmentBR, simulateFight } from "$lib/tourney/battle-logic";
 
 // ms to wait before advancing to next stage automatically
 // 0 in dev mode, 3000 in production
@@ -90,6 +90,7 @@ export default class Tourney extends GameLogicHandlerBase {
   fightersInBattle?: FighterInBattle[]
   map?: number
   bracket?: Bracket
+  nextMatch?: Bracket & { left: Bracket, right: Bracket }
 
   constructor(room: GameRoom) {
     super(room);
@@ -301,7 +302,7 @@ export default class Tourney extends GameLogicHandlerBase {
         });
       }
       if (this.ready.every(x => x)) {
-        this.simulateBattleRoyale();
+        this.simulateFight();
       }
 
       // RESIGN
@@ -427,26 +428,32 @@ export default class Tourney extends GameLogicHandlerBase {
     setTimeout(this.prepareForNextMatch.bind(this), ADVANCEMENT_DELAY);
   }
 
+  simulateFight(): void {
+    this.nextMatch.winner = simulateFight(
+      this.emitEventToAll, this.map as unknown as Map, this.fightersInBattle
+    ) ? this.nextMatch.right.winner : this.nextMatch.left.winner;
+    this.prepareForNextMatch();
+  }
+
   prepareForNextMatch(): void {
     delete this.fightersInBattle;
     delete this.map;
+    delete this.nextMatch;
     if (this.bracket.winner !== null) {
       this.advanceToPreseason();
     }
-    let nextMatch = null;
     const matchesToCheck: Bracket[] = [this.bracket];
     while (matchesToCheck.length > 0) {
       const match = matchesToCheck.splice(0, 1)[0];
       if (match.winner === null) {
-        nextMatch = match;
         // @ts-ignore
-        matchesToCheck.push(match.right);
-        // @ts-ignore
-        matchesToCheck.push(match.left);
+        this.nextMatch = match;
+        matchesToCheck.push(this.nextMatch.right);
+        matchesToCheck.push(this.nextMatch.left);
       }
     }
-    this.ready[nextMatch.left.winner] = true;
-    this.ready[nextMatch.right.winner] = true;
+    this.ready[this.nextMatch.left.winner] = false;
+    this.ready[this.nextMatch.right.winner] = false;
   }
 
   advanceToPreseason(): void {
