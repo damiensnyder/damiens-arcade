@@ -52,7 +52,12 @@ const config = {
 		}),
 		vite: {
       envPrefix: "BACKEND_",
-      plugins: [roomManagerMiddleware]
+      plugins: [roomManagerMiddleware],
+			server: {
+				fs: {
+					allow: ["static"]
+				}
+			}
     }
 	}
 };
