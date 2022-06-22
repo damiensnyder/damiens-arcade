@@ -7,6 +7,17 @@
   import PickBrFighter from "$lib/tourney/pick-br-fighter.svelte";
   import PickFighters from "$lib/tourney/pick-fighters.svelte";
   import FreeAgency from "$lib/tourney/free-agency.svelte";
+  import TeamView from "$lib/tourney/team-view.svelte";
+
+  let onTeamView = false;
+
+  function goToTeamView() {
+    onTeamView = true;
+  }
+
+  function leaveTeamView() {
+    onTeamView = false;
+  }
 </script>
 
 <div class="fun">
@@ -14,13 +25,19 @@
     <h2>{$gameStage}</h2>
     {#if $ownTeamIndex !== null}
       <div class="money">${$ownTeam.money}</div>
-      <button>My Team</button>
+      {#if onTeamView}
+        <button on:click={leaveTeamView} on:submit={leaveTeamView}>Back to {$gameStage}</button>
+      {:else}
+        <button on:click={goToTeamView} on:submit={goToTeamView}>My Team</button>
+      {/if}
     {/if}
     <button>All teams</button>
   </div>
   
   <div class="container horiz">
-    {#if $gameStage === "preseason"}
+    {#if onTeamView}
+      <TeamView team={$ownTeam} />
+    {:else if $gameStage === "preseason"}
       <Preseason />
     {:else if $gameStage === "draft"}
       <Draft />

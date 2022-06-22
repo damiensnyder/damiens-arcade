@@ -3,7 +3,7 @@
   import type { FighterStats } from "$lib/tourney/types";
   import { StatName } from "$lib/tourney/types";
   import StarRating from "./star-rating.svelte";
-import { draftOrder, ownTeamIndex, spotInDraftOrder } from "./stores";
+  import { draftOrder, ownTeamIndex, spotInDraftOrder } from "./stores";
 
   export let name: string;
   export let stats: FighterStats;
