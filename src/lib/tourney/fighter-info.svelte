@@ -3,6 +3,7 @@
   import type { FighterStats } from "$lib/tourney/types";
   import { StatName } from "$lib/tourney/types";
   import StarRating from "./star-rating.svelte";
+import { draftOrder, ownTeamIndex, spotInDraftOrder } from "./stores";
 
   export let name: string;
   export let stats: FighterStats;
@@ -10,7 +11,10 @@
   export let imgUrl: string;
   export let description: string;
   export let flavor: string;
-  // export let yearsLeft: number;
+  // svelte-ignore unused-export-let
+  export let yearsLeft: number;
+  // svelte-ignore unused-export-let
+  export let attunements: number;
 
   function pick() {
     lastAction.set({
@@ -22,7 +26,9 @@
 
 <div class="horiz top-bar">
   <h3>{name}</h3>
-  <button on:click={pick} on:submit={pick}>Pick</button>
+  {#if $draftOrder[$spotInDraftOrder] === $ownTeamIndex}
+    <button on:click={pick} on:submit={pick}>Pick</button>
+  {/if}
 </div>
 <div class="horiz">
   <img src={imgUrl} width="150" height="150" alt={name} />

@@ -1,18 +1,19 @@
 <script lang="ts">
-  import { fightersInBattle, gameStage, ownTeam } from "$lib/tourney/stores";
+  import { fightersInBattle, gameStage, ownTeam, ownTeamIndex } from "$lib/tourney/stores";
   import Preseason from "$lib/tourney/preseason.svelte";
   import Draft from "$lib/tourney/draft.svelte";
   import Training from "$lib/tourney/training.svelte";
   import WatchFight from "$lib/tourney/watch-fight.svelte";
   import PickBrFighter from "$lib/tourney/pick-br-fighter.svelte";
   import PickFighters from "$lib/tourney/pick-fighters.svelte";
-import FreeAgency from "./free-agency.svelte";
+  import FreeAgency from "$lib/tourney/free-agency.svelte";
 </script>
 
 <div class="fun">
   <div class="top-icons horiz">
     <h2>{$gameStage}</h2>
-    {#if ownTeam !== null}
+    {#if $ownTeamIndex !== null}
+      <div class="money">${$ownTeam.money}</div>
       <button>My Team</button>
     {/if}
     <button>All teams</button>
@@ -60,5 +61,10 @@ import FreeAgency from "./free-agency.svelte";
 
   button {
     margin: 0 0.5rem;
+  }
+
+  .money {
+    margin: 0 0.5rem;
+    font-size: 1.2rem;
   }
 </style>
