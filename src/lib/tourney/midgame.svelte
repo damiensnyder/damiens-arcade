@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { fightersInBattle, gameStage, ownTeam, ownTeamIndex, teams } from "$lib/tourney/stores";
+  import { bracket, draftOrder, equipment, fighters, fightersInBattle, gameStage, ownTeam, ownTeamIndex, spotInDraftOrder, teams } from "$lib/tourney/stores";
   import Preseason from "$lib/tourney/preseason.svelte";
   import Draft from "$lib/tourney/draft.svelte";
   import Training from "$lib/tourney/training.svelte";
@@ -9,6 +9,7 @@
   import FreeAgency from "$lib/tourney/free-agency.svelte";
   import TeamView from "$lib/tourney/team-view.svelte";
   import AllTeams from "$lib/tourney/all-teams.svelte";
+  import { lastAction } from "$lib/stores";
 
   // true for all teams, false for none, number for specific team. janky but who cares
   let viewing: number | boolean = null;
@@ -16,11 +17,25 @@
   function changeView(team: number | boolean) {
     viewing = team;
   }
+
+  function debug(): void {
+    lastAction.set("debug");
+    console.log({
+      teams: $teams,
+      equipment: $equipment,
+      bracket: $bracket,
+      fighters: $fighters,
+      draftOrder: $draftOrder,
+      spotInDraftOrder: $spotInDraftOrder,
+      gameStage: $gameStage
+    });
+  }
 </script>
 
 <div class="fun">
   <div class="top-icons horiz">
     <h2>{$gameStage}</h2>
+    <button on:click={debug} on:submit={debug}>Debug</button>
     {#if $ownTeamIndex !== null}
       <div class="money">${$ownTeam.money}</div>
       {#if viewing !== $ownTeamIndex}

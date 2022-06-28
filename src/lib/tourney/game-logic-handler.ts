@@ -105,9 +105,15 @@ export default class Tourney extends GameLogicHandlerBase {
     const indexControlledByViewer = getIndexByController(this.teams, viewer.index);
     const teamControlledByViewer = getTeamByController(this.teams, viewer.index);
     const isHost = this.room.host === viewer.index;
+    
+    if (action === "debug") {
+      const temp = this.room;
+      this.room = undefined;  // so we don't have to look at all the parameters of the socket
+      console.debug(this);
+      this.room = temp;
 
     // CHANGE GAME SETTINGS
-    if (settingsAreValid(action) &&
+    } else if (settingsAreValid(action) &&
         this.room.host === viewer.index) {
       this.settings = action.settings as Settings;
       this.emitEventToAll({
@@ -164,7 +170,7 @@ export default class Tourney extends GameLogicHandlerBase {
         controller: viewer.index
       });
 
-      if (this.gameStage === "free agency") {
+      if (this.gameStage === "training") {
         this.emitEventTo(viewer, {
           type: "goToTraining",
           equipment: this.teams[action.team].equipment
