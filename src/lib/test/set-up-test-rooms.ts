@@ -35,8 +35,9 @@ let macros: Record<string, (ActionWithIndex | MacroAction)[]>;
 
 export default function setUpTestRooms(roomManager: RoomManager) {
   const testFiles = readdirSync("src/lib/test/cases");
-  macros = JSON.parse(readFileSync("src/lib/test/macros.json").toString());
   for (const fileName of testFiles) {
+    // macros is re-read each time because it gets mutated between uses
+    macros = JSON.parse(readFileSync("src/lib/test/macros.json").toString());
     const testFileText = readFileSync("src/lib/test/cases/" + fileName).toString();
     const roomScript: TestRoomScript = JSON.parse(testFileText);
     roomManager.createRoom(fileName.split(".")[0]);
