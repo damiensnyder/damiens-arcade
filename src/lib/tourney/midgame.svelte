@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { fightersInBattle, gameStage, ownTeam, ownTeamIndex } from "$lib/tourney/stores";
+  import { fightersInBattle, gameStage, ownTeam, ownTeamIndex, teams } from "$lib/tourney/stores";
   import Preseason from "$lib/tourney/preseason.svelte";
   import Draft from "$lib/tourney/draft.svelte";
   import Training from "$lib/tourney/training.svelte";
@@ -8,15 +8,13 @@
   import PickFighters from "$lib/tourney/pick-fighters.svelte";
   import FreeAgency from "$lib/tourney/free-agency.svelte";
   import TeamView from "$lib/tourney/team-view.svelte";
+  import AllTeams from "$lib/tourney/all-teams.svelte";
 
-  let onTeamView = false;
+  // true for all teams, false for none, number for specific team. janky but who cares
+  let viewing: number | boolean = null;
 
-  function goToTeamView() {
-    onTeamView = true;
-  }
-
-  function leaveTeamView() {
-    onTeamView = false;
+  function changeView(team: number | boolean) {
+    viewing = team;
   }
 </script>
 
@@ -25,18 +23,27 @@
     <h2>{$gameStage}</h2>
     {#if $ownTeamIndex !== null}
       <div class="money">${$ownTeam.money}</div>
-      {#if onTeamView}
-        <button on:click={leaveTeamView} on:submit={leaveTeamView}>Back to {$gameStage}</button>
-      {:else}
-        <button on:click={goToTeamView} on:submit={goToTeamView}>My Team</button>
+      {#if viewing !== $ownTeamIndex}
+        <button on:click={() => changeView($ownTeamIndex)} on:submit={() => changeView($ownTeamIndex)}>
+          My Team
+        </button>
       {/if}
     {/if}
-    <button>All teams</button>
+    {#if viewing !== false}
+      <button on:click={() => changeView(false)} on:submit={() => changeView(false)}>
+        Back to {$gameStage}
+      </button>
+    {/if}
+    <button on:click={() => changeView(true)} on:submit={() => changeView(true)}>
+      All teams
+    </button>
   </div>
   
   <div class="container horiz">
-    {#if onTeamView}
-      <TeamView team={$ownTeam} />
+    {#if typeof viewing === "number"}
+      <TeamView team={$teams[viewing]} />
+    {:else if viewing === true}
+      <AllTeams callback={changeView} />
     {:else if $gameStage === "preseason"}
       <Preseason />
     {:else if $gameStage === "draft"}
