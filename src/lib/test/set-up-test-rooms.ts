@@ -46,10 +46,17 @@ export default function setUpTestRooms(roomManager: RoomManager) {
   }
 }
 
-function setUpTestRoom(room: GameRoom, roomScript: TestRoomScript): void {
+async function setUpTestRoom(room: GameRoom, roomScript: TestRoomScript): Promise<void> {
   for (const action of roomScript.actions) {
     enqueueAction(action as ActionWithIndex, room);
+    await sleep(1);
   }
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 function enqueueAction(action: ActionWithIndex | MacroAction, room: GameRoom) {
@@ -71,8 +78,12 @@ function enqueueAction(action: ActionWithIndex | MacroAction, room: GameRoom) {
       index: action.index + 0.5,
       socket: new FakeSocket() as unknown as Socket
     };
-    action.index = action["_index"];
-    delete action["_index"];
+    if (action["_index"] !== undefined) {
+      action.index = action["_index"];
+      delete action["_index"];
+    } else {
+      delete action.index;
+    }
     if (action.type === PacketType.Connect) {
       room.viewers.push(fakeViewer);
       room.enqueuePacket(fakeViewer, action.type);

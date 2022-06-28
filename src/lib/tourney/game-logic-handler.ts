@@ -247,7 +247,7 @@ export default class Tourney extends GameLogicHandlerBase {
         this.gameStage === "free agency") {
       this.emitEventToAll(action);
       this.spotInDraftOrder++;
-      if (this.spotInDraftOrder == this.draftOrder.length) {
+      if (this.spotInDraftOrder === this.draftOrder.length) {
         setTimeout(this.advanceToTraining.bind(this), ADVANCEMENT_DELAY);
       }
 
@@ -346,7 +346,12 @@ export default class Tourney extends GameLogicHandlerBase {
       teamControlledByViewer.money -= (teamControlledByViewer as PreseasonTeam).needsRepair[action.equipment].price;
       teamControlledByViewer.equipment.push((teamControlledByViewer as PreseasonTeam).needsRepair[action.equipment]);
     } else {
-      // console.debug("INVALID ACTION");
+      // if (typeof action === "object" && action != null && action.type === "pass") {
+      //   console.debug("INVALID ACTION:");
+      //   console.debug(action);
+      //   console.log(indexControlledByViewer);
+      //   console.log(this.gameStage)
+      // }
     }
   }
 
