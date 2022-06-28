@@ -70,7 +70,8 @@ function enqueueAction(action: ActionWithIndex | MacroAction, room: GameRoom) {
       index: action.index + 0.5,
       socket: new FakeSocket() as unknown as Socket
     };
-    delete action.index;
+    action.index = action["_index"];
+    delete action["_index"];
     if (action.type === PacketType.Connect) {
       room.viewers.push(fakeViewer);
       room.enqueuePacket(fakeViewer, action.type);
@@ -78,7 +79,7 @@ function enqueueAction(action: ActionWithIndex | MacroAction, room: GameRoom) {
       room.enqueuePacket(fakeViewer, action.type);
     } else {
       try {
-      room.enqueuePacket(fakeViewer, PacketType.Action, action as Action);
+        room.enqueuePacket(fakeViewer, PacketType.Action, action as Action);
       } catch (e) {
         console.log(e);
         console.log(action);
