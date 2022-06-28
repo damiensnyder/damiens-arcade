@@ -164,6 +164,13 @@ export default class Tourney extends GameLogicHandlerBase {
         controller: viewer.index
       });
 
+      if (this.gameStage === "free agency") {
+        this.emitEventTo(viewer, {
+          type: "goToTraining",
+          equipment: this.teams[action.team].equipment
+        });
+      }
+
       // REMOVE
     } else if (removeSchema.isValidSync(action) &&
         this.gameStage === "preseason" &&

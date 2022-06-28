@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { lastAction } from "$lib/stores";
   import type { EquipmentSlot, FighterStats } from "$lib/tourney/types";
 
   export let name: string;
@@ -15,12 +14,10 @@
   export let price: number = -1;
   // svelte-ignore unused-export-let
   export let durability: number = -1;
+  export let callback: (index: number) => void = (index: number) => {};
 
   function pick() {
-    lastAction.set({
-      type: "pick",
-      index
-    });
+    callback(index);
   }
 </script>
 
