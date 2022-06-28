@@ -53,6 +53,7 @@ const passSchema = object({
 
 const practiceSchema = object({
   type: string().required().equals(["practice"]),
+  equipment: array(number().min(0)).required(),
   skills: array(mixed())
 });
 
@@ -91,6 +92,7 @@ export default class Tourney extends GameLogicHandlerBase {
   spotInDraftOrder?: number
   fighters?: Fighter[]
   equipmentAvailable?: Equipment[][]
+  trainingChoices?: { equipment: number[], skills: (number | StatName)[] }[]
   fightersInBattle?: FighterInBattle[]
   map?: number
   bracket?: Bracket
@@ -251,35 +253,16 @@ export default class Tourney extends GameLogicHandlerBase {
         setTimeout(this.advanceToTraining.bind(this), ADVANCEMENT_DELAY);
       }
 
-      // PICK (training)
-    } else if (pickSchema.isValidSync(action) &&
-        indexControlledByViewer !== null &&
-        this.gameStage === "training" &&
-        action.index < this.equipmentAvailable.length &&
-        teamControlledByViewer.money >= this.equipmentAvailable[indexControlledByViewer][action.index].price) {
-      const equipmentPicked = this.equipmentAvailable[indexControlledByViewer].splice(action.index, 1)[0];
-      teamControlledByViewer.equipment.push(equipmentPicked);
-      teamControlledByViewer.money -= equipmentPicked.price;
-
       // PRACTICE
     } else if (practiceSchema.isValidSync(action) &&
         this.gameStage === "training" &&
         indexControlledByViewer !== null &&
         !this.ready[indexControlledByViewer] &&
-        action.skills.length === teamControlledByViewer.fighters.length &&
-        action.skills.every(skill => typeof StatName[skill] === "string" ||
-                                     (typeof skill === "number" &&
-                                      skill > 0 &&
-                                      skill < teamControlledByViewer.equipment.length))) {
-      action.skills.forEach((skill, i) => {
-        if (typeof skill === "number") {
-          teamControlledByViewer.fighters[i].attunements.push(
-            teamControlledByViewer.equipment[skill].name
-          );
-        } else {
-          teamControlledByViewer.fighters[i].abilities[skill]++;
-        }
-      });
+        action.skills.length === teamControlledByViewer.fighters.length) {
+      this.trainingChoices[indexControlledByViewer] = {
+        equipment: action.equipment,
+        skills: action.skills
+      };
       this.ready[indexControlledByViewer] = true;
       if (this.ready.every(x => x)) {
         this.advanceToBattleRoyale();
@@ -414,6 +397,7 @@ export default class Tourney extends GameLogicHandlerBase {
 
   advanceToTraining(): void {
     this.gameStage = "training";
+    this.trainingChoices = Array(8);
     this.equipmentAvailable = [];
     this.ready = [];
     for (let i = 0; i < this.teams.length; i++) {
@@ -440,6 +424,30 @@ export default class Tourney extends GameLogicHandlerBase {
   }
 
   advanceToBattleRoyale(): void {
+    this.trainingChoices.forEach((choice, i) => {
+      const team = this.teams[i]
+      const e = this.equipmentAvailable[i];
+      choice.equipment.forEach((equipmentIndex) => {
+        if (equipmentIndex >= 0 &&
+            equipmentIndex < e.length &&
+            e[equipmentIndex].price <= team.money) {
+          team.equipment.push(e.splice(equipmentIndex, 1)[0]);
+          team.money -= e[equipmentIndex].price;
+        }
+      });
+      choice.skills.forEach((skill, j) => {
+        if (typeof skill === "number" && skill >= 0 && team.equipment.length < skill) {
+          team.fighters[j].attunements.push(team.equipment[skill].name);
+        } else if (typeof skill === "string" &&
+            Object.values(StatName).includes(skill) &&
+            team.fighters[j].stats[skill] < 10) {
+          team.fighters[j].stats[skill] += 1;
+        }
+      });
+    });
+    delete this.trainingChoices;
+    delete this.equipmentAvailable;
+
     this.gameStage = "battle royale";
     this.emitEventToAll({
       type: "goToBR",

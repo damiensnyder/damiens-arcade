@@ -194,6 +194,7 @@ interface PassAction {
 
 interface PracticeAction {
   type: "practice"
+  equipment: number[]
   skills: (keyof FighterStats | number)[]
 }
 
