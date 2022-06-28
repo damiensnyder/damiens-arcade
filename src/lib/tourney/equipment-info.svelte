@@ -1,17 +1,20 @@
 <script lang="ts">
   import { lastAction } from "$lib/stores";
-  import type { FighterStats } from "$lib/tourney/types";
-  import { StatName } from "$lib/tourney/types";
+  import type { EquipmentSlot, FighterStats } from "$lib/tourney/types";
 
   export let name: string;
-  // export let stats: FighterStats;
-  // export let slot: EquipmentSlot;
+  // svelte-ignore unused-export-let
+  export let stats: FighterStats;
+  // svelte-ignore unused-export-let
+  export let slot: EquipmentSlot;
   export let index: number;
   export let imgUrl: string;
-  export let description: string;
-  export let flavor: string;
-  // export let price: number;
-  // export let durability: number;
+  export let description: string = "";
+  export let flavor: string = "";
+  // svelte-ignore unused-export-let
+  export let price: number = -1;
+  // svelte-ignore unused-export-let
+  export let durability: number = -1;
 
   function pick() {
     lastAction.set({

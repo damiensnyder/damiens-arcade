@@ -18,6 +18,7 @@ export function handleGamestate(gamestate: TourneyViewpoint): void {
     teams.set(gamestate.teams);
     if (gamestate.gameStage === "draft" || gamestate.gameStage === "free agency") {
       draftOrder.set(gamestate.draftOrder);
+      spotInDraftOrder.set(gamestate.spotInDraftOrder);
       fighters.set(gamestate.fighters);
     } else if (gamestate.gameStage === "tournament") {
       bracket.set(gamestate.bracket);
@@ -93,6 +94,9 @@ export const eventHandler: EventHandler<TourneyEvent> = {
       }
       return old;
     });
+    if (get(gameStage) === "draft") {
+      spotInDraftOrder.update(x => x+1);
+    }
   },
   pass: function (_event): void {
     spotInDraftOrder.update(x => x+1);
@@ -101,6 +105,7 @@ export const eventHandler: EventHandler<TourneyEvent> = {
     gameStage.set("free agency");
     fighters.set(event.fighters);
     draftOrder.update(old => old.reverse());
+    spotInDraftOrder.set(0);
   },
   goToTraining: function (event): void {
     gameStage.set("training");

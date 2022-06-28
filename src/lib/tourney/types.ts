@@ -38,12 +38,14 @@ interface PreseasonViewpoint extends MidgameViewpointBase {
 interface DraftViewpoint extends MidgameViewpointBase {
   gameStage: "draft"
   draftOrder: number[]
+  spotInDraftOrder: number
   fighters: Fighter[]
 }
 
 interface FAViewpoint extends MidgameViewpointBase {
   gameStage: "free agency"
   draftOrder: number[]
+  spotInDraftOrder: number
   fighters: Fighter[]
 }
 

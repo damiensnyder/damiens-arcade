@@ -565,7 +565,7 @@ export default class Tourney extends GameLogicHandlerBase {
         this.gameStage === "training") {
       return {
         ...this.basicViewpointInfo(viewer),
-        gameStage: "preseason",
+        gameStage: this.gameStage,
         teams: this.teams
       }
     } else if (this.gameStage === "draft" ||
@@ -575,6 +575,7 @@ export default class Tourney extends GameLogicHandlerBase {
         gameStage: this.gameStage,
         teams: this.teams,
         draftOrder: this.draftOrder,
+        spotInDraftOrder: this.spotInDraftOrder,
         fighters: this.fighters
       }
     } else if (this.gameStage === "battle royale") {

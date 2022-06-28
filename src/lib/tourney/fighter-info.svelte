@@ -9,12 +9,14 @@
   export let stats: FighterStats;
   export let index: number;
   export let imgUrl: string;
-  export let description: string;
-  export let flavor: string;
+  // svelte-ignore unused-export-let
+  export let price: number = -1;
+  export let description: string = "";
+  export let flavor: string = "";
   // svelte-ignore unused-export-let
   export let yearsLeft: number;
   // svelte-ignore unused-export-let
-  export let attunements: number;
+  export let attunements: string[];
 
   function pick() {
     lastAction.set({
