@@ -173,7 +173,7 @@ export default class Tourney extends GameLogicHandlerBase {
       if (this.gameStage === "training") {
         this.emitEventTo(viewer, {
           type: "goToTraining",
-          equipment: this.teams[action.team].equipment
+          equipment: this.equipmentAvailable[action.team]
         });
       }
 
