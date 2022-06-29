@@ -231,7 +231,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
     this.players.O.money = this.settings.startingMoney;
     this.whoseTurnToNominate = this.settings.startingPlayer;
     if (this.whoseTurnToNominate === Side.None) {
-      this.whoseTurnToNominate = Math.random() > 0.5 ? Side.X : Side.O;
+      this.whoseTurnToNominate = this.randInt(0, 1) === 0 ? Side.X : Side.O;
     }
     this.squares = [
       [Side.None, Side.None, Side.None],

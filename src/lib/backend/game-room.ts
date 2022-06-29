@@ -31,11 +31,18 @@ export default class GameRoom {
   private readonly teardownCallback: TeardownCallback;
   private readonly io: Namespace;
   private teardownTimer: NodeJS.Timeout;
+  readonly seed: [number, number, number, number];
 
   constructor(
     io: Server,
     roomCode: string,
-    teardownCallback: TeardownCallback
+    teardownCallback: TeardownCallback,
+    seed: [number, number, number, number] = [
+      Math.random() * 4294967296,
+      Math.random() * 4294967296,
+      Math.random() * 4294967296,
+      Math.random() * 4294967296
+    ]
   ) {
     this.viewers = [];
     this.connectionsStarted = 0;
@@ -47,6 +54,7 @@ export default class GameRoom {
       gameStage: "pregame"
     };
     this.gameLogicHandler = new NoGameSelected(this);
+    this.seed = seed;
 
     this.io = io.of(`/game/${roomCode}`);
     this.io.on("connection", (socket: Socket) => {

@@ -27,7 +27,7 @@ interface MacroAction {
 
 interface TestRoomScript {
   actions: (ActionWithIndex | MacroAction)[]
-  seed?: number
+  seed: [number, number, number, number]
   expected?: any
 }
 
@@ -40,7 +40,7 @@ export default function setUpTestRooms(roomManager: RoomManager) {
     macros = JSON.parse(readFileSync("src/lib/test/macros.json").toString());
     const testFileText = readFileSync("src/lib/test/cases/" + fileName).toString();
     const roomScript: TestRoomScript = JSON.parse(testFileText);
-    roomManager.createRoom(fileName.split(".")[0]);
+    roomManager.createRoom(fileName.split(".")[0], roomScript.seed);
     const room = roomManager.activeRooms[fileName.split(".")[0]];
     setUpTestRoom(room, roomScript);
   }

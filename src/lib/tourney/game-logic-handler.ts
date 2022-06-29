@@ -356,7 +356,7 @@ export default class Tourney extends GameLogicHandlerBase {
     let currentIndex = this.draftOrder.length;
     let randomIndex: number;
     while (currentIndex != 0) {
-      randomIndex = Math.floor(Math.random() * currentIndex);
+      randomIndex = this.randInt(0, currentIndex - 1);
       currentIndex--;
       [this.draftOrder[currentIndex], this.draftOrder[randomIndex]] =
           [this.draftOrder[randomIndex], this.draftOrder[currentIndex]];
@@ -521,18 +521,16 @@ export default class Tourney extends GameLogicHandlerBase {
 
   // generate a random fighter. in the future this generation should be more advanced
   generateFighter(): Fighter {
-    const base = this.settings.fighters[
-      Math.floor(this.settings.fighters.length * Math.random())
-    ];
+    const base = this.settings.fighters[this.randInt(0, this.settings.fighters.length - 1)];
     return {
       imgUrl: "../favicon.ico",
       stats: {
-        strength: Math.round(Math.random() * 10),
-        accuracy: Math.round(Math.random() * 10),
-        reflexes: Math.round(Math.random() * 10),
-        energy: Math.round(Math.random() * 10),
-        speed: Math.round(Math.random() * 10),
-        toughness: Math.round(Math.random() * 10)
+        strength: this.randInt(0, 10),
+        accuracy: this.randInt(0, 10),
+        reflexes: this.randInt(0, 10),
+        energy: this.randInt(0, 10),
+        speed: this.randInt(0, 10),
+        toughness: this.randInt(0, 10)
       },
       attunements: [],
       yearsLeft: 2,
@@ -544,9 +542,7 @@ export default class Tourney extends GameLogicHandlerBase {
 
   // generate a random equipment. in the future this generation should be more advanced
   generateEquipment(): Equipment {
-    const base = this.settings.equipment[
-      Math.floor(this.settings.equipment.length * Math.random())
-    ];
+    const base = this.settings.equipment[this.randInt(0, this.settings.equipment.length - 1)];
     return {
       imgUrl: "../favicon.ico",
       stats: {

@@ -20,7 +20,7 @@ export default class RoomManager {
   }
 
   // Create a game room and send the room code along with status 200.
-  createRoom(roomCode?: string): { roomCode: string } {
+  createRoom(roomCode?: string, seed?: [number, number, number, number]): { roomCode: string } {
     if (roomCode === undefined) {
       roomCode = this.generateRoomCode();
     }
@@ -28,7 +28,8 @@ export default class RoomManager {
     this.activeRooms[roomCode] = new GameRoom(
       this.io,
       roomCode,
-      this.teardownCallback.bind(this)
+      this.teardownCallback.bind(this),
+      seed
     );
 
     return { roomCode: roomCode };
