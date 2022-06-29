@@ -37,9 +37,9 @@
 </div>
 <div>
   {#if $ownTeamIndex !== null}
-    <h2>Your fighters</h2>
+    <h2>Select training</h2>
     {#each $ownTeam.fighters as fighter, index}
-      {fighter.name} &bull; Select training:
+      {fighter.name}:
       <select bind:value={skills[index]}>
         <optgroup label="Improve a skill">
           {#each Object.values(StatName) as stat}

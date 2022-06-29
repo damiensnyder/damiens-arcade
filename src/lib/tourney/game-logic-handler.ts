@@ -73,7 +73,7 @@ const pickFightersSchema = object({
 });
 
 const resignSchema = object({
-  type: string().required().equals(["pickBRFighter"]),
+  type: string().required().equals(["resign"]),
   fighter: number().integer().min(0)
 });
 
