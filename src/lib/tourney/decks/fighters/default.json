@@ -1,5 +1,4 @@
 {
-  "name": "Default",
   "firstNames": [
     "Fred",
     "Barry",
@@ -16,8 +15,7 @@
   ],
   "abilities": [
     {
-      "description": "",
-      "flavor": "",
+      "price": 0,
       "abilities": []
     }
   ]

@@ -1,9 +1,8 @@
 {
-  "name": "Default",
   "equipment": [
     {
       "name": "the shwickety shwack",
-      "slot": "hand",
+      "slot": "arm",
       "imgUrl": "../favicon.ico",
       "price": 10,
       "description": "anagram for the liberty launcher",

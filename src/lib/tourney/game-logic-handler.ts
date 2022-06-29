@@ -2,7 +2,7 @@ import { GameType } from "$lib/types";
 import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
-import type { TourneyGameStage, TourneyViewpoint, ViewpointBase, Team, Settings, Fighter, FighterStats, Bracket, FighterInBattle, Equipment, PreseasonTeam, Map } from "$lib/tourney/types";
+import { type TourneyGameStage, type TourneyViewpoint, type ViewpointBase, type Team, type Settings, type Fighter, type FighterStats, type Bracket, type FighterInBattle, type Equipment, type PreseasonTeam, type Map, EquipmentSlot } from "$lib/tourney/types";
 import { StatName } from "$lib/tourney/types";
 import { array, mixed, number, object, string } from "yup";
 import { getIndexByController, getTeamByController } from "$lib/tourney/utils";
@@ -100,7 +100,14 @@ export default class Tourney extends GameLogicHandlerBase {
 
   constructor(room: GameRoom) {
     super(room);
-    this.settings = {};
+    this.settings = {
+      fighterDecks: ["default"],
+      equipmentDecks: ["default"],
+      mapDecks: ["default"],
+      customFighters: [],
+      customEquipment: [],
+      customMaps: []
+    };
   }
 
   handleAction(viewer: Viewer, action?: any): void {
@@ -521,8 +528,9 @@ export default class Tourney extends GameLogicHandlerBase {
 
   // generate a random fighter. in the future this generation should be more advanced
   generateFighter(): Fighter {
-    const base = this.settings.fighters[this.randInt(0, this.settings.fighters.length - 1)];
     return {
+      name: "Tem Porary",
+      abilities: [],
       imgUrl: "../favicon.ico",
       stats: {
         strength: this.randInt(0, 10),
@@ -535,15 +543,16 @@ export default class Tourney extends GameLogicHandlerBase {
       attunements: [],
       yearsLeft: 2,
       description: "",
-      flavor: "",
-      ...base
+      flavor: ""
     };
   }
 
   // generate a random equipment. in the future this generation should be more advanced
   generateEquipment(): Equipment {
-    const base = this.settings.equipment[this.randInt(0, this.settings.equipment.length - 1)];
     return {
+      name: "gun",
+      slot: EquipmentSlot.Feet,
+      abilities: [],
       imgUrl: "../favicon.ico",
       stats: {
         strength: 0,
@@ -556,8 +565,7 @@ export default class Tourney extends GameLogicHandlerBase {
       durability: 3,
       price: 10,
       description: "",
-      flavor: "",
-      ...base
+      flavor: ""
     };
   }
 

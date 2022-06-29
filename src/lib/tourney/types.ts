@@ -87,8 +87,8 @@ export interface Fighter {
   abilities: Ability
   yearsLeft: number
   price?: number
-  description?: string
-  flavor?: string
+  description: string
+  flavor: string
 }
 
 export enum StatName {
@@ -115,8 +115,8 @@ export interface FighterInBattle {
 
 export enum EquipmentSlot {
   Head = "head",
-  LeftArm = "left arm",
-  RightArm = "right arm",
+  Arm = "arm",
+  TwoHanded = "two-handed",
   Torso = "torso",
   Legs = "legs",
   Feet = "feet"
@@ -130,22 +130,60 @@ export interface Equipment {
   abilities: Ability[]
   durability: number
   price: number
-  description?: string
-  flavor?: string
+  description: string
+  flavor: string
 }
 
 export interface Ability {}
 
 export interface Map {
   name: string
+  imgUrl: string
+  features: any[]
 }
 
 export interface Strategy {}
 
 export interface Settings {
-  maps?: Map[]
-  fighters?: Fighter[]
-  equipment?: Equipment[]
+  fighterDecks: string[]
+  equipmentDecks: string[]
+  mapDecks: string[]
+  customFighters: FighterDeck[]
+  customEquipment: EquipmentDeck[]
+  customMaps: MapDeck[]
+}
+
+export interface FighterDeck {
+  firstNames: string[]
+  lastNames: string[]
+  art: string[]
+  abilities: FighterTemplate[]
+}
+
+export interface FighterTemplate {
+  imgUrl?: string
+  description?: string
+  flavor?: string
+  price: number
+  abilities: any[]
+}
+
+export interface EquipmentDeck {
+  equipment: EquipmentTemplate[]
+}
+
+export interface EquipmentTemplate {
+  name: string
+  slot: EquipmentSlot
+  imgUrl: string
+  price: number
+  description?: string
+  flavor?: string
+  abilities: any[]
+}
+
+export interface MapDeck {
+  maps: Map[]
 }
 
 interface ChangeGameSettingsAction {
