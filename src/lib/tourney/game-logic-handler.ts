@@ -110,7 +110,7 @@ export default class Tourney extends GameLogicHandlerBase {
     
     if (action === "debug") {
       const temp = this.room;
-      this.room = undefined;  // so we don't have to look at all the parameters of the socket
+      delete this.room;  // so we don't have to look at all the parameters of the socket
       console.debug(this);
       this.room = temp;
 
@@ -397,6 +397,10 @@ export default class Tourney extends GameLogicHandlerBase {
 
   advanceToTraining(): void {
     this.gameStage = "training";
+    delete this.fighters;
+    delete this.draftOrder;
+    delete this.spotInDraftOrder;
+
     this.trainingChoices = Array(8);
     this.equipmentAvailable = [];
     this.ready = [];

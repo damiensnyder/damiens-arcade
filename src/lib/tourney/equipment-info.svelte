@@ -14,7 +14,7 @@
   export let price: number = -1;
   // svelte-ignore unused-export-let
   export let durability: number = -1;
-  export let callback: (index: number) => void = (index: number) => {};
+  export let callback: (index: number) => void = (_: number) => {};
 
   function pick() {
     callback(index);

@@ -5,21 +5,23 @@
   import FighterInfo from "$lib/tourney/fighter-info.svelte";
   import { StatName, type FighterStats } from "$lib/tourney/types";
 
+  let equipmentBought: number[] = [];
   let skills: (keyof FighterStats | number)[] = $ownTeamIndex === null ? [] :
       Array($ownTeam.fighters.length).fill("toughness");
 
   function pick(index: number) {
-    lastAction.set({
-      type: "pick",
-      index
-    });
+    equipmentBought.push(index);
     $ownTeam.equipment.push($equipment.splice(index, 1)[0]);
-    $ownTeam.equipment = $ownTeam.equipment;
+    // $ownTeam = $ownTeam;  // so the store knows it was updated
+    // $equipment = $equipment;
+    teams.update(x => x);
+    equipment.update(x => x);
   }
 
   function practice() {
     lastAction.set({
       type: "practice",
+      equipment: equipmentBought,
       skills
     });
   }
