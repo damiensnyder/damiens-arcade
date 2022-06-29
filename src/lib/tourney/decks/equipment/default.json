@@ -1,0 +1,14 @@
+{
+  "name": "Default",
+  "equipment": [
+    {
+      "name": "the shwickety shwack",
+      "slot": "hand",
+      "art": "",
+      "price": 10,
+      "description": "anagram for the liberty launcher",
+      "flavor": "git gud",
+      "effect": {}
+    }
+  ]
+}

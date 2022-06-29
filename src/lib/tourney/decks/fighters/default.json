@@ -1,0 +1,24 @@
+{
+  "name": "Default",
+  "firstNames": [
+    "Fred",
+    "Barry",
+    "Johnson",
+    "Minerva"
+  ],
+  "lastNames": [
+    "Funko",
+    "Johnson",
+    "Tinkleton"
+  ],
+  "art": [
+    ""
+  ],
+  "abilities": [
+    {
+      "description": "",
+      "flavor": "",
+      "effect": {}
+    }
+  ]
+}

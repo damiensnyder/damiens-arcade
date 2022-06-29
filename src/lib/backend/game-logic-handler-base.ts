@@ -48,7 +48,7 @@ export default class GameLogicHandlerBase {
     }
   }
 
-  // Generates random integers between min and max, inclusive, using jrb32b PRNG
+  // Generates random integers between min and max, inclusive, using jsf32b PRNG
   randInt(min: number, max: number): number {
     this.rngState[0] |= 0;
     this.rngState[1] |= 0;
