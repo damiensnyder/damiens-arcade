@@ -3,7 +3,8 @@
   "maps": [
     {
       "name": "the chamber of die",
-      "landmarks": []
+      "imgUrl": "../favicon.ico",
+      "features": []
     }
   ]
 }

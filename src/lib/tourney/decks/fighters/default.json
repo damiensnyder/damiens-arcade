@@ -12,13 +12,13 @@
     "Tinkleton"
   ],
   "art": [
-    ""
+    "../favicon.ico"
   ],
   "abilities": [
     {
       "description": "",
       "flavor": "",
-      "effect": {}
+      "abilities": []
     }
   ]
 }
