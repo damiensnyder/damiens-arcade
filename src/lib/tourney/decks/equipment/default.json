@@ -8,6 +8,24 @@
       "description": "anagram for the liberty launcher",
       "flavor": "git gud",
       "abilities": []
+    },
+    {
+      "name": "Humongous Gun",
+      "slot": "two-handed",
+      "imgUrl": "../favicon.ico",
+      "price": 20,
+      "description": "",
+      "flavor": "BOOM",
+      "abilities": []
+    },
+    {
+      "name": "cute hat :)",
+      "slot": "head",
+      "imgUrl": "../favicon.ico",
+      "price": 15,
+      "description": "makes u look swaggier",
+      "flavor": "",
+      "abilities": []
     }
   ]
 }

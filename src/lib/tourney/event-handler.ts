@@ -5,8 +5,22 @@ import { eventLog, pov } from "$lib/stores";
 import type { EventHandler } from "$lib/types";
 
 export function switchToType(): void {
-  rawSettings.set("{}");
-  settings.set({});
+  rawSettings.set(`{
+    fighterDecks: ["default"],
+    equipmentDecks: ["default"],
+    mapDecks: ["default"],
+    customFighters: [],
+    customEquipment: [],
+    customMaps: []
+  }`);
+  settings.set({
+    fighterDecks: [],
+    equipmentDecks: [],
+    mapDecks: [],
+    customFighters: [],
+    customEquipment: [],
+    customMaps: []
+  });
   gameStage.set("pregame");
   teams.set([]);
 }
