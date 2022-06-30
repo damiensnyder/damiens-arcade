@@ -125,7 +125,6 @@ export enum EquipmentSlot {
 export interface Equipment {
   name: string
   imgUrl: string
-  stats: FighterStats
   slot: EquipmentSlot
   abilities: Ability[]
   durability: number

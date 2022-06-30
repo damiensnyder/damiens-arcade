@@ -2,7 +2,7 @@ import { GameType } from "$lib/types";
 import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
-import { type TourneyGameStage, type TourneyViewpoint, type ViewpointBase, type Team, type Settings, type Fighter, type FighterStats, type Bracket, type FighterInBattle, type Equipment, type PreseasonTeam, type Map, EquipmentSlot, type MapDeck, type EquipmentDeck, type FighterDeck } from "$lib/tourney/types";
+import type { TourneyGameStage, TourneyViewpoint, ViewpointBase, Team, Settings, Fighter, Bracket, FighterInBattle, Equipment, PreseasonTeam, Map, MapDeck, EquipmentDeck, FighterDeck } from "$lib/tourney/types";
 import { StatName } from "$lib/tourney/types";
 import { array, mixed, number, object, string } from "yup";
 import { getIndexByController, getTeamByController } from "$lib/tourney/utils";
@@ -531,12 +531,16 @@ export default class Tourney extends GameLogicHandlerBase {
     delete this.map;
   }
 
-  // generate a random fighter. in the future this generation should be more advanced
+  // Generate a random fighter
   generateFighter(): Fighter {
-    return {
-      name: "Tem Porary",
+    // in the future, first/last names and abilities should not cross over between decks.
+    // but thats such a minor deal. i do not care.
+    const fighter: Fighter = {
+      name: this.randElement(this.decks.fighters.firstNames) + " " +
+          this.randElement(this.decks.fighters.lastNames),
+      imgUrl: this.randElement(this.decks.fighters.art),
+      price: 0,
       abilities: [],
-      imgUrl: "../favicon.ico",
       stats: {
         strength: this.randInt(0, 10),
         accuracy: this.randInt(0, 10),
@@ -549,28 +553,25 @@ export default class Tourney extends GameLogicHandlerBase {
       yearsLeft: 2,
       description: "",
       flavor: ""
-    };
+    }
+    // 60% of the time, give them an ability
+    if (this.randReal() < 0.6) {
+      const specialTemplate = this.randElement(this.decks.fighters.abilities);
+      return {
+        ...fighter,
+        ...specialTemplate
+      }
+    }
+    return fighter;
   }
 
   // generate a random equipment. in the future this generation should be more advanced
   generateEquipment(): Equipment {
     return {
-      name: "gun",
-      slot: EquipmentSlot.Feet,
-      abilities: [],
-      imgUrl: "../favicon.ico",
-      stats: {
-        strength: 0,
-        accuracy: 0,
-        reflexes: 0,
-        energy: 0,
-        speed: 0,
-        toughness: 0
-      },
-      durability: 3,
-      price: 10,
       description: "",
-      flavor: ""
+      flavor: "",
+      durability: 3,
+      ...this.randElement(this.decks.equipment.equipment),
     };
   }
 

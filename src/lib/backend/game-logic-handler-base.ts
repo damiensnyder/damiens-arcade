@@ -63,6 +63,16 @@ export default class GameLogicHandlerBase {
     return min + Math.floor((max + 1 - min) * (this.rngState[3] >>> 0) / 4294967296);
   }
 
+  // Select a random element from an array
+  randElement<T>(array: T[]): T {
+    return array[this.randInt(0, array.length - 1)];
+  }
+
+  // Select a random element from an array
+  randReal(): number {
+    return this.randInt(0, 4294967295) / 4294967296;
+  }
+
   viewpointOf(_viewer: Viewer): Viewpoint {
     return null;
   }
