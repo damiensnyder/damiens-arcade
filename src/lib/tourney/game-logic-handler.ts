@@ -2,11 +2,11 @@ import { GameType } from "$lib/types";
 import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
-import { type TourneyGameStage, type TourneyViewpoint, type ViewpointBase, type Team, type Settings, type Fighter, type FighterStats, type Bracket, type FighterInBattle, type Equipment, type PreseasonTeam, type Map, EquipmentSlot } from "$lib/tourney/types";
+import { type TourneyGameStage, type TourneyViewpoint, type ViewpointBase, type Team, type Settings, type Fighter, type FighterStats, type Bracket, type FighterInBattle, type Equipment, type PreseasonTeam, type Map, EquipmentSlot, type MapDeck, type EquipmentDeck, type FighterDeck } from "$lib/tourney/types";
 import { StatName } from "$lib/tourney/types";
 import { array, mixed, number, object, string } from "yup";
 import { getIndexByController, getTeamByController } from "$lib/tourney/utils";
-import { settingsAreValid, addDefaultsIfApplicable, isValidEquipmentTournament, isValidEquipmentBR, simulateFight } from "$lib/tourney/battle-logic";
+import { settingsAreValid, collatedSettings, isValidEquipmentTournament, isValidEquipmentBR, simulateFight } from "$lib/tourney/battle-logic";
 
 // ms to wait before advancing to next stage automatically
 // 0 in dev mode, 3000 in production
@@ -84,6 +84,11 @@ const repairSchema = object({
 
 export default class Tourney extends GameLogicHandlerBase {
   settings: Settings
+  decks?: {
+    fighters: FighterDeck,
+    equipment: EquipmentDeck,
+    maps: MapDeck
+  }
   gameType: GameType.Tourney
   gameStage: TourneyGameStage
   teams?: (Team | PreseasonTeam)[]
@@ -124,10 +129,10 @@ export default class Tourney extends GameLogicHandlerBase {
     // CHANGE GAME SETTINGS
     } else if (settingsAreValid(action) &&
         this.room.host === viewer.index) {
-      this.settings = action.settings as Settings;
+      this.settings = action.settings;
       this.emitEventToAll({
         type: "changeGameSettings",
-        settings: action.settings as any
+        settings: this.settings
       });
 
       // START
@@ -348,7 +353,7 @@ export default class Tourney extends GameLogicHandlerBase {
   startGame(): void {
     this.gameStage = "preseason";
     this.teams = [];
-    addDefaultsIfApplicable(this.settings);
+    this.decks = collatedSettings(this.settings);
   }
 
   advanceToDraft(): void {

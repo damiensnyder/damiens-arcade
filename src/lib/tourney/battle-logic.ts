@@ -1,6 +1,6 @@
 import { array, boolean, number, object, string } from "yup";
-import { readFileSync } from "fs";
-import type { EquipmentSlot, FighterInBattle, Map, Settings, Team, TourneyEvent } from "$lib/tourney/types";
+import { readFileSync, readdirSync } from "fs";
+import { EquipmentSlot, type EquipmentDeck, type FighterDeck, type FighterInBattle, type Map, type MapDeck, type Settings, type Team, type TourneyEvent } from "$lib/tourney/types";
 import type { Socket } from "socket.io";
 
 const fighterStatsSchema = array(
@@ -9,73 +9,134 @@ const fighterStatsSchema = array(
 
 const ability = object();
 
-const fighterSchema = object({
-  name: string().required().min(1).max(100),
+const DECK_FILEPATH_BASE = "src/tourney/decks/"
+
+const fighterDecks: Record<string, FighterDeck> = {};
+readdirSync(DECK_FILEPATH_BASE + "fighters").forEach((fileName) => {
+  fighterDecks[fileName.split(".")[0]] =
+      JSON.parse(readFileSync(DECK_FILEPATH_BASE + "fighters/" + fileName).toString());
+});
+const equipmentDecks: Record<string, EquipmentDeck> = {};
+readdirSync(DECK_FILEPATH_BASE + "equipment").forEach((fileName) => {
+  equipmentDecks[fileName.split(".")[0]] =
+      JSON.parse(readFileSync(DECK_FILEPATH_BASE + "equipment/" + fileName).toString());
+});
+const mapDecks: Record<string, MapDeck> = {};
+readdirSync(DECK_FILEPATH_BASE + "maps").forEach((fileName) => {
+  mapDecks[fileName.split(".")[0]] =
+      JSON.parse(readFileSync(DECK_FILEPATH_BASE + "maps/" + fileName).toString());
+});
+
+const fighterTemplateSchema = object({
   imgUrl: string().max(300),
-  stats: fighterStatsSchema,
-  abilities: array(ability),
+  abilities: array(ability).required(),
   price: number().min(0).max(100).integer().required(),
   description: string().max(300),
   flavor: string().max(300)
 });
 
-const equipmentSchema = object({
+const equipmentTemplateSchema = object({
   name: string().required().min(1).max(100),
-  imgUrl: string().max(300),
-  stats: fighterStatsSchema.required(),
-  slot: number().min(0).max(5).required(),
-  abilities: array(ability),
-  price: number().min(0).max(100).integer(),
+  imgUrl: string().max(300).required(),
+  slot: string().oneOf(Object.values(EquipmentSlot)).required(),
+  abilities: array(ability).required(),
+  price: number().min(0).max(100).integer().required(),
   description: string().max(300),
   flavor: string().max(300)
 });
 
-const battleMapSchema = object({
-  name: string()
+const mapFeatureSchema = object();
+
+const mapSchema = object({
+  name: string().required().min(1).max(100),
+  imgUrl: string().required().min(1).max(300),
+  features: array(mapFeatureSchema).required()
+});
+
+const settingsSchema = object({
+  fighterDecks: array(string().min(0).max(100)).required(),
+  equipmentDecks: array(string().min(0).max(100)).required(),
+  mapDecks: array(string().min(0).max(100)).required(),
+  customFighters: object({
+    firstNames: array(string().min(0).max(100)).required(),
+    lastNames: array(string().min(0).max(100)).required(),
+    art: array(string().min(0).max(300)).required(),
+    fighters: array(fighterTemplateSchema).required()
+  }),
+  customEquipment: object({
+    equipment: array(equipmentTemplateSchema).required()
+  }),
+  customMaps: object({
+    maps: array(mapSchema).required()
+  })
 });
 
 const changeGameSettingsSchema = object({
   type: string().required().equals(["changeGameSettings"]),
-  settings: object({
-    maps: array(battleMapSchema),
-    fighters: array(fighterSchema),
-    equipment: array(equipmentSchema),
-    excludeDefaultMaps: boolean(),
-    excludeDefaultFighters: boolean(),
-    excludeDefaultEquipment: boolean()
-  })
+  settings: settingsSchema.required()
 });
-
-const defaultSettings: Settings = JSON.parse(
-  readFileSync("src/lib/tourney/default-settings.json").toString()
-);
 
 export function settingsAreValid(settings: unknown): boolean {
   return changeGameSettingsSchema.isValidSync(settings);
 }
 
-export function addDefaultsIfApplicable(settings: any): void {
-  if (!settings.maps) {
-    settings.maps = [];
+// Merge all the decks of settings into a single deck
+export function collatedSettings(settings: Settings): {
+  fighters: FighterDeck,
+  equipment: EquipmentDeck,
+  maps: MapDeck
+} {
+  // create empty decks
+  const fighterDeck: FighterDeck = {
+    firstNames: [],
+    lastNames: [],
+    art: [],
+    abilities: []
   }
-  if (!settings.excludeDefaultMaps || settings.maps.length === 0) {
-    settings.maps = settings.maps.concat(defaultSettings.maps);
+  const equipmentDeck: EquipmentDeck = {
+    equipment: []
   }
-  if (!settings.fighters) {
-    settings.fighters = [];
+  const mapDeck: MapDeck = {
+    maps: []
   }
-  if (!settings.excludeDefaultFighters || settings.fighters.length === 0) {
-    settings.fighters = settings.fighters.concat(defaultSettings.fighters);
+
+  for (const deck of settings.fighterDecks.map(deckName => fighterDecks[deckName])
+      .filter(deck => deck !== undefined)
+      .concat(settings.customFighters)) {
+    fighterDeck.firstNames = fighterDeck.firstNames.concat(deck.firstNames);
+    fighterDeck.lastNames = fighterDeck.lastNames.concat(deck.lastNames);
+    fighterDeck.art = fighterDeck.art.concat(deck.art);
+    fighterDeck.abilities = fighterDeck.abilities.concat(deck.abilities);
   }
-  if (!settings.equipment) {
-    settings.equipment = [];
+  for (const deck of settings.equipmentDecks.map(deckName => equipmentDecks[deckName])
+      .filter(deck => deck !== undefined)
+      .concat(settings.customEquipment)) {
+    equipmentDeck.equipment = equipmentDeck.equipment.concat(deck.equipment);
   }
-  if (!settings.excludeDefaultEquipment || settings.equipment.length === 0) {
-    settings.equipment = settings.equipment.concat(defaultSettings.equipment);
+  for (const deck of settings.mapDecks.map(deckName => mapDecks[deckName])
+      .filter(deck => deck !== undefined)
+      .concat(settings.customMaps)) {
+    mapDeck.maps = mapDeck.maps.concat(deck.maps);
   }
-  delete settings.excludeDefaultMaps;
-  delete settings.excludeDefaultFighters;
-  delete settings.excludeDefaultEquipment;
+
+  // Add defaults to empty decks
+  for (const key in fighterDeck) {
+    if (fighterDeck[key].length === 0) {
+      fighterDeck[key] = fighterDecks["default"][key];
+    }
+  }
+  if (equipmentDeck.equipment.length === 0) {
+    equipmentDeck.equipment = equipmentDecks["default"].equipment;
+  }
+  if (mapDeck.maps.length === 0) {
+    mapDeck.maps = mapDecks["default"].maps;
+  }
+
+  return {
+    fighters: fighterDeck,
+    equipment: null,
+    maps: null
+  }
 }
 
 export function isValidEquipmentBR(team: Team, equipment: number[]): boolean {

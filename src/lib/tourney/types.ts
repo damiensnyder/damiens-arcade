@@ -165,7 +165,7 @@ export interface FighterTemplate {
   description?: string
   flavor?: string
   price: number
-  abilities: any[]
+  abilities: Ability[]
 }
 
 export interface EquipmentDeck {
