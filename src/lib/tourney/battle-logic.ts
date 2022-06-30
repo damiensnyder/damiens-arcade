@@ -9,7 +9,7 @@ const fighterStatsSchema = array(
 
 const ability = object();
 
-const DECK_FILEPATH_BASE = "src/tourney/decks/"
+const DECK_FILEPATH_BASE = "src/lib/tourney/decks/"
 
 const fighterDecks: Record<string, FighterDeck> = {};
 readdirSync(DECK_FILEPATH_BASE + "fighters").forEach((fileName) => {
@@ -134,8 +134,8 @@ export function collatedSettings(settings: Settings): {
 
   return {
     fighters: fighterDeck,
-    equipment: null,
-    maps: null
+    equipment: equipmentDeck,
+    maps: mapDeck
   }
 }
 
