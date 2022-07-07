@@ -2,8 +2,8 @@
   import { lastAction } from "$lib/stores";
   import type { FighterStats } from "$lib/tourney/types";
   import { StatName } from "$lib/tourney/types";
-  import StarRating from "./star-rating.svelte";
-  import { draftOrder, ownTeamIndex, spotInDraftOrder } from "./stores";
+  import StarRating from "$lib/tourney/star-rating.svelte";
+  import { draftOrder, ownTeamIndex, spotInDraftOrder } from "$lib/tourney/stores";
 
   export let name: string;
   export let stats: FighterStats;
