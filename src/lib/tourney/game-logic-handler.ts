@@ -533,12 +533,14 @@ export default class Tourney extends GameLogicHandlerBase {
 
   // Generate a random fighter
   generateFighter(): Fighter {
+    const gender = ["M", "F", "A"][this.randInt(0, 2)];
+
     // in the future, first/last names and abilities should not cross over between decks.
     // but thats such a minor deal. i do not care.
     const fighter: Fighter = {
-      name: this.randElement(this.decks.fighters.firstNames) + " " +
+      name: this.randElement(this.decks.fighters["firstNames" + gender]) + " " +
           this.randElement(this.decks.fighters.lastNames),
-      imgUrl: this.randElement(this.decks.fighters.art),
+      gender,
       price: 0,
       abilities: [],
       stats: {

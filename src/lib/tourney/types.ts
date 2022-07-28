@@ -81,7 +81,7 @@ export interface PreseasonTeam extends Team {
 
 export interface Fighter {
   name: string
-  imgUrl: string
+  gender: string
   stats: FighterStats
   attunements: string[]
   abilities: Ability
@@ -152,10 +152,14 @@ export interface Settings {
   customMaps: MapDeck[]
 }
 
-export interface FighterDeck {
-  firstNames: string[]
+export interface FighterNames {
+  firstNamesM: string[]
+  firstNamesF: string[]
+  firstNamesA: string[]
   lastNames: string[]
-  art: string[]
+}
+
+export interface FighterDeck extends FighterNames {
   abilities: FighterTemplate[]
 }
 

@@ -1,6 +1,6 @@
 import { array, boolean, number, object, string } from "yup";
 import { readFileSync, readdirSync } from "fs";
-import { EquipmentSlot, type EquipmentDeck, type FighterDeck, type FighterInBattle, type Map, type MapDeck, type Settings, type Team, type TourneyEvent } from "$lib/tourney/types";
+import { EquipmentSlot, type EquipmentDeck, type FighterDeck, type FighterInBattle, type FighterNames, type FighterTemplate, type Map, type MapDeck, type Settings, type Team, type TourneyEvent } from "$lib/tourney/types";
 import type { Socket } from "socket.io";
 
 const fighterStatsSchema = array(
@@ -9,12 +9,14 @@ const fighterStatsSchema = array(
 
 const ability = object();
 
-const DECK_FILEPATH_BASE = "src/lib/tourney/decks/"
+const DECK_FILEPATH_BASE = "src/lib/tourney/data/"
 
+const fighterNames: FighterNames =
+    JSON.parse(readFileSync(DECK_FILEPATH_BASE + "fighters/names.json").toString());
 const fighterDecks: Record<string, FighterDeck> = {};
 readdirSync(DECK_FILEPATH_BASE + "fighters").forEach((fileName) => {
   fighterDecks[fileName.split(".")[0]] =
-      JSON.parse(readFileSync(DECK_FILEPATH_BASE + "fighters/" + fileName).toString());
+      JSON.parse(readFileSync(DECK_FILEPATH_BASE + "fighters/" + fileName).toString()).abilities;
 });
 const equipmentDecks: Record<string, EquipmentDeck> = {};
 readdirSync(DECK_FILEPATH_BASE + "equipment").forEach((fileName) => {
@@ -88,10 +90,8 @@ export function collatedSettings(settings: Settings): {
 } {
   // create empty decks
   const fighterDeck: FighterDeck = {
-    firstNames: [],
-    lastNames: [],
-    art: [],
-    abilities: []
+    abilities: [],
+    ...fighterNames
   }
   const equipmentDeck: EquipmentDeck = {
     equipment: []
@@ -103,9 +103,6 @@ export function collatedSettings(settings: Settings): {
   for (const deck of settings.fighterDecks.map(deckName => fighterDecks[deckName])
       .filter(deck => deck !== undefined)
       .concat(settings.customFighters)) {
-    fighterDeck.firstNames = fighterDeck.firstNames.concat(deck.firstNames);
-    fighterDeck.lastNames = fighterDeck.lastNames.concat(deck.lastNames);
-    fighterDeck.art = fighterDeck.art.concat(deck.art);
     fighterDeck.abilities = fighterDeck.abilities.concat(deck.abilities);
   }
   for (const deck of settings.equipmentDecks.map(deckName => equipmentDecks[deckName])
