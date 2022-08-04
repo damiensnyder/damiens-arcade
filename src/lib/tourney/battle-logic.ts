@@ -1,6 +1,6 @@
 import { array, boolean, number, object, string } from "yup";
 import { readFileSync, readdirSync } from "fs";
-import { EquipmentSlot, type EquipmentDeck, type FighterDeck, type FighterInBattle, type FighterNames, type FighterTemplate, type Map, type MapDeck, type Settings, type Team, type TourneyEvent } from "$lib/tourney/types";
+import { EquipmentSlot, type Equipment, type EquipmentDeck, type FighterDeck, type FighterInBattle, type FighterNames, type FighterTemplate, type Map, type MapDeck, type Settings, type Team, type TourneyEvent } from "$lib/tourney/types";
 import type { Socket } from "socket.io";
 
 const fighterStatsSchema = array(
@@ -40,7 +40,7 @@ const fighterTemplateSchema = object({
 const equipmentTemplateSchema = object({
   name: string().required().min(1).max(100),
   imgUrl: string().max(300).required(),
-  slot: string().oneOf(Object.values(EquipmentSlot)).required(),
+  slots: array(string().oneOf(Object.values(EquipmentSlot))).required(),
   abilities: array(ability).required(),
   price: number().min(0).max(100).integer().required(),
   description: string().max(300),
@@ -59,18 +59,9 @@ const settingsSchema = object({
   fighterDecks: array(string().min(0).max(100)).required(),
   equipmentDecks: array(string().min(0).max(100)).required(),
   mapDecks: array(string().min(0).max(100)).required(),
-  customFighters: object({
-    firstNames: array(string().min(0).max(100)).required(),
-    lastNames: array(string().min(0).max(100)).required(),
-    art: array(string().min(0).max(300)).required(),
-    fighters: array(fighterTemplateSchema).required()
-  }),
-  customEquipment: object({
-    equipment: array(equipmentTemplateSchema).required()
-  }),
-  customMaps: object({
-    maps: array(mapSchema).required()
-  })
+  customFighters: array(fighterTemplateSchema).required(),
+  customEquipment: array(equipmentTemplateSchema).required(),
+  customMaps: array(mapSchema).required()
 });
 
 const changeGameSettingsSchema = object({
@@ -90,29 +81,26 @@ export function collatedSettings(settings: Settings): {
 } {
   // create empty decks
   const fighterDeck: FighterDeck = {
-    abilities: [],
+    abilities: settings.customFighters,
     ...fighterNames
   }
   const equipmentDeck: EquipmentDeck = {
-    equipment: []
+    equipment: settings.customEquipment
   }
   const mapDeck: MapDeck = {
-    maps: []
+    maps: settings.customMaps
   }
 
   for (const deck of settings.fighterDecks.map(deckName => fighterDecks[deckName])
-      .filter(deck => deck !== undefined)
-      .concat(settings.customFighters)) {
+      .filter(deck => deck !== undefined)) {
     fighterDeck.abilities = fighterDeck.abilities.concat(deck.abilities);
   }
   for (const deck of settings.equipmentDecks.map(deckName => equipmentDecks[deckName])
-      .filter(deck => deck !== undefined)
-      .concat(settings.customEquipment)) {
+      .filter(deck => deck !== undefined)) {
     equipmentDeck.equipment = equipmentDeck.equipment.concat(deck.equipment);
   }
   for (const deck of settings.mapDecks.map(deckName => mapDecks[deckName])
-      .filter(deck => deck !== undefined)
-      .concat(settings.customMaps)) {
+      .filter(deck => deck !== undefined)) {
     mapDeck.maps = mapDeck.maps.concat(deck.maps);
   }
 
@@ -137,17 +125,20 @@ export function collatedSettings(settings: Settings): {
 }
 
 export function isValidEquipmentBR(team: Team, equipment: number[]): boolean {
-  const usedSlots: EquipmentSlot[] = [];
+  const usedEquipmentIds: number[] = [];
+  let usedSlots: EquipmentSlot[] = [];
   for (const e of equipment) {
-    if (e < 0 || e >= team.equipment.length) {
+    if (e < 0 || e >= team.equipment.length || usedEquipmentIds.includes(e)) {
       return false;
     }
-    if (usedSlots.includes(team.equipment[e].slot)) {
-      return false;
-    }
-    usedSlots.push(team.equipment[e].slot);
+    usedSlots = usedSlots.concat(team.equipment[e].slots);
+    usedEquipmentIds.push(e);
   }
-  return true;
+  return usedSlots.filter(s => s === EquipmentSlot.Head).length <= 1 &&
+      usedSlots.filter(s => s === EquipmentSlot.Torso).length <= 1 &&
+      usedSlots.filter(s => s === EquipmentSlot.Hand).length <= 2 &&
+      usedSlots.filter(s => s === EquipmentSlot.Legs).length <= 1 &&
+      usedSlots.filter(s => s === EquipmentSlot.Feet).length <= 1;
 }
 
 export function isValidEquipmentTournament(team: Team, equipment: number[][]): boolean {
@@ -156,16 +147,23 @@ export function isValidEquipmentTournament(team: Team, equipment: number[][]): b
   }
   const usedEquipment: number[] = [];
   for (const f of equipment) {
-    const usedSlots: EquipmentSlot[] = [];
+    let usedSlots: EquipmentSlot[] = [];
     for (const e of f) {
       if (e < 0 || e >= team.equipment.length) {
         return false;
       }
-      if (usedSlots.includes(team.equipment[e].slot) || usedEquipment.includes(e)) {
+      if (usedEquipment.includes(e)) {
         return false;
       }
-      usedSlots.push(team.equipment[e].slot);
       usedEquipment.push(e);
+      usedSlots = usedSlots.concat(team.equipment[e].slots);
+    }
+    if (usedSlots.filter(s => s === EquipmentSlot.Head).length > 1 ||
+        usedSlots.filter(s => s === EquipmentSlot.Torso).length > 1 ||
+        usedSlots.filter(s => s === EquipmentSlot.Hand).length > 2 ||
+        usedSlots.filter(s => s === EquipmentSlot.Legs).length > 1 ||
+        usedSlots.filter(s => s === EquipmentSlot.Feet).length > 1) {
+      return false;
     }
   }
   return true;

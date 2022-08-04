@@ -115,8 +115,7 @@ export interface FighterInBattle {
 
 export enum EquipmentSlot {
   Head = "head",
-  Arm = "arm",
-  TwoHanded = "two-handed",
+  Hand = "hand",
   Torso = "torso",
   Legs = "legs",
   Feet = "feet"
@@ -125,7 +124,7 @@ export enum EquipmentSlot {
 export interface Equipment {
   name: string
   imgUrl: string
-  slot: EquipmentSlot
+  slots: EquipmentSlot[]
   abilities: Ability[]
   durability: number
   price: number
@@ -147,9 +146,9 @@ export interface Settings {
   fighterDecks: string[]
   equipmentDecks: string[]
   mapDecks: string[]
-  customFighters: FighterDeck[]
-  customEquipment: EquipmentDeck[]
-  customMaps: MapDeck[]
+  customFighters: FighterTemplate[]
+  customEquipment: EquipmentTemplate[]
+  customMaps: Map[]
 }
 
 export interface FighterNames {
@@ -177,7 +176,7 @@ export interface EquipmentDeck {
 
 export interface EquipmentTemplate {
   name: string
-  slot: EquipmentSlot
+  slots: EquipmentSlot[]
   imgUrl: string
   price: number
   description?: string
