@@ -1,6 +1,6 @@
 <script lang="ts">
   import { lastAction } from "$lib/stores";
-  import type { Fighter } from "$lib/tourney/types";
+  import type { Equipment, Fighter } from "$lib/tourney/types";
   import { StatName } from "$lib/tourney/types";
   import StarRating from "$lib/tourney/star-rating.svelte";
   import { draftOrder, ownTeamIndex, spotInDraftOrder } from "$lib/tourney/stores";
@@ -8,6 +8,7 @@
 
   export let fighter: Fighter;
   export let index: number;
+  export let equipment: Equipment[] = [];
 
   function pick() {
     lastAction.set({
@@ -24,7 +25,7 @@
   {/if}
 </div>
 <div class="horiz">
-  <FighterImage {fighter} equipment={[]} />
+  <FighterImage {fighter} {equipment} />
   <div class="horiz info">
     <div class="stats">
       {#each Object.entries(StatName) as statEntry}
