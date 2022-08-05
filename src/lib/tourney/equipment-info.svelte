@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Equipment, EquipmentSlot, FighterStats } from "$lib/tourney/types";
+  import { ownTeam } from "$lib/tourney/stores";
 
   export let equipment: Equipment;
   export let index: number = -1;
@@ -18,7 +19,8 @@
   <div>
     {equipmentSlot} &bull; ${equipment.price}
   </div>
-  {#if index > -1}
+  {#if index > -1 &&
+      $ownTeam.money > equipment.price}
     <button on:click={pick} on:submit={pick}>Pick</button>
   {/if}
 </div>
