@@ -20,11 +20,11 @@
   {#if $ownTeamIndex !== null}
     <h2>Your fighters</h2>
     {#each $ownTeam.fighters as fighter, index}
-      <FighterInfo {...fighter} {index} />
+      <FighterInfo {fighter} {index} />
     {/each}
     <h2>Your equipment</h2>
     {#each $ownTeam.equipment as equipment, index}
-      <EquipmentInfo {...equipment} {index} />
+      <EquipmentInfo {equipment} {index} />
     {/each}
   {/if}
 </div>

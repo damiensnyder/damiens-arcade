@@ -23,7 +23,7 @@
     HAIR_COLORS, fighter.name.length, fighter.description.length, fighter.stats.accuracy
   );
 
-  const SKIN_COLORS = [[0.3, 1], [0.5, 0.8], [1, 0.6], [1.5, 0.5], [2, 0.5], [3, 0.5], [3, 0.4],
+  const SKIN_COLORS = [[0.3, 1], [0.5, 0.8], [1, 0.6], [1.5, 0.5], [2, 0.3], [3, 0.4],
                       [5, 0.5], [7, 0.4], [8, 0.4], [10, 0.3]];
   $: skinColor = pseudorandomFrom(
     SKIN_COLORS, fighter.name.length, fighter.description.length, fighter.stats.energy

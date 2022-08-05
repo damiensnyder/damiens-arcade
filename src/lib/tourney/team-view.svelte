@@ -10,7 +10,7 @@
   <h2>Fighters</h2>
   <div class="fighters">
     {#each team.fighters as fighter, index}
-      <FighterInfo {...fighter} {index} />
+      <FighterInfo {fighter} {index} />
     {/each}
   </div>
 </div>

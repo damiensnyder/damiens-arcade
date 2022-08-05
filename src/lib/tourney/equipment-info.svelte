@@ -15,7 +15,7 @@
   <button on:click={pick} on:submit={pick}>Pick</button>
 </div>
 <div class="horiz">
-  <img src={equipment.imgUrl} width="150" height="150" alt={equipment.name} />
+  <img src={equipment.zoomedImgUrl} width="150" height="150" alt={equipment.name} />
   <div class="horiz info">
     <div class="description">
       <p>{equipment.description}</p>
