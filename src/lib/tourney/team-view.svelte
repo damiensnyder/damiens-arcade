@@ -18,7 +18,7 @@
   <h2>Equipment</h2>
   <div class="fighters">
     {#each team.equipment as equipment, index}
-      <EquipmentInfo {...equipment} {index} />
+      <EquipmentInfo {equipment} {index} />
     {/each}
   </div>
 </div>

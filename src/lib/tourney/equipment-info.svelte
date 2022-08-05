@@ -8,10 +8,16 @@
   function pick() {
     callback(index);
   }
+
+  $: equipmentSlot = equipment.slots.join(", ") === "hand, hand" ?
+      "two-handed" : equipment.slots.join(", ");
 </script>
 
 <div class="horiz top-bar">
   <h3>{equipment.name}</h3>
+  <div>
+    {equipmentSlot} &bull; ${equipment.price}
+  </div>
   <button on:click={pick} on:submit={pick}>Pick</button>
 </div>
 <div class="horiz">
@@ -28,6 +34,17 @@
   .top-bar {
     flex: 1;
     justify-content: space-between;
+    align-items: center;
+  }
+
+  .top-bar > div,
+  .top-bar > button {
+    flex-grow: 0;
+  }
+
+  .top-bar > div {
+    margin-top: 0.5rem;
+    margin-left: 1.25rem;
   }
 
   img {
@@ -35,11 +52,12 @@
   }
   
   h3 {
+    flex: 1;
     padding: 0;
   }
 
   button {
-    margin: 0.15rem 0 0 1rem;
+    margin: 0.2rem 0 0 0.75rem;
   }
 
   .info {
