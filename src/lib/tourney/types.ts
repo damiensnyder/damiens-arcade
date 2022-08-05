@@ -124,6 +124,7 @@ export enum EquipmentSlot {
 export interface Equipment {
   name: string
   imgUrl: string
+  zoomedImgUrl: string
   slots: EquipmentSlot[]
   abilities: Ability[]
   durability: number
@@ -178,6 +179,7 @@ export interface EquipmentTemplate {
   name: string
   slots: EquipmentSlot[]
   imgUrl: string
+  zoomedImgUrl: string
   price: number
   description?: string
   flavor?: string

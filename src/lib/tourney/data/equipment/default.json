@@ -2,8 +2,9 @@
   "equipment": [
     {
       "name": "the shwickety shwack",
-      "slot": "arm",
+      "slots": ["arm"],
       "imgUrl": "/static/equipment/shield.png",
+      "zoomedImgUrl": "/static/equipment/shield.png",
       "price": 10,
       "description": "anagram for the liberty launcher",
       "flavor": "git gud",
@@ -11,8 +12,9 @@
     },
     {
       "name": "Sword That Imbalances You",
-      "slot": "two-handed",
+      "slots": ["hand", "hand"],
       "imgUrl": "/static/equipment/sword.png",
+      "zoomedImgUrl": "/static/equipment/sword.png",
       "price": 20,
       "description": "",
       "flavor": "oh noooo don't tip",
@@ -20,8 +22,9 @@
     },
     {
       "name": "cute hat :)",
-      "slot": "head",
+      "slots": ["head"],
       "imgUrl": "/static/equipment/hat.png",
+      "zoomedImgUrl": "/static/equipment/hat.png",
       "price": 15,
       "description": "makes u look swaggier",
       "flavor": "",
@@ -29,8 +32,9 @@
     },
     {
       "name": "speedo",
-      "slot": "legs",
+      "slots": ["legs"],
       "imgUrl": "/static/equipment/speedo.png",
+      "zoomedImgUrl": "/static/equipment/speedo.png",
       "price": 13,
       "description": "",
       "flavor": "no shirt no shoes but i still get service",
