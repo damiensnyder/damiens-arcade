@@ -1,6 +1,6 @@
 <script lang="ts">
   import { lastAction } from "$lib/stores";
-  import { equipment, fighters, ownTeam, ownTeamIndex, spotInDraftOrder, teams } from "$lib/tourney/stores";
+  import { equipment, ownTeam, ownTeamIndex, teams } from "$lib/tourney/stores";
   import EquipmentInfo from "$lib/tourney/equipment-info.svelte";
   import FighterInfo from "$lib/tourney/fighter-info.svelte";
   import { StatName, type FighterStats } from "$lib/tourney/types";
@@ -11,10 +11,15 @@
 
   function pick(index: number) {
     equipmentBought.push(index);
-    $ownTeam.equipment.push($equipment.splice(index, 1)[0]);
-    // $ownTeam = $ownTeam;  // so the store knows it was updated
-    // $equipment = $equipment;
-    teams.update(x => x);
+    const e = $equipment.splice(index, 1)[0];
+    teams.update(x => x.map((team, i) => {
+      if (i !== $ownTeamIndex) {
+        return team;
+      }
+      team.equipment.push(e);
+      team.money -= e.price;
+      return team;
+    }));
     equipment.update(x => x);
   }
 
