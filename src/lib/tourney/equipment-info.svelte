@@ -1,19 +1,8 @@
 <script lang="ts">
-  import type { EquipmentSlot, FighterStats } from "$lib/tourney/types";
+  import type { Equipment, EquipmentSlot, FighterStats } from "$lib/tourney/types";
 
-  export let name: string;
-  // svelte-ignore unused-export-let
-  export let stats: FighterStats;
-  // svelte-ignore unused-export-let
-  export let slot: EquipmentSlot;
+  export let equipment: Equipment;
   export let index: number;
-  export let imgUrl: string;
-  export let description: string = "";
-  export let flavor: string = "";
-  // svelte-ignore unused-export-let
-  export let price: number = -1;
-  // svelte-ignore unused-export-let
-  export let durability: number = -1;
   export let callback: (index: number) => void = (_: number) => {};
 
   function pick() {
@@ -22,15 +11,15 @@
 </script>
 
 <div class="horiz top-bar">
-  <h3>{name}</h3>
+  <h3>{equipment.name}</h3>
   <button on:click={pick} on:submit={pick}>Pick</button>
 </div>
 <div class="horiz">
-  <img src={imgUrl} width="150" height="150" alt={name} />
+  <img src={equipment.imgUrl} width="150" height="150" alt={equipment.name} />
   <div class="horiz info">
     <div class="description">
-      <p>{description}</p>
-      <p>{flavor}</p>
+      <p>{equipment.description}</p>
+      <p>{equipment.flavor}</p>
     </div>
   </div>
 </div>

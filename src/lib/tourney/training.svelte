@@ -1,6 +1,6 @@
 <script lang="ts">
   import { lastAction } from "$lib/stores";
-  import { draftOrder, equipment, fighters, ownTeam, ownTeamIndex, spotInDraftOrder, teams } from "$lib/tourney/stores";
+  import { equipment, fighters, ownTeam, ownTeamIndex, spotInDraftOrder, teams } from "$lib/tourney/stores";
   import EquipmentInfo from "$lib/tourney/equipment-info.svelte";
   import FighterInfo from "$lib/tourney/fighter-info.svelte";
   import { StatName, type FighterStats } from "$lib/tourney/types";
@@ -31,7 +31,7 @@
   <h2>Equipment</h2>
   <div class="fighters">
     {#each $equipment as equipment, index}
-      <EquipmentInfo {...equipment} {index} callback={pick} />
+      <EquipmentInfo {equipment} {index} callback={pick} />
     {/each}
   </div>
 </div>

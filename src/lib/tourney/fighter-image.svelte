@@ -116,8 +116,9 @@
   .legs {
     z-index: 3;
   }
-
+  
   .flipped {
     transform: scaleX(-1);
+    z-index: 5;
   }
 </style>
