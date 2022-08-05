@@ -38,8 +38,14 @@
 <div>
   {#if $ownTeamIndex !== null}
     <h2>Select training</h2>
+    <div class="list-container">
     {#each $ownTeam.fighters as fighter, index}
-      {fighter.name}:
+      <div class="show-child-on-hover">
+        {fighter.name}
+        <div class="show-on-hover">
+          <FighterInfo {fighter} />
+        </div>
+      </div>
       <select bind:value={skills[index]}>
         <optgroup label="Improve a skill">
           {#each Object.values(StatName) as stat}
@@ -53,15 +59,22 @@
         </optgroup>
       </select>
     {/each}
+    </div>
 
     <button on:click={practice} on:submit={practice}>Ready!</button>
 
     <h2>Your equipment</h2>
-    {#each $ownTeam.equipment as equipment}
-      <div>
-        {equipment.name}
-      </div>
-    {/each}
+
+    <div class="list-container">
+      {#each $ownTeam.equipment as equipment}
+        <div class="show-child-on-hover">
+          {equipment.name}
+          <div class="show-on-hover">
+            <EquipmentInfo {equipment} />
+          </div>
+        </div>
+      {/each}
+    </div>
   {/if}
 </div>
 
@@ -73,6 +86,41 @@
 
   select {
     flex: 0;
+    margin: 0.5rem 0;
     padding-bottom: 0.35rem;
+  }
+
+  .list-container {
+    align-self: stretch;
+    padding-top: 1rem;
+    align-items: flex-start;
+  }
+
+  .show-child-on-hover {
+    position: relative;
+  }
+
+  .show-child-on-hover > .show-on-hover {
+    visibility: hidden;
+    opacity: 0;
+  }
+
+  .show-child-on-hover:hover > .show-on-hover {
+    visibility: visible;
+    opacity: 100%;
+    transition: all ease-in-out 0.2s;
+  }
+
+  .show-on-hover {
+    position: absolute;
+    top: 0;
+    left: -17.5rem;
+    right: 0;
+    width: fit-content;
+    z-index: 1;
+    padding: 0 1rem;
+    border: 2px solid var(--bg-fun-2);
+    border-radius: 1rem;
+    background-color: var(--bg-fun-4);
   }
 </style>

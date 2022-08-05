@@ -7,7 +7,7 @@
   import FighterImage from "$lib/tourney/fighter-image.svelte";
 
   export let fighter: Fighter;
-  export let index: number;
+  export let index: number = -1;
   export let equipment: Equipment[] = [];
 
   function pick() {
@@ -20,7 +20,7 @@
 
 <div class="horiz top-bar">
   <h3>{fighter.name}</h3>
-  {#if $draftOrder[$spotInDraftOrder] === $ownTeamIndex}
+  {#if index > -1 && $draftOrder[$spotInDraftOrder] === $ownTeamIndex}
     <button on:click={pick} on:submit={pick}>Pick</button>
   {/if}
 </div>

@@ -35,6 +35,7 @@
 <style>
   .top-bar {
     flex: 1;
+    align-self: stretch;
     justify-content: space-between;
     align-items: center;
   }
