@@ -73,5 +73,6 @@
 
   select {
     flex: 0;
+    padding-bottom: 0.35rem;
   }
 </style>

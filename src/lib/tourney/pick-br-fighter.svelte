@@ -40,9 +40,9 @@
 
     <h2>Select equipment</h2>
     {#each $ownTeam.equipment as equipment, index}
-    <label>
-      {equipment.name} <input type="checkbox" bind:checked={selectedEquipment[index]} />
-    </label>
+      <label>
+        {equipment.name} <input type="checkbox" bind:checked={selectedEquipment[index]} />
+      </label>
     {/each}
     
     <button on:click={ready} on:submit={ready}>Ready!</button>
