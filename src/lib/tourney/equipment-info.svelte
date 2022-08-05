@@ -17,7 +17,8 @@
 <div class="horiz top-bar">
   <h3>{equipment.name}</h3>
   <div>
-    {equipmentSlot} &bull; ${equipment.price}
+    {equipmentSlot}
+    {#if index > -1} &bull; ${equipment.price}{/if}
   </div>
   {#if index > -1 &&
       $ownTeam.money > equipment.price}
