@@ -2,7 +2,7 @@
   import type { Equipment, EquipmentSlot, FighterStats } from "$lib/tourney/types";
 
   export let equipment: Equipment;
-  export let index: number;
+  export let index: number = -1;
   export let callback: (index: number) => void = (_: number) => {};
 
   function pick() {
@@ -18,7 +18,9 @@
   <div>
     {equipmentSlot} &bull; ${equipment.price}
   </div>
-  <button on:click={pick} on:submit={pick}>Pick</button>
+  {#if index > -1}
+    <button on:click={pick} on:submit={pick}>Pick</button>
+  {/if}
 </div>
 <div class="horiz">
   <img src={equipment.zoomedImgUrl} width="150" height="150" alt={equipment.name} />
