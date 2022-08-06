@@ -2,7 +2,7 @@
   "equipment": [
     {
       "name": "the shwickety shwack",
-      "slots": ["arm"],
+      "slots": ["hand"],
       "imgUrl": "/static/equipment/shield.png",
       "zoomedImgUrl": "/static/equipment/shield.png",
       "price": 10,
