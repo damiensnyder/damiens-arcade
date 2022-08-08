@@ -1,53 +1,61 @@
 <script lang="ts">
   import { lastAction } from "$lib/stores";
-  import { ownTeam, ownTeamIndex } from "$lib/tourney/stores";
+  import { equipment, fighters, ownTeam, ownTeamIndex } from "$lib/tourney/stores";
   import EquipmentInfo from "$lib/tourney/equipment-info.svelte";
   import FighterInfo from "$lib/tourney/fighter-info.svelte";
+  import { slotsToString } from "$lib/tourney/utils";
+  import { EquipmentSlot } from "$lib/tourney/types";
 
-  let selectedFighter: number;
-  let selectedEquipment: boolean[] = Array($ownTeam.equipment.length).fill(false);
+  let selectedFighter: number = 0;
+  let selectedEquipment: boolean[] = $ownTeamIndex === null ? [] : Array($ownTeam.equipment.length).fill(false);
+
+  $: slotsTaken = selectedEquipment.flatMap((e, i) => {
+    return e ? $ownTeam.equipment[i].slots : [];
+  });
 
   function ready(): void {
     lastAction.set({
       type: "pickBRFighter",
       fighter: selectedFighter,
-      equipment: selectedEquipment.map((x, i) => x ? i : -1).filter(x => x >= 0),
+      equipment: selectedEquipment.flatMap((x, i) => x ? [i] : []),
       strategy: {}
     });
   }
 </script>
-<div>
-  {#if $ownTeamIndex !== null}
-    <h2>Your fighters</h2>
-    {#each $ownTeam.fighters as fighter, index}
-      <FighterInfo {fighter} {index} />
-    {/each}
-    <h2>Your equipment</h2>
-    {#each $ownTeam.equipment as equipment, index}
-      <EquipmentInfo {equipment} {index} />
-    {/each}
-  {/if}
-</div>
-
-<div>
-  {#if $ownTeamIndex !== null}
+{#if $ownTeamIndex !== null}
+  <div>
     <h2>Select fighter</h2>
     <select bind:value={selectedFighter}>
-      {#each $ownTeam.fighters as fighter}
-        <option value={fighter.name}>{fighter.name}</option>
+      {#each $ownTeam.fighters as fighter, index}
+        <option value={index}>{fighter.name}</option>
       {/each}
     </select>
-
-    <h2>Select equipment</h2>
+    <FighterInfo fighter={$ownTeam.fighters[selectedFighter]}
+        equipment={$ownTeam.equipment.filter((_, i) => selectedEquipment[i])} />
+  </div>
+  <div>
+    <h2>Your equipment</h2>
     {#each $ownTeam.equipment as equipment, index}
-      <label>
-        {equipment.name} <input type="checkbox" bind:checked={selectedEquipment[index]} />
-      </label>
+      <p>
+        {equipment.name} ({slotsToString(equipment.slots)})
+        <input type="checkbox" bind:checked={selectedEquipment[index]} />
+      </p>
     {/each}
-    
-    <button on:click={ready} on:submit={ready}>Ready!</button>
-  {/if}
-</div>
+    {#if slotsTaken.filter(s => s === "hand").length > 2}
+      <p>Cannot submit: Equipment chosen takes up more than 2 hands.</p>
+    {:else if slotsTaken.filter(s => s === "head").length > 1}
+      <p>Cannot submit: Too many equipment chosen that take up the head.</p>
+    {:else if slotsTaken.filter(s => s === "torso").length > 1}
+      <p>Cannot submit: Too many equipment chosen that take up the torso.</p>
+    {:else if slotsTaken.filter(s => s === "legs").length > 1}
+      <p>Cannot submit: Too many equipment chosen that take up the legs.</p>
+    {:else if slotsTaken.filter(s => s === "feet").length > 1}
+      <p>Cannot submit: Too many equipment chosen that take up the feet.</p>
+    {:else}
+      <button on:click={ready} on:submit={ready}>Ready</button>
+    {/if}
+  </div>
+{/if}
 
 <style>
   select {

@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Equipment, EquipmentSlot, FighterStats } from "$lib/tourney/types";
   import { ownTeam } from "$lib/tourney/stores";
+import { slotsToString } from "./utils";
 
   export let equipment: Equipment;
   export let index: number = -1;
@@ -9,15 +10,12 @@
   function pick() {
     callback(index);
   }
-
-  $: equipmentSlot = equipment.slots.join(", ") === "hand, hand" ?
-      "two-handed" : equipment.slots.join(", ");
 </script>
 
 <div class="horiz top-bar">
   <h3>{equipment.name}</h3>
   <div>
-    {equipmentSlot}
+    {slotsToString(equipment.slots)}
     {#if index > -1} &bull; ${equipment.price}{/if}
   </div>
   {#if index > -1 &&

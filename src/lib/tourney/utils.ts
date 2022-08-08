@@ -1,4 +1,4 @@
-import type { Team } from "$lib/tourney/types";
+import type { EquipmentSlot, Team } from "$lib/tourney/types";
 
 export function getIndexByController(teams: Team[], controller: number): number | null {
   if (teams === undefined) return null;
@@ -18,4 +18,11 @@ export function getTeamByController(teams: Team[], controller: number): Team | n
     }
   }
   return null;
+}
+
+export function slotsToString(slots: EquipmentSlot[]): string {
+  let joined = slots.join(", ");
+  if (joined === "") return "none";
+  if (joined === "hand, hand") return "two-handed";
+  return joined;
 }
