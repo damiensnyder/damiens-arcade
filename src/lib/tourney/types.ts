@@ -344,7 +344,7 @@ interface GoToBREvent {
 interface FightEvent {
   type: "fight"
   fighters: FighterInBattle[]
-  map: number
+  map: Map
 }
 
 export type Bracket = {

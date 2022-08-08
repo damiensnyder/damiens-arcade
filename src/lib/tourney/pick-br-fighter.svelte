@@ -68,7 +68,6 @@
   .show-child-on-hover {
     align-self: stretch;
     justify-content: space-between;
-    /* width: 100%; */
   }
 
   input[type="checkbox"] {

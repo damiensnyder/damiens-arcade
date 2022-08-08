@@ -169,9 +169,20 @@ export function isValidEquipmentTournament(team: Team, equipment: number[][]): b
   return true;
 }
 
-// return true if right wins, false if left wins
+// Simulate the fight and return the order of teams in it, going from winner to first out
 export function simulateFight(
   eventEmitter: (event: TourneyEvent) => void, map: Map, fighters: FighterInBattle[]
-): boolean {
-  return false;
+): number[] {
+  // place the fighters evenly spaced in a circle around (0, 0)
+  fighters.forEach((fighter, i) => {
+    fighter.x = -50 * Math.cos(i / fighters.length);
+    fighter.y = 50 * Math.sin(i / fighters.length);
+  });
+  eventEmitter({
+    type: "fight",
+    map,
+    fighters
+  });
+
+  return [];
 }

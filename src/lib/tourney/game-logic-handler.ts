@@ -476,7 +476,9 @@ export default class Tourney extends GameLogicHandlerBase {
   simulateBattleRoyale(): void {
     // just say everything goes in order
     // in the future this should... actually, you know, simulate the battle royale
-    const seeding = Array(this.teams.length).map((_, i) => i);
+    const seeding = simulateFight(
+      this.emitEventToAll, this.randElement(this.decks.maps[this.map]), this.fightersInBattle
+    );
     this.bracket = generateBracket(seeding);
     this.gameStage = "tournament";
     setTimeout(this.prepareForNextMatch.bind(this), ADVANCEMENT_DELAY);
@@ -484,8 +486,8 @@ export default class Tourney extends GameLogicHandlerBase {
 
   simulateFight(): void {
     this.nextMatch.winner = simulateFight(
-      this.emitEventToAll, this.map as unknown as Map, this.fightersInBattle
-    ) ? this.nextMatch.right.winner : this.nextMatch.left.winner;
+      this.emitEventToAll, this.randElement(this.decks.maps[this.map]), this.fightersInBattle
+    )[0];
     this.prepareForNextMatch();
   }
 
@@ -556,8 +558,8 @@ export default class Tourney extends GameLogicHandlerBase {
       description: "",
       flavor: ""
     }
-    // 60% of the time, give them an ability
-    if (this.randReal() < 0.6) {
+    // 60% of the time, give them an ability. set to 0 right now
+    if (this.randReal() < 0 /* 0.6 */) {
       const specialTemplate = this.randElement(this.decks.fighters.abilities);
       return {
         ...fighter,
@@ -567,7 +569,7 @@ export default class Tourney extends GameLogicHandlerBase {
     return fighter;
   }
 
-  // generate a random equipment. in the future this generation should be more advanced
+  // Select a random equipment from the deck of equipment
   generateEquipment(): Equipment {
     return {
       description: "",
