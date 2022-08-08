@@ -35,12 +35,13 @@
   </div>
   <div>
     <h2>Your equipment</h2>
-    {#each $ownTeam.equipment as equipment}
-      <div class="show-child-on-hover">
-        {equipment.name} ({slotsToString(equipment.slots)})
+    {#each $ownTeam.equipment as equipment, index}
+      <div class="show-child-on-hover horiz">
+        <span>{equipment.name} ({slotsToString(equipment.slots)})</span>
         <div class="show-on-hover">
           <EquipmentInfo {equipment} />
         </div>
+        <input type="checkbox" bind:checked={selectedEquipment[index]} />
       </div>
     {/each}
     {#if slotsTaken.filter(s => s === "hand").length > 2}
@@ -62,5 +63,15 @@
 <style>
   select {
     flex: 0;
+  }
+
+  .show-child-on-hover {
+    align-self: stretch;
+    justify-content: space-between;
+    /* width: 100%; */
+  }
+
+  input[type="checkbox"] {
+    margin: 0.15rem 0.6rem 0;
   }
 </style>
