@@ -35,11 +35,13 @@
   </div>
   <div>
     <h2>Your equipment</h2>
-    {#each $ownTeam.equipment as equipment, index}
-      <p>
+    {#each $ownTeam.equipment as equipment}
+      <div class="show-child-on-hover">
         {equipment.name} ({slotsToString(equipment.slots)})
-        <input type="checkbox" bind:checked={selectedEquipment[index]} />
-      </p>
+        <div class="show-on-hover">
+          <EquipmentInfo {equipment} />
+        </div>
+      </div>
     {/each}
     {#if slotsTaken.filter(s => s === "hand").length > 2}
       <p>Cannot submit: Equipment chosen takes up more than 2 hands.</p>

@@ -14,7 +14,7 @@
   --font-fun: "Comic Sans MS", "Chalkduster";
 }
 
- .fun {
+.fun {
   position: absolute;
   top: 0;
   left: 0;
@@ -32,24 +32,24 @@
  font-family: inherit;
 }
 
- .fun button {
+.fun button {
   font-family: inherit;
   color: inherit;
   background-color: var(--bg-fun-2);
   border-color: var(--text-fun-2);
 }
 
- .fun button:hover,
- .fun button:active {
+.fun button:hover,
+.fun button:active {
   background-color: var(--accent-fun-2);
 }
 
- .fun button:hover {
+.fun button:hover {
   color: var(--text-fun-4);
 }
 
- .fun button:hover:active,
- .fun button:active {
+.fun button:hover:active,
+.fun button:active {
   color: var(--text-fun-1);
 }
 
@@ -60,4 +60,44 @@
 
 .fun h3 {
   font-weight: 500;
+}
+
+.fun select {
+  flex: 0;
+  margin: 0.5rem 0;
+  padding-bottom: 0.35rem;
+}
+
+.fun .list-container {
+  align-self: stretch;
+  padding-top: 1rem;
+  align-items: flex-start;
+}
+
+.fun .show-child-on-hover {
+  position: relative;
+}
+
+.fun .show-child-on-hover > .show-on-hover {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.fun .show-child-on-hover:hover > .show-on-hover {
+  visibility: visible;
+  opacity: 100%;
+  transition: all ease-in-out 0.2s;
+}
+
+.fun .show-on-hover {
+  position: absolute;
+  top: 0;
+  left: -17.5rem;
+  right: 0;
+  width: fit-content;
+  z-index: 1;
+  padding: 0 1rem;
+  border: 2px solid var(--bg-fun-2);
+  border-radius: 1rem;
+  background-color: var(--bg-fun-4);
 }

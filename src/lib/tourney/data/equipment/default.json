@@ -21,10 +21,20 @@
       "abilities": []
     },
     {
+      "name": "tank top",
+      "slots": ["torso"],
+      "imgUrl": "/static/equipment/tank-top.png",
+      "zoomedImgUrl": "/static/equipment/tank-top.png",
+      "price": 8,
+      "description": "",
+      "flavor": "",
+      "abilities": []
+    },
+    {
       "name": "cute hat :)",
       "slots": ["head"],
-      "imgUrl": "/static/equipment/hat.png",
-      "zoomedImgUrl": "/static/equipment/hat.png",
+      "imgUrl": "/static/equipment/viking-helmet.png",
+      "zoomedImgUrl": "/static/equipment/viking-helmet.png",
       "price": 15,
       "description": "makes u look swaggier",
       "flavor": "",
@@ -38,6 +48,16 @@
       "price": 13,
       "description": "",
       "flavor": "no shirt no shoes but i still get service",
+      "abilities": []
+    },
+    {
+      "name": "boots",
+      "slots": ["feet"],
+      "imgUrl": "/static/equipment/boots.png",
+      "zoomedImgUrl": "/static/equipment/boots.png",
+      "price": 14,
+      "description": "",
+      "flavor": "shoes and i get service",
       "abilities": []
     }
   ]
