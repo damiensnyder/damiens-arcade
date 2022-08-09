@@ -173,16 +173,61 @@ export function isValidEquipmentTournament(team: Team, equipment: number[][]): b
 export function simulateFight(
   eventEmitter: (event: TourneyEvent) => void, map: Map, fighters: FighterInBattle[]
 ): number[] {
-  // place the fighters evenly spaced in a circle around (0, 0)
-  fighters.forEach((fighter, i) => {
-    fighter.x = -50 * Math.cos(i / fighters.length);
-    fighter.y = 50 * Math.sin(i / fighters.length);
-  });
+  const fight = new Fight(map, fighters);
+  fight.simulate();
   eventEmitter({
     type: "fight",
     map,
     fighters
   });
+  return fight.placementOrder;
+}
 
-  return [];
+class Fight {
+  private map: Map
+  private fighters: FighterInBattle[]
+  placementOrder: number[]
+
+  constructor(
+    map: Map,
+    fighters: FighterInBattle[]
+  ) {
+    this.map = map;
+    // clone each fighter and their stats and abilities objects so we can mutate them temporarily
+    this.fighters = fighters.map((f) => {
+      return {
+        ...f,
+        stats: { ...f.stats },
+        abilities: { ...f.abilities }
+      };
+    });
+    this.placementOrder = [];
+  }
+
+  closestNotOnTeam(f: FighterInBattle): FighterInBattle {
+    return this.fighters
+        .filter(f2 => f2.team !== f.team)
+        .sort((a, b) => (Math.pow(a.x - f.x, 2) + Math.pow(a.y - f.y, 2)) -
+                        (Math.pow(b.x - f.x, 2) + Math.pow(b.y - f.y, 2)))[0];
+  }
+
+  simulate(): void {
+    // place the fighters evenly spaced in a circle around (0, 0)
+    this.fighters.forEach((fighter, i) => {
+      fighter.x = -25 * Math.cos(i / this.fighters.length);
+      fighter.y = 25 * Math.sin(i / this.fighters.length);
+    });
+
+    let fightOver: boolean = false;
+    while (!fightOver) {
+      this.fighters.forEach((f) => {
+        if (f.hp <= 0) return;  // do nothing if fighter is down
+        // if better at ranged than melee, run away and shoot
+        // actually not doing anything like that right now because ranged weapons don't exist yet
+        // if (fighter.stats.accuracy > fighter.stats.strength) {
+        // } else {
+        // }
+      });
+    }
+  }
 }

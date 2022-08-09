@@ -104,7 +104,7 @@ export type FighterStats = {
   [key in StatName]: number;
 };
 
-export interface FighterInBattle {
+export interface FighterInBattle extends Fighter {
   team: number
   hp: number
   maxHP: number
