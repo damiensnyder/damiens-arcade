@@ -479,7 +479,14 @@ export default class Tourney extends GameLogicHandlerBase {
     // just say everything goes in order
     // in the future this should... actually, you know, simulate the battle royale
     const seeding = simulateFight(
-      this.emitEventToAll, this.randElement(this.decks.maps[this.map]), this.fightersInBattle
+      this.emitEventToAll,
+      this.randElement(this.decks.maps[this.map]),
+      {
+        randInt: this.randInt,
+        randReal: this.randReal,
+        randElement: this.randElement
+      },
+      this.fightersInBattle
     );
     this.bracket = generateBracket(seeding);
     this.gameStage = "tournament";
@@ -488,7 +495,14 @@ export default class Tourney extends GameLogicHandlerBase {
 
   simulateFight(): void {
     this.nextMatch.winner = simulateFight(
-      this.emitEventToAll, this.randElement(this.decks.maps[this.map]), this.fightersInBattle
+      this.emitEventToAll,
+      this.randElement(this.decks.maps[this.map]),
+      {
+        randInt: this.randInt,
+        randReal: this.randReal,
+        randElement: this.randElement
+      },
+      this.fightersInBattle
     )[0];
     this.prepareForNextMatch();
   }

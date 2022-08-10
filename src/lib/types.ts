@@ -103,3 +103,9 @@ export type ActionCallback = (action: Action) => void;
 export type EventHandler<T extends { type: string }> = {
   [key in T["type"]]: (event: T & { type: key }) => void;
 };
+
+export interface RNG {
+  randInt: (min: number, max: number) => number
+  randReal: () => number
+  randElement: <T>(arr: T[]) => T
+}

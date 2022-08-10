@@ -344,9 +344,27 @@ interface GoToBREvent {
 
 interface FightEvent {
   type: "fight"
-  fighters: FighterInBattle[]
   map: Map
+  eventLog: MidFightEvent[]
 }
+
+export type MidFightEvent = {
+  type: "tick"
+} | {
+  type: "spawn",
+  fighter: FighterInBattle
+} | {
+  type: "move"
+  fighter: number
+  x: number
+  y: number
+} | {
+  type: "meleeAttack"
+  fighter: number
+  target: number
+  dodged: boolean
+  damage: number
+};
 
 export type Bracket = {
   left: Bracket

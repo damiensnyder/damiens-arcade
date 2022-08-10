@@ -1,7 +1,8 @@
 import { array, boolean, number, object, string } from "yup";
 import { readFileSync, readdirSync } from "fs";
-import { EquipmentSlot, type Equipment, type EquipmentDeck, type FighterDeck, type FighterInBattle, type FighterNames, type FighterTemplate, type Map, type MapDeck, type Settings, type Team, type TourneyEvent } from "$lib/tourney/types";
+import { EquipmentSlot, type Equipment, type EquipmentDeck, type FighterDeck, type FighterInBattle, type FighterNames, type FighterTemplate, type Map, type MapDeck, type MidFightEvent, type Settings, type Team, type TourneyEvent } from "$lib/tourney/types";
 import type { Socket } from "socket.io";
+import type { RNG } from "$lib/types";
 
 const fighterStatsSchema = array(
   number().min(0).max(10).integer()
@@ -9,7 +10,8 @@ const fighterStatsSchema = array(
 
 const ability = object();
 
-const DECK_FILEPATH_BASE = "src/lib/tourney/data/"
+const DECK_FILEPATH_BASE = "src/lib/tourney/data/";
+const TICK_LENGTH = 0.1;  // length of a tick in seconds
 
 const fighterNames: FighterNames =
     JSON.parse(readFileSync(DECK_FILEPATH_BASE + "fighters/names.json").toString());
@@ -171,29 +173,35 @@ export function isValidEquipmentTournament(team: Team, equipment: number[][]): b
 
 // Simulate the fight and return the order of teams in it, going from winner to first out
 export function simulateFight(
-  eventEmitter: (event: TourneyEvent) => void, map: Map, fighters: FighterInBattle[]
+  eventEmitter: (event: TourneyEvent) => void,
+  map: Map,
+  rng: RNG,
+  fighters: FighterInBattle[]
 ): number[] {
-  const fight = new Fight(map, fighters);
+  const fight = new Fight(map, rng, fighters);
   fight.simulate();
   eventEmitter({
     type: "fight",
     map,
-    fighters
+    eventLog: fight.eventLog
   });
   return fight.placementOrder;
 }
 
 class Fight {
   private map: Map
+  private rng: RNG
   private fighters: FighterInBattle[]
-  private eventLog: any[]
+  eventLog: MidFightEvent[]
   placementOrder: number[]
 
   constructor(
     map: Map,
+    rng: RNG,
     fighters: FighterInBattle[]
   ) {
     this.map = map;
+    this.rng = rng;
     // clone each fighter and their stats and abilities objects so we can mutate them temporarily
     this.fighters = fighters.map((f) => {
       return {
@@ -202,24 +210,28 @@ class Fight {
         abilities: { ...f.abilities }
       };
     });
+    this.eventLog = [];
     this.placementOrder = [];
   }
 
+  // Returns the closest fighter not on fighter f's team
   closestNotOnTeam(f: FighterInBattle): FighterInBattle {
     return this.fighters
         .filter(f2 => f2.team !== f.team)
-        .sort((a, b) => this.distance(a, f) - this.distance(b, f))[0];
+        .sort((a, b) => distance(a, f) - distance(b, f))[0];
   }
 
-  distance(f1: FighterInBattle, f2: FighterInBattle): number {
-    return Math.sqrt(Math.pow(f1.x - f2.x, 2) + Math.pow(f1.y - f2.y, 2));
-  }
-
+  // Simulates the fight
   simulate(): void {
     // place the fighters evenly spaced in a circle around (0, 0)
-    this.fighters.forEach((fighter, i) => {
-      fighter.x = -25 * Math.cos(i / this.fighters.length);
-      fighter.y = 25 * Math.sin(i / this.fighters.length);
+    this.fighters.forEach((f, i) => {
+      f.x = -25 * Math.cos(i / this.fighters.length);
+      f.y = 25 * Math.sin(i / this.fighters.length);
+
+      this.eventLog.push({
+        type: "spawn",
+        fighter: f
+      });
     });
 
     let fightOver: boolean = false;
@@ -227,7 +239,7 @@ class Fight {
       this.fighters.forEach((f, i) => {
         if (f.hp <= 0) return;  // do nothing if fighter is down
         const target = this.closestNotOnTeam(f);
-        const distanceToTarget = this.distance(f, target);
+        const distanceToTarget = distance(f, target);
         if (distanceToTarget > 1) {
           // move toward the target by the max the fighter's speed allows or until within 0.5 m,
           // whichever is less. fighters with 0 speed can move 2.5 m/s, fighters with 10 speed move
@@ -238,15 +250,72 @@ class Fight {
           this.eventLog.push({
             type: "move",
             fighter: i,
-            x: f.x,
-            y: f.y
+            x: Math.round(f.x * 10) / 10,   // save data by rounding to the tenths place
+            y: Math.round(f.y * 10) / 10
           });
         }
-        // if within melee range (1 m), attack.
-        if (this.distance(f, target) <= 1 && f.cooldown === 0) {
+        // if within melee range (1 m) and not cooling down, attack.
+        // added a bit of buffer in case rounding adds imprecision to the cooldown
+        if (distance(f, target) <= 1 && f.cooldown < 0.0001) {
+          // if the target has 0 reflexes, they have no chance to dodge. if they have 10 reflexes,
+          // they have a 50% chance to dodge.
+          const dodged = this.rng.randReal() > target.stats.reflexes / 20;
+          // base damage is 5 + fighter's strength. this is reduced by 0% if the target has 0 toughness,
+          // 50% if they have 10 toughness. damage is rounded up to the nearest integer.
+          const damage = dodged ? 0 : Math.ceil((5 + f.stats.strength) * (1 - target.stats.toughness / 20));
+          target.hp -= damage;
+          this.eventLog.push({
+            type: "meleeAttack",
+            fighter: i,
+            target: this.fighters.findIndex(f2 => f2 === target),
+            dodged,
+            damage
+          });
 
+          // cooldown is 5 seconds for a fighter with 0 energy, 2.5 seconds if 10 energy
+          f.cooldown = 5 * (1 - 0.05 * f.stats.energy);
+        }
+
+        // decrease cooldown
+        if (f.cooldown > 0) {
+          f.cooldown = Math.min(0, TICK_LENGTH);
         }
       });
+
+      // check which teams are eliminated and determine whether the fight is over
+      const teamsRemaining: number[] = [];
+      const teamsInBattle: number[] = [];
+      for (const f of this.fighters) {
+        if (f.hp > 0 && !teamsRemaining.includes(f.team)) {
+          teamsRemaining.push(f.team);
+        }
+        if (!teamsInBattle.includes(f.team)) {
+          teamsInBattle.push(f.team);
+        }
+      }
+      // add newly eliminated teams to the front of the placement order
+      for (const t of teamsInBattle) {
+        if (!teamsRemaining.includes(t) && !this.placementOrder.includes(t)) {
+          this.placementOrder.unshift(t);
+        }
+      }
+      // the fight is over when no more than 1 team has fighters remaining
+      fightOver = teamsRemaining.length <= 1;
+      if (fightOver) {
+        // if there is a team left, add them to the front of the placement order
+        if (teamsRemaining.length === 1) {
+          this.placementOrder.unshift(teamsRemaining[0]);
+        }
+      } else {
+        this.eventLog.push({
+          type: "tick"
+        });
+      }
     }
   }
+}
+
+// Calculate the Euclidean distance between two fighters in the x-y plane
+function distance(f1: FighterInBattle, f2: FighterInBattle): number {
+  return Math.sqrt(Math.pow(f1.x - f2.x, 2) + Math.pow(f1.y - f2.y, 2));
 }
