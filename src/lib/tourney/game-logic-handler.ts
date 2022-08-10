@@ -295,7 +295,8 @@ export default class Tourney extends GameLogicHandlerBase {
         maxHP: teamControlledByViewer.fighters[action.fighter].stats.toughness * 5 + 25,
         equipment: action.equipment.map((e) => teamControlledByViewer.equipment[e]),
         x: 0,
-        y: 0
+        y: 0,
+        cooldown: 0
       });
       if (this.ready.every(x => x)) {
         this.simulateBattleRoyale();
@@ -316,7 +317,8 @@ export default class Tourney extends GameLogicHandlerBase {
           maxHP: teamControlledByViewer.fighters[i].stats.toughness * 5 + 25,
           equipment: action.equipment[i].map((e) => teamControlledByViewer.equipment[e]),
           x: 0,
-          y: 0
+          y: 0,
+          cooldown: 0
         });
       }
       if (this.ready.every(x => x)) {

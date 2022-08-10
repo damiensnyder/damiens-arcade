@@ -111,6 +111,7 @@ export interface FighterInBattle extends Fighter {
   equipment: Equipment[]
   x: number
   y: number
+  cooldown: number
 }
 
 export enum EquipmentSlot {

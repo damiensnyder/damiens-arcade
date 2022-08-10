@@ -186,6 +186,7 @@ export function simulateFight(
 class Fight {
   private map: Map
   private fighters: FighterInBattle[]
+  private eventLog: any[]
   placementOrder: number[]
 
   constructor(
@@ -207,8 +208,11 @@ class Fight {
   closestNotOnTeam(f: FighterInBattle): FighterInBattle {
     return this.fighters
         .filter(f2 => f2.team !== f.team)
-        .sort((a, b) => (Math.pow(a.x - f.x, 2) + Math.pow(a.y - f.y, 2)) -
-                        (Math.pow(b.x - f.x, 2) + Math.pow(b.y - f.y, 2)))[0];
+        .sort((a, b) => this.distance(a, f) - this.distance(b, f))[0];
+  }
+
+  distance(f1: FighterInBattle, f2: FighterInBattle): number {
+    return Math.sqrt(Math.pow(f1.x - f2.x, 2) + Math.pow(f1.y - f2.y, 2));
   }
 
   simulate(): void {
@@ -220,13 +224,28 @@ class Fight {
 
     let fightOver: boolean = false;
     while (!fightOver) {
-      this.fighters.forEach((f) => {
+      this.fighters.forEach((f, i) => {
         if (f.hp <= 0) return;  // do nothing if fighter is down
-        // if better at ranged than melee, run away and shoot
-        // actually not doing anything like that right now because ranged weapons don't exist yet
-        // if (fighter.stats.accuracy > fighter.stats.strength) {
-        // } else {
-        // }
+        const target = this.closestNotOnTeam(f);
+        const distanceToTarget = this.distance(f, target);
+        if (distanceToTarget > 1) {
+          // move toward the target by the max the fighter's speed allows or until within 0.5 m,
+          // whichever is less. fighters with 0 speed can move 2.5 m/s, fighters with 10 speed move
+          // 7.5 m/s
+          const distanceToMove = Math.max((2.5 + f.stats.speed / 2), distanceToTarget - 0.5);
+          f.x = Math.pow(target.x - f.x, 2) / distanceToTarget * distanceToMove;
+          f.y = Math.pow(target.y - f.y, 2) / distanceToTarget * distanceToMove;
+          this.eventLog.push({
+            type: "move",
+            fighter: i,
+            x: f.x,
+            y: f.y
+          });
+        }
+        // if within melee range (1 m), attack.
+        if (this.distance(f, target) <= 1 && f.cooldown === 0) {
+
+        }
       });
     }
   }
