@@ -482,25 +482,29 @@ export default class Tourney extends GameLogicHandlerBase {
       this.emitEventToAll,
       this.randElement(this.decks.maps[this.map]),
       {
-        randInt: this.randInt,
-        randReal: this.randReal,
-        randElement: this.randElement
+        randInt: this.randInt.bind(this),
+        randReal: this.randReal.bind(this),
+        randElement: this.randElement.bind(this)
       },
       this.fightersInBattle
     );
     this.bracket = generateBracket(seeding);
     this.gameStage = "tournament";
+    this.emitEventToAll({
+      type: "bracket",
+      bracket: this.bracket
+    });
     setTimeout(this.prepareForNextMatch.bind(this), ADVANCEMENT_DELAY);
   }
 
   simulateFight(): void {
     this.nextMatch.winner = simulateFight(
       this.emitEventToAll,
-      this.randElement(this.decks.maps[this.map]),
+      this.randElement(this.decks.maps.maps),
       {
-        randInt: this.randInt,
-        randReal: this.randReal,
-        randElement: this.randElement
+        randInt: this.randInt.bind(this),
+        randReal: this.randReal.bind(this),
+        randElement: this.randElement.bind(this)
       },
       this.fightersInBattle
     )[0];
