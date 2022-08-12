@@ -449,8 +449,9 @@ export default class Tourney extends GameLogicHandlerBase {
         if (equipmentIndex >= 0 &&
             equipmentIndex < e.length &&
             e[equipmentIndex].price <= team.money) {
-          team.equipment.push(e.splice(equipmentIndex, 1)[0]);
-          team.money -= e[equipmentIndex].price;
+          const equipmentPicked = e.splice(equipmentIndex, 1)[0];
+          team.equipment.push(equipmentPicked);
+          team.money -= equipmentPicked.price;
         }
       });
       choice.skills.forEach((skill, j) => {
@@ -480,7 +481,7 @@ export default class Tourney extends GameLogicHandlerBase {
     // in the future this should... actually, you know, simulate the battle royale
     const seeding = simulateFight(
       this.emitEventToAll,
-      this.randElement(this.decks.maps[this.map]),
+      this.randElement(this.decks.maps.maps),
       {
         randInt: this.randInt.bind(this),
         randReal: this.randReal.bind(this),
