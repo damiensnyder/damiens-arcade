@@ -11,7 +11,7 @@ const fighterStatsSchema = array(
 const ability = object();
 
 const DECK_FILEPATH_BASE = "src/lib/tourney/data/";
-const TICK_LENGTH = 0.1;  // length of a tick in seconds
+const TICK_LENGTH = 0.2;  // length of a tick in seconds
 
 const fighterNames: FighterNames =
     JSON.parse(readFileSync(DECK_FILEPATH_BASE + "fighters/names.json").toString());
@@ -291,10 +291,9 @@ class Fight {
           f.cooldown = 5 * (1 - 0.05 * f.stats.energy);
         }
 
-        // decrease cooldown
-        if (f.cooldown > 0) {
-          f.cooldown = Math.max(0, f.cooldown - TICK_LENGTH);
-        }
+        // decrease cooldown. cooldown can go slightly below 0 to compensate for if a cooldown
+        // is not a multiple of tick length, but if already at or below 0 it cannot go lower
+        f.cooldown = f.cooldown <= 0.0001 ? 0 : f.cooldown - TICK_LENGTH;
       });
       // we stringify the tick so later mutations don't mess up earlier ticks
       this.eventLog.push(tick);
