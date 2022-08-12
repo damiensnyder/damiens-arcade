@@ -345,12 +345,10 @@ interface GoToBREvent {
 interface FightEvent {
   type: "fight"
   map: Map
-  eventLog: MidFightEvent[]
+  eventLog: MidFightEvent[][]
 }
 
 export type MidFightEvent = {
-  type: "tick"
-} | {
   type: "spawn",
   fighter: FighterInBattle
 } | {

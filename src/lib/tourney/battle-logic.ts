@@ -1,5 +1,5 @@
 import { array, boolean, number, object, string } from "yup";
-import { readFileSync, readdirSync } from "fs";
+import { readFileSync, readdirSync, writeFileSync } from "fs";
 import { EquipmentSlot, type Equipment, type EquipmentDeck, type FighterDeck, type FighterInBattle, type FighterNames, type FighterTemplate, type Map, type MapDeck, type MidFightEvent, type Settings, type Team, type TourneyEvent } from "$lib/tourney/types";
 import type { Socket } from "socket.io";
 import type { RNG } from "$lib/types";
@@ -192,7 +192,7 @@ class Fight {
   private map: Map
   private rng: RNG
   private fighters: FighterInBattle[]
-  eventLog: MidFightEvent[]
+  eventLog: MidFightEvent[][]
   placementOrder: number[]
 
   constructor(
@@ -217,25 +217,35 @@ class Fight {
   // Returns the closest fighter not on fighter f's team
   closestNotOnTeam(f: FighterInBattle): FighterInBattle {
     return this.fighters
-        .filter(f2 => f2.team !== f.team)
+        .filter(f2 => f2.team !== f.team && f2.hp > 0)
         .sort((a, b) => distance(a, f) - distance(b, f))[0];
   }
 
   // Simulates the fight
   simulate(): void {
-    // place the fighters evenly spaced in a circle around (0, 0)
-    this.fighters.forEach((f, i) => {
-      f.x = -25 * Math.cos(i / this.fighters.length);
-      f.y = 25 * Math.sin(i / this.fighters.length);
+    const initialTick: MidFightEvent[] = [];
 
-      this.eventLog.push({
+    // place the fighters evenly spaced in a circle of radius 25 centered at (0, 0)
+    this.fighters.forEach((f, i) => {
+      f.x = -25 * Math.cos(2 * Math.PI * i / this.fighters.length);
+      f.y = 25 * Math.sin(2 * Math.PI * i / this.fighters.length);
+
+      initialTick.push({
         type: "spawn",
-        fighter: f
+        fighter: {  // f will be mutated during the fight so we need a current snapshot
+          ...f,
+          stats: { ...f.stats },
+          abilities: { ...f.abilities }
+        }
       });
     });
 
+    this.eventLog.push(initialTick);
+    // writeFileSync("ticks.txt", JSON.stringify(initialTick));
+
     let fightOver: boolean = false;
     while (!fightOver) {
+      const tick: MidFightEvent[] = [];
       this.fighters.forEach((f, i) => {
         if (f.hp <= 0) return;  // do nothing if fighter is down
         const target = this.closestNotOnTeam(f);
@@ -244,14 +254,19 @@ class Fight {
           // move toward the target by the max the fighter's speed allows or until within 0.5 m,
           // whichever is less. fighters with 0 speed can move 2.5 m/s, fighters with 10 speed move
           // 7.5 m/s
-          const distanceToMove = Math.max((2.5 + f.stats.speed / 2), distanceToTarget - 0.5);
-          f.x = Math.pow(target.x - f.x, 2) / distanceToTarget * distanceToMove;
-          f.y = Math.pow(target.y - f.y, 2) / distanceToTarget * distanceToMove;
-          this.eventLog.push({
+          const distanceToMove = Math.min((2.5 + f.stats.speed / 2) * TICK_LENGTH,
+                                          distanceToTarget - 0.5);
+          console.debug(`${(2.5 + f.stats.speed / 2) * TICK_LENGTH} ${f.x} ${f.y} ${distanceToTarget} ${target.x} ${target.y}`)
+          const deltaX = Math.pow(target.x - f.x, 2) / Math.pow(distanceToTarget, 2) * distanceToMove;
+          const deltaY = Math.pow(target.y - f.y, 2) / Math.pow(distanceToTarget, 2) * distanceToMove;
+          f.x += Math.sign(target.x - f.x) * deltaX;
+          f.y += Math.sign(target.y - f.y) * deltaY;
+          console.debug(`${(2.5 + f.stats.speed / 2) * TICK_LENGTH} ${f.x} ${f.y} ${distanceToTarget} ${target.x} ${target.y}`)
+          tick.push({
             type: "move",
             fighter: i,
-            x: Math.round(f.x * 10) / 10,   // save data by rounding to the tenths place
-            y: Math.round(f.y * 10) / 10
+            x: f.x,
+            y: f.y
           });
         }
         // if within melee range (1 m) and not cooling down, attack.
@@ -259,12 +274,12 @@ class Fight {
         if (distance(f, target) <= 1 && f.cooldown < 0.0001) {
           // if the target has 0 reflexes, they have no chance to dodge. if they have 10 reflexes,
           // they have a 50% chance to dodge.
-          const dodged = this.rng.randReal() > target.stats.reflexes / 20;
+          const dodged = this.rng.randReal() < target.stats.reflexes / 20;
           // base damage is 5 + fighter's strength. this is reduced by 0% if the target has 0 toughness,
           // 50% if they have 10 toughness. damage is rounded up to the nearest integer.
           const damage = dodged ? 0 : Math.ceil((5 + f.stats.strength) * (1 - target.stats.toughness / 20));
           target.hp -= damage;
-          this.eventLog.push({
+          tick.push({
             type: "meleeAttack",
             fighter: i,
             target: this.fighters.findIndex(f2 => f2 === target),
@@ -278,9 +293,12 @@ class Fight {
 
         // decrease cooldown
         if (f.cooldown > 0) {
-          f.cooldown = Math.min(0, TICK_LENGTH);
+          f.cooldown = Math.max(0, f.cooldown - TICK_LENGTH);
         }
       });
+      // we stringify the tick so later mutations don't mess up earlier ticks
+      this.eventLog.push(tick);
+      // writeFileSync("ticks.txt", JSON.stringify(tick), { flag: "a+" });
 
       // check which teams are eliminated and determine whether the fight is over
       const teamsRemaining: number[] = [];
@@ -300,16 +318,10 @@ class Fight {
         }
       }
       // the fight is over when no more than 1 team has fighters remaining
+      // if there is a team left, add them to the front of the placement order
       fightOver = teamsRemaining.length <= 1;
-      if (fightOver) {
-        // if there is a team left, add them to the front of the placement order
-        if (teamsRemaining.length === 1) {
-          this.placementOrder.unshift(teamsRemaining[0]);
-        }
-      } else {
-        this.eventLog.push({
-          type: "tick"
-        });
+      if (fightOver && teamsRemaining.length === 1) {
+        this.placementOrder.unshift(teamsRemaining[0]);
       }
     }
   }

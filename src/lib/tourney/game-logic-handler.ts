@@ -291,8 +291,8 @@ export default class Tourney extends GameLogicHandlerBase {
       this.fightersInBattle.push({
         ...teamControlledByViewer.fighters[action.fighter],
         team: indexControlledByViewer,
-        hp: teamControlledByViewer.fighters[action.fighter].stats.toughness * 5 + 25,
-        maxHP: teamControlledByViewer.fighters[action.fighter].stats.toughness * 5 + 25,
+        hp: 100,
+        maxHP: 100,
         equipment: action.equipment.map((e) => teamControlledByViewer.equipment[e]),
         x: 0,
         y: 0,
@@ -313,8 +313,8 @@ export default class Tourney extends GameLogicHandlerBase {
         this.fightersInBattle.push({
           ...teamControlledByViewer.fighters[i],
           team: indexControlledByViewer,
-          hp: teamControlledByViewer.fighters[i].stats.toughness * 5 + 25,
-          maxHP: teamControlledByViewer.fighters[i].stats.toughness * 5 + 25,
+          hp: 100,
+          maxHP: 100,
           equipment: action.equipment[i].map((e) => teamControlledByViewer.equipment[e]),
           x: 0,
           y: 0,
@@ -480,7 +480,7 @@ export default class Tourney extends GameLogicHandlerBase {
     // just say everything goes in order
     // in the future this should... actually, you know, simulate the battle royale
     const seeding = simulateFight(
-      this.emitEventToAll,
+      this.emitEventToAll.bind(this),
       this.randElement(this.decks.maps.maps),
       {
         randInt: this.randInt.bind(this),
@@ -500,7 +500,7 @@ export default class Tourney extends GameLogicHandlerBase {
 
   simulateFight(): void {
     this.nextMatch.winner = simulateFight(
-      this.emitEventToAll,
+      this.emitEventToAll.bind(this),
       this.randElement(this.decks.maps.maps),
       {
         randInt: this.randInt.bind(this),
