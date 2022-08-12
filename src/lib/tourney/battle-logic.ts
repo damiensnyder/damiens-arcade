@@ -227,13 +227,15 @@ class Fight {
 
     // place the fighters evenly spaced in a circle of radius 25 centered at (0, 0)
     this.fighters.forEach((f, i) => {
-      f.x = -25 * Math.cos(2 * Math.PI * i / this.fighters.length);
-      f.y = 25 * Math.sin(2 * Math.PI * i / this.fighters.length);
+      f.x = 50 + -25 * Math.cos(2 * Math.PI * i / this.fighters.length);
+      f.y = 50 + 25 * Math.sin(2 * Math.PI * i / this.fighters.length);
 
       initialTick.push({
         type: "spawn",
         fighter: {  // f will be mutated during the fight so we need a current snapshot
           ...f,
+          x: Number(f.x.toFixed(2)),  // round to save data
+          y: Number(f.y.toFixed(2)),
           stats: { ...f.stats },
           abilities: { ...f.abilities }
         }
@@ -241,7 +243,7 @@ class Fight {
     });
 
     this.eventLog.push(initialTick);
-    // writeFileSync("ticks.txt", JSON.stringify(initialTick));
+    writeFileSync("ticks.txt", JSON.stringify(initialTick));
 
     let fightOver: boolean = false;
     while (!fightOver) {
@@ -256,17 +258,15 @@ class Fight {
           // 7.5 m/s
           const distanceToMove = Math.min((2.5 + f.stats.speed / 2) * TICK_LENGTH,
                                           distanceToTarget - 0.5);
-          console.debug(`${(2.5 + f.stats.speed / 2) * TICK_LENGTH} ${f.x} ${f.y} ${distanceToTarget} ${target.x} ${target.y}`)
           const deltaX = Math.pow(target.x - f.x, 2) / Math.pow(distanceToTarget, 2) * distanceToMove;
           const deltaY = Math.pow(target.y - f.y, 2) / Math.pow(distanceToTarget, 2) * distanceToMove;
           f.x += Math.sign(target.x - f.x) * deltaX;
           f.y += Math.sign(target.y - f.y) * deltaY;
-          console.debug(`${(2.5 + f.stats.speed / 2) * TICK_LENGTH} ${f.x} ${f.y} ${distanceToTarget} ${target.x} ${target.y}`)
           tick.push({
             type: "move",
             fighter: i,
-            x: f.x,
-            y: f.y
+            x: Number(f.x.toFixed(2)),  // round to save data
+            y:  Number(f.y.toFixed(2))
           });
         }
         // if within melee range (1 m) and not cooling down, attack.
@@ -298,7 +298,7 @@ class Fight {
       });
       // we stringify the tick so later mutations don't mess up earlier ticks
       this.eventLog.push(tick);
-      // writeFileSync("ticks.txt", JSON.stringify(tick), { flag: "a+" });
+      writeFileSync("ticks.txt", JSON.stringify(tick), { flag: "a+" });
 
       // check which teams are eliminated and determine whether the fight is over
       const teamsRemaining: number[] = [];

@@ -348,21 +348,29 @@ interface FightEvent {
   eventLog: MidFightEvent[][]
 }
 
-export type MidFightEvent = {
-  type: "spawn",
+interface MFSpawnEvent {
+  type: "spawn"
   fighter: FighterInBattle
-} | {
+}
+
+interface MFMoveEvent {
   type: "move"
   fighter: number
   x: number
   y: number
-} | {
+}
+
+interface MFMeleeAttackEvent {
   type: "meleeAttack"
   fighter: number
   target: number
   dodged: boolean
   damage: number
-};
+}
+
+export type MidFightEvent = MFSpawnEvent |
+    MFMoveEvent |
+    MFMeleeAttackEvent;
 
 export type Bracket = {
   left: Bracket
