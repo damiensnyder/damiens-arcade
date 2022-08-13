@@ -23,12 +23,23 @@
     equipment.update(x => x);
   }
 
+  // Submit the equipment you're buying and skills you're training
   function practice() {
     lastAction.set({
       type: "practice",
       equipment: equipmentBought,
       skills
     });
+
+    // update the fighters' stats and attunements after training
+    $ownTeam.fighters.forEach((f, i) => {
+      if (typeof skills[i] === "number") {
+        f.attunements.push($ownTeam.equipment[skills[i]]);
+      } else {
+        f.stats[skills[i]] += 1;
+      }
+    });
+    teams.update(old => old);
   }
 </script>
 
