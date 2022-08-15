@@ -36,6 +36,7 @@
   <div class="top-icons horiz">
     <h2>{$gameStage}</h2>
     <button on:click={debug} on:submit={debug}>Debug</button>
+    <button on:click={() => changeView(-1)} on:submit={() => changeView(-1)}>Watch Fight</button>
     {#if $ownTeamIndex !== null}
       <div class="money">${$ownTeam.money}</div>
       {#if viewing !== $ownTeamIndex}
@@ -55,10 +56,12 @@
   </div>
   
   <div class="container horiz">
-    {#if typeof viewing === "number"}
+    {#if typeof viewing === "number" && viewing >= 0}
       <TeamView team={$teams[viewing]} />
     {:else if viewing === true}
       <AllTeams callback={changeView} />
+    {:else if viewing === -1} <!-- previously was $fightersInBattle.length > 0 -->
+      <WatchFight />
     {:else if $gameStage === "preseason"}
       <Preseason />
     {:else if $gameStage === "draft"}
@@ -67,8 +70,6 @@
       <FreeAgency />
     {:else if $gameStage === "training"}
       <Training />
-    {:else if $fightersInBattle.length > 0}
-      <WatchFight />
     {:else if $gameStage === "battle royale"}
       <PickBrFighter />
     {:else}
