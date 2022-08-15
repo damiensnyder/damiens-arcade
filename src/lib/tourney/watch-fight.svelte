@@ -9,7 +9,9 @@
   let flipped: AnimationState[] = [];
   let tick: number = 0;
   let tickInterval = null;
+  let eventInterval = null;
   let lastEvent: string = "";
+  let slowdown: number = 1;
 
   enum AnimationState {
     Stationary = "0deg",
@@ -31,7 +33,7 @@
     tickInterval = setInterval(() => {
       if (tick < eventLog.length) {
         let i = 0;
-        const eventInterval = setInterval(() => {
+        eventInterval = setInterval(() => {
           if (i < eventLog[tick].length) {
             handleEvent(eventLog[tick][i], i);
           }
@@ -39,12 +41,12 @@
           if (i === eventLog[tick].length) {
             clearInterval(eventInterval);
           }
-        }, 200 / eventLog[tick].length);
+        }, 200 / eventLog[tick].length * slowdown);
         tick++;
       } else {
         clearInterval(tickInterval);
       }
-    }, 200);
+    }, 200 * slowdown);
   }
 
   function pause(): void {
@@ -52,6 +54,8 @@
   }
 
   function restart(): void {
+    clearInterval(tickInterval);
+    clearInterval(eventInterval);
     fighters = [];
     rotation = [];
     flipped = [];
@@ -60,7 +64,6 @@
   }
 
   function handleEvent(event: MidFightEvent, _i: number): void {
-    lastEvent = JSON.stringify(event);
     if (event.type === "spawn") {
       if (tick > 1) {
         window.alert(lastEvent);
@@ -73,6 +76,7 @@
     } else if (event.type === "meleeAttack") {
       // figure this out later
     }
+    lastEvent = JSON.stringify(fighters);
   }
 </script>
 
@@ -83,6 +87,9 @@
     <button on:click={restart} on:submit={restart}>Restart</button>
     <button on:click={enterEvents} on:submit={enterEvents}>Enter events</button>
     <textarea rows={1} bind:value={eventLogRaw}></textarea>
+    <label>Slowdown
+      <input type="range" min="1" max="50" bind:value={slowdown} />
+    </label>
     <p>{lastEvent}</p>
   </div>
   <div class="arena">
