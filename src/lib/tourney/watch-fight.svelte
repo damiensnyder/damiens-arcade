@@ -104,10 +104,10 @@
   <div class="arena">
     {#each fighters as f, i}
       <div class="fighter"
-          style:left={(f.x + 50).toFixed(2) + "%"}
-          style:top={(f.y + 50).toFixed(2) + "%"}
+          style:left={(f.x + 42.5).toFixed(2) + "%"}
+          style:top={(f.y + 42.5).toFixed(2) + "%"}
           style:transform={`rotate(${rotation[i]})`}>
-        <FighterImage fighter={f} equipment={f.equipment} />
+        <FighterImage fighter={f} equipment={f.equipment} inBattle={true} />
       </div>
     {/each}
   </div>
@@ -124,18 +124,20 @@
   .arena {
     position: relative;
     border: 2px solid var(--text-fun-3);
-    border-radius: 50%;
+    border-radius: 20%;
     background-color: var(--bg-fun-2);
-    width: 75vh;
-    min-width: 75vh;
-    height: 75vh;
-    min-height: 75vh;
+    width: 80vh;
+    min-width: 80vh;
+    height: 80vh;
+    min-height: 80vh;
   }
 
   .fighter {
     position: absolute;
-    width: 5%;
-    height: 5%;
+    width: 15%;
+    height: 15%;
+
+    transition: all 0.2s ease-in-out;
   }
 
   p {

@@ -3,6 +3,7 @@
 
   export let fighter: Fighter;
   export let equipment: Equipment[];
+  export let inBattle: boolean = false;
 
   $: head = equipment.filter(e => e.slots.includes(EquipmentSlot.Head));
   $: torso = equipment.filter(e => e.slots.includes(EquipmentSlot.Torso));
@@ -46,7 +47,11 @@
 </script>
 
 <!-- svelte-ignore a11y-missing-attribute -->
-<div class="img-container">
+<div class="img-container"
+    style:width={inBattle ? "100%" : "15rem"}
+    style:height={inBattle ? "100%" : "15rem"}
+    style:margin-top={inBattle ? "0" : "-2rem"}
+    style:margin-left={inBattle ? "0" : "-1rem"}>
   <img src={`/static/base/body_${fighter.gender}1.png`}
       style:filter={`hue-rotate(25deg) brightness(${skinColor[0]}) saturate(${skinColor[1]})`} />
   <img src={`/static/base/hair_${fighter.gender}1.png`} class="body-part"
@@ -85,24 +90,18 @@
   .img-container {
     position: relative;
     z-index: 0;
-    margin-top: -2rem;
-    margin-left: -1rem;
   }
 
-  .img-container,
   img {
-    width: 15rem;
-    height: 15rem;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
   }
 
-  .body-part,
-  .equipment {
-    position: absolute;
+  .body-part {
     z-index: 1;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
   }
 
   .equipment {
@@ -110,7 +109,7 @@
   }
 
   .hand {
-    z-index: 4;
+    z-index: 5;
   }
 
   .legs {
@@ -119,6 +118,6 @@
   
   .flipped {
     transform: scaleX(-1);
-    z-index: 5;
+    z-index: 4;
   }
 </style>
