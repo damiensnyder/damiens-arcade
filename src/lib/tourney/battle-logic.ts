@@ -243,7 +243,7 @@ class Fight {
     });
 
     this.eventLog.push(initialTick);
-    writeFileSync("ticks.txt", JSON.stringify(initialTick));
+    writeFileSync("logs/ticks.txt", JSON.stringify(initialTick));
 
     let fightOver: boolean = false;
     while (!fightOver) {
@@ -252,12 +252,12 @@ class Fight {
         if (f.hp <= 0) return;  // do nothing if fighter is down
         const target = this.closestNotOnTeam(f);
         const distanceToTarget = distance(f, target);
-        if (distanceToTarget > 1) {
-          // move toward the target by the max the fighter's speed allows or until within 0.5 m,
+        if (distanceToTarget > 2) {
+          // move toward the target by the max the fighter's speed allows or until within 1.5 m,
           // whichever is less. fighters with 0 speed can move 2.5 m/s, fighters with 10 speed move
           // 7.5 m/s
           const distanceToMove = Math.min((2.5 + f.stats.speed / 2) * TICK_LENGTH,
-                                          distanceToTarget - 0.5);
+                                          distanceToTarget - 1.5);
           const deltaX = Math.pow(target.x - f.x, 2) / Math.pow(distanceToTarget, 2) * distanceToMove;
           const deltaY = Math.pow(target.y - f.y, 2) / Math.pow(distanceToTarget, 2) * distanceToMove;
           f.x += Math.sign(target.x - f.x) * deltaX;
@@ -269,9 +269,9 @@ class Fight {
             y:  Number(f.y.toFixed(2))
           });
         }
-        // if within melee range (1 m) and not cooling down, attack.
+        // if within melee range (2 m) and not cooling down, attack.
         // added a bit of buffer in case rounding adds imprecision to the cooldown
-        if (distance(f, target) <= 1 && f.cooldown < 0.0001) {
+        if (distance(f, target) <= 2 && f.cooldown < 0.0001) {
           // if the target has 0 reflexes, they have no chance to dodge. if they have 10 reflexes,
           // they have a 50% chance to dodge.
           const dodged = this.rng.randReal() < target.stats.reflexes / 20;
@@ -297,7 +297,7 @@ class Fight {
       });
       // we stringify the tick so later mutations don't mess up earlier ticks
       this.eventLog.push(tick);
-      writeFileSync("ticks.txt", JSON.stringify(tick), { flag: "a+" });
+      writeFileSync("logs/ticks.txt", JSON.stringify(tick), { flag: "a+" });
 
       // check which teams are eliminated and determine whether the fight is over
       const teamsRemaining: number[] = [];
