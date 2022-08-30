@@ -87,20 +87,6 @@
 </script>
 
 <div class="outer horiz">
-  <div class="controls">
-    <button on:click={play} on:submit={play}>Play</button>
-    <button on:click={pause} on:submit={pause}>Pause</button>
-    <button on:click={step} on:submit={step}>Step</button>
-    <button on:click={restart} on:submit={restart}>Restart</button>
-    <button on:click={enterEvents} on:submit={enterEvents}>Enter events</button>
-    <textarea rows={1} bind:value={eventLogRaw}></textarea>
-    <label>Tick length
-      <input type="range" min="100" max="5000" bind:value={tickLength} />
-    </label>
-    <p>Tick: {@debug tick}</p>
-    <p>Fighters: {@debug fighters}</p>
-    <p>Last event: {lastEvent}</p>
-  </div>
   <div class="arena">
     {#each fighters as f, i}
       <div class="fighter"
@@ -111,13 +97,36 @@
       </div>
     {/each}
   </div>
+  <div class="controls">
+    <div class="horiz">
+      <button on:click={play} on:submit={play}>Play</button>
+      <button on:click={pause} on:submit={pause}>Pause</button>
+    </div>
+    <div class="horiz">
+      <button on:click={step} on:submit={step}>Step</button>
+      <button on:click={restart} on:submit={restart}>Restart</button>
+    </div>
+    <div class="horiz">
+      <button on:click={enterEvents} on:submit={enterEvents}>Enter events</button>
+      <textarea rows={1} bind:value={eventLogRaw}></textarea>
+    </div>
+    <!-- <label>Tick length
+      <input type="range" min="100" max="5000" bind:value={tickLength} />
+    </label>
+    <p>Tick: {@debug tick}</p>
+    <p>Fighters: {@debug fighters}</p>
+    <p>Last event: {lastEvent}</p> -->
+    {#each fighters as f}
+      <div>{f.name}</div>
+    {/each}
+  </div>
 </div>
 
 <style>
   .outer {
     flex: 1;
     padding: 2rem;
-    justify-content: space-between;
+    justify-content: stretch;
     align-items: flex-start;
   }
 
@@ -126,10 +135,9 @@
     border: 2px solid var(--text-fun-3);
     border-radius: 20%;
     background-color: var(--bg-fun-2);
-    width: 80vh;
-    min-width: 80vh;
-    height: 80vh;
-    min-height: 80vh;
+    flex: 2;
+    margin-right: 2rem;
+    aspect-ratio: 1;
   }
 
   .fighter {
@@ -140,8 +148,15 @@
     transition: all 0.2s ease-in-out;
   }
 
+  .controls {
+    flex: 1;
+    overflow-x: hidden;
+    overflow-y: scroll;
+  }
+
   p {
-    max-width: 50%;
+    width: 100%;
+    overflow-x: hidden;
     white-space: normal;
     word-wrap: break-word;
   }
