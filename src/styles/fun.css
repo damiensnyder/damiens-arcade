@@ -76,11 +76,13 @@
 
 .fun .show-child-on-hover {
   position: relative;
+  /* z-index: 100; */
 }
 
 .fun .show-child-on-hover > .show-on-hover {
   visibility: hidden;
   opacity: 0;
+  z-index: 100;
 }
 
 .fun .show-child-on-hover:hover > .show-on-hover {
