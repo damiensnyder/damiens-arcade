@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { FighterInBattle, MidFightEvent } from "$lib/tourney/types";
   import FighterImage from "$lib/tourney/fighter-image.svelte";
+import FighterBattleInfo from "./fighter-battle-info.svelte";
 
   let eventLogRaw: string = "";
   let eventLog: MidFightEvent[][] = [];
@@ -116,8 +117,8 @@
     <p>Tick: {@debug tick}</p>
     <p>Fighters: {@debug fighters}</p>
     <p>Last event: {lastEvent}</p> -->
-    {#each fighters as f}
-      <div>{f.name}</div>
+    {#each fighters as fighter}
+      <FighterBattleInfo {fighter} />
     {/each}
   </div>
 </div>
@@ -154,10 +155,10 @@
     overflow-y: scroll;
   }
 
-  p {
+  /* p {
     width: 100%;
     overflow-x: hidden;
     white-space: normal;
     word-wrap: break-word;
-  }
+  } */
 </style>
