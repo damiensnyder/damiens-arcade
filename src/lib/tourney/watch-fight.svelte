@@ -1,24 +1,37 @@
 <script lang="ts">
   import type { FighterInBattle, MidFightEvent } from "$lib/tourney/types";
   import FighterImage from "$lib/tourney/fighter-image.svelte";
-import FighterBattleInfo from "./fighter-battle-info.svelte";
+  import FighterBattleInfo from "$lib/tourney/fighter-battle-info.svelte";
+  import { fade } from "svelte/types/runtime/transition";
 
   let eventLogRaw: string = "";
   let eventLog: MidFightEvent[][] = [];
   let fighters: FighterInBattle[] = [];
   let rotation: AnimationState[] = [];
-  let flipped: AnimationState[] = [];
+  let flipped: boolean[] = [];
+  let particles: Particle[] = [];
   let tick: number = 0;
   let tickInterval = null;
   let lastEvent: string = "";
-  let tickLength: number = 200;
+  let tickLength: number = 200;  // ticks are 0.2 s long
+
+  type Particle = {
+    fighter: number
+    type: "text"
+    text: string
+    ticksUntil: number
+  };
 
   enum AnimationState {
-    Stationary = "0deg",
-    StepLeft = "-15deg",
-    StepRight = "-15deg",
-    BackSwing = "-30deg",
-    ForwardSwing = "20deg"
+    Stationary1 = "0deg",
+    Stationary2 = "0deg ",
+    WalkingStart1 = "-15deg ",
+    Walking1 = "-15deg",
+    WalkingStart2 = "15deg ",
+    Walking2 = "15deg",
+    BackswingStart = "-10deg ",
+    Backswing = "-10deg",
+    ForwardSwing = "30deg"
   }
 
   function enterEvents(): void {
@@ -26,7 +39,7 @@ import FighterBattleInfo from "./fighter-battle-info.svelte";
       eventLog = JSON.parse("[" + eventLogRaw.replaceAll("][", "],[") + "]");
       tick = 0;
     } catch (e) {
-      window.alert("you done messed up");
+      window.alert("Error: Could not parse events.");
     }
   }
   
@@ -41,20 +54,26 @@ import FighterBattleInfo from "./fighter-battle-info.svelte";
   function step(): void {
     if (tick < eventLog.length) {
       eventLog[tick].forEach(handleEvent);
-      /* const processNextEvent = (i) => {
-        handleEvent(eventLog[tick][i]);
-        if (i + 1 < eventLog[tick].length) {
-          setTimeout(() => processNextEvent(i + 1), tickLength / eventLog[tick].length);
-        } else {
-          console.debug(i + 1);
-          console.debug(eventLog[tick]);
-        }
-      };
-      if (eventLog[tick].length > 0) {
-        processNextEvent(0);
-      } */
-      
       tick++;
+      rotation = rotation.map((prev) => {
+        if (prev === AnimationState.Backswing) {
+          return AnimationState.ForwardSwing;
+        } else if (prev === AnimationState.BackswingStart) {
+          return AnimationState.Backswing;
+        } else if (prev === AnimationState.WalkingStart1) {
+          return AnimationState.Walking1;
+        } else if (prev === AnimationState.WalkingStart2) {
+          return AnimationState.Walking2;
+        } else if (prev === AnimationState.Walking1) {
+          return AnimationState.Stationary2;
+        } else {
+          return AnimationState.Stationary1;
+        }
+      });
+      particles.forEach((p) => {
+        p.ticksUntil--;
+      });
+      particles = particles.filter(p => p.ticksUntil >= 0);
     } else {
       clearInterval(tickInterval);
     }
@@ -75,13 +94,28 @@ import FighterBattleInfo from "./fighter-battle-info.svelte";
     if (event.type === "spawn") {
       fighters.push(event.fighter);
       fighters = fighters;
-      rotation.push(AnimationState.Stationary);
+      rotation.push(AnimationState.Stationary1);
       rotation = rotation;
+      flipped.push(false);
     } else if (event.type === "move") {
+      // make them face the direction they are going
+      flipped[event.fighter] = fighters[event.fighter].x < event.x;
+
+      // move them to their new coordinates
       fighters[event.fighter].x = event.x;
       fighters[event.fighter].y = event.y;
+
+      // update their rotation
+      if (rotation[event.fighter] !== AnimationState.Stationary2 &&
+          rotation[event.fighter] !== AnimationState.Walking1 &&
+          rotation[event.fighter] !== AnimationState.Walking2) {
+        rotation[event.fighter] = AnimationState.WalkingStart1;
+      } else if (rotation[event.fighter] === AnimationState.Stationary2) {
+        rotation[event.fighter] = AnimationState.WalkingStart2;
+      }
     } else if (event.type === "meleeAttack") {
-      // figure this out later
+      fighters[event.target].hp -= event.damage;
+      rotation[event.target] = AnimationState.BackswingStart;
     }
     lastEvent = JSON.stringify(fighters);
   }
@@ -90,12 +124,28 @@ import FighterBattleInfo from "./fighter-battle-info.svelte";
 <div class="outer horiz">
   <div class="arena">
     {#each fighters as f, i}
-      <div class="fighter"
-          style:left={(f.x + 42.5).toFixed(2) + "%"}
-          style:top={(f.y + 42.5).toFixed(2) + "%"}
-          style:transform={`rotate(${rotation[i]})`}>
-        <FighterImage fighter={f} equipment={f.equipment} inBattle={true} />
-      </div>
+      {#if f.hp > 0}
+        <div class="fighter"
+            style:left={(f.x + 42.5).toFixed(2) + "%"}
+            style:top={(f.y + 42.5).toFixed(2) + "%"}
+            style:transform={`rotate(${rotation[i]})`}>
+          <FighterImage fighter={f} equipment={f.equipment} inBattle={true} />
+        </div>
+      {/if}
+    {/each}
+
+    {#each particles as p}
+      {#if p.ticksUntil === 0}
+        {@const f = fighters[p.fighter]}
+        {#if p.type === "text"}
+          <div class="text-particle"
+              style:left={(f.x + 42.5).toFixed(2) + "%"}
+              style:top={(f.y + 32.5).toFixed(2) + "%"}
+              out:fade="{{duration: 400}}">
+            {p.text}
+          </div>
+        {/if}
+      {/if}
     {/each}
   </div>
   <div class="controls">
