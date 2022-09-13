@@ -2681,7 +2681,7 @@ __metadata:
     svelte-preprocess: ^4.9.4
     tslib: ^2.4.0
     typescript: ^4.4.3
-    vite: ^3.1.0-beta.1
+    vite: ^3.1.0
     yup: ^0.32.11
   languageName: unknown
   linkType: soft
@@ -3147,9 +3147,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^3.1.0-beta.1":
-  version: 3.1.0-beta.2
-  resolution: "vite@npm:3.1.0-beta.2"
+"vite@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "vite@npm:3.1.0"
   dependencies:
     esbuild: ^0.15.6
     fsevents: ~2.3.2
@@ -3175,7 +3175,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: f5bc85508622719d68171394195ce420776e0c6a111c047a3fb69d8611f7d91e3317fd24cdf3ff356b65e002bfec2f462f5def0aa68beabd19e4c3acd85c0a36
+  checksum: 1a343e3d46450181f79f34ff49cca5ff59bb7472de51ea2c4a042aa076f597d27d25c49f48405e82f607af7d8c1c13a9e789402ccb1b23570132382132ec3903
   languageName: node
   linkType: hard
 

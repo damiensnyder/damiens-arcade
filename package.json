@@ -30,7 +30,7 @@
     "socket.io": "^4.4.1",
     "socket.io-client": "^4.4.1",
     "svelte-forms-lib": "^2.0.1",
-    "vite": "^3.1.0-beta.1",
+    "vite": "^3.1.0",
     "yup": "^0.32.11"
   },
   "packageManager": "yarn@3.2.3"
