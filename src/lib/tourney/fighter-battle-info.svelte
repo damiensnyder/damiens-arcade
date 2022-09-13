@@ -14,7 +14,9 @@
   <div class="info">
     <div class="info name horiz">
       <div class="show-child-on-hover">
-        {fighter.name} &bull; {$teams[fighter.team].name}
+        <!-- we check for null because, if we watch a fight from a different
+          league for debug purposes, the number of teams might be different -->
+        {fighter.name} &bull; {$teams[fighter.team] == null ? fighter.team : $teams[fighter.team].name}
         <div class="show-on-hover">
           <FighterInfo {fighter} />
         </div>
