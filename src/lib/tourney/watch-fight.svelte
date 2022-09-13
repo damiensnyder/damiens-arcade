@@ -132,8 +132,8 @@
     {#each fighters as f, i}
       {#if f.hp > 0}
         <div class="fighter"
-            style:left={(f.x + 42.5).toFixed(2) + "%"}
-            style:top={(f.y + 42.5).toFixed(2) + "%"}
+            style:left={(f.x - 7.5).toFixed(2) + "%"}
+            style:top={(f.y - 7.5).toFixed(2) + "%"}
             style:transform={`rotate(${rotation[i]})`}>
           <FighterImage fighter={f} equipment={f.equipment} inBattle={true} />
         </div>
@@ -145,8 +145,8 @@
         {@const f = fighters[p.fighter]}
         {#if p.type === "text"}
           <div class="text-particle"
-              style:left={(f.x + 50).toFixed(2) + "%"}
-              style:top={(f.y + 42).toFixed(2) + "%"}
+              style:left={(f.x).toFixed(2) + "%"}
+              style:top={(f.y - 8).toFixed(2) + "%"}
               out:fade="{{duration: 400}}">
             {p.text}
           </div>
@@ -213,6 +213,7 @@
     position: absolute;
     text-align: center;
     width: 0;
+    color: var(--text-fun-1);
   }
 
   /* p {
