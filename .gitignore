@@ -12,3 +12,4 @@ node_modules
 *.kra~
 ticks.txt
 .yarn/*
+/secrets

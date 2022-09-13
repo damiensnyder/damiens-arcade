@@ -2,7 +2,7 @@
   import type { FighterInBattle, MidFightEvent } from "$lib/tourney/types";
   import FighterImage from "$lib/tourney/fighter-image.svelte";
   import FighterBattleInfo from "$lib/tourney/fighter-battle-info.svelte";
-  import { fade } from "svelte/types/runtime/transition";
+  import { fade } from "svelte/transition";
 
   let eventLogRaw: string = "";
   let eventLog: MidFightEvent[][] = [];

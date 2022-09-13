@@ -10,8 +10,8 @@ import Tourney from "$lib/tourney/frontend-main.svelte";
 import { eventHandler as auctionTTTEventHandler, handleGamestate as handleAuctionTTTGamestate, switchToType as switchToAuctionTTT } from "$lib/auction-tic-tac-toe/event-handler";
 import { eventHandler as tourneyEventHandler, handleGamestate as handleTourneyGamestate, switchToType as switchToTourney } from "$lib/tourney/event-handler";
 import EventLog from "$lib/event-log.svelte";
-import "../../styles/global.css";
-import "../../styles/fun.css";
+import "../../../styles/global.css";
+import "../../../styles/fun.css";
 
 const relativeUrl = $page.url.pathname;
 const socket = io(relativeUrl);
