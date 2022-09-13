@@ -115,7 +115,7 @@
       }
     } else if (event.type === "meleeAttack") {
       fighters[event.target].hp -= event.damage;
-      rotation[event.target] = AnimationState.BackswingStart;
+      rotation[event.fighter] = AnimationState.BackswingStart;
     }
     lastEvent = JSON.stringify(fighters);
   }
