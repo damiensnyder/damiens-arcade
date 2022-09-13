@@ -116,6 +116,12 @@
     } else if (event.type === "meleeAttack") {
       fighters[event.target].hp -= event.damage;
       rotation[event.fighter] = AnimationState.BackswingStart;
+      particles.push({
+        fighter: event.target,
+        type: "text",
+        text: event.dodged ? "Dodged" : event.damage.toString(),
+        ticksUntil: 1
+      })
     }
     lastEvent = JSON.stringify(fighters);
   }
@@ -139,8 +145,8 @@
         {@const f = fighters[p.fighter]}
         {#if p.type === "text"}
           <div class="text-particle"
-              style:left={(f.x + 42.5).toFixed(2) + "%"}
-              style:top={(f.y + 32.5).toFixed(2) + "%"}
+              style:left={(f.x + 50).toFixed(2) + "%"}
+              style:top={(f.y + 42).toFixed(2) + "%"}
               out:fade="{{duration: 400}}">
             {p.text}
           </div>
@@ -201,6 +207,12 @@
 
   .controls {
     flex: 1;
+  }
+
+  .text-particle {
+    position: absolute;
+    text-align: center;
+    width: 0;
   }
 
   /* p {
