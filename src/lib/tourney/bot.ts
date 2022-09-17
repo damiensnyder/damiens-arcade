@@ -12,7 +12,7 @@ const Bot = {
       equipment: []
     };
   },
-  getDraftPick: function (fighters: Fighter[]): number {
+  getDraftPick: function (team: Team, fighters: Fighter[]): number {
     return 0;
   },
   getFAPicks: function (team: Team, fighters: Fighter[]): number[] {

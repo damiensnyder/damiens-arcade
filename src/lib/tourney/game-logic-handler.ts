@@ -7,6 +7,7 @@ import { StatName } from "$lib/tourney/types";
 import { array, mixed, number, object, string } from "yup";
 import { getIndexByController, getTeamByController } from "$lib/tourney/utils";
 import { settingsAreValid, collatedSettings, isValidEquipmentTournament, isValidEquipmentBR, simulateFight } from "$lib/tourney/battle-logic";
+import Bot from "$lib/tourney/bot";
 
 // ms to wait before advancing to next stage automatically
 // 0 in dev mode, 3000 in production
@@ -222,10 +223,23 @@ export default class Tourney extends GameLogicHandlerBase {
 
       // ADVANCE
     } else if (advanceSchema.isValidSync(action) &&
-        this.gameStage === "preseason" &&
-        isHost &&
-        this.teams.length >= 1) {
-      this.advanceToDraft();
+        isHost) {
+      if (this.gameStage === "preseason" &&
+          this.teams.length >= 1) {
+        this.advanceToDraft();
+      } else if (this.gameStage === "draft") {
+        const pickingTeam = this.teams[this.draftOrder[this.spotInDraftOrder]];
+        const pick = Bot.getDraftPick(pickingTeam, this.fighters);
+        const fighterPicked = this.fighters.splice(pick, 1)[0];
+        pickingTeam.fighters.push(fighterPicked);
+        fighterPicked.yearsLeft = 2;
+        this.emitEventToAll(action);
+        this.spotInDraftOrder++;
+        if (this.spotInDraftOrder == this.draftOrder.length) {
+          // TODO: don't allow anything to happen during this timeout
+          setTimeout(this.advanceToFreeAgency.bind(this), ADVANCEMENT_DELAY);
+        }
+      }
       
       // PICK (draft)
     } else if (pickSchema.isValidSync(action) &&
