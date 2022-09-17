@@ -224,21 +224,101 @@ export default class Tourney extends GameLogicHandlerBase {
       // ADVANCE
     } else if (advanceSchema.isValidSync(action) &&
         isHost) {
+      // advance does a different thing depending on what stage you are in
       if (this.gameStage === "preseason" &&
           this.teams.length >= 1) {
         this.advanceToDraft();
       } else if (this.gameStage === "draft") {
-        const pickingTeam = this.teams[this.draftOrder[this.spotInDraftOrder]];
-        const pick = Bot.getDraftPick(pickingTeam, this.fighters);
-        const fighterPicked = this.fighters.splice(pick, 1)[0];
-        pickingTeam.fighters.push(fighterPicked);
-        fighterPicked.yearsLeft = 2;
-        this.emitEventToAll(action);
-        this.spotInDraftOrder++;
-        if (this.spotInDraftOrder == this.draftOrder.length) {
-          // TODO: don't allow anything to happen during this timeout
-          setTimeout(this.advanceToFreeAgency.bind(this), ADVANCEMENT_DELAY);
+        let firstIteration = true;
+        while (this.spotInDraftOrder < this.teams.length) {
+          const pickingTeam = this.teams[this.draftOrder[this.spotInDraftOrder]];
+          // stop auto-drafting if the next team up is not bot-controlled
+          // but if it's the first iteration we assume the advancement is desired
+          if (!firstIteration && pickingTeam.controller !== "bot") {
+            break;
+          }
+          const pick = Bot.getDraftPick(pickingTeam, this.fighters);
+          const fighterPicked = this.fighters.splice(pick, 1)[0];
+          pickingTeam.fighters.push(fighterPicked);
+          fighterPicked.yearsLeft = 2;
+          this.emitEventToAll(action);
+          this.spotInDraftOrder++;
+          firstIteration = false;
         }
+        if (this.spotInDraftOrder === this.draftOrder.length) {
+          this.advanceToFreeAgency();
+        }
+      } else if (this.gameStage === "free agency") {
+        let firstIteration = true;
+        while (this.spotInDraftOrder < this.teams.length) {
+          const pickingTeam = this.teams[this.draftOrder[this.spotInDraftOrder]];
+          // stop auto-drafting if the next team up is not bot-controlled
+          // but if it's the first iteration we assume the advancement is desired
+          if (!firstIteration && pickingTeam.controller !== "bot") {
+            break;
+          }
+          const picks = Bot.getFAPicks(pickingTeam, this.fighters);
+          for (const pick of picks) {
+            pickingTeam.fighters.push(this.fighters[pick]);
+            pickingTeam.money -= this.fighters[pick].price;
+            this.fighters[pick].yearsLeft = 2;
+            this.emitEventToAll({
+              type: "pick",
+              fighter: pick
+            });
+          }
+          firstIteration = false;
+        }
+        if (this.spotInDraftOrder === this.draftOrder.length) {
+          this.advanceToTraining();
+        }
+      } else if (this.gameStage === "training") {
+        for (let i = 0; i < this.teams.length; i++) {
+          if (!this.ready[i]) {
+            const trainingPicks = Bot.getTrainingPicks(this.teams[i], this.equipmentAvailable[i]);
+            this.trainingChoices[i] = {
+              equipment: trainingPicks.equipment,
+              skills: trainingPicks.skills
+            };
+          }
+        }
+        this.advanceToBattleRoyale();
+      } else if (this.gameStage === "battle royale") {
+        for (let i = 0; i < this.teams.length; i++) {
+          if (!this.ready[i]) {
+            const brPicks = Bot.getBRPicks(this.teams[i]);
+            this.fightersInBattle.push({
+              ...this.teams[i].fighters[brPicks.fighter],
+              team: i,
+              hp: 100,
+              maxHP: 100,
+              equipment: brPicks.equipment.map((e) => this.teams[i].equipment[e]),
+              x: 0,
+              y: 0,
+              cooldown: 0
+            });
+          }
+        }
+        this.simulateBattleRoyale();
+      } else if (this.gameStage === "tournament") {
+        for (let i = 0; i < this.teams.length; i++) {
+          if (!this.ready[i]) {
+            const fightPicks = Bot.getFightPicks(this.teams[i]);
+            for (let i = 0; i < this.teams[i].fighters.length; i++) {
+              this.fightersInBattle.push({
+                ...this.teams[i].fighters[i],
+                team: i,
+                hp: 100,
+                maxHP: 100,
+                equipment: fightPicks.equipment[i].map((e) => this.teams[i].equipment[e]),
+                x: 0,
+                y: 0,
+                cooldown: 0
+              });
+            }
+          }
+        }
+        this.simulateFight();
       }
       
       // PICK (draft)
@@ -253,7 +333,7 @@ export default class Tourney extends GameLogicHandlerBase {
       this.emitEventToAll(action);
       this.spotInDraftOrder++;
       if (this.spotInDraftOrder == this.draftOrder.length) {
-        setTimeout(this.advanceToFreeAgency.bind(this), ADVANCEMENT_DELAY);
+        this.advanceToFreeAgency();
       }
 
       // PICK (free agency)
@@ -276,7 +356,7 @@ export default class Tourney extends GameLogicHandlerBase {
       this.emitEventToAll(action);
       this.spotInDraftOrder++;
       if (this.spotInDraftOrder === this.draftOrder.length) {
-        setTimeout(this.advanceToTraining.bind(this), ADVANCEMENT_DELAY);
+        this.advanceToTraining();
       }
 
       // PRACTICE
@@ -509,7 +589,7 @@ export default class Tourney extends GameLogicHandlerBase {
       type: "bracket",
       bracket: this.bracket
     });
-    setTimeout(this.prepareForNextMatch.bind(this), ADVANCEMENT_DELAY);
+    this.prepareForNextMatch();
   }
 
   simulateFight(): void {
