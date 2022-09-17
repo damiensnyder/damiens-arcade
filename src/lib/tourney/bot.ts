@@ -1,9 +1,8 @@
-// @ts-ignore
 import { StatName } from "$lib/tourney/types";
 import type { Equipment, Fighter, PreseasonTeam, Team } from "$lib/tourney/types";
 
 const Bot = {
-  getPreseasonPicks: function (team: PreseasonTeam): {
+  getPreseasonPicks: function (_team: PreseasonTeam): {
     fighters: number[]
     equipment: number[]
   } {
@@ -12,22 +11,22 @@ const Bot = {
       equipment: []
     };
   },
-  getDraftPick: function (team: Team, fighters: Fighter[]): number {
+  getDraftPick: function (_team: Team, _fighters: Fighter[]): number {
     return 0;
   },
-  getFAPicks: function (team: Team, fighters: Fighter[]): number[] {
+  getFAPicks: function (_team: Team, _fighters: Fighter[]): number[] {
     return [];
   },
-  getTrainingPicks: function (team: Team, equipment: Equipment[]): {
+  getTrainingPicks: function (team: Team, _equipment: Equipment[]): {
     equipment: number[]
     skills: (number | StatName)[]
   } {
     return {
       equipment: [],
-      skills: []
+      skills: team.fighters.map((_f) => StatName.Strength)
     };
   },
-  getBRPicks: function (team: Team): {
+  getBRPicks: function (_team: Team): {
     fighter: number
     equipment: number[]
   } {
@@ -36,7 +35,7 @@ const Bot = {
       equipment: []
     };
   },
-  getFightPicks: function (team: Team): {
+  getFightPicks: function (_team: Team): {
     equipment: number[][]
     strategy: number[]
   } {

@@ -9,7 +9,7 @@
   import FreeAgency from "$lib/tourney/free-agency.svelte";
   import TeamView from "$lib/tourney/team-view.svelte";
   import AllTeams from "$lib/tourney/all-teams.svelte";
-  import { lastAction } from "$lib/stores";
+  import { host, lastAction, pov } from "$lib/stores";
 
   // true for all teams, false for none, number for specific team. janky but who cares
   let viewing: number | boolean = null;
@@ -37,6 +37,9 @@
     <h2>{$gameStage}</h2>
     <button on:click={debug} on:submit={debug}>Debug</button>
     <button on:click={() => changeView(-1)} on:submit={() => changeView(-1)}>Watch Fight</button>
+    {#if $host === $pov}
+      <button on:click={() => lastAction.set({ type: "advance" })}>Advance</button>
+    {/if}
     {#if $ownTeamIndex !== null}
       <div class="money">${$ownTeam.money}</div>
       {#if viewing !== $ownTeamIndex}
