@@ -1,4 +1,4 @@
-import { StatName } from "$lib/tourney/types";
+import { StatName, type Strategy } from "$lib/tourney/types";
 import type { Equipment, Fighter, PreseasonTeam, Team } from "$lib/tourney/types";
 
 const Bot = {
@@ -35,13 +35,13 @@ const Bot = {
       equipment: []
     };
   },
-  getFightPicks: function (_team: Team): {
+  getFightPicks: function (team: Team): {
     equipment: number[][]
-    strategy: number[]
+    strategy: Strategy[]
   } {
     return {
-      equipment: [],
-      strategy: []
+      equipment: team.fighters.map(_ => []),
+      strategy: team.fighters.map(_ => { return {}; })
     };
   }
 };

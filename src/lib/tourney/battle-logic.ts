@@ -245,8 +245,7 @@ class Fight {
     this.eventLog.push(initialTick);
     writeFileSync("logs/ticks.txt", JSON.stringify(initialTick));
 
-    let fightOver: boolean = false;
-    while (!fightOver) {
+    while (!this.fightIsOver()) {
       const tick: MidFightEvent[] = [];
       this.fighters.forEach((f, i) => {
         if (f.hp <= 0) return;  // do nothing if fighter is down
@@ -298,31 +297,32 @@ class Fight {
       // we stringify the tick so later mutations don't mess up earlier ticks
       this.eventLog.push(tick);
       writeFileSync("logs/ticks.txt", JSON.stringify(tick), { flag: "a+" });
+    }
+  }
 
-      // check which teams are eliminated and determine whether the fight is over
-      const teamsRemaining: number[] = [];
-      const teamsInBattle: number[] = [];
-      for (const f of this.fighters) {
-        if (f.hp > 0 && !teamsRemaining.includes(f.team)) {
-          teamsRemaining.push(f.team);
-        }
-        if (!teamsInBattle.includes(f.team)) {
-          teamsInBattle.push(f.team);
-        }
+  fightIsOver(): boolean {
+    const teamsRemaining: number[] = [];
+    const teamsInBattle: number[] = [];
+    for (const f of this.fighters) {
+      if (f.hp > 0 && !teamsRemaining.includes(f.team)) {
+        teamsRemaining.push(f.team);
       }
-      // add newly eliminated teams to the front of the placement order
-      for (const t of teamsInBattle) {
-        if (!teamsRemaining.includes(t) && !this.placementOrder.includes(t)) {
-          this.placementOrder.unshift(t);
-        }
-      }
-      // the fight is over when no more than 1 team has fighters remaining
-      // if there is a team left, add them to the front of the placement order
-      fightOver = teamsRemaining.length <= 1;
-      if (fightOver && teamsRemaining.length === 1) {
-        this.placementOrder.unshift(teamsRemaining[0]);
+      if (!teamsInBattle.includes(f.team)) {
+        teamsInBattle.push(f.team);
       }
     }
+    // add newly eliminated teams to the front of the placement order
+    for (const t of teamsInBattle) {
+      if (!teamsRemaining.includes(t) && !this.placementOrder.includes(t)) {
+        this.placementOrder.unshift(t);
+      }
+    }
+    // the fight is over when no more than 1 team has fighters remaining
+    // if there is a team left, add them to the front of the placement order
+    if (teamsRemaining.length === 1) {
+      this.placementOrder.unshift(teamsRemaining[0]);
+    }
+    return teamsRemaining.length <= 1;
   }
 }
 

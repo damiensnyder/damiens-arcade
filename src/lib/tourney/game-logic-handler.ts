@@ -241,9 +241,12 @@ export default class Tourney extends GameLogicHandlerBase {
           const fighterPicked = this.fighters.splice(pick, 1)[0];
           pickingTeam.fighters.push(fighterPicked);
           fighterPicked.yearsLeft = 2;
-          this.emitEventToAll(action);
-          this.spotInDraftOrder++;
+          this.emitEventToAll({
+            type: "pick",
+            fighter: pick
+          });
           firstIteration = false;
+          this.spotInDraftOrder++;
         }
         if (this.spotInDraftOrder === this.draftOrder.length) {
           this.advanceToFreeAgency();
@@ -268,6 +271,7 @@ export default class Tourney extends GameLogicHandlerBase {
             });
           }
           firstIteration = false;
+          this.spotInDraftOrder++;
         }
         if (this.spotInDraftOrder === this.draftOrder.length) {
           this.advanceToTraining();
@@ -607,11 +611,12 @@ export default class Tourney extends GameLogicHandlerBase {
   }
 
   prepareForNextMatch(): void {
-    delete this.fightersInBattle;
     delete this.map;
     delete this.nextMatch;
+    this.fightersInBattle = [];
     if (this.bracket.winner !== null) {
       this.advanceToPreseason();
+      return;
     }
     const matchesToCheck: Bracket[] = [this.bracket];
     while (matchesToCheck.length > 0) {
