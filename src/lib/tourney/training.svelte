@@ -43,18 +43,18 @@
   }
 </script>
 
-<div>
-  <h2>Equipment</h2>
-  <div class="fighters">
-    {#each $equipment as equipment, index}
-      <EquipmentInfo {equipment} {index} callback={pick} />
-    {/each}
+{#if $ownTeamIndex !== null}
+  <div>
+    <h2>Equipment</h2>
+    <div class="fighters">
+      {#each $equipment as equipment, index}
+        <EquipmentInfo {equipment} {index} callback={pick} />
+      {/each}
+    </div>
   </div>
-</div>
-<div>
-  {#if $ownTeamIndex !== null}
-    <h2>Select training</h2>
-    <div class="list-container">
+  <div>
+  <h2>Select training</h2>
+  <div class="list-container">
     {#each $ownTeam.fighters as fighter, index}
       <div class="show-child-on-hover">
         {fighter.name}
@@ -91,8 +91,8 @@
         </div>
       {/each}
     </div>
-  {/if}
-</div>
+  </div>
+{/if}
 
 <style>
   .fighters {

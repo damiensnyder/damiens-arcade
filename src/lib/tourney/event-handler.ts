@@ -1,5 +1,5 @@
 import type { Fighter, TourneyEvent, TourneyViewpoint } from "$lib/tourney/types";
-import { bracket, draftOrder, gameStage, rawSettings, settings, teams, spotInDraftOrder, fighters, map, fightersInBattle, equipment } from "$lib/tourney/stores";
+import { bracket, draftOrder, gameStage, rawSettings, settings, teams, spotInDraftOrder, fighters, map, equipment } from "$lib/tourney/stores";
 import { get } from "svelte/store";
 import { eventLog, pov } from "$lib/stores";
 import type { EventHandler } from "$lib/types";
@@ -36,11 +36,6 @@ export function handleGamestate(gamestate: TourneyViewpoint): void {
       fighters.set(gamestate.fighters);
     } else if (gamestate.gameStage === "tournament") {
       bracket.set(gamestate.bracket);
-    }
-    if ((gamestate.gameStage === "battle royale" || gamestate.gameStage === "tournament") &&
-        gamestate.fightersInBattle) {
-      fightersInBattle.set(gamestate.fightersInBattle);
-      map.set(gamestate.map);
     }
   }
 }
@@ -123,20 +118,18 @@ export const eventHandler: EventHandler<TourneyEvent> = {
   },
   goToTraining: function (event): void {
     gameStage.set("training");
-    equipment.set(event.equipment);
+    equipment.set(event.equipment || []);
   },
   goToBR: function (_event): void {
     gameStage.set("battle royale");
   },
   fight: function (event): void {
-    fightersInBattle.set(event.fighters);
     map.set(event.map);
   },
   bracket: function (event): void {
     gameStage.set("tournament");
     bracket.set(event.bracket);
-    fightersInBattle.set([]);
-    map.set(-1);
+    map.set(null);
   },
   goToPreseason: function (event): void {
     gameStage.set("preseason");

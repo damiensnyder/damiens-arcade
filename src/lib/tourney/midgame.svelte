@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { bracket, draftOrder, equipment, fighters, fightersInBattle, gameStage, ownTeam, ownTeamIndex, spotInDraftOrder, teams } from "$lib/tourney/stores";
+  import { bracket, draftOrder, equipment, fighters, gameStage, ownTeam, ownTeamIndex, spotInDraftOrder, teams } from "$lib/tourney/stores";
   import Preseason from "$lib/tourney/preseason.svelte";
   import Draft from "$lib/tourney/draft.svelte";
   import Training from "$lib/tourney/training.svelte";
