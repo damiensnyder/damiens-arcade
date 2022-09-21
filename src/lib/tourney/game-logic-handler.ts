@@ -308,13 +308,13 @@ export default class Tourney extends GameLogicHandlerBase {
         for (let i = 0; i < this.teams.length; i++) {
           if (!this.ready[i]) {
             const fightPicks = Bot.getFightPicks(this.teams[i]);
-            for (let i = 0; i < this.teams[i].fighters.length; i++) {
+            for (let j = 0; j < this.teams[j].fighters.length; j++) {
               this.fightersInBattle.push({
-                ...this.teams[i].fighters[i],
+                ...this.teams[i].fighters[j],
                 team: i,
                 hp: 100,
                 maxHP: 100,
-                equipment: fightPicks.equipment[i].map((e) => this.teams[i].equipment[e]),
+                equipment: fightPicks.equipment[j].map((e) => this.teams[i].equipment[e]),
                 x: 0,
                 y: 0,
                 cooldown: 0
