@@ -301,6 +301,7 @@ export default class Tourney extends GameLogicHandlerBase {
               y: 0,
               cooldown: 0
             });
+            this.ready[i] = true;
           }
         }
         this.simulateBattleRoyale();
@@ -320,6 +321,7 @@ export default class Tourney extends GameLogicHandlerBase {
                 cooldown: 0
               });
             }
+            this.ready[i] = true;
           }
         }
         this.simulateFight();
