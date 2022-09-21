@@ -586,7 +586,7 @@ export default class Tourney extends GameLogicHandlerBase {
         randElement: this.randElement.bind(this)
       },
       this.fightersInBattle
-    );
+    ).reverse();
     this.bracket = generateBracket(seeding);
     this.gameStage = "tournament";
     this.emitEventToAll({
