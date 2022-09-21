@@ -575,8 +575,6 @@ export default class Tourney extends GameLogicHandlerBase {
   }
 
   simulateBattleRoyale(): void {
-    // just say everything goes in order
-    // in the future this should... actually, you know, simulate the battle royale
     const seeding = simulateFight(
       this.emitEventToAll.bind(this),
       this.randElement(this.decks.maps.maps),
@@ -651,6 +649,10 @@ export default class Tourney extends GameLogicHandlerBase {
     this.gameStage = "preseason";
     delete this.fightersInBattle;
     delete this.map;
+    this.emitEventToAll({
+      type: "goToPreseason",
+      teams: this.teams as PreseasonTeam[]
+    });
   }
 
   // Generate a random fighter

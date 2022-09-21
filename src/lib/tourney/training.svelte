@@ -6,6 +6,8 @@
   import { StatName, type FighterStats } from "$lib/tourney/types";
 
   let equipmentBought: number[] = [];
+  // if the user does not control a team, skills should be an empty array.
+  // if they do control a team, intialize each fighter to train toughness
   let skills: (keyof FighterStats | number)[] = $ownTeamIndex === null ? [] :
       Array($ownTeam.fighters.length).fill("toughness");
 
