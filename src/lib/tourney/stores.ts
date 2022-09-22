@@ -1,12 +1,12 @@
 import { derived, writable } from "svelte/store";
-import type { TourneyGameStage, Team, Settings, Fighter, Equipment, Bracket, Map, Strategy, FighterStats } from "$lib/tourney/types";
+import type { TourneyGameStage, Team, Settings, Fighter, Equipment, Bracket, Map, Strategy, FighterStats, PreseasonTeam } from "$lib/tourney/types";
 import { pov } from "$lib/stores";
 import { getIndexByController, getTeamByController } from "$lib/tourney/utils";
 
 export const gameStage = writable("pregame" as TourneyGameStage);
 export const settings = writable({} as Settings);
 export const rawSettings = writable("{}");
-export const teams = writable([] as Team[]);
+export const teams = writable([] as Team[] | PreseasonTeam[]);
 export const draftOrder = writable([] as number[]);
 export const spotInDraftOrder = writable(0);
 export const fighters = writable([] as Fighter[]);

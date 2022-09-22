@@ -1,6 +1,10 @@
 <script lang="ts">
   import { host, lastAction, pov } from "$lib/stores";
-  import { ownTeamIndex, teams } from "$lib/tourney/stores";
+  import { ownTeam, ownTeamIndex, teams } from "$lib/tourney/stores";
+  import type { PreseasonTeam } from "$lib/tourney/types";
+
+  $: needsResigning = $ownTeam === null ? ($ownTeam as PreseasonTeam).needsResigning : [];
+  $: needsRepair = $ownTeam === null ? ($ownTeam as PreseasonTeam).needsRepair : [];
 
   function start() {
     lastAction.set({
@@ -42,9 +46,16 @@
 </script>
 
 <div>
-  {#if $ownTeamIndex !== null && $teams.length < 16}
-    <h2>Re-sign and repair</h2>
-  {:else}
+  {#if $ownTeamIndex !== null}
+    <h2>Re-sign fighters</h2>
+    {#each needsResigning as f}
+      guy
+    {/each}
+    <h2>Repair equipment</h2>
+    {#each needsRepair as e}
+      thing
+    {/each}
+  {:else if $teams.length < 16}
     <div class="horiz">
       <button on:click={start} on:submit={start}>Join</button>
     </div>

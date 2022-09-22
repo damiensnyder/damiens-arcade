@@ -1,4 +1,4 @@
-import type { EquipmentSlot, Team } from "$lib/tourney/types";
+import type { EquipmentSlot, PreseasonTeam, Team } from "$lib/tourney/types";
 
 export function getIndexByController(teams: Team[], controller: number): number | null {
   if (teams === undefined) return null;
@@ -10,7 +10,7 @@ export function getIndexByController(teams: Team[], controller: number): number 
   return null;
 }
 
-export function getTeamByController(teams: Team[], controller: number): Team | null {
+export function getTeamByController(teams: Team[] | PreseasonTeam[], controller: number): Team | PreseasonTeam | null {
   if (teams === undefined) return null;
   for (const team of teams) {
     if (team.controller === controller) {
