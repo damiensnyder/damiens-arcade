@@ -3,18 +3,25 @@
   import type { Equipment, Fighter } from "$lib/tourney/types";
   import { StatName } from "$lib/tourney/types";
   import StarRating from "$lib/tourney/star-rating.svelte";
-  import { draftOrder, ownTeam, ownTeamIndex, spotInDraftOrder } from "$lib/tourney/stores";
+  import { draftOrder, gameStage, ownTeam, ownTeamIndex, spotInDraftOrder } from "$lib/tourney/stores";
   import FighterImage from "$lib/tourney/fighter-image.svelte";
 
   export let fighter: Fighter;
   export let index: number = -1;
   export let equipment: Equipment[] = [];
 
-  function pick() {
-    lastAction.set({
-      type: "pick",
-      index
-    });
+  function pick(): void {
+    if ($gameStage === "preseason") {
+      lastAction.set({
+        type: "resign",
+        index
+      });
+    } else {
+      lastAction.set({
+        type: "pick",
+        index
+      });
+    }
   }
 </script>
 

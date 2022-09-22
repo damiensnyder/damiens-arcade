@@ -2,6 +2,8 @@
   import { host, lastAction, pov } from "$lib/stores";
   import { ownTeam, ownTeamIndex, teams } from "$lib/tourney/stores";
   import type { PreseasonTeam } from "$lib/tourney/types";
+  import FighterInfo from "$lib/tourney/fighter-info.svelte";
+  import EquipmentInfo from "$lib/tourney/equipment-info.svelte";
 
   $: needsResigning = $ownTeam === null ? ($ownTeam as PreseasonTeam).needsResigning : [];
   $: needsRepair = $ownTeam === null ? ($ownTeam as PreseasonTeam).needsRepair : [];
@@ -48,12 +50,12 @@
 <div>
   {#if $ownTeamIndex !== null}
     <h2>Re-sign fighters</h2>
-    {#each needsResigning as f}
-      guy
+    {#each needsResigning as fighter, index}
+      <FighterInfo {fighter} {index} />
     {/each}
     <h2>Repair equipment</h2>
-    {#each needsRepair as e}
-      thing
+    {#each needsRepair as equipment, index}
+      <EquipmentInfo {equipment} {index} />
     {/each}
   {:else if $teams.length < 16}
     <div class="horiz">

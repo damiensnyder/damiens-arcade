@@ -1,14 +1,23 @@
 <script lang="ts">
   import type { Equipment, EquipmentSlot, FighterStats } from "$lib/tourney/types";
   import { ownTeam } from "$lib/tourney/stores";
-import { slotsToString } from "./utils";
+  import { slotsToString } from "./utils";
+  import { lastAction } from "$lib/stores";
+  import { gameStage } from "$lib/tourney/stores";
 
   export let equipment: Equipment;
   export let index: number = -1;
   export let callback: (index: number) => void = (_: number) => {};
 
-  function pick() {
-    callback(index);
+  function pick(): void {
+    if ($gameStage === "preseason") {
+      lastAction.set({
+        type: "repair",
+        index
+      });
+    } else {
+      callback(index);
+    }
   }
 </script>
 
