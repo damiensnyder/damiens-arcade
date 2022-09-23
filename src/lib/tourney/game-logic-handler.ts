@@ -240,7 +240,7 @@ export default class Tourney extends GameLogicHandlerBase {
           const pick = Bot.getDraftPick(pickingTeam, this.fighters);
           const fighterPicked = this.fighters.splice(pick, 1)[0];
           pickingTeam.fighters.push(fighterPicked);
-          fighterPicked.yearsLeft = 2;
+          fighterPicked.experience = 2;
           this.emitEventToAll({
             type: "pick",
             fighter: pick
@@ -264,7 +264,7 @@ export default class Tourney extends GameLogicHandlerBase {
           for (const pick of picks) {
             pickingTeam.fighters.push(this.fighters[pick]);
             pickingTeam.money -= this.fighters[pick].price;
-            this.fighters[pick].yearsLeft = 2;
+            this.fighters[pick].experience = 2;
             this.emitEventToAll({
               type: "pick",
               fighter: pick
@@ -335,7 +335,7 @@ export default class Tourney extends GameLogicHandlerBase {
         this.draftOrder[this.spotInDraftOrder] === indexControlledByViewer) {
       const fighterPicked = this.fighters.splice(action.index, 1)[0];
       teamControlledByViewer.fighters.push(fighterPicked);
-      fighterPicked.yearsLeft = 2;
+      fighterPicked.experience = 2;
       this.emitEventToAll(action);
       this.spotInDraftOrder++;
       if (this.spotInDraftOrder == this.draftOrder.length) {
@@ -352,7 +352,7 @@ export default class Tourney extends GameLogicHandlerBase {
       const fighterPicked = this.fighters.splice(action.index, 1)[0];
       teamControlledByViewer.fighters.push(fighterPicked);
       teamControlledByViewer.money -= fighterPicked.price;
-      fighterPicked.yearsLeft = 2;
+      fighterPicked.experience = 2;
       this.emitEventToAll(action);
 
       // PASS
@@ -432,7 +432,7 @@ export default class Tourney extends GameLogicHandlerBase {
         action.fighter < (teamControlledByViewer as PreseasonTeam).needsResigning.length &&
         (teamControlledByViewer as PreseasonTeam).needsResigning[action.fighter].price < teamControlledByViewer.money) {
       teamControlledByViewer.money -= (teamControlledByViewer as PreseasonTeam).needsResigning[action.fighter].price;
-      teamControlledByViewer.fighters.push((teamControlledByViewer as PreseasonTeam).needsResigning[action.fighter]);
+      teamControlledByViewer.fighters.push((teamControlledByViewer as PreseasonTeam).needsResigning.splice(action.fighter, 1)[0]);
 
       // REPAIR
     } else if (repairSchema.isValidSync(action) &&
@@ -441,14 +441,7 @@ export default class Tourney extends GameLogicHandlerBase {
         action.equipment < (teamControlledByViewer as PreseasonTeam).needsRepair.length &&
         (teamControlledByViewer as PreseasonTeam).needsRepair[action.equipment].price < teamControlledByViewer.money) {
       teamControlledByViewer.money -= (teamControlledByViewer as PreseasonTeam).needsRepair[action.equipment].price;
-      teamControlledByViewer.equipment.push((teamControlledByViewer as PreseasonTeam).needsRepair[action.equipment]);
-    } else {
-      // if (typeof action === "object" && action != null && action.type === "pass") {
-      //   console.debug("INVALID ACTION:");
-      //   console.debug(action);
-      //   console.log(indexControlledByViewer);
-      //   console.log(this.gameStage)
-      // }
+      teamControlledByViewer.equipment.push((teamControlledByViewer as PreseasonTeam).needsRepair.splice(action.equipment, 1)[0]);
     }
   }
 
@@ -634,23 +627,25 @@ export default class Tourney extends GameLogicHandlerBase {
 
   advanceToPreseason(): void {
     this.teams.forEach((team: PreseasonTeam) => {
-      // take a year off of each fighter's contract
+      // add 1 to experience (for fighters) and years owned (for equipment)
+      // fighters need to be re-signed every 3 years, starting after their 2nd
+      // equipment needs to be repaired every 2 years, starting after the 1st
+      // fighter price is based on their skill (not yet implemented), whereas repair price is
+      // solely dependent on years owned
       team.needsResigning = team.fighters.filter((fighter) => {
-        fighter.yearsLeft--;
-        if (fighter.yearsLeft === 0) {
+        fighter.experience++;
+        if ((fighter.experience % 3) === 2) {
           fighter.price = 20;
         }
-        return fighter.yearsLeft === 0;
+        return (fighter.experience % 3) === 2;
       });
-      team.fighters = team.fighters.filter((fighter) => fighter.yearsLeft > 0);
+      team.fighters = team.fighters.filter((fighter) => (fighter.experience % 3 !== 2));
       team.needsRepair = team.equipment.filter((equipment) => {
-        equipment.durability--;
-        if (equipment.durability === 0) {
-          equipment.price = 20;
-        }
-        return equipment.durability === 0;
+        equipment.yearsOwned++;
+        equipment.price = 2 * equipment.yearsOwned;
+        return (equipment.yearsOwned % 2) === 1;
       });
-      team.equipment = team.equipment.filter((equipment) => equipment.durability > 0);
+      team.equipment = team.equipment.filter((equipment) => (equipment.yearsOwned % 2) !== 1);
       team.money = Math.ceil(team.money / 2) + 100;
     });
     this.gameStage = "preseason";
@@ -683,7 +678,7 @@ export default class Tourney extends GameLogicHandlerBase {
         toughness: this.randInt(0, 10)
       },
       attunements: [],
-      yearsLeft: 2,
+      experience: 0,
       description: "",
       flavor: ""
     }
@@ -703,7 +698,7 @@ export default class Tourney extends GameLogicHandlerBase {
     return {
       description: "",
       flavor: "",
-      durability: 3,
+      yearsOwned: 0,
       ...this.randElement(this.decks.equipment.equipment),
     };
   }

@@ -85,7 +85,7 @@ export interface Fighter {
   stats: FighterStats
   attunements: string[]
   abilities: Ability
-  yearsLeft: number
+  experience: number
   price?: number
   description: string
   flavor: string
@@ -128,7 +128,7 @@ export interface Equipment {
   zoomedImgUrl: string
   slots: EquipmentSlot[]
   abilities: Ability[]
-  durability: number
+  yearsOwned: number
   price: number
   description: string
   flavor: string
