@@ -56,6 +56,8 @@ export const eventHandler: EventHandler<TourneyEvent> = {
         money: 100,
         fighters: [],
         equipment: [],
+        needsResigning: [],
+        needsRepair: [],
         ...event
       });
       return old;

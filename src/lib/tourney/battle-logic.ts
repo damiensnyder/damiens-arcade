@@ -250,6 +250,7 @@ class Fight {
       this.fighters.forEach((f, i) => {
         if (f.hp <= 0) return;  // do nothing if fighter is down
         const target = this.closestNotOnTeam(f);
+        if (!target) return;  // in case your teammate downed the last enemy
         const distanceToTarget = distance(f, target);
         if (distanceToTarget > 2) {
           // move toward the target by the max the fighter's speed allows or until within 1.5 m,
@@ -265,7 +266,7 @@ class Fight {
             type: "move",
             fighter: i,
             x: Number(f.x.toFixed(2)),  // round to save data
-            y:  Number(f.y.toFixed(2))
+            y: Number(f.y.toFixed(2))
           });
         }
         // if within melee range (2 m) and not cooling down, attack.

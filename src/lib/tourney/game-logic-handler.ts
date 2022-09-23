@@ -309,7 +309,7 @@ export default class Tourney extends GameLogicHandlerBase {
         for (let i = 0; i < this.teams.length; i++) {
           if (!this.ready[i]) {
             const fightPicks = Bot.getFightPicks(this.teams[i]);
-            for (let j = 0; j < this.teams[j].fighters.length; j++) {
+            for (let j = 0; j < this.teams[i].fighters.length; j++) {
               this.fightersInBattle.push({
                 ...this.teams[i].fighters[j],
                 team: i,
@@ -634,18 +634,23 @@ export default class Tourney extends GameLogicHandlerBase {
 
   advanceToPreseason(): void {
     this.teams.forEach((team: PreseasonTeam) => {
+      // take a year off of each fighter's contract
       team.needsResigning = team.fighters.filter((fighter) => {
-        fighter.yearsLeft === 0;
+        fighter.yearsLeft--;
+        if (fighter.yearsLeft === 0) {
+          fighter.price = 20;
+        }
+        return fighter.yearsLeft === 0;
       });
-      team.fighters = team.fighters.filter((fighter) => {
-        fighter.yearsLeft > 0;
-      });
+      team.fighters = team.fighters.filter((fighter) => fighter.yearsLeft > 0);
       team.needsRepair = team.equipment.filter((equipment) => {
-        equipment.durability === 0;
+        equipment.durability--;
+        if (equipment.durability === 0) {
+          equipment.price = 20;
+        }
+        return equipment.durability === 0;
       });
-      team.equipment = team.equipment.filter((equipment) => {
-        equipment.durability > 0;
-      });
+      team.equipment = team.equipment.filter((equipment) => equipment.durability > 0);
       team.money = Math.ceil(team.money / 2) + 100;
     });
     this.gameStage = "preseason";

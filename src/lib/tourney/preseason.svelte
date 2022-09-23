@@ -5,8 +5,8 @@
   import FighterInfo from "$lib/tourney/fighter-info.svelte";
   import EquipmentInfo from "$lib/tourney/equipment-info.svelte";
 
-  $: needsResigning = $ownTeam === null ? ($ownTeam as PreseasonTeam).needsResigning : [];
-  $: needsRepair = $ownTeam === null ? ($ownTeam as PreseasonTeam).needsRepair : [];
+  $: needsResigning = $ownTeam !== null ? ($ownTeam as PreseasonTeam).needsResigning : [];
+  $: needsRepair = $ownTeam !== null ? ($ownTeam as PreseasonTeam).needsRepair : [];
 
   function start() {
     lastAction.set({
