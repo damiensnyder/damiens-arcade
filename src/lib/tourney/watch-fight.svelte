@@ -135,7 +135,8 @@
         <div class="fighter"
             style:left={(f.x - 7.5).toFixed(2) + "%"}
             style:top={(f.y - 7.5).toFixed(2) + "%"}
-            style:transform={`rotate(${rotation[i]})`}>
+            style:transform={`rotate(${rotation[i]})`}
+            style:z-index={1000 * f.y}>
           <FighterImage fighter={f} equipment={f.equipment} inBattle={true} />
         </div>
       {/if}
