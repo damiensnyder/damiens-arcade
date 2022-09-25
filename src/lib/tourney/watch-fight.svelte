@@ -1,12 +1,13 @@
 <script lang="ts">
   import type { FighterInBattle, MidFightEvent } from "$lib/tourney/types";
+  import { fightEvents } from "$lib/tourney/stores";
   import FighterImage from "$lib/tourney/fighter-image.svelte";
   import FighterBattleInfo from "$lib/tourney/fighter-battle-info.svelte";
   import { fade } from "svelte/transition";
 
   export let debug: boolean = true;
   let eventLogRaw: string = "";
-  let eventLog: MidFightEvent[][] = [];
+  let eventLog: MidFightEvent[][] = debug ? [] : $fightEvents;
   let fighters: FighterInBattle[] = [];
   let rotation: AnimationState[] = [];
   let flipped: boolean[] = [];
@@ -15,6 +16,10 @@
   let tickInterval = null;
   let lastEvent: string = "";
   let tickLength: number = 200;  // ticks are 0.2 s long
+
+  if (!debug) {
+    play();
+  }
 
   type Particle = {
     fighter: number

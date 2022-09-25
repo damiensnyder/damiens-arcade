@@ -1,5 +1,5 @@
 import type { Fighter, TourneyEvent, TourneyViewpoint } from "$lib/tourney/types";
-import { bracket, draftOrder, gameStage, rawSettings, settings, teams, spotInDraftOrder, fighters, map, equipment } from "$lib/tourney/stores";
+import { bracket, draftOrder, fightEvents, gameStage, rawSettings, settings, teams, spotInDraftOrder, fighters, map, equipment, watchingFight } from "$lib/tourney/stores";
 import { get } from "svelte/store";
 import { eventLog, pov } from "$lib/stores";
 import type { EventHandler } from "$lib/types";
@@ -127,6 +127,13 @@ export const eventHandler: EventHandler<TourneyEvent> = {
   },
   fight: function (event): void {
     map.set(event.map);
+    fightEvents.set(event.eventLog);
+    // don't stop showing the fight screen till 3 seconds after the fight will finish showing
+    // 200 ms per tick
+    watchingFight.set(true);
+    setTimeout(() => {
+      watchingFight.set(false);
+    }, event.eventLog.length * 200 + 3000);
   },
   bracket: function (event): void {
     gameStage.set("tournament");
