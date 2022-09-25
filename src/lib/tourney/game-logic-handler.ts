@@ -572,7 +572,7 @@ export default class Tourney extends GameLogicHandlerBase {
       const fighterPicked = this.fighters.splice(fighterIndex, 1)[0];
       this.teams[teamIndex].fighters.push(fighterPicked);
       this.teams[teamIndex].money -= fighterPicked.price;
-      fighterPicked.experience = 2;
+      fighterPicked.experience = this.gameStage === "draft" ? 0 : 2;
       this.emitEventToAll({
         type: "pick",
         fighter: fighterIndex
@@ -582,7 +582,10 @@ export default class Tourney extends GameLogicHandlerBase {
   }
 
   resignFighter(teamIndex: number, fighterIndex: number): void {
+    console.debug(teamIndex, fighterIndex);
     const team: PreseasonTeam = this.teams[teamIndex] as PreseasonTeam;
+    console.debug(team.needsResigning.length);
+    console.debug(team.money, team.needsResigning[fighterIndex].price);
     if (fighterIndex < team.needsResigning.length &&
         team.money >= team.needsResigning[fighterIndex].price) {
       const fighterResigned = team.needsResigning.splice(fighterIndex, 1)[0];

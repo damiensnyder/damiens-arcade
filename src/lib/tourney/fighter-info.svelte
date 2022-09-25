@@ -10,11 +10,15 @@
   export let index: number = -1;
   export let equipment: Equipment[] = [];
 
+  $: canPick = index > -1 &&
+      ($gameStage === "preseason" || $draftOrder[$spotInDraftOrder] === $ownTeamIndex) &&
+      $ownTeam.money > fighter.price
+
   function pick(): void {
     if ($gameStage === "preseason") {
       lastAction.set({
         type: "resign",
-        index
+        fighter: index
       });
     } else {
       lastAction.set({
@@ -27,11 +31,8 @@
 
 <div class="horiz top-bar">
   <h3>{fighter.name}</h3>
-  {#if index > -1 &&
-      ($draftOrder[$spotInDraftOrder] === $ownTeamIndex ||
-       $gameStage === "preseason") &&
-      $ownTeam.money > fighter.price}
-    <button on:click={pick} on:submit={pick}>Pick{#if fighter.price}
+  {#if canPick}
+    <button on:click={pick} on:submit={pick}>Pick{#if fighter.price > 0}
       : ${fighter.price}
     {/if}</button>
   {/if}

@@ -13,7 +13,7 @@
     if ($gameStage === "preseason") {
       lastAction.set({
         type: "repair",
-        index
+        equipment: index
       });
     } else {
       callback(index);
