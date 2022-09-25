@@ -525,14 +525,18 @@ export default class Tourney extends GameLogicHandlerBase {
         fighter.experience++;
         if ((fighter.experience % 3) === 2) {
           fighter.price = 20;
+          return true;
         }
-        return (fighter.experience % 3) === 2;
+        return false;
       });
       team.fighters = team.fighters.filter((fighter) => (fighter.experience % 3 !== 2));
       team.needsRepair = team.equipment.filter((equipment) => {
         equipment.yearsOwned++;
-        equipment.price = 2 * equipment.yearsOwned;
-        return (equipment.yearsOwned % 2) === 1;
+        if ((equipment.yearsOwned % 2) === 1) {
+          equipment.price = 2 * equipment.yearsOwned;
+          return true;
+        }
+        return false;
       });
       team.equipment = team.equipment.filter((equipment) => (equipment.yearsOwned % 2) !== 1);
       team.money = Math.ceil(team.money / 2) + 100;
@@ -577,7 +581,9 @@ export default class Tourney extends GameLogicHandlerBase {
         type: "pick",
         fighter: fighterIndex
       });
-      this.spotInDraftOrder++;
+      if (this.gameStage === "draft") {
+        this.spotInDraftOrder++;
+      }
     }
   }
 

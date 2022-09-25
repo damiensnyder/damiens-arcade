@@ -4,6 +4,8 @@ import { get } from "svelte/store";
 import { eventLog, pov } from "$lib/stores";
 import type { EventHandler } from "$lib/types";
 
+let fightTimeout;
+
 export function switchToType(): void {
   rawSettings.set(`{
     fighterDecks: ["default"],
@@ -124,7 +126,7 @@ export const eventHandler: EventHandler<TourneyEvent> = {
       return old;
     });
     if (get(gameStage) === "draft") {
-      spotInDraftOrder.update(x => x+1);
+      spotInDraftOrder.update(x => x + 1);
     }
   },
   pass: function (_event): void {
@@ -146,12 +148,16 @@ export const eventHandler: EventHandler<TourneyEvent> = {
   },
   fight: function (event): void {
     map.set(event.map);
+    clearTimeout(fightTimeout);
+    // we set this to false briefly so we can go to the next fight
+    watchingFight.set(false);
     fightEvents.set(event.eventLog);
     // don't stop showing the fight screen till 3 seconds after the fight will finish showing
     // 200 ms per tick
     watchingFight.set(true);
-    setTimeout(() => {
+    fightTimeout = setTimeout(() => {
       watchingFight.set(false);
+      fightEvents.set([]);
     }, event.eventLog.length * 200 + 3000);
   },
   bracket: function (event): void {
@@ -160,6 +166,9 @@ export const eventHandler: EventHandler<TourneyEvent> = {
     map.set(null);
   },
   goToPreseason: function (event): void {
+    clearTimeout(fightTimeout);
+    watchingFight.set(false);
+    fightEvents.set([]);
     gameStage.set("preseason");
     teams.set(event.teams);
   }

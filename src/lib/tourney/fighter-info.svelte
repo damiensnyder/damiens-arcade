@@ -12,7 +12,7 @@
 
   $: canPick = index > -1 &&
       ($gameStage === "preseason" || $draftOrder[$spotInDraftOrder] === $ownTeamIndex) &&
-      $ownTeam.money > fighter.price
+      $ownTeam.money >= fighter.price
 
   function pick(): void {
     if ($gameStage === "preseason") {
