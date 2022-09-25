@@ -1,4 +1,4 @@
-import type { Fighter, TourneyEvent, TourneyViewpoint } from "$lib/tourney/types";
+import type { Fighter, PreseasonTeam, TourneyEvent, TourneyViewpoint } from "$lib/tourney/types";
 import { bracket, draftOrder, fightEvents, gameStage, rawSettings, settings, teams, spotInDraftOrder, fighters, map, equipment, watchingFight } from "$lib/tourney/stores";
 import { get } from "svelte/store";
 import { eventLog, pov } from "$lib/stores";
@@ -85,6 +85,24 @@ export const eventHandler: EventHandler<TourneyEvent> = {
       return old;
     });
   },
+  resign: function (event): void {
+    teams.update((old) => {
+      const team = old[event.team] as PreseasonTeam;
+      const fighterResigned = team.needsResigning.splice(event.fighter)[0];
+      team.fighters.push(fighterResigned);
+      team.money -= fighterResigned.price;
+      return old;
+    });
+  },
+  repair: function (event): void {
+    teams.update((old) => {
+      const team = old[event.team] as PreseasonTeam;
+      const equipmentRepaired = team.needsRepair.splice(event.equipment)[0];
+      team.equipment.push(equipmentRepaired);
+      team.money -= equipmentRepaired.price;
+      return old;
+    });
+  },
   goToDraft: function (event): void {
     gameStage.set("draft");
     draftOrder.set(event.draftOrder);
@@ -101,7 +119,7 @@ export const eventHandler: EventHandler<TourneyEvent> = {
       const teamThatPicked = old[get(draftOrder)[get(spotInDraftOrder)]];
       teamThatPicked.fighters.push(fighterPicked);
       if (typeof fighterPicked.price === "number") {
-        teamThatPicked.money == fighterPicked.price;
+        teamThatPicked.money -= fighterPicked.price;
       }
       return old;
     });
@@ -122,8 +140,9 @@ export const eventHandler: EventHandler<TourneyEvent> = {
     gameStage.set("training");
     equipment.set(event.equipment || []);
   },
-  goToBR: function (_event): void {
+  goToBR: function (event): void {
     gameStage.set("battle royale");
+    teams.set(event.teams);
   },
   fight: function (event): void {
     map.set(event.map);

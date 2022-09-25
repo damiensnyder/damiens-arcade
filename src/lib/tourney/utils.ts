@@ -37,7 +37,7 @@ export function nextMatch(bracket: Bracket): Bracket & {
   };
   const matchesToCheck: Bracket[] = [bracket];
   while (matchesToCheck.length > 0) {
-    const match = matchesToCheck.splice(0, 1)[0];
+    const match = matchesToCheck.shift();
     if (match.winner === null) {
       // @ts-ignore
       nextMatch = match;

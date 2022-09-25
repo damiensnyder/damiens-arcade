@@ -86,7 +86,7 @@ export interface Fighter {
   attunements: string[]
   abilities: Ability
   experience: number
-  price?: number
+  price: number
   description: string
   flavor: string
 }
@@ -311,6 +311,18 @@ interface RemoveEvent {
   team: number
 }
 
+interface ResignEvent {
+  type: "resign"
+  team: number
+  fighter: number
+}
+
+interface RepairEvent {
+  type: "repair"
+  team: number
+  equipment: number
+}
+
 interface GoToDraftEvent {
   type: "goToDraft"
   draftOrder: number[]
@@ -395,6 +407,8 @@ export type TourneyEvent = ChangeGameSettingsEvent |
     StartEvent |
     ReplaceEvent |
     RemoveEvent |
+    ResignEvent |
+    RepairEvent |
     GoToDraftEvent |
     PickEvent |
     PassEvent |

@@ -150,18 +150,7 @@ export default class Tourney extends GameLogicHandlerBase {
         this.gameStage === "preseason" &&
         teamControlledByViewer === null &&
         this.teams.length < 16) {
-      this.teams.push({
-        controller: viewer.index,
-        name: `Team ${this.teams.length + 1}`,
-        money: 100,
-        fighters: [],
-        equipment: []
-      });
-      this.emitEventToAll({
-        type: "join",
-        controller: viewer.index,
-        name: this.teams[this.teams.length - 1].name
-      });
+      this.addTeam(viewer.index);
 
       // LEAVE
     } else if (leaveSchema.isValidSync(action) &&
@@ -206,20 +195,8 @@ export default class Tourney extends GameLogicHandlerBase {
       // ADD BOT
     } else if (addBotSchema.isValidSync(action) &&
         this.gameStage === "preseason" &&
-        isHost &&
-        this.teams.length < 16) {
-      this.teams.push({
-        controller: "bot",
-        name: `Team ${this.teams.length + 1}`,
-        money: 100,
-        fighters: [],
-        equipment: []
-      });
-      this.emitEventToAll({
-        type: "join",
-        controller: "bot",
-        name: this.teams[this.teams.length - 1].name
-      });
+        isHost) {
+      this.addTeam("bot");
 
       // ADVANCE
     } else if (advanceSchema.isValidSync(action) &&
@@ -238,15 +215,8 @@ export default class Tourney extends GameLogicHandlerBase {
             break;
           }
           const pick = Bot.getDraftPick(pickingTeam, this.fighters);
-          const fighterPicked = this.fighters.splice(pick, 1)[0];
-          pickingTeam.fighters.push(fighterPicked);
-          fighterPicked.experience = 2;
-          this.emitEventToAll({
-            type: "pick",
-            fighter: pick
-          });
+          this.pickFighter(this.draftOrder[this.spotInDraftOrder], pick);
           firstIteration = false;
-          this.spotInDraftOrder++;
         }
         if (this.spotInDraftOrder === this.draftOrder.length) {
           this.advanceToFreeAgency();
@@ -262,13 +232,7 @@ export default class Tourney extends GameLogicHandlerBase {
           }
           const picks = Bot.getFAPicks(pickingTeam, this.fighters);
           for (const pick of picks) {
-            pickingTeam.fighters.push(this.fighters[pick]);
-            pickingTeam.money -= this.fighters[pick].price;
-            this.fighters[pick].experience = 2;
-            this.emitEventToAll({
-              type: "pick",
-              fighter: pick
-            });
+            this.pickFighter(this.spotInDraftOrder, pick);
           }
           this.emitEventToAll({
             type: "pass"
@@ -294,69 +258,38 @@ export default class Tourney extends GameLogicHandlerBase {
         for (let i = 0; i < this.teams.length; i++) {
           if (!this.ready[i]) {
             const brPicks = Bot.getBRPicks(this.teams[i]);
-            this.fightersInBattle.push({
-              ...this.teams[i].fighters[brPicks.fighter],
-              team: i,
-              hp: 100,
-              maxHP: 100,
-              equipment: brPicks.equipment.map((e) => this.teams[i].equipment[e]),
-              x: 0,
-              y: 0,
-              cooldown: 0
-            });
-            this.ready[i] = true;
+            this.submitBRPick(i, brPicks.fighter, brPicks.equipment);
           }
         }
-        this.simulateBattleRoyale();
       } else if (this.gameStage === "tournament") {
-        for (let i = 0; i < this.teams.length; i++) {
-          if (!this.ready[i]) {
-            const fightPicks = Bot.getFightPicks(this.teams[i]);
-            for (let j = 0; j < this.teams[i].fighters.length; j++) {
-              this.fightersInBattle.push({
-                ...this.teams[i].fighters[j],
-                team: i,
-                hp: 100,
-                maxHP: 100,
-                equipment: fightPicks.equipment[j].map((e) => this.teams[i].equipment[e]),
-                x: 0,
-                y: 0,
-                cooldown: 0
-              });
+        // if the tournament is over, advance to preseason
+        if (this.bracket.winner !== null) {
+          this.advanceToPreseason();
+        } else {
+          // otherwise, simulate the next fight
+          for (let i = 0; i < this.teams.length; i++) {
+            if (!this.ready[i]) {
+              const fightPicks = Bot.getFightPicks(this.teams[i]);
+              this.submitFightPicks(i, fightPicks.equipment);
             }
-            this.ready[i] = true;
           }
         }
-        this.simulateFight();
       }
       
       // PICK (draft)
     } else if (pickSchema.isValidSync(action) &&
         indexControlledByViewer !== null &&
-        this.gameStage === "draft" &&
-        action.index < this.fighters.length &&
-        this.draftOrder[this.spotInDraftOrder] === indexControlledByViewer) {
-      const fighterPicked = this.fighters.splice(action.index, 1)[0];
-      teamControlledByViewer.fighters.push(fighterPicked);
-      fighterPicked.experience = 2;
-      this.emitEventToAll(action);
-      this.spotInDraftOrder++;
-      if (this.spotInDraftOrder == this.draftOrder.length) {
+        this.gameStage === "draft") {
+      this.pickFighter(indexControlledByViewer, action.index);
+      if (this.spotInDraftOrder === this.draftOrder.length) {
         this.advanceToFreeAgency();
       }
 
       // PICK (free agency)
     } else if (pickSchema.isValidSync(action) &&
         indexControlledByViewer !== null &&
-        this.gameStage === "free agency" &&
-        action.index < this.fighters.length &&
-        this.draftOrder[this.spotInDraftOrder] === indexControlledByViewer &&
-        teamControlledByViewer.money >= this.fighters[action.index].price) {
-      const fighterPicked = this.fighters.splice(action.index, 1)[0];
-      teamControlledByViewer.fighters.push(fighterPicked);
-      teamControlledByViewer.money -= fighterPicked.price;
-      fighterPicked.experience = 2;
-      this.emitEventToAll(action);
+        this.gameStage === "free agency") {
+      this.pickFighter(indexControlledByViewer, action.index);
 
       // PASS
     } else if (passSchema.isValidSync(action) &&
@@ -386,65 +319,26 @@ export default class Tourney extends GameLogicHandlerBase {
       // PICK BR FIGHTER
     } else if (pickBRFighterSchema.isValidSync(action) &&
         this.gameStage === "battle royale" &&
-        indexControlledByViewer !== null &&
-        !this.ready[indexControlledByViewer] &&
-        action.fighter < teamControlledByViewer.fighters.length &&
-        isValidEquipmentBR(teamControlledByViewer, action.equipment)) {
-      this.ready[indexControlledByViewer] = true;
-      this.fightersInBattle.push({
-        ...teamControlledByViewer.fighters[action.fighter],
-        team: indexControlledByViewer,
-        hp: 100,
-        maxHP: 100,
-        equipment: action.equipment.map((e) => teamControlledByViewer.equipment[e]),
-        x: 0,
-        y: 0,
-        cooldown: 0
-      });
-      if (this.ready.every(x => x)) {
-        this.simulateBattleRoyale();
-      }
+        indexControlledByViewer !== null) {
+      this.submitBRPick(indexControlledByViewer, action.fighter, action.equipment);
 
       // PICK FIGHTERS
     } else if (pickFightersSchema.isValidSync(action) &&
         this.gameStage === "tournament" &&
-        indexControlledByViewer !== null &&
-        !this.ready[indexControlledByViewer] &&
-        isValidEquipmentTournament(teamControlledByViewer, action.equipment)) {
-      this.ready[indexControlledByViewer] = true;
-      for (let i = 0; i < teamControlledByViewer.fighters.length; i++) {
-        this.fightersInBattle.push({
-          ...teamControlledByViewer.fighters[i],
-          team: indexControlledByViewer,
-          hp: 100,
-          maxHP: 100,
-          equipment: action.equipment[i].map((e) => teamControlledByViewer.equipment[e]),
-          x: 0,
-          y: 0,
-          cooldown: 0
-        });
-      }
-      if (this.ready.every(x => x)) {
-        this.simulateFight();
-      }
+        indexControlledByViewer !== null) {
+      this.submitFightPicks(indexControlledByViewer, action.equipment);
 
       // RESIGN
     } else if (resignSchema.isValidSync(action) &&
         this.gameStage === "preseason" &&
-        indexControlledByViewer !== null &&
-        action.fighter < (teamControlledByViewer as PreseasonTeam).needsResigning.length &&
-        (teamControlledByViewer as PreseasonTeam).needsResigning[action.fighter].price < teamControlledByViewer.money) {
-      teamControlledByViewer.money -= (teamControlledByViewer as PreseasonTeam).needsResigning[action.fighter].price;
-      teamControlledByViewer.fighters.push((teamControlledByViewer as PreseasonTeam).needsResigning.splice(action.fighter, 1)[0]);
+        indexControlledByViewer !== null) {
+      this.resignFighter(indexControlledByViewer, action.fighter);
 
       // REPAIR
     } else if (repairSchema.isValidSync(action) &&
         this.gameStage === "preseason" &&
-        indexControlledByViewer !== null &&
-        action.equipment < (teamControlledByViewer as PreseasonTeam).needsRepair.length &&
-        (teamControlledByViewer as PreseasonTeam).needsRepair[action.equipment].price < teamControlledByViewer.money) {
-      teamControlledByViewer.money -= (teamControlledByViewer as PreseasonTeam).needsRepair[action.equipment].price;
-      teamControlledByViewer.equipment.push((teamControlledByViewer as PreseasonTeam).needsRepair.splice(action.equipment, 1)[0]);
+        indexControlledByViewer !== null) {
+      this.repairEquipment(indexControlledByViewer, action.equipment);
     }
   }
 
@@ -544,10 +438,11 @@ export default class Tourney extends GameLogicHandlerBase {
       choice.equipment.forEach((equipmentIndex) => {
         if (equipmentIndex >= 0 &&
             equipmentIndex < e.length &&
-            e[equipmentIndex].price <= team.money) {
+            team.money >= e[equipmentIndex].price) {
           const equipmentPicked = e.splice(equipmentIndex, 1)[0];
           team.equipment.push(equipmentPicked);
           team.money -= equipmentPicked.price;
+          equipmentPicked.price = 0;
         }
       });
       choice.skills.forEach((skill, j) => {
@@ -601,19 +496,17 @@ export default class Tourney extends GameLogicHandlerBase {
       },
       this.fightersInBattle
     )[0];
-    this.prepareForNextMatch();
   }
 
   prepareForNextMatch(): void {
     delete this.map;
-    delete this.nextMatch;
     this.fightersInBattle = [];
     this.emitEventToAll({
       type: "bracket",
       bracket: this.bracket
     });
     if (this.bracket.winner !== null) {
-      this.advanceToPreseason();
+      delete this.nextMatch;
       return;
     }
     this.nextMatch = nextMatch(this.bracket);
@@ -651,6 +544,117 @@ export default class Tourney extends GameLogicHandlerBase {
       type: "goToPreseason",
       teams: this.teams as PreseasonTeam[]
     });
+  }
+
+  addTeam(viewerIndex: number | "bot"): void {
+    if (this.teams.length < 16) {
+      this.teams.push({
+        controller: viewerIndex,
+        name: `Team ${this.teams.length + 1}`,
+        money: 100,
+        fighters: [],
+        equipment: [],
+        needsResigning: [],
+        needsRepair: []
+      });
+      this.emitEventToAll({
+        type: "join",
+        controller: viewerIndex,
+        name: this.teams[this.teams.length - 1].name
+      });
+    }
+  }
+
+  pickFighter(teamIndex: number, fighterIndex: number): void {
+    if (fighterIndex < this.fighters.length &&
+        this.draftOrder[this.spotInDraftOrder] === teamIndex &&
+        this.teams[teamIndex].money >= this.fighters[fighterIndex].price) {
+      const fighterPicked = this.fighters.splice(fighterIndex, 1)[0];
+      this.teams[teamIndex].fighters.push(fighterPicked);
+      this.teams[teamIndex].money -= fighterPicked.price;
+      fighterPicked.experience = 2;
+      this.emitEventToAll({
+        type: "pick",
+        fighter: fighterIndex
+      });
+      this.spotInDraftOrder++;
+    }
+  }
+
+  resignFighter(teamIndex: number, fighterIndex: number): void {
+    const team: PreseasonTeam = this.teams[teamIndex] as PreseasonTeam;
+    if (fighterIndex < team.needsResigning.length &&
+        team.money >= team.needsResigning[fighterIndex].price) {
+      const fighterResigned = team.needsResigning.splice(fighterIndex, 1)[0];
+      team.money -= fighterResigned.price;
+      fighterResigned.price = 0;
+      team.fighters.push(fighterResigned);
+      this.emitEventToAll({
+        type: "resign",
+        team: teamIndex,
+        fighter: fighterIndex
+      });
+    }
+  }
+
+  repairEquipment(teamIndex: number, equipmentIndex: number): void {
+    const team: PreseasonTeam = this.teams[teamIndex] as PreseasonTeam;
+    if (equipmentIndex < team.needsRepair.length &&
+        team.money >= team.needsRepair[equipmentIndex].price) {
+      const equipmentRepaired = team.needsRepair.splice(equipmentIndex, 1)[0];
+      team.money -= equipmentRepaired.price;
+      equipmentRepaired.price = 0;
+      team.equipment.push(equipmentRepaired);
+      this.emitEventToAll({
+        type: "repair",
+        team: teamIndex,
+        equipment: equipmentIndex
+      });
+    }
+  }
+
+  submitBRPick(teamIndex: number, fighter: number, equipment: number[]) {
+    if (!this.ready[teamIndex] &&
+        fighter < this.teams[teamIndex].fighters.length &&
+        isValidEquipmentBR(this.teams[teamIndex], equipment)) {
+      this.fightersInBattle.push({
+        ...this.teams[teamIndex].fighters[fighter],
+        team: teamIndex,
+        hp: 100,
+        maxHP: 100,
+        equipment: equipment.map((e) => this.teams[teamIndex].equipment[e]),
+        x: 0,
+        y: 0,
+        cooldown: 0
+      });
+      this.ready[teamIndex] = true;
+      if (this.ready.every(x => x)) {
+        this.simulateBattleRoyale();
+      }
+    }
+  }
+
+  submitFightPicks(teamIndex: number, equipment: number[][]): void {
+    if (!this.ready[teamIndex] &&
+        isValidEquipmentTournament(this.teams[teamIndex], equipment)) {
+      this.ready[teamIndex] = true;
+      for (let i = 0; i < this.teams[teamIndex].fighters.length; i++) {
+        this.fightersInBattle.push({
+          ...this.teams[teamIndex].fighters[i],
+          team: teamIndex,
+          hp: 100,
+          maxHP: 100,
+          equipment: equipment[i].map((e) => this.teams[teamIndex].equipment[e]),
+          x: 0,
+          y: 0,
+          cooldown: 0
+        });
+      }
+      if (this.ready.every(x => x)) {
+        this.simulateFight();
+        this.prepareForNextMatch();
+      }
+    }
   }
 
   // Generate a random fighter
@@ -756,7 +760,6 @@ export default class Tourney extends GameLogicHandlerBase {
         gameStage: this.gameStage,
         teams: this.teams,
         bracket: this.bracket,
-        nextMatch: this.nextMatch,
         fightersInBattle: this.fightersInBattle,
         map: this.map
       }

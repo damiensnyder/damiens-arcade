@@ -1,9 +1,9 @@
 <script lang="ts">
   import { lastAction } from "$lib/stores";
-  import type { Equipment, Fighter } from "$lib/tourney/types";
+  import type { Equipment, Fighter, PreseasonTeam } from "$lib/tourney/types";
   import { StatName } from "$lib/tourney/types";
   import StarRating from "$lib/tourney/star-rating.svelte";
-  import { draftOrder, gameStage, ownTeam, ownTeamIndex, spotInDraftOrder } from "$lib/tourney/stores";
+  import { draftOrder, gameStage, ownTeam, ownTeamIndex, spotInDraftOrder, teams } from "$lib/tourney/stores";
   import FighterImage from "$lib/tourney/fighter-image.svelte";
 
   export let fighter: Fighter;
@@ -28,9 +28,12 @@
 <div class="horiz top-bar">
   <h3>{fighter.name}</h3>
   {#if index > -1 &&
-      $draftOrder[$spotInDraftOrder] === $ownTeamIndex &&
+      ($draftOrder[$spotInDraftOrder] === $ownTeamIndex ||
+       $gameStage === "preseason") &&
       $ownTeam.money > fighter.price}
-    <button on:click={pick} on:submit={pick}>Pick</button>
+    <button on:click={pick} on:submit={pick}>Pick{#if fighter.price}
+      : ${fighter.price}
+    {/if}</button>
   {/if}
 </div>
 <div class="horiz">
