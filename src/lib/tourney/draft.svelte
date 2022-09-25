@@ -21,9 +21,9 @@
 </div>
 <div>
   <h2>Pick Order</h2>
-  {#each $draftOrder as index}
+  {#each $draftOrder as index, spotInOrder}
     <div class="horiz">
-      {index + 1}. {$teams[index].name}
+      {spotInOrder + 1}. {$teams[index].name}
       {#if $ownTeam === null && $teams[index].controller === "bot"}
         <button on:click={() => replace(index)} on:submit={() => replace(index)}>
           Replace
