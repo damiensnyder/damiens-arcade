@@ -324,7 +324,6 @@ interface PickEvent {
 
 interface PassEvent {
   type: "pass"
-  fighter: number
 }
 
 interface GoToFAEvent {

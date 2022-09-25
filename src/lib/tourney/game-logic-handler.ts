@@ -5,8 +5,8 @@ import type GameRoom from "$lib/backend/game-room";
 import type { TourneyGameStage, TourneyViewpoint, ViewpointBase, Team, Settings, Fighter, Bracket, FighterInBattle, Equipment, PreseasonTeam, Map, MapDeck, EquipmentDeck, FighterDeck } from "$lib/tourney/types";
 import { StatName } from "$lib/tourney/types";
 import { array, mixed, number, object, string } from "yup";
-import { getIndexByController, getTeamByController } from "$lib/tourney/utils";
-import { settingsAreValid, collatedSettings, isValidEquipmentTournament, isValidEquipmentBR, simulateFight } from "$lib/tourney/battle-logic";
+import { getIndexByController, getTeamByController, nextMatch } from "$lib/tourney/utils";
+import { settingsAreValid, collatedSettings, isValidEquipmentTournament, isValidEquipmentBR, simulateFight, TICK_LENGTH } from "$lib/tourney/battle-logic";
 import Bot from "$lib/tourney/bot";
 
 // ms to wait before advancing to next stage automatically
@@ -270,6 +270,9 @@ export default class Tourney extends GameLogicHandlerBase {
               fighter: pick
             });
           }
+          this.emitEventToAll({
+            type: "pass"
+          });
           firstIteration = false;
           this.spotInDraftOrder++;
         }
@@ -579,13 +582,11 @@ export default class Tourney extends GameLogicHandlerBase {
         randElement: this.randElement.bind(this)
       },
       this.fightersInBattle
-    ).reverse();
-    this.bracket = generateBracket(seeding);
+    );
+    this.bracket = generateBracket(seeding.map(team => {
+      return { winner: team };
+    }));
     this.gameStage = "tournament";
-    this.emitEventToAll({
-      type: "bracket",
-      bracket: this.bracket
-    });
     this.prepareForNextMatch();
   }
 
@@ -607,20 +608,15 @@ export default class Tourney extends GameLogicHandlerBase {
     delete this.map;
     delete this.nextMatch;
     this.fightersInBattle = [];
+    this.emitEventToAll({
+      type: "bracket",
+      bracket: this.bracket
+    });
     if (this.bracket.winner !== null) {
       this.advanceToPreseason();
       return;
     }
-    const matchesToCheck: Bracket[] = [this.bracket];
-    while (matchesToCheck.length > 0) {
-      const match = matchesToCheck.splice(0, 1)[0];
-      if (match.winner === null) {
-        // @ts-ignore
-        this.nextMatch = match;
-        matchesToCheck.push(this.nextMatch.right);
-        matchesToCheck.push(this.nextMatch.left);
-      }
-    }
+    this.nextMatch = nextMatch(this.bracket);
     this.ready[this.nextMatch.left.winner] = false;
     this.ready[this.nextMatch.right.winner] = false;
   }
@@ -760,6 +756,7 @@ export default class Tourney extends GameLogicHandlerBase {
         gameStage: this.gameStage,
         teams: this.teams,
         bracket: this.bracket,
+        nextMatch: this.nextMatch,
         fightersInBattle: this.fightersInBattle,
         map: this.map
       }
@@ -767,16 +764,35 @@ export default class Tourney extends GameLogicHandlerBase {
   }
 }
 
-function generateBracket(seeding: number[]): Bracket {
-  if (seeding.length === 1) {
-    return {
-      winner: seeding[0]
-    }
+function generateBracket(components: Bracket[]): Bracket {
+  // if there is only 1 team, return a bracket with just that one team
+  if (components.length === 1) {
+    return components[0];
   }
-  const powerOf2Below = Math.pow(2, Math.floor(Math.log2(seeding.length - 1)));
-  return {
-    left: generateBracket(seeding.slice(0, powerOf2Below)),
-    right: generateBracket(seeding.slice(powerOf2Below)),
-    winner: null
-  };
+  // nearest power of 2 less than or equal to components.length
+  const nearestPowerOf2 = Math.pow(2, Math.floor(Math.log2(components.length)));
+  // if the number of component brackets is a power of 2, pair off the opposite seeds
+  if (components.length === nearestPowerOf2) {
+    const newComponents: Bracket[] = [];
+    for (let i = 0; i < components.length / 2; i++) {
+      newComponents.push({
+        left: components[i],
+        right: components[components.length - 1 - i],
+        winner: null
+      });
+    }
+    return generateBracket(newComponents);
+  } else {
+    // otherwise, pair off the brackets at the end to make it a power of 2
+    const numByes = nearestPowerOf2 * 2 - components.length;
+    const newComponents: Bracket[] = components.slice(0, numByes);
+    for (let i = numByes; i < (components.length + numByes) / 2; i++) {
+      newComponents.push({
+        left: components[i],
+        right: components[components.length + numByes - 1 - i],
+        winner: null
+      });
+    }
+    return generateBracket(newComponents);
+  }
 }

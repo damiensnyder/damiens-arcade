@@ -1,4 +1,4 @@
-import type { EquipmentSlot, PreseasonTeam, Team } from "$lib/tourney/types";
+import type { Bracket, EquipmentSlot, PreseasonTeam, Team } from "$lib/tourney/types";
 
 export function getIndexByController(teams: Team[], controller: number): number | null {
   if (teams === undefined) return null;
@@ -25,4 +25,25 @@ export function slotsToString(slots: EquipmentSlot[]): string {
   if (joined === "") return "none";
   if (joined === "hand, hand") return "two-handed";
   return joined;
+}
+
+export function nextMatch(bracket: Bracket): Bracket & {
+  left: Bracket,
+  right: Bracket
+} {
+  let nextMatch: Bracket & {
+    left: Bracket,
+    right: Bracket
+  };
+  const matchesToCheck: Bracket[] = [bracket];
+  while (matchesToCheck.length > 0) {
+    const match = matchesToCheck.splice(0, 1)[0];
+    if (match.winner === null) {
+      // @ts-ignore
+      nextMatch = match;
+      matchesToCheck.push(nextMatch.right);
+      matchesToCheck.push(nextMatch.left);
+    }
+  }
+  return nextMatch;
 }

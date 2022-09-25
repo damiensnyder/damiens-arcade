@@ -11,7 +11,7 @@ const fighterStatsSchema = array(
 const ability = object();
 
 const DECK_FILEPATH_BASE = "src/lib/tourney/data/";
-const TICK_LENGTH = 0.2;  // length of a tick in seconds
+export const TICK_LENGTH = 0.2;  // length of a tick in seconds
 
 const fighterNames: FighterNames =
     JSON.parse(readFileSync(DECK_FILEPATH_BASE + "fighters/names.json").toString());
