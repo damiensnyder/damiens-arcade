@@ -9,9 +9,50 @@ import { getIndexByController, getTeamByController, nextMatch } from "$lib/tourn
 import { settingsAreValid, collatedSettings, isValidEquipmentTournament, isValidEquipmentBR, simulateFight, TICK_LENGTH } from "$lib/tourney/battle-logic";
 import Bot from "$lib/tourney/bot";
 
-// ms to wait before advancing to next stage automatically
-// 0 in dev mode, 3000 in production
-const ADVANCEMENT_DELAY = 0; 
+const TEAM_NAME_STARTS = [
+  "Fabulous",
+  "Marvelous",
+  "Eccentric",
+  "Smashin'",
+  "Swarthy",
+  "Rugged",
+  "Rootin' Tootin'",
+  "Sprightly",
+  "Wonderful",
+  "Ludicrous",
+  "Courageous",
+  "Wise",
+  "Worrisome",
+  "Flippin'",
+  "Futuristic",
+  "Lovely",
+  "Healthy",
+  "Motivated",
+  "Nefarious",
+  "Meticulous"
+];
+const TEAM_NAME_ENDS = [
+  "Bashers",
+  "Megalodons",
+  "Birds",
+  "Pterodactyls",
+  "Marigolds",
+  "Whirlwinds",
+  "Apricots",
+  "Yaks",
+  "Electricians",
+  "Monocles",
+  "Manatees",
+  "Bakers",
+  "Wallabies",
+  "Cats",
+  "Swashbucklers",
+  "Locksmiths",
+  "Pickles",
+  "Pandas",
+  "Melonheads",
+  "Wombats"
+];
 
 const startGameSchema = object({
   type: string().required().equals(["start"])
@@ -554,7 +595,7 @@ export default class Tourney extends GameLogicHandlerBase {
     if (this.teams.length < 16) {
       this.teams.push({
         controller: viewerIndex,
-        name: `Team ${this.teams.length + 1}`,
+        name: this.randElement(TEAM_NAME_STARTS) + " " + this.randElement(TEAM_NAME_ENDS),
         money: 100,
         fighters: [],
         equipment: [],
