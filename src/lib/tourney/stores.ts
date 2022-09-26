@@ -1,7 +1,7 @@
 import { derived, writable } from "svelte/store";
 import type { TourneyGameStage, Team, Settings, Fighter, Equipment, Bracket, Map, Strategy, FighterStats, PreseasonTeam, MidFightEvent } from "$lib/tourney/types";
 import { pov } from "$lib/stores";
-import { getIndexByController, getTeamByController } from "$lib/tourney/utils";
+import { getIndexByController, getTeamByController, nextMatch as nextMatch_ } from "$lib/tourney/utils";
 
 export const gameStage = writable("pregame" as TourneyGameStage);
 export const settings = writable({} as Settings);
@@ -24,3 +24,4 @@ export const watchingFight = writable(false);
 
 export const ownTeamIndex = derived([teams, pov], ([$teams, $pov]) => getIndexByController($teams, $pov));
 export const ownTeam = derived([teams, pov], ([$teams, $pov]) => getTeamByController($teams, $pov));
+export const nextMatch = derived([bracket], ([$bracket]) => nextMatch_($bracket));

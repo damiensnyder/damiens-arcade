@@ -149,8 +149,6 @@ export const eventHandler: EventHandler<TourneyEvent> = {
   fight: function (event): void {
     map.set(event.map);
     clearTimeout(fightTimeout);
-    // we set this to false briefly so we can go to the next fight
-    watchingFight.set(false);
     fightEvents.set(event.eventLog);
     // don't stop showing the fight screen till 3 seconds after the fight will finish showing
     // 200 ms per tick
