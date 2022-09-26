@@ -24,4 +24,8 @@ export const watchingFight = writable(false);
 
 export const ownTeamIndex = derived([teams, pov], ([$teams, $pov]) => getIndexByController($teams, $pov));
 export const ownTeam = derived([teams, pov], ([$teams, $pov]) => getTeamByController($teams, $pov));
-export const nextMatch = derived([bracket], ([$bracket]) => nextMatch_($bracket));
+export const nextMatch = derived([bracket], ([$bracket]) => nextMatch_($bracket) || {
+  left: { winner: -1 },
+  right: { winner: -1 },
+  winner: null
+});
