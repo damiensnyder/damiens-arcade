@@ -1,8 +1,11 @@
 <script lang="ts">
     import { lastAction } from "$lib/stores";
-  import Bracket from "$lib/tourney/bracket.svelte";
-  import { bracket, equipment, nextMatch, ownTeam, ownTeamIndex } from "$lib/tourney/stores";
-    import { EquipmentSlot } from "./types";
+    import Bracket from "$lib/tourney/bracket.svelte";
+    import EquipmentInfo from "$lib/tourney/equipment-info.svelte";
+    import FighterInfo from "$lib/tourney/fighter-info.svelte";
+    import { bracket, nextMatch, ownTeam, ownTeamIndex } from "$lib/tourney/stores";
+    import { EquipmentSlot } from "$lib/tourney/types";
+    import { slotsToString } from "$lib/tourney/utils";
 
   $: playingInNextGame = ($nextMatch.left.winner === $ownTeamIndex ||
        $nextMatch.right.winner === $ownTeamIndex) &&
@@ -53,16 +56,22 @@
     {@const valid = equipmentChoices === equipmentChoices ? choicesAreValid() : true}
     <div>
       <h2>Assign equipment</h2>
-      {#each $ownTeam.fighters as f, i}
+      {#each $ownTeam.fighters as fighter, i}
         <div class="fighter">
-          {f.name}
-          <!-- {equipmentChoices[i]} -->
-          {#each $ownTeam.equipment as e, j}
-            <p class="equipment">
-              <input type="checkbox"
-                  bind:checked={equipmentChoices[i][j]}>
-              {e.name}
-            </p>
+          <div class="show-child-on-hover">
+            <h3>{fighter.name}</h3>
+            <div class="show-on-hover">
+              <FighterInfo {fighter} />
+            </div>
+          </div>
+          {#each $ownTeam.equipment as equipment, j}
+            <div class="show-child-on-hover horiz">
+              <span>{equipment.name} ({slotsToString(equipment.slots)})</span>
+              <div class="show-on-hover">
+                <EquipmentInfo equipment={equipment} />
+              </div>
+              <input type="checkbox" bind:checked={equipmentChoices[i][j]} />
+            </div>
           {/each}
         </div>
       {/each}
@@ -81,8 +90,16 @@
 
 <style>
   .fighter {
-    margin: 1rem;
+    margin: 0.5rem;
     padding: 0;
-    align-items: flex-start;
+  }
+
+  .show-child-on-hover {
+    align-self: stretch;
+    justify-content: space-between;
+  }
+
+  input[type="checkbox"] {
+    margin: 0.15rem 0.6rem 0;
   }
 </style>
