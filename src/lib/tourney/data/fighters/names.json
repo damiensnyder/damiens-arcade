@@ -2,18 +2,32 @@
   "firstNamesM": [
     "Fred",
     "Barry",
-    "Johnson"
+    "Johnson",
+    "Gordon",
+    "Percival",
+    "Randall"
   ],
   "firstNamesF": [
-    "Minerva"
+    "Minerva",
+    "Cherry",
+    "Gabriella",
+    "Penelope",
+    "Veronica"
   ],
   "firstNamesA": [
     "Dakota",
-    "Sammy"
+    "Sammy",
+    "Simone"
   ],
   "lastNames": [
     "Funko",
     "Johnson",
-    "Tinkleton"
+    "Tinkleton",
+    "Grunkleson",
+    "Blithe",
+    "Pike",
+    "Venus",
+    "Spittle",
+    "Tilda"
   ]
 }

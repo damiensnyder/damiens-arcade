@@ -105,7 +105,7 @@
   }
 
   .equipment {
-    z-index: 2;
+    z-index: 3;
   }
 
   .hand {
@@ -113,7 +113,7 @@
   }
 
   .legs {
-    z-index: 3;
+    z-index: 2;
   }
   
   .flipped {

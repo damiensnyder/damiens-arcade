@@ -99,7 +99,7 @@ export const eventHandler: EventHandler<TourneyEvent> = {
   repair: function (event): void {
     teams.update((old) => {
       const team = old[event.team] as PreseasonTeam;
-      const equipmentRepaired = team.needsRepair.splice(event.equipment)[0];
+      const equipmentRepaired = team.needsRepair.splice(event.equipment, 1)[0];
       team.equipment.push(equipmentRepaired);
       team.money -= equipmentRepaired.price;
       return old;
