@@ -6,7 +6,7 @@ export const players = writable({
   O: { money: 15 }
 } as Record<Side.X | Side.O, Player>);
 export const turnPart = writable(TurnPart.None);
-export const gameStage = writable("pregame" as AuctionTTTGameStage);
+export const gameStage = writable(null as AuctionTTTGameStage | null);
 export const squares = writable([
   [Side.None, Side.None, Side.None],
   [Side.None, Side.None, Side.None],

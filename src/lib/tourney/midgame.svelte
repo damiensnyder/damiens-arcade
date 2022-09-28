@@ -32,7 +32,7 @@
   }
 </script>
 
-<div class="fun">
+<main>
   <div class="top-icons horiz">
     <h2>{$gameStage}</h2>
     <button on:click={debug} on:submit={debug}>Debug</button>
@@ -57,7 +57,7 @@
       All teams
     </button>
   </div>
-  
+
   <div class="container horiz">
     {#if typeof viewing === "number" && viewing >= 0}
       <TeamView team={$teams[viewing]} />
@@ -81,9 +81,23 @@
       <PickFighters />
     {/if}
   </div>
-</div>
+</main>
   
 <style>
+  main {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    min-height: 100vh;
+    justify-content: stretch;
+    align-items: stretch;
+
+    background-color: var(--bg-fun-1);
+    color: var(--text-fun-1);
+    font-family: var(--font-fun);
+}
+
   .top-icons {
     justify-content: stretch;
     margin: 0 1.5rem;

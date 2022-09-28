@@ -1,4 +1,3 @@
-import { GameType } from "$lib/types";
 import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
@@ -54,7 +53,6 @@ const backToSettingsSchema = object({
 
 export default class AuctionTicTacToe extends GameLogicHandlerBase {
   settings: Settings
-  gameType: GameType.AuctionTTT
   gameStage: AuctionTTTGameStage
   players: Record<Side.X | Side.O, Player>
   turnPart: TurnPart
@@ -313,7 +311,6 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
     if (this.gameStage === "pregame") {
       return {
         ...this.basicViewpointInfo(viewer),
-        gameType: GameType.AuctionTTT,
         gameStage: this.gameStage,
         settings: this.settings,
         players: this.players
@@ -322,7 +319,6 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       if (this.turnPart === TurnPart.Bidding) {
         return {
           ...this.basicViewpointInfo(viewer),
-          gameType: GameType.AuctionTTT,
           gameStage: this.gameStage,
           settings: this.settings,
           turnPart: this.turnPart,
@@ -337,7 +333,6 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       } else {
         return {
           ...this.basicViewpointInfo(viewer),
-          gameType: GameType.AuctionTTT,
           gameStage: this.gameStage,
           settings: this.settings,
           turnPart: TurnPart.Nominating,
@@ -350,7 +345,6 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
     } else if (this.gameStage === "postgame") {
       return {
         ...this.basicViewpointInfo(viewer),
-        gameType: GameType.AuctionTTT,
         gameStage: this.gameStage,
         settings: this.settings,
         players: this.players,

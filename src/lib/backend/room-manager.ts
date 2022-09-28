@@ -1,5 +1,5 @@
 import GameRoom from "./game-room";
-import type { PublicRoomInfo } from "../types";
+import type { GameType, PublicRoomInfo } from "../types";
 import type { Server } from "socket.io";
 
 const ALPHABET = "abcdefghijklmnopqrstuvwxyz";
@@ -20,7 +20,11 @@ export default class RoomManager {
   }
 
   // Create a game room and send the room code along with status 200.
-  createRoom(roomCode?: string, seed?: [number, number, number, number]): { roomCode: string } {
+  createRoom(
+    gameType: GameType,
+    roomCode?: string,
+    seed?: [number, number, number, number]
+  ): { roomCode: string } {
     if (roomCode === undefined) {
       roomCode = this.generateRoomCode();
     }
@@ -29,6 +33,7 @@ export default class RoomManager {
       this.io,
       roomCode,
       this.teardownCallback.bind(this),
+      gameType,
       seed
     );
 
@@ -67,5 +72,12 @@ export default class RoomManager {
     }
     
     return { rooms: activeRooms };
+  }
+
+  getGameTypeOfRoom(roomCode: string): GameType | null {
+    if (this.activeRooms[roomCode]) {
+      return this.activeRooms[roomCode].publicRoomInfo.gameType;
+    }
+    return null;
   }
 }

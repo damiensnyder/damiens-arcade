@@ -1,6 +1,6 @@
 import type RoomManager from "$lib/backend/room-manager";
 import { readFileSync, readdirSync } from "fs";
-import { PacketType, type Action, type Viewer } from "$lib/types";
+import { GameType, PacketType, type Viewer } from "$lib/types";
 import type { Socket } from "socket.io";
 import type GameRoom from "$lib/backend/game-room";
 
@@ -18,7 +18,7 @@ interface HasViewerIndex {
   index: number
 }
 
-type ActionWithIndex = Action & HasViewerIndex;
+type ActionWithIndex = any & HasViewerIndex;
 
 interface MacroAction {
   macro: string
@@ -27,6 +27,7 @@ interface MacroAction {
 
 interface TestRoomScript {
   actions: (ActionWithIndex | MacroAction)[]
+  gameType: GameType
   seed: [number, number, number, number]
   expected?: any
 }
@@ -40,7 +41,7 @@ export default function setUpTestRooms(roomManager: RoomManager) {
     macros = JSON.parse(readFileSync("src/lib/test/macros.json").toString());
     const testFileText = readFileSync("src/lib/test/cases/" + fileName).toString();
     const roomScript: TestRoomScript = JSON.parse(testFileText);
-    roomManager.createRoom(fileName.split(".")[0], roomScript.seed);
+    roomManager.createRoom(roomScript.gameType, fileName.split(".")[0], roomScript.seed);
     const room = roomManager.activeRooms[fileName.split(".")[0]];
     setUpTestRoom(room, roomScript);
   }
@@ -91,7 +92,7 @@ function enqueueAction(action: ActionWithIndex | MacroAction, room: GameRoom) {
       room.enqueuePacket(fakeViewer, action.type);
     } else {
       try {
-        room.enqueuePacket(fakeViewer, PacketType.Action, action as Action);
+        room.enqueuePacket(fakeViewer, PacketType.Action, action as any);
       } catch (e) {
         console.log(e);
         console.log(action);

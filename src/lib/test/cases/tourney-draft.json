@@ -1,5 +1,6 @@
 {
   "seed": [0, 1, 2, 3],
+  "gameType": "Mayhem Manager",
   "actions": [
     {
       "macro": "startTourney",

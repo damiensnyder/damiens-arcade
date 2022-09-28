@@ -1,31 +1,10 @@
 import type { Fighter, PreseasonTeam, TourneyEvent, TourneyViewpoint } from "$lib/tourney/types";
 import { bracket, draftOrder, fightEvents, gameStage, rawSettings, settings, teams, spotInDraftOrder, fighters, map, equipment, watchingFight } from "$lib/tourney/stores";
 import { get } from "svelte/store";
-import { eventLog, pov } from "$lib/stores";
-import type { EventHandler } from "$lib/types";
+import { roomName, isPublic, host } from "$lib/stores";
+import type { ChangeHostEvent, ChangeRoomSettingsEvent, EventHandler } from "$lib/types";
 
 let fightTimeout;
-
-export function switchToType(): void {
-  rawSettings.set(`{
-    fighterDecks: ["default"],
-    equipmentDecks: ["default"],
-    mapDecks: ["default"],
-    customFighters: [],
-    customEquipment: [],
-    customMaps: []
-  }`);
-  settings.set({
-    fighterDecks: [],
-    equipmentDecks: [],
-    mapDecks: [],
-    customFighters: [],
-    customEquipment: [],
-    customMaps: []
-  });
-  gameStage.set("pregame");
-  teams.set([]);
-}
 
 export function handleGamestate(gamestate: TourneyViewpoint): void {
   rawSettings.set(JSON.stringify(gamestate.settings));
@@ -43,6 +22,13 @@ export function handleGamestate(gamestate: TourneyViewpoint): void {
 }
 
 export const eventHandler: EventHandler<TourneyEvent> = {
+  changeRoomSettings: function (event: ChangeRoomSettingsEvent & { type: "changeRoomSettings"; }): void {
+    roomName.set(event.roomName);
+    isPublic.set(event.isPublic);
+  },
+  changeHost: function (event: ChangeHostEvent & { type: "changeHost"; }): void {
+    host.set(event.host);
+  },
   changeGameSettings: function (event): void {
     settings.set(event.settings);
     rawSettings.set(JSON.stringify(event.settings));
@@ -64,25 +50,21 @@ export const eventHandler: EventHandler<TourneyEvent> = {
       });
       return old;
     });
-    eventLog.append(`A player has joined.`);
   },
   leave: function (event): void {
     teams.update((old) => {
       old[event.team].controller = "bot";
       return old;
     });
-    eventLog.append(`The player playing team ${event.team} has left.`);
   },
   replace: function (event): void {
     teams.update((old) => {
-      eventLog.append(`A new player has taken over team ${old[event.team].name}.`);
       old[event.team].controller = event.controller;
       return old;
     });
   },
   remove: function (event): void {
     teams.update((old) => {
-      eventLog.append(`Team ${old[event.team].name} has been removed.`);
       old.splice(event.team, 1);
       return old;
     });
@@ -130,7 +112,7 @@ export const eventHandler: EventHandler<TourneyEvent> = {
     }
   },
   pass: function (_event): void {
-    spotInDraftOrder.update(x => x+1);
+    spotInDraftOrder.update(x => x + 1);
   },
   goToFA: function (event): void {
     gameStage.set("free agency");

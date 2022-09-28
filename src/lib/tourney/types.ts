@@ -1,4 +1,4 @@
-import type { BasicViewpointInfo, GameType } from "$lib/types";
+import type { BasicViewpointInfo, ChangeRoomSettingsAction, RoomEvent } from "$lib/types";
 
 export type TourneyGameStage = "pregame" |
     "preseason" |
@@ -12,7 +12,6 @@ export type TourneyViewpoint = PregameViewpoint | MidgameViewpoint;
 
 export interface ViewpointBase extends BasicViewpointInfo {
   gameStage: TourneyGameStage
-  gameType: GameType.Tourney
   settings: Settings
 }
 
@@ -264,7 +263,8 @@ interface RepairAction {
   equipment: number
 }
 
-export type TourneyAction = ChangeGameSettingsAction |
+export type TourneyAction = ChangeRoomSettingsAction |
+    ChangeGameSettingsAction |
     JoinAction |
     LeaveAction |
     StartAction |
@@ -401,7 +401,8 @@ interface GoToPreseasonEvent {
   teams: PreseasonTeam[]
 }
 
-export type TourneyEvent = ChangeGameSettingsEvent |
+export type TourneyEvent = RoomEvent |
+    ChangeGameSettingsEvent |
     JoinEvent |
     LeaveEvent |
     StartEvent |

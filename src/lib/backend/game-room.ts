@@ -1,18 +1,12 @@
 import type { Namespace, Server, Socket } from "socket.io";
 import type GameLogicHandler from "./game-logic-handler-base";
 import AuctionTicTacToe from "../auction-tic-tac-toe/game-logic-handler";
-import NoGameSelected from "../no-game-selected/game-logic-handler";
 import { GameType, PacketType } from "../types";
 import type { PacketInfo, PublicRoomInfo, TeardownCallback, Viewer } from "../types";
 import { boolean, object, string } from "yup";
 import Tourney from "../tourney/game-logic-handler";
 
 const TEARDOWN_TIME: number = 60 * 60 * 1000; // one hour
-
-const changeGameTypeSchema = object({
-  type: string().required().equals(["changeGameType"]),
-  newGameType: string().required().oneOf(Object.values(GameType))
-});
 
 const changeSettingsSchema = object({
   type: string().equals(["changeRoomSettings"]),
@@ -37,12 +31,8 @@ export default class GameRoom {
     io: Server,
     roomCode: string,
     teardownCallback: TeardownCallback,
-    seed: [number, number, number, number] = [
-      Math.random() * 4294967296,
-      Math.random() * 4294967296,
-      Math.random() * 4294967296,
-      Math.random() * 4294967296
-    ]
+    gameType: GameType,
+    seed?: [number, number, number, number]
   ) {
     this.viewers = [];
     this.connectionsStarted = 0;
@@ -50,11 +40,20 @@ export default class GameRoom {
       roomCode: roomCode,
       roomName: "Untitled Room",
       isPublic: false,
-      gameType: GameType.NoGameSelected,
+      gameType,
       gameStage: "pregame"
     };
-    this.gameLogicHandler = new NoGameSelected(this);
-    this.seed = seed;
+    if (gameType === GameType.AuctionTTT) {
+      this.gameLogicHandler = new AuctionTicTacToe(this);
+    } else if (gameType === GameType.MayhemManager) {
+      this.gameLogicHandler = new AuctionTicTacToe(this);
+    }
+    this.seed = seed || [
+      Math.random() * 4294967296,
+      Math.random() * 4294967296,
+      Math.random() * 4294967296,
+      Math.random() * 4294967296
+    ];
 
     this.io = io.of(`/game/${roomCode}`);
     this.io.on("connection", (socket: Socket) => {
@@ -108,15 +107,10 @@ export default class GameRoom {
   // queue, show that the queue is empty. Otherwise, handle the next packet.
   handlePacket(): void {
     const { viewer, type, data } = this.packetQueue.splice(0, 1)[0];
-    // console.debug(`${viewer.index}\t${type}`);
-    
-    if (type === PacketType.Action) {
-      // console.debug(data);
 
+    if (type === PacketType.Action) {
       // if the action is changing something basic about the room, handle that manually
-      if (this.shouldChangeGameType(viewer, data)) {
-        this.changeGameType(data.newGameType);
-      } else if (this.shouldChangeSettings(viewer, data)) {
+      if (this.shouldChangeSettings(viewer, data)) {
         this.changeSettings(data);
       } else {
         // otherwise, pass it on to the game logic handler
@@ -176,30 +170,6 @@ export default class GameRoom {
       type: "changeRoomSettings",
       roomName: newSettings.roomName,
       isPublic: newSettings.isPublic
-    });
-  }
-
-  shouldChangeGameType(viewer: Viewer, data?: any) {
-    return viewer.index === this.host &&
-        this.gameLogicHandler.gameStage === "pregame" &&
-        changeGameTypeSchema.isValidSync(data) &&
-        data.newGameType !== this.publicRoomInfo.gameType;
-  }
-
-  // Change to a new type of game
-  changeGameType(newGameType: GameType): void {
-    this.publicRoomInfo.gameType = newGameType;
-    if (newGameType === GameType.NoGameSelected) {
-      this.gameLogicHandler = new NoGameSelected(this);
-    } else if (newGameType === GameType.AuctionTTT) {
-      this.gameLogicHandler = new AuctionTicTacToe(this);
-    } else if (newGameType === GameType.Tourney) {
-      this.gameLogicHandler = new Tourney(this);
-    }
-
-    this.gameLogicHandler.emitEventToAll({
-      type: "changeGameType",
-      gameType: newGameType
     });
   }
 }

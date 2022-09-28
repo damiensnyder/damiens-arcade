@@ -26,6 +26,17 @@ class RoomManagerWrapper {
     res.statusCode = 200;
     res.end(JSON.stringify(this.roomManager.listActiveRooms()));
 	}
+
+	redirectToCorrectGameType(req, res, _next) {
+		const gameType = this.roomManager.getGameTypeOfRoom(req.params.roomCode);
+		if (gameType === null) {
+			res.statusCode = 302;
+			res.redirect("/");
+		} else {
+			res.statusCode = 302;
+			res.redirect(gameType.replaceAll(" ", "-").toLowerCase());
+		}
+	}
 }
 
 const roomManagerMiddleware = {
@@ -38,6 +49,9 @@ const roomManagerMiddleware = {
 		
 		// List active game rooms
 		server.middlewares.use("/activeRooms", wrapper.listActiveRooms.bind(wrapper));
+
+		// Redirect joiner to appropriate type of game
+		server.middlewares.use("/game/:roomCode", wrapper.redirectToCorrectGameType.bind(wrapper));
 	}
 };
 

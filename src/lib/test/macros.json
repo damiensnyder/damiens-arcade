@@ -15,11 +15,6 @@
       "index": 1
     },
     {
-      "type": "changeGameType",
-      "newGameType": "Auction Tic-Tac-Toe",
-      "index": 1
-    },
-    {
       "type": "changeGameSettings",
       "settings": {
         "startingMoney": 15,
@@ -54,11 +49,6 @@
   "startTourney": [
     {
       "type": "connect",
-      "index": 1
-    },
-    {
-      "type": "changeGameType",
-      "newGameType": "Colosseum Clash",
       "index": 1
     },
     {

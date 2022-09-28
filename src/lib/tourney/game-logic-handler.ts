@@ -1,4 +1,3 @@
-import { GameType } from "$lib/types";
 import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
@@ -131,8 +130,7 @@ export default class Tourney extends GameLogicHandlerBase {
     equipment: EquipmentDeck,
     maps: MapDeck
   }
-  gameType: GameType.Tourney
-  gameStage: TourneyGameStage
+  declare gameStage: TourneyGameStage
   teams?: (Team | PreseasonTeam)[]
   ready?: boolean[]
   draftOrder?: number[]
@@ -770,7 +768,6 @@ export default class Tourney extends GameLogicHandlerBase {
   basicViewpointInfo(viewer: Viewer): ViewpointBase {
     return {
       ...super.basicViewpointInfo(viewer),
-      gameType: GameType.Tourney,
       gameStage: this.gameStage,
       settings: this.settings
     }
