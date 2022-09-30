@@ -1,7 +1,7 @@
 <script lang="ts">
   import { lastAction } from "$lib/stores";
-  import { draftOrder, fighters, ownTeam, ownTeamIndex, spotInDraftOrder, teams } from "$lib/tourney/stores";
-  import FighterInfo from "$lib/tourney/fighter-info.svelte";
+  import { draftOrder, fighters, ownTeam, ownTeamIndex, spotInDraftOrder, teams } from "$lib/mayhem-manager/stores";
+  import FighterInfo from "$lib/mayhem-manager/fighter-info.svelte";
 
   function replace(team: number) {
     lastAction.set({

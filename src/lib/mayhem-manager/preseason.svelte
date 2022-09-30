@@ -1,9 +1,9 @@
 <script lang="ts">
   import { host, lastAction, pov } from "$lib/stores";
-  import { ownTeam, ownTeamIndex, teams } from "$lib/tourney/stores";
-  import type { PreseasonTeam } from "$lib/tourney/types";
-  import FighterInfo from "$lib/tourney/fighter-info.svelte";
-  import EquipmentInfo from "$lib/tourney/equipment-info.svelte";
+  import { ownTeam, ownTeamIndex, teams } from "$lib/mayhem-manager/stores";
+  import type { PreseasonTeam } from "$lib/mayhem-manager/types";
+  import FighterInfo from "$lib/mayhem-manager/fighter-info.svelte";
+  import EquipmentInfo from "$lib/mayhem-manager/equipment-info.svelte";
 
   $: needsResigning = $ownTeam !== null ? ($ownTeam as PreseasonTeam).needsResigning : [];
   $: needsRepair = $ownTeam !== null ? ($ownTeam as PreseasonTeam).needsRepair : [];

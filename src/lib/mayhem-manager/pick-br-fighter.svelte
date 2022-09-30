@@ -1,10 +1,10 @@
 <script lang="ts">
   import { lastAction } from "$lib/stores";
-  import { equipment, fighters, ownTeam, ownTeamIndex } from "$lib/tourney/stores";
-  import EquipmentInfo from "$lib/tourney/equipment-info.svelte";
-  import FighterInfo from "$lib/tourney/fighter-info.svelte";
-  import { slotsToString } from "$lib/tourney/utils";
-  import { EquipmentSlot } from "$lib/tourney/types";
+  import { equipment, fighters, ownTeam, ownTeamIndex } from "$lib/mayhem-manager/stores";
+  import EquipmentInfo from "$lib/mayhem-manager/equipment-info.svelte";
+  import FighterInfo from "$lib/mayhem-manager/fighter-info.svelte";
+  import { slotsToString } from "$lib/mayhem-manager/utils";
+  import { EquipmentSlot } from "$lib/mayhem-manager/types";
 
   let selectedFighter: number = 0;
   let selectedEquipment: boolean[] = $ownTeamIndex === null ? [] : Array($ownTeam.equipment.length).fill(false);

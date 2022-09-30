@@ -1,6 +1,6 @@
 import { array, boolean, number, object, string } from "yup";
 import { readFileSync, readdirSync, writeFileSync } from "fs";
-import { EquipmentSlot, type Equipment, type EquipmentDeck, type FighterDeck, type FighterInBattle, type FighterNames, type FighterTemplate, type Map, type MapDeck, type MidFightEvent, type Settings, type Team, type TourneyEvent } from "$lib/tourney/types";
+import { EquipmentSlot, type Equipment, type EquipmentDeck, type FighterDeck, type FighterInBattle, type FighterNames, type FighterTemplate, type Map, type MapDeck, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent } from "$lib/mayhem-manager/types";
 import type { Socket } from "socket.io";
 import type { RNG } from "$lib/types";
 
@@ -10,7 +10,7 @@ const fighterStatsSchema = array(
 
 const ability = object();
 
-const DECK_FILEPATH_BASE = "src/lib/tourney/data/";
+const DECK_FILEPATH_BASE = "src/lib/mayhem-manager/data/";
 export const TICK_LENGTH = 0.2;  // length of a tick in seconds
 
 const fighterNames: FighterNames =
@@ -173,7 +173,7 @@ export function isValidEquipmentTournament(team: Team, equipment: number[][]): b
 
 // Simulate the fight and return the order of teams in it, going from winner to first out
 export function simulateFight(
-  eventEmitter: (event: TourneyEvent) => void,
+  eventEmitter: (event: MayhemManagerEvent) => void,
   map: Map,
   rng: RNG,
   fighters: FighterInBattle[]

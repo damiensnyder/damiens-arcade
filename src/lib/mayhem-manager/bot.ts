@@ -1,5 +1,5 @@
-import { StatName, type Strategy } from "$lib/tourney/types";
-import type { Equipment, Fighter, PreseasonTeam, Team } from "$lib/tourney/types";
+import { StatName, type Strategy } from "$lib/mayhem-manager/types";
+import type { Equipment, Fighter, PreseasonTeam, Team } from "$lib/mayhem-manager/types";
 
 const Bot = {
   getPreseasonPicks: function (_team: PreseasonTeam): {

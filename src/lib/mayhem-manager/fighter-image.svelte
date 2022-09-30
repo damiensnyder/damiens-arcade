@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { type Fighter, type Equipment, EquipmentSlot } from "$lib/tourney/types";
+  import { type Fighter, type Equipment, EquipmentSlot } from "$lib/mayhem-manager/types";
 
   export let fighter: Fighter;
   export let equipment: Equipment[];

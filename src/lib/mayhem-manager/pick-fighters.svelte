@@ -1,11 +1,11 @@
 <script lang="ts">
     import { lastAction } from "$lib/stores";
-    import Bracket from "$lib/tourney/bracket.svelte";
-    import EquipmentInfo from "$lib/tourney/equipment-info.svelte";
-    import FighterInfo from "$lib/tourney/fighter-info.svelte";
-    import { bracket, nextMatch, ownTeam, ownTeamIndex } from "$lib/tourney/stores";
-    import { EquipmentSlot } from "$lib/tourney/types";
-    import { slotsToString } from "$lib/tourney/utils";
+    import Bracket from "$lib/mayhem-manager/bracket.svelte";
+    import EquipmentInfo from "$lib/mayhem-manager/equipment-info.svelte";
+    import FighterInfo from "$lib/mayhem-manager/fighter-info.svelte";
+    import { bracket, nextMatch, ownTeam, ownTeamIndex } from "$lib/mayhem-manager/stores";
+    import { EquipmentSlot } from "$lib/mayhem-manager/types";
+    import { slotsToString } from "$lib/mayhem-manager/utils";
 
   $: playingInNextGame = ($nextMatch.left.winner === $ownTeamIndex ||
        $nextMatch.right.winner === $ownTeamIndex) &&

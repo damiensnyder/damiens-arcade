@@ -1,6 +1,6 @@
 <script lang="ts">
   import { lastAction } from "$lib/stores";
-  import { draftOrder, fighters, ownTeam, teams } from "$lib/tourney/stores";
+  import { draftOrder, fighters, ownTeam, teams } from "$lib/mayhem-manager/stores";
   import FighterInfo from "./fighter-info.svelte";
 
   function replace(team: number) {

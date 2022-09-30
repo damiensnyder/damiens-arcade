@@ -1,6 +1,6 @@
 <script lang="ts">
 import { host, lastAction, pov } from "$lib/stores";
-import { rawSettings } from "$lib/tourney/stores";
+import { rawSettings } from "$lib/mayhem-manager/stores";
 
 function changeGameSettings() {
   lastAction.set({

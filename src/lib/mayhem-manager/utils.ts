@@ -1,4 +1,4 @@
-import type { Bracket, EquipmentSlot, PreseasonTeam, Team } from "$lib/tourney/types";
+import type { Bracket, EquipmentSlot, PreseasonTeam, Team } from "$lib/mayhem-manager/types";
 
 export function getIndexByController(teams: Team[], controller: number): number | null {
   if (teams === undefined) return null;

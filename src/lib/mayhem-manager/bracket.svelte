@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { Bracket } from "$lib/tourney/types";
-  import { teams } from "$lib/tourney/stores";
+  import type { Bracket } from "$lib/mayhem-manager/types";
+  import { teams } from "$lib/mayhem-manager/stores";
 
   export let left: Bracket | null = null;
   export let right: Bracket | null = null;

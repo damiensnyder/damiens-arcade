@@ -1,12 +1,12 @@
-import type { Fighter, PreseasonTeam, TourneyEvent, TourneyViewpoint } from "$lib/tourney/types";
-import { bracket, draftOrder, fightEvents, gameStage, rawSettings, settings, teams, spotInDraftOrder, fighters, map, equipment, watchingFight } from "$lib/tourney/stores";
+import type { Fighter, PreseasonTeam, MayhemManagerEvent, MayhemManagerViewpoint } from "$lib/mayhem-manager/types";
+import { bracket, draftOrder, fightEvents, gameStage, rawSettings, settings, teams, spotInDraftOrder, fighters, map, equipment, watchingFight } from "$lib/mayhem-manager/stores";
 import { get } from "svelte/store";
 import { roomName, isPublic, host } from "$lib/stores";
 import type { ChangeHostEvent, ChangeRoomSettingsEvent, EventHandler } from "$lib/types";
 
 let fightTimeout;
 
-export function handleGamestate(gamestate: TourneyViewpoint): void {
+export function handleGamestate(gamestate: MayhemManagerViewpoint): void {
   rawSettings.set(JSON.stringify(gamestate.settings));
   gameStage.set(gamestate.gameStage);
   if (gamestate.gameStage !== "pregame") {
@@ -21,7 +21,7 @@ export function handleGamestate(gamestate: TourneyViewpoint): void {
   }
 }
 
-export const eventHandler: EventHandler<TourneyEvent> = {
+export const eventHandler: EventHandler<MayhemManagerEvent> = {
   changeRoomSettings: function (event: ChangeRoomSettingsEvent & { type: "changeRoomSettings"; }): void {
     roomName.set(event.roomName);
     isPublic.set(event.isPublic);

@@ -1,10 +1,10 @@
 <script lang="ts">
   import { lastAction } from "$lib/stores";
-  import type { Equipment, Fighter, PreseasonTeam } from "$lib/tourney/types";
-  import { StatName } from "$lib/tourney/types";
-  import StarRating from "$lib/tourney/star-rating.svelte";
-  import { draftOrder, gameStage, ownTeam, ownTeamIndex, spotInDraftOrder, teams } from "$lib/tourney/stores";
-  import FighterImage from "$lib/tourney/fighter-image.svelte";
+  import type { Equipment, Fighter, PreseasonTeam } from "$lib/mayhem-manager/types";
+  import { StatName } from "$lib/mayhem-manager/types";
+  import StarRating from "$lib/mayhem-manager/star-rating.svelte";
+  import { draftOrder, gameStage, ownTeam, ownTeamIndex, spotInDraftOrder, teams } from "$lib/mayhem-manager/stores";
+  import FighterImage from "$lib/mayhem-manager/fighter-image.svelte";
 
   export let fighter: Fighter;
   export let index: number = -1;

@@ -2,13 +2,13 @@
 import { page } from "$app/stores";
 import { connected, eventLog, host, isPublic, lastAction, pov, roomCode, roomName } from "$lib/stores";
 import { io } from "socket.io-client";
-import { eventHandler as tourneyEventHandler, handleGamestate as handleTourneyGamestate } from "$lib/tourney/event-handler";
+import { eventHandler as tourneyEventHandler, handleGamestate as handleTourneyGamestate } from "$lib/mayhem-manager/event-handler";
 import "../../../styles/global.css";
 import "../../../styles/fun.css";
-import type { TourneyAction, TourneyEvent, TourneyViewpoint } from "$lib/tourney/types";
-import Pregame from "$lib/tourney/pregame.svelte";
-import Midgame from "$lib/tourney/midgame.svelte";
-import { gameStage } from "$lib/tourney/stores";
+import type { TourneyAction, TourneyEvent, TourneyViewpoint } from "$lib/mayhem-manager/types";
+import Pregame from "$lib/mayhem-manager/pregame.svelte";
+import Midgame from "$lib/mayhem-manager/midgame.svelte";
+import { gameStage } from "$lib/mayhem-manager/stores";
 
 const relativeUrl = $page.url.pathname;
 const socket = io(relativeUrl);

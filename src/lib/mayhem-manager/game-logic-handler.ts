@@ -1,12 +1,12 @@
 import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
-import type { TourneyGameStage, TourneyViewpoint, ViewpointBase, Team, Settings, Fighter, Bracket, FighterInBattle, Equipment, PreseasonTeam, Map, MapDeck, EquipmentDeck, FighterDeck } from "$lib/tourney/types";
-import { StatName } from "$lib/tourney/types";
+import type { MayhemManagerGameStage, MayhemManagerViewpoint, ViewpointBase, Team, Settings, Fighter, Bracket, FighterInBattle, Equipment, PreseasonTeam, Map, MapDeck, EquipmentDeck, FighterDeck } from "$lib/mayhem-manager/types";
+import { StatName } from "$lib/mayhem-manager/types";
 import { array, mixed, number, object, string } from "yup";
-import { getIndexByController, getTeamByController, nextMatch } from "$lib/tourney/utils";
-import { settingsAreValid, collatedSettings, isValidEquipmentTournament, isValidEquipmentBR, simulateFight, TICK_LENGTH } from "$lib/tourney/battle-logic";
-import Bot from "$lib/tourney/bot";
+import { getIndexByController, getTeamByController, nextMatch } from "$lib/mayhem-manager/utils";
+import { settingsAreValid, collatedSettings, isValidEquipmentTournament, isValidEquipmentBR, simulateFight, TICK_LENGTH } from "$lib/mayhem-manager/battle-logic";
+import Bot from "$lib/mayhem-manager/bot";
 
 const TEAM_NAME_STARTS = [
   "Fabulous",
@@ -130,7 +130,7 @@ export default class Tourney extends GameLogicHandlerBase {
     equipment: EquipmentDeck,
     maps: MapDeck
   }
-  declare gameStage: TourneyGameStage
+  declare gameStage: MayhemManagerGameStage
   teams?: (Team | PreseasonTeam)[]
   ready?: boolean[]
   draftOrder?: number[]
@@ -773,7 +773,7 @@ export default class Tourney extends GameLogicHandlerBase {
     }
   }
 
-  viewpointOf(viewer: Viewer): TourneyViewpoint {
+  viewpointOf(viewer: Viewer): MayhemManagerViewpoint {
     if (this.gameStage === "pregame") {
       this.basicViewpointInfo(viewer);
     } else if (this.gameStage === "preseason" ||

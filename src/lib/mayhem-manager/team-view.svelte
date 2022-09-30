@@ -1,7 +1,7 @@
 <script lang="ts">
-  import type { Team } from "$lib/tourney/types";
-  import FighterInfo from "$lib/tourney/fighter-info.svelte";
-  import EquipmentInfo from "$lib/tourney/equipment-info.svelte";
+  import type { Team } from "$lib/mayhem-manager/types";
+  import FighterInfo from "$lib/mayhem-manager/fighter-info.svelte";
+  import EquipmentInfo from "$lib/mayhem-manager/equipment-info.svelte";
 
   export let team: Team;
 </script>

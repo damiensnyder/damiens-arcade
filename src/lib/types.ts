@@ -1,7 +1,7 @@
 import type { Socket } from "socket.io";
 import type { AuctionTTTGameStage } from "$lib/auction-tic-tac-toe/types";
 import type { TestRoomAction } from "$lib/test/set-up-test-rooms";
-import type { TourneyGameStage } from "$lib/tourney/types";
+import type { MayhemManagerGameStage } from "$lib/mayhem-manager/types";
 
 export interface PublicRoomInfo {
   roomName: string
@@ -23,7 +23,7 @@ export enum GameType {
 }
 
 export type GameStage = AuctionTTTGameStage |
-    TourneyGameStage;
+    MayhemManagerGameStage;
 
 export interface BasicViewpointInfo {
   roomCode: string

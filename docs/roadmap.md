@@ -6,6 +6,7 @@
 - get rid of the start menu
 - make equipment and fighter abilities do literally anything
 - add more fighter names
+- add more fighter base art
 
 ## Medium-term
 ### Site-wide

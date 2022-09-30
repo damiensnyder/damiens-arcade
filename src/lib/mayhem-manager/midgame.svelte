@@ -1,14 +1,14 @@
 <script lang="ts">
-  import { bracket, draftOrder, equipment, fighters, gameStage, ownTeam, ownTeamIndex, spotInDraftOrder, teams, watchingFight } from "$lib/tourney/stores";
-  import Preseason from "$lib/tourney/preseason.svelte";
-  import Draft from "$lib/tourney/draft.svelte";
-  import Training from "$lib/tourney/training.svelte";
-  import WatchFight from "$lib/tourney/watch-fight.svelte";
-  import PickBrFighter from "$lib/tourney/pick-br-fighter.svelte";
-  import PickFighters from "$lib/tourney/pick-fighters.svelte";
-  import FreeAgency from "$lib/tourney/free-agency.svelte";
-  import TeamView from "$lib/tourney/team-view.svelte";
-  import AllTeams from "$lib/tourney/all-teams.svelte";
+  import { bracket, draftOrder, equipment, fighters, gameStage, ownTeam, ownTeamIndex, spotInDraftOrder, teams, watchingFight } from "$lib/mayhem-manager/stores";
+  import Preseason from "$lib/mayhem-manager/preseason.svelte";
+  import Draft from "$lib/mayhem-manager/draft.svelte";
+  import Training from "$lib/mayhem-manager/training.svelte";
+  import WatchFight from "$lib/mayhem-manager/watch-fight.svelte";
+  import PickBrFighter from "$lib/mayhem-manager/pick-br-fighter.svelte";
+  import PickFighters from "$lib/mayhem-manager/pick-fighters.svelte";
+  import FreeAgency from "$lib/mayhem-manager/free-agency.svelte";
+  import TeamView from "$lib/mayhem-manager/team-view.svelte";
+  import AllTeams from "$lib/mayhem-manager/all-teams.svelte";
   import { host, lastAction, pov } from "$lib/stores";
 
   // true for all teams, false for none, number for specific team. janky but who cares

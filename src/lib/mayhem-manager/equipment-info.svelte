@@ -1,9 +1,9 @@
 <script lang="ts">
-  import type { Equipment, EquipmentSlot, FighterStats } from "$lib/tourney/types";
-  import { ownTeam } from "$lib/tourney/stores";
+  import type { Equipment, EquipmentSlot, FighterStats } from "$lib/mayhem-manager/types";
+  import { ownTeam } from "$lib/mayhem-manager/stores";
   import { slotsToString } from "./utils";
   import { lastAction } from "$lib/stores";
-  import { gameStage } from "$lib/tourney/stores";
+  import { gameStage } from "$lib/mayhem-manager/stores";
 
   export let equipment: Equipment;
   export let index: number = -1;

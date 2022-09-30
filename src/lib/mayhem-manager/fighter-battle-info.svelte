@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { FighterInBattle } from "$lib/tourney/types";
-  import FighterImage from "$lib/tourney/fighter-image.svelte";
-  import FighterInfo from "$lib/tourney/fighter-info.svelte";
-  import { teams } from "$lib/tourney/stores";
+  import type { FighterInBattle } from "$lib/mayhem-manager/types";
+  import FighterImage from "$lib/mayhem-manager/fighter-image.svelte";
+  import FighterInfo from "$lib/mayhem-manager/fighter-info.svelte";
+  import { teams } from "$lib/mayhem-manager/stores";
 
   export let fighter: FighterInBattle;
 </script>

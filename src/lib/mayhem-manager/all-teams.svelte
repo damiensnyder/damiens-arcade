@@ -1,6 +1,6 @@
 <script lang="ts">
   import { lastAction } from "$lib/stores";
-  import { ownTeamIndex, teams } from "$lib/tourney/stores";
+  import { ownTeamIndex, teams } from "$lib/mayhem-manager/stores";
 
   export let callback;  // changes which team we are viewing
 

@@ -1,9 +1,9 @@
 <script lang="ts">
   import { lastAction } from "$lib/stores";
-  import { equipment, ownTeam, ownTeamIndex, teams } from "$lib/tourney/stores";
-  import EquipmentInfo from "$lib/tourney/equipment-info.svelte";
-  import FighterInfo from "$lib/tourney/fighter-info.svelte";
-  import { StatName, type FighterStats } from "$lib/tourney/types";
+  import { equipment, ownTeam, ownTeamIndex, teams } from "$lib/mayhem-manager/stores";
+  import EquipmentInfo from "$lib/mayhem-manager/equipment-info.svelte";
+  import FighterInfo from "$lib/mayhem-manager/fighter-info.svelte";
+  import { StatName, type FighterStats } from "$lib/mayhem-manager/types";
 
   let equipmentBought: number[] = [];
   // if the user does not control a team, skills should be an empty array.

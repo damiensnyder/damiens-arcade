@@ -1,9 +1,9 @@
 import { derived, writable } from "svelte/store";
-import type { TourneyGameStage, Team, Settings, Fighter, Equipment, Bracket, Map, Strategy, FighterStats, PreseasonTeam, MidFightEvent } from "$lib/tourney/types";
+import type { MayhemManagerGameStage, Team, Settings, Fighter, Equipment, Bracket, Map, Strategy, FighterStats, PreseasonTeam, MidFightEvent } from "$lib/mayhem-manager/types";
 import { pov } from "$lib/stores";
-import { getIndexByController, getTeamByController, nextMatch as nextMatch_ } from "$lib/tourney/utils";
+import { getIndexByController, getTeamByController, nextMatch as nextMatch_ } from "$lib/mayhem-manager/utils";
 
-export const gameStage = writable("pregame" as TourneyGameStage);
+export const gameStage = writable("pregame" as MayhemManagerGameStage);
 export const settings = writable({} as Settings);
 export const rawSettings = writable("{}");
 export const teams = writable([] as Team[] | PreseasonTeam[]);

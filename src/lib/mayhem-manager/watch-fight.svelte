@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { FighterInBattle, MidFightEvent } from "$lib/tourney/types";
-  import { fightEvents } from "$lib/tourney/stores";
-  import FighterImage from "$lib/tourney/fighter-image.svelte";
-  import FighterBattleInfo from "$lib/tourney/fighter-battle-info.svelte";
+  import type { FighterInBattle, MidFightEvent } from "$lib/mayhem-manager/types";
+  import { fightEvents } from "$lib/mayhem-manager/stores";
+  import FighterImage from "$lib/mayhem-manager/fighter-image.svelte";
+  import FighterBattleInfo from "$lib/mayhem-manager/fighter-battle-info.svelte";
   import { fade } from "svelte/transition";
 
   export let debug: boolean = true;

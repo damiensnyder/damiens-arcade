@@ -4,7 +4,7 @@ import AuctionTicTacToe from "../auction-tic-tac-toe/game-logic-handler";
 import { GameType, PacketType } from "../types";
 import type { PacketInfo, PublicRoomInfo, TeardownCallback, Viewer } from "../types";
 import { boolean, object, string } from "yup";
-import Tourney from "../tourney/game-logic-handler";
+import MayhemManager from "../mayhem-manager/game-logic-handler";
 
 const TEARDOWN_TIME: number = 60 * 60 * 1000; // one hour
 
@@ -52,7 +52,7 @@ export default class GameRoom {
     if (gameType === GameType.AuctionTTT) {
       this.gameLogicHandler = new AuctionTicTacToe(this);
     } else if (gameType === GameType.MayhemManager) {
-      this.gameLogicHandler = new Tourney(this);
+      this.gameLogicHandler = new MayhemManager(this);
     }
 
     this.io = io.of(`/${gameType.replaceAll(" ", "-").toLowerCase()}/${roomCode}`);
