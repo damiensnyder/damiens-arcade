@@ -43,19 +43,19 @@ export default class GameRoom {
       gameType,
       gameStage: "pregame"
     };
-    if (gameType === GameType.AuctionTTT) {
-      this.gameLogicHandler = new AuctionTicTacToe(this);
-    } else if (gameType === GameType.MayhemManager) {
-      this.gameLogicHandler = new AuctionTicTacToe(this);
-    }
     this.seed = seed || [
       Math.random() * 4294967296,
       Math.random() * 4294967296,
       Math.random() * 4294967296,
       Math.random() * 4294967296
     ];
+    if (gameType === GameType.AuctionTTT) {
+      this.gameLogicHandler = new AuctionTicTacToe(this);
+    } else if (gameType === GameType.MayhemManager) {
+      this.gameLogicHandler = new Tourney(this);
+    }
 
-    this.io = io.of(`/game/${roomCode}`);
+    this.io = io.of(`/${gameType.replaceAll(" ", "-").toLowerCase()}/${roomCode}`);
     this.io.on("connection", (socket: Socket) => {
       // on a new connection, add the viewer to the list of viewers
       const viewer = {

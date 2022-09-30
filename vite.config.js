@@ -15,10 +15,10 @@ class RoomManagerWrapper {
 		}).catch((err) => console.error(`Failed to import room manager: ${err}`));
 	}
 
-	createRoom(_req, res, _next) {
+	createRoom(req, res, _next) {
 		if (!this.roomManager) return;
 		res.statusCode = 200;
-		res.end(JSON.stringify(this.roomManager.createRoom()));
+		res.end(JSON.stringify(this.roomManager.createRoom(req.params.gameType)));
 	}
 
 	listActiveRooms(_req, res, _next) {
@@ -45,10 +45,10 @@ const roomManagerMiddleware = {
 		const wrapper = new RoomManagerWrapper(server);
 
 		// Create a game room
-		server.middlewares.use("/createRoom", wrapper.createRoom.bind(wrapper));
+		server.middlewares.use("/create-room/:gameType", wrapper.createRoom.bind(wrapper));
 		
 		// List active game rooms
-		server.middlewares.use("/activeRooms", wrapper.listActiveRooms.bind(wrapper));
+		server.middlewares.use("/active-rooms", wrapper.listActiveRooms.bind(wrapper));
 
 		// Redirect joiner to appropriate type of game
 		server.middlewares.use("/game/:roomCode", wrapper.redirectToCorrectGameType.bind(wrapper));

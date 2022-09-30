@@ -378,6 +378,8 @@ export default class Tourney extends GameLogicHandlerBase {
         this.gameStage === "preseason" &&
         indexControlledByViewer !== null) {
       this.repairEquipment(indexControlledByViewer, action.equipment);
+    } else {
+      console.debug(action);
     }
   }
 

@@ -53,7 +53,7 @@ const backToSettingsSchema = object({
 
 export default class AuctionTicTacToe extends GameLogicHandlerBase {
   settings: Settings
-  gameStage: AuctionTTTGameStage
+  declare gameStage: AuctionTTTGameStage
   players: Record<Side.X | Side.O, Player>
   turnPart: TurnPart
   whoseTurnToNominate?: Side
@@ -198,7 +198,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       delete this.squares;
       this.emitEventToAll({ type: "backToSettings" });
     } else {
-      console.debug("INVALID ACTION");
+      // console.debug(action);
     }
   }
 
@@ -247,7 +247,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
     delete this.winner;
   }
 
-  updateTiming(side: Side) {
+  updateTiming(side: Side): void {
     // if using the timer tiebreaker, update time used
     if (this.settings.useTiebreaker) {
       this.players[side].timeUsed += new Date().getTime() - this.timeOfLastMove;

@@ -1,26 +1,27 @@
 <script lang="ts">
-  import { createForm } from "svelte-forms-lib";
   import { goto } from "$app/navigation";
+  import { GameType } from "$lib/types";
 
-  const { handleSubmit } = createForm({
-    onSubmit: async (_values) => {
-      const res = await fetch("/createRoom", {
-        method: "POST"
-      });
-      if (res.ok) {
-        const body: { roomCode: string; } = await res.json();
-        goto(`/game/${body.roomCode}`);
-      }
-    },
-    initialValues: undefined
-  });
+  async function createRoom(gameType: string) {
+    const res = await fetch("/create-room/", {
+      method: "POST"
+    });
+    if (res.ok) {
+      const body: { roomCode: string; } = await res.json();
+      goto(`/${gameType}/${body.roomCode}`);
+    }
+  }
 </script>
 
 <div class="top-level-menu">
   <h2>Create a game</h2>
 
-  <form on:submit={handleSubmit}>
-    <input type="submit" value="CREATE">
+  <form on:submit={() => createRoom(GameType.AuctionTTT)}>
+    <input type="submit" value="Auction Tic-Tac-Toe">
+  </form>
+
+  <form on:submit={() => createRoom(GameType.MayhemManager)}>
+    <input type="submit" value="Mayhem Manager">
   </form>
 </div>
 

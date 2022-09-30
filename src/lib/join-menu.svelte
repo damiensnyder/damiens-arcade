@@ -13,7 +13,7 @@
   });
 
   async function fetchGames(): Promise<PublicRoomInfo[]> {
-    const res = await fetch("/activeRooms", {
+    const res = await fetch("/active-rooms", {
       method: "GET",
     });
     return (await res.json()).rooms;
