@@ -18,8 +18,8 @@ export enum PacketType {
 }
 
 export enum GameType {
-  AuctionTTT = "Auction Tic-Tac-Toe",
-  MayhemManager = "Mayhem Manager"
+  AuctionTTT = "auction-tic-tac-toe",
+  MayhemManager = "mayhem-manager"
 }
 
 export type GameStage = AuctionTTTGameStage |

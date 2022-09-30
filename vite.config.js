@@ -17,8 +17,15 @@ class RoomManagerWrapper {
 
 	createRoom(req, res, _next) {
 		if (!this.roomManager) return;
-		res.statusCode = 200;
-		res.end(JSON.stringify(this.roomManager.createRoom(req.params.gameType)));
+		const gameType = req.url.substring(1);
+		if (["auction-tic-tac-toe", "mayhem-manager"].includes(gameType)) {
+			res.statusCode = 200;
+			res.end(JSON.stringify(this.roomManager.createRoom(gameType)));
+		} else {
+			console.log(req.url);
+			res.statusCode = 400;
+			res.end();
+		}
 	}
 
 	listActiveRooms(_req, res, _next) {
@@ -28,13 +35,17 @@ class RoomManagerWrapper {
 	}
 
 	redirectToCorrectGameType(req, res, _next) {
-		const gameType = this.roomManager.getGameTypeOfRoom(req.params.roomCode);
+		const gameType = this.roomManager.getGameTypeOfRoom(req.url.substring(1));
 		if (gameType === null) {
-			res.statusCode = 302;
-			res.redirect("/");
+			res.writeHead(302, {
+				location: "/"
+			});
+			res.end();
 		} else {
-			res.statusCode = 302;
-			res.redirect(gameType.replaceAll(" ", "-").toLowerCase());
+			res.writeHead(302, {
+				location: `/${gameType.replaceAll(" ", "-").toLowerCase()}/${req.url.substring(1)}`
+			});
+			res.end();
 		}
 	}
 }
@@ -45,13 +56,13 @@ const roomManagerMiddleware = {
 		const wrapper = new RoomManagerWrapper(server);
 
 		// Create a game room
-		server.middlewares.use("/create-room/:gameType", wrapper.createRoom.bind(wrapper));
+		server.middlewares.use("/create-room", wrapper.createRoom.bind(wrapper));
 		
 		// List active game rooms
 		server.middlewares.use("/active-rooms", wrapper.listActiveRooms.bind(wrapper));
 
 		// Redirect joiner to appropriate type of game
-		server.middlewares.use("/game/:roomCode", wrapper.redirectToCorrectGameType.bind(wrapper));
+		server.middlewares.use("/game", wrapper.redirectToCorrectGameType.bind(wrapper));
 	}
 };
 

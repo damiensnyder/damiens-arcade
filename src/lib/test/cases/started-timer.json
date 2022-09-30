@@ -1,6 +1,6 @@
 {
   "seed": [0, 1, 2, 3],
-  "gameType": "Auction Tic-Tac-Toe",
+  "gameType": "auction-tic-tac-toe",
   "actions": [
     {
       "macro": "startATTT",

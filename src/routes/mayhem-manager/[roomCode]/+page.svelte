@@ -39,6 +39,7 @@ socket.on('connect', () => {
 socket.on('disconnect', handleDisconnect);
 
 socket.on('gamestate', (gamestate: TourneyViewpoint) => {
+  if (!gamestate) return;
   $roomCode = gamestate.roomCode;
   $roomName = gamestate.roomName;
   $isPublic = gamestate.isPublic;

@@ -378,8 +378,6 @@ export default class Tourney extends GameLogicHandlerBase {
         this.gameStage === "preseason" &&
         indexControlledByViewer !== null) {
       this.repairEquipment(indexControlledByViewer, action.equipment);
-    } else {
-      console.debug(action);
     }
   }
 
@@ -629,10 +627,10 @@ export default class Tourney extends GameLogicHandlerBase {
   }
 
   resignFighter(teamIndex: number, fighterIndex: number): void {
-    console.debug(teamIndex, fighterIndex);
+    // console.debug(teamIndex, fighterIndex);
     const team: PreseasonTeam = this.teams[teamIndex] as PreseasonTeam;
-    console.debug(team.needsResigning.length);
-    console.debug(team.money, team.needsResigning[fighterIndex].price);
+    // console.debug(team.needsResigning.length);
+    // console.debug(team.money, team.needsResigning[fighterIndex].price);
     if (fighterIndex < team.needsResigning.length &&
         team.money >= team.needsResigning[fighterIndex].price) {
       const fighterResigned = team.needsResigning.splice(fighterIndex, 1)[0];
