@@ -3,8 +3,8 @@ import { writable } from 'svelte/store';
 export const roomCode = writable("");
 export const roomName = writable("");
 export const isPublic = writable(false);
-export const host = writable(-1);
-export const pov = writable(-1);
+export const host = writable(0);
+export const pov = writable(0);
 export const connected = writable(false);
 
 function createEventLog() {
