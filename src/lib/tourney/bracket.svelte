@@ -28,14 +28,14 @@
     width: 6rem;
     padding: 0.5rem;
     text-align: right;
-    border-right: 2px solid var(--bg-fun-1);
+    border-right: 2px solid var(--bg-1);
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
   }
 
   .tbd {
-    color: var(--text-fun-2);
+    color: var(--text-2);
     font-style: italic;
   }
 </style>

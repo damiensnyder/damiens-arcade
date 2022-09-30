@@ -1,47 +1,55 @@
 :root {
-  --bg-fun-1: #311;
-  --bg-fun-2: #755;
-  --bg-fun-3: #632;
-  --bg-fun-4: #521;
-  --text-fun-1: #ddd;
-  --text-fun-2: #aaa;
-  --text-fun-3: #111;
-  --text-fun-4: #d7d7d7;
-  --accent-fun-1: #e99;
-  --accent-fun-2: #633;
-  --accent-fun-3: #522;
+  --bg-1: #311;
+  --bg-2: #755;
+  --bg-3: #632;
+  --bg-4: #521;
+  --text-1: #ddd;
+  --text-2: #aaa;
+  --text-3: #111;
+  --text-4: #d7d7d7;
+  --accent-1: #e99;
+  --accent-2: #633;
+  --accent-3: #522;
 
-  --font-fun: "Comic Sans MS", "Chalkduster";
+  --font-main: "Comic Sans MS", "Chalkduster", handwriting;
+}
+
+html,
+body,
+#svelte {
+  background-color: var(--bg-1);
+  color: var(--text-1);
+  font-family: var(--font-main);
 }
 
 * {
- font-family: inherit;
+ font-family: var(--font-main);
 }
 
 button {
   font-family: inherit;
   color: inherit;
-  background-color: var(--bg-fun-2);
-  border-color: var(--text-fun-2);
+  background-color: var(--bg-2);
+  border: 2px solid var(--text-2);
 }
 
 button:hover,
 button:active {
-  background-color: var(--accent-fun-2);
+  background-color: var(--accent-2);
 }
 
 button:hover {
-  color: var(--text-fun-4);
+  color: var(--text-4);
 }
 
 button:hover:active,
 button:active {
-  color: var(--text-fun-1);
+  color: var(--text-1);
 }
 
 h2 {
   font-weight: 600;
-  color: var(text-fun-2);
+  color: var(text-2);
 }
 
 h3 {
@@ -85,7 +93,7 @@ select {
   width: fit-content;
   z-index: 1;
   padding: 0 1rem;
-  border: 2px solid var(--bg-fun-2);
+  border: 2px solid var(--bg-2);
   border-radius: 1rem;
-  background-color: var(--bg-fun-4);
+  background-color: var(--bg-4);
 }

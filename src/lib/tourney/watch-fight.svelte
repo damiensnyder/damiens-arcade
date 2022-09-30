@@ -198,9 +198,9 @@
 
   .arena {
     position: relative;
-    border: 2px solid var(--text-fun-3);
+    border: 2px solid var(--text-3);
     border-radius: 20%;
-    background-color: var(--bg-fun-2);
+    background-color: var(--bg-2);
     flex: 2;
     margin-right: 2rem;
     aspect-ratio: 1;
@@ -222,7 +222,7 @@
     position: absolute;
     text-align: center;
     width: 0;
-    color: var(--text-fun-1);
+    color: var(--text-1);
     z-index: 1500;
   }
 

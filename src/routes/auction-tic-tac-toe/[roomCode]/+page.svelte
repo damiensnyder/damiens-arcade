@@ -6,6 +6,7 @@ import { eventHandler as auctionTTTEventHandler, handleGamestate as handleAuctio
 import type { AuctionTTTAction, AuctionTTTEvent, AuctionTTTViewpoint } from "$lib/auction-tic-tac-toe/types";
 import EventLog from "$lib/event-log.svelte";
 import "../../../styles/global.css";
+import "../../../styles/techno.css";
 import Pregame from "$lib/auction-tic-tac-toe/pregame.svelte";
 import Midgame from "$lib/auction-tic-tac-toe/midgame.svelte";
 import Postgame from "$lib/auction-tic-tac-toe/postgame.svelte";

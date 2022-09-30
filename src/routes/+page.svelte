@@ -1,7 +1,8 @@
 <script lang="ts">
-import CreateMenu from "$lib/create-menu.svelte";
-import JoinMenu from "$lib/join-menu.svelte";
-import "../styles/global.css";
+  import CreateMenu from "$lib/create-menu.svelte";
+  import JoinMenu from "$lib/join-menu.svelte";
+  import "../styles/global.css";
+  import "../styles/techno.css";
 </script>
 
 <svelte:head>

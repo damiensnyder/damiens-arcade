@@ -37,8 +37,8 @@
     flex: 1;
     align-self: stretch;
     margin-top: 0.5rem;
-    background-color: var(--bg-fun-4);
-    border: 2px solid var(--bg-fun-1);
+    background-color: var(--bg-4);
+    border: 2px solid var(--bg-1);
     border-radius: 0.75rem;
   }
 

@@ -93,8 +93,8 @@
     justify-content: stretch;
     align-items: stretch;
 
-    background-color: var(--bg-fun-1);
-    color: var(--text-fun-1);
+    background-color: var(--bg-1);
+    color: var(--text-1);
     font-family: var(--font-fun);
 }
 
@@ -108,9 +108,9 @@
     margin: 1rem 2rem 2rem 2rem;
     justify-content: space-evenly;
     align-items: stretch;
-    background-color: var(--bg-fun-3);
+    background-color: var(--bg-3);
     border-radius: 1.5rem;
-    border: 3px solid var(--bg-fun-2);
+    border: 3px solid var(--bg-2);
   }
 
   h2 {
