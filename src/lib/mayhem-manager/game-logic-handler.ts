@@ -53,10 +53,6 @@ const TEAM_NAME_ENDS = [
   "Wombats"
 ];
 
-const startGameSchema = object({
-  type: string().required().equals(["start"])
-});
-
 const joinSchema = object({
   type: string().required().equals(["join"])
 });
@@ -153,6 +149,9 @@ export default class Tourney extends GameLogicHandlerBase {
       customEquipment: [],
       customMaps: []
     };
+    this.gameStage = "preseason";
+    this.teams = [];
+    this.decks = collatedSettings(this.settings);
   }
 
   handleAction(viewer: Viewer, action?: any): void {
@@ -175,15 +174,6 @@ export default class Tourney extends GameLogicHandlerBase {
         settings: this.settings
       });
 
-      // START
-    } else if (startGameSchema.isValidSync(action) &&
-        this.gameStage === "pregame" &&
-        isHost) {
-      this.startGame();
-      this.emitEventToAll({
-        type: "start"
-      });
-
       // JOIN
     } else if (joinSchema.isValidSync(action) &&
         this.gameStage === "preseason" &&
@@ -202,7 +192,6 @@ export default class Tourney extends GameLogicHandlerBase {
 
       // REPLACE
     } else if (replaceSchema.isValidSync(action) &&
-        this.gameStage !== "pregame" &&
         teamControlledByViewer === null &&
         action.team < this.teams.length &&
         this.teams[action.team].controller === "bot") {
@@ -379,12 +368,6 @@ export default class Tourney extends GameLogicHandlerBase {
         indexControlledByViewer !== null) {
       this.repairEquipment(indexControlledByViewer, action.equipment);
     }
-  }
-
-  startGame(): void {
-    this.gameStage = "preseason";
-    this.teams = [];
-    this.decks = collatedSettings(this.settings);
   }
 
   advanceToDraft(): void {
@@ -774,9 +757,7 @@ export default class Tourney extends GameLogicHandlerBase {
   }
 
   viewpointOf(viewer: Viewer): MayhemManagerViewpoint {
-    if (this.gameStage === "pregame") {
-      this.basicViewpointInfo(viewer);
-    } else if (this.gameStage === "preseason" ||
+    if (this.gameStage === "preseason" ||
         this.gameStage === "training") {
       return {
         ...this.basicViewpointInfo(viewer),

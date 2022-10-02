@@ -31,6 +31,6 @@
 
 ### Auction Tic-Tac-Toe
 - detect when neither player can win even before all squares are filled
-- add a tiebreaker option
+- add a money tiebreaker option
 - log settings change events
 - add a bot to play against

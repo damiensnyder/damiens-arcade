@@ -9,15 +9,13 @@ let fightTimeout;
 export function handleGamestate(gamestate: MayhemManagerViewpoint): void {
   rawSettings.set(JSON.stringify(gamestate.settings));
   gameStage.set(gamestate.gameStage);
-  if (gamestate.gameStage !== "pregame") {
-    teams.set(gamestate.teams);
-    if (gamestate.gameStage === "draft" || gamestate.gameStage === "free agency") {
-      draftOrder.set(gamestate.draftOrder);
-      spotInDraftOrder.set(gamestate.spotInDraftOrder);
-      fighters.set(gamestate.fighters);
-    } else if (gamestate.gameStage === "tournament") {
-      bracket.set(gamestate.bracket);
-    }
+  teams.set(gamestate.teams);
+  if (gamestate.gameStage === "draft" || gamestate.gameStage === "free agency") {
+    draftOrder.set(gamestate.draftOrder);
+    spotInDraftOrder.set(gamestate.spotInDraftOrder);
+    fighters.set(gamestate.fighters);
+  } else if (gamestate.gameStage === "tournament") {
+    bracket.set(gamestate.bracket);
   }
 }
 
@@ -32,10 +30,6 @@ export const eventHandler: EventHandler<MayhemManagerEvent> = {
   changeGameSettings: function (event): void {
     settings.set(event.settings);
     rawSettings.set(JSON.stringify(event.settings));
-  },
-  start: function (_event): void {
-    gameStage.set("preseason");
-    teams.set([]);
   },
   join: function (event): void {
     teams.update((old) => {

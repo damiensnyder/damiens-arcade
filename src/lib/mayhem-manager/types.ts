@@ -1,30 +1,23 @@
 import type { BasicViewpointInfo, ChangeRoomSettingsAction, RoomEvent } from "$lib/types";
 
-export type MayhemManagerGameStage = "pregame" |
-    "preseason" |
+export type MayhemManagerGameStage = "preseason" |
     "draft" |
     "free agency" |
     "training" |
     "battle royale" |
     "tournament";
 
-export type MayhemManagerViewpoint = PregameViewpoint | MidgameViewpoint;
-
-export interface ViewpointBase extends BasicViewpointInfo {
-  gameStage: MayhemManagerGameStage
-  settings: Settings
-}
-
-interface PregameViewpoint extends ViewpointBase {
-  gameStage: "pregame"
-}
-
-export type MidgameViewpoint = PreseasonViewpoint |
+export type MayhemManagerViewpoint = PreseasonViewpoint |
     DraftViewpoint |
     FAViewpoint |
     TrainingViewpoint |
     BRViewpoint |
     TournamentViewpoint;
+
+export interface ViewpointBase extends BasicViewpointInfo {
+  gameStage: MayhemManagerGameStage
+  settings: Settings
+}
 
 interface MidgameViewpointBase extends ViewpointBase {
   teams: Team[]
@@ -195,10 +188,6 @@ interface ChangeGameSettingsAction {
   settings: Settings
 }
 
-interface StartAction {
-  type: "start"
-}
-
 interface JoinAction {
   type: "join"
 }
@@ -208,12 +197,12 @@ interface LeaveAction {
 }
 
 interface ReplaceAction {
-  type: "start"
+  type: "replace"
   team: number
 }
 
 interface RemoveAction {
-  type: "start"
+  type: "remove"
   team: number
 }
 
@@ -267,7 +256,6 @@ export type MayhemManagerAction = ChangeRoomSettingsAction |
     ChangeGameSettingsAction |
     JoinAction |
     LeaveAction |
-    StartAction |
     ReplaceAction |
     RemoveAction |
     AddBotAction |
@@ -283,10 +271,6 @@ export type MayhemManagerAction = ChangeRoomSettingsAction |
 interface ChangeGameSettingsEvent {
   type: "changeGameSettings"
   settings: Settings
-}
-
-interface StartEvent {
-  type: "start"
 }
 
 interface JoinEvent {
@@ -405,7 +389,6 @@ export type MayhemManagerEvent = RoomEvent |
     ChangeGameSettingsEvent |
     JoinEvent |
     LeaveEvent |
-    StartEvent |
     ReplaceEvent |
     RemoveEvent |
     ResignEvent |

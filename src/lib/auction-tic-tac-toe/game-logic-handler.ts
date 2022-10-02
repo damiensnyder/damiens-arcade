@@ -66,6 +66,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
 
   constructor(room: GameRoom) {
     super(room);
+    this.gameStage = "pregame";
     this.settings = {
       startingMoney: 15,
       startingPlayer: Side.None,

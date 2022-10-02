@@ -3,7 +3,7 @@ import type { MayhemManagerGameStage, Team, Settings, Fighter, Equipment, Bracke
 import { pov } from "$lib/stores";
 import { getIndexByController, getTeamByController, nextMatch as nextMatch_ } from "$lib/mayhem-manager/utils";
 
-export const gameStage = writable("pregame" as MayhemManagerGameStage);
+export const gameStage = writable("preseason" as MayhemManagerGameStage);
 export const settings = writable({} as Settings);
 export const rawSettings = writable("{}");
 export const teams = writable([] as Team[] | PreseasonTeam[]);

@@ -154,7 +154,6 @@ export default class GameRoom {
 
   shouldChangeSettings(viewer: Viewer, data?: any): boolean {
     return viewer.index === this.host &&
-        this.gameLogicHandler.gameStage === "pregame" &&
         changeSettingsSchema.isValidSync(data);
   }
 

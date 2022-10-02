@@ -9,7 +9,6 @@ export default class GameLogicHandlerBase {
 
   constructor(room: GameRoom) {
     this.room = room;
-    this.gameStage = "pregame";
     this.rngState = room.seed;
   }
 
