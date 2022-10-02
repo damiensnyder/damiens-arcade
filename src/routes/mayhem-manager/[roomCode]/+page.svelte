@@ -2,6 +2,7 @@
   import { page } from "$app/stores";
   import { connected, eventLog, host, isPublic, lastAction, pov, roomCode, roomName } from "$lib/stores";
   import { io } from "socket.io-client";
+  import { dev } from "$app/environment";
   import { eventHandler, handleGamestate } from "$lib/mayhem-manager/event-handler";
   import "../../../styles/global.css";
   import "../../../styles/fun.css";
@@ -16,6 +17,7 @@
   import Training from "$lib/mayhem-manager/training.svelte";
   import PickBrFighter from "$lib/mayhem-manager/pick-br-fighter.svelte";
   import PickFighters from "$lib/mayhem-manager/pick-fighters.svelte";
+    import SettingsEditor from "$lib/mayhem-manager/settings-editor.svelte";
 
   const relativeUrl = $page.url.pathname;
   const socket = io(relativeUrl);
@@ -86,10 +88,15 @@
 
   // midgame stuff
 
-  let viewing: number | boolean = null;
+  let viewing: number | "allTeams" | "main" | "settings" | "watchFight" = "main";
 
-  function changeView(team: number | boolean) {
-    viewing = team;
+  function changeView(newView: number | "allTeams" | "main" | "settings" | "watchFight") {
+    viewing = newView;
+  }
+  
+  const absoluteUrl = $page.url.toString();
+  function copyInvite(): void {
+    navigator.clipboard.writeText(absoluteUrl);
   }
 
   function debug(): void {
@@ -113,36 +120,46 @@
 <main>
   <div class="top-icons horiz">
     <h2>{$gameStage}</h2>
-    <button on:click={debug} on:submit={debug}>Debug</button>
-    <button on:click={() => changeView(-1)} on:submit={() => changeView(-1)}>Watch Fight</button>
-    {#if $host === $pov}
-      <button on:click={() => lastAction.set({ type: "advance" })}>Advance</button>
-    {/if}
     {#if $ownTeamIndex !== null}
       <div class="money">${$ownTeam.money}</div>
+    {/if}
+    <button on:click={copyInvite} on:submit={copyInvite}>copy invite</button>
+    {#if dev}
+      <button on:click={debug} on:submit={debug}>debug</button>
+      <button on:click={() => changeView("watchFight")} on:submit={() => changeView("watchFight")}>
+        watch fight
+      </button>
+    {/if}
+    {#if $host === $pov}
+      <button on:click={() => changeView("settings")} on:submit={() => changeView("settings")}>settings</button>
+      <button on:click={() => lastAction.set({ type: "advance" })} on:submit={() => lastAction.set({ type: "advance" })}>advance</button>
+    {/if}
+    {#if viewing !== "main"}
+      <button on:click={() => changeView("main")} on:submit={() => changeView("main")}>
+        back to {$gameStage}
+      </button>
+    {/if}
+    {#if $ownTeamIndex !== null}
       {#if viewing !== $ownTeamIndex}
         <button on:click={() => changeView($ownTeamIndex)} on:submit={() => changeView($ownTeamIndex)}>
-          My Team
+          my team
         </button>
       {/if}
     {/if}
-    {#if viewing !== false}
-      <button on:click={() => changeView(false)} on:submit={() => changeView(false)}>
-        Back to {$gameStage}
-      </button>
-    {/if}
-    <button on:click={() => changeView(true)} on:submit={() => changeView(true)}>
-      All teams
+    <button on:click={() => changeView("allTeams")} on:submit={() => changeView("allTeams")}>
+      all teams
     </button>
   </div>
 
   <div class="container horiz">
-    {#if typeof viewing === "number" && viewing >= 0}
+    {#if typeof viewing === "number"}
       <TeamView team={$teams[viewing]} />
-    {:else if viewing === true}
+    {:else if viewing === "allTeams"}
       <AllTeams callback={changeView} />
-    {:else if viewing === -1} <!-- previously was $fightersInBattle.length > 0 -->
+    {:else if viewing === "watchFight"}
       <WatchFight />
+    {:else if viewing === "settings"}
+      <SettingsEditor />
     {:else if $gameStage === "preseason"}
       <Preseason />
     {:else if $gameStage === "draft"}

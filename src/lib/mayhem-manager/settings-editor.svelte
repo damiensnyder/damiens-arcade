@@ -1,6 +1,7 @@
 <script lang="ts">
 import { host, lastAction, pov } from "$lib/stores";
 import { rawSettings } from "$lib/mayhem-manager/stores";
+    import RoomSettingsEditor from "$lib/room-settings-editor.svelte";
 
 function changeGameSettings() {
   lastAction.set({
@@ -15,6 +16,8 @@ function start() {
   });
 }
 </script>
+
+<RoomSettingsEditor />
 
 <h3>Game Settings</h3>
 <form>
