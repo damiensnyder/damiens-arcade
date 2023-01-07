@@ -51,10 +51,6 @@
     text-align: left;
   }
 
-  button {
-    margin-bottom: -0.5rem;
-  }
-
   .fighters {
     flex: 1;
     align-items: stretch;

@@ -36,13 +36,16 @@
 <style>
   .horiz {
     align-self: stretch;
-    margin-bottom: -0.5rem;
     justify-content: space-between;
     text-align: left;
   }
 
+  button {
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+  }
+
   .team-name {
-    margin-top: 1rem;
     margin-right: 1rem;
   }
 
