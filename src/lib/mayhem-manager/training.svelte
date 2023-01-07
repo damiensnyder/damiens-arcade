@@ -65,19 +65,21 @@
               <FighterInfo {fighter} />
             </div>
           </div>
-          <select class="right-align-outer"
-              bind:value={skills[index]}>
-            <optgroup label="Improve a skill">
-              {#each Object.values(StatName) as stat}
-                <option value={stat}>{stat}</option>
-              {/each}
-            </optgroup>
-            <optgroup label="Attune to an equipment">
-              {#each $ownTeam.equipment as equipment}
-                <option value={equipment.name}>{equipment.name}</option>
-              {/each}
-            </optgroup>
-          </select>
+          <div class="right-align-outer">
+            <select class="right-align-inner"
+                bind:value={skills[index]}>
+              <optgroup label="Improve a skill">
+                {#each Object.values(StatName) as stat}
+                  <option value={stat}>{stat}</option>
+                {/each}
+              </optgroup>
+              <optgroup label="Attune to an equipment">
+                {#each $ownTeam.equipment as equipment}
+                  <option value={equipment.name}>{equipment.name}</option>
+                {/each}
+              </optgroup>
+            </select>
+          </div>
         </div>
       {/each}
     </div>
@@ -111,6 +113,10 @@
   }
 
   .ready {
-    margin: 0.5rem;
+    margin: 0.75rem;
+  }
+
+  .list-container {
+    margin-top: -0.5rem;
   }
 </style>
