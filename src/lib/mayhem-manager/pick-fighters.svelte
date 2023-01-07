@@ -76,7 +76,7 @@
         </div>
       {/each}
       {#if valid === true}
-        <button on:click={ready} on:submit={ready}>Ready</button>
+        <button class="ready" on:click={ready} on:submit={ready}>Ready</button>
       {:else}
         <p class="error">Cannot submit: {valid}</p>
       {/if}
@@ -105,5 +105,9 @@
 
   .assign-equipment {
     margin-right: 3rem;
+  }
+
+  .ready {
+    margin-bottom: 1.25rem;
   }
 </style>

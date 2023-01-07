@@ -30,10 +30,8 @@
         <option value={index}>{fighter.name}</option>
       {/each}
     </select>
-    <div class="growth-limiter">
-      <FighterInfo fighter={$ownTeam.fighters[selectedFighter]}
-          equipment={$ownTeam.equipment.filter((_, i) => selectedEquipment[i])} />
-    </div>
+    <FighterInfo fighter={$ownTeam.fighters[selectedFighter]}
+        equipment={$ownTeam.equipment.filter((_, i) => selectedEquipment[i])} />
   </div>
   <div>
     <h2>Your equipment</h2>
@@ -74,9 +72,5 @@
 
   input[type="checkbox"] {
     margin: 0.15rem 0.6rem 0;
-  }
-
-  .growth-limiter {
-    align-self: stretch;
   }
 </style>
