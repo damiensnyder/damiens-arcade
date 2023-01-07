@@ -53,5 +53,6 @@
   .image-container {
     width: 5rem;
     height: 5rem;
+    flex-shrink: 0;
   }
 </style>
