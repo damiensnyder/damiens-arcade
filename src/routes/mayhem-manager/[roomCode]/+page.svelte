@@ -146,9 +146,11 @@
         </button>
       {/if}
     {/if}
-    <button on:click={() => changeView("allTeams")} on:submit={() => changeView("allTeams")}>
-      all teams
-    </button>
+    {#if viewing !== "allTeams"}
+      <button on:click={() => changeView("allTeams")} on:submit={() => changeView("allTeams")}>
+        all teams
+      </button>
+    {/if}
   </div>
 
   <div class="container horiz">
