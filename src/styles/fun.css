@@ -97,3 +97,18 @@ select {
   border-radius: 1rem;
   background-color: var(--bg-4);
 }
+
+.text-and-buttons {
+  align-self: stretch;
+  justify-content: space-between;
+  text-align: left;
+}
+
+.right-button {
+  align-self: flex-end;
+  margin: 0.25rem 1rem;
+}
+
+.right-button:last-child {
+  margin-right: 0;
+}

@@ -22,10 +22,11 @@
 <div>
   <h2>Pick Order</h2>
   {#each $draftOrder as index, spotInOrder}
-    <div class="horiz">
-      <div class="team-name">{spotInOrder + 1}. {$teams[index].name}</div>
+    <div class="horiz text-and-buttons">
+      {spotInOrder + 1}. {$teams[index].name}
       {#if $ownTeam === null && $teams[index].controller === "bot"}
-        <button on:click={() => replace(index)} on:submit={() => replace(index)}>
+        <button class="right-button"
+            on:click={() => replace(index)} on:submit={() => replace(index)}>
           Replace
         </button>
       {/if}
@@ -34,21 +35,6 @@
 </div>
 
 <style>
-  .horiz {
-    align-self: stretch;
-    justify-content: space-between;
-    text-align: left;
-  }
-
-  button {
-    margin-top: 0.25rem;
-    margin-bottom: 0.25rem;
-  }
-
-  .team-name {
-    margin-right: 1rem;
-  }
-
   .fighters {
     flex: 1;
     align-items: stretch;

@@ -66,28 +66,31 @@
 <div class="players-list">
   <h2>Players</h2>
   {#each $teams as team, index}
-    <div class="horiz">
-      <span class="team-info">{team.name}: ${team.money} ({team.controller})</span>
-      <div class="buttons horiz">
-        {#if team.controller === "bot"}
-          {#if $ownTeamIndex === null}
-            <button on:click={() => replace(index)} on:submit={() => replace(index)}>Replace</button>
-          {/if}
-          {#if $host === $pov}
-            <button on:click={() => remove(index)} on:submit={() => remove(index)}>Remove</button>
-          {/if}
-        {:else if team.controller === $pov}
-          <button on:click={leave} on:submit={leave}>Leave</button>
+    <div class="horiz text-and-buttons">
+      {team.name}: ${team.money} ({team.controller})
+      {#if team.controller === "bot"}
+        {#if $ownTeamIndex === null}
+          <button class="right-button"
+              on:click={() => replace(index)} on:submit={() => replace(index)}>Replace</button>
         {/if}
-      </div>
+        {#if $host === $pov}
+          <button class="right-button"
+              on:click={() => remove(index)} on:submit={() => remove(index)}>Remove</button>
+        {/if}
+      {:else if team.controller === $pov}
+        <button class="right-button"
+            on:click={leave} on:submit={leave}>Leave</button>
+      {/if}
     </div>
   {/each}
   {#if $host === $pov}
     <div class="horiz host-controls">
       {#if $teams.length < 16}
-        <button on:click={addBot} on:submit={addBot}>Add Bot</button>
+        <button class="right-button"
+            on:click={addBot} on:submit={addBot}>Add Bot</button>
       {/if}
-      <button on:click={advance} on:submit={advance}>Go to draft</button>
+      <button class="right-button"
+          on:click={advance} on:submit={advance}>Go to draft</button>
     </div>
   {/if}
 </div>
@@ -97,26 +100,8 @@
     padding-bottom: 1rem;
   }
 
-  .players-list > .horiz {
-    align-self: stretch;
-    justify-content: space-between;
-    align-items: center;
-  }
-
   .players-list > .host-controls {
     align-self: center;
     margin-top: 1rem;
-  }
-
-  button {
-    margin: 0.5rem 0.25rem;
-  }
-  
-  button:last-child {
-    margin-right: 0;
-  }
-
-  .team-info {
-    padding: 0.3rem;
   }
 </style>
