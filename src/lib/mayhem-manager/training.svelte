@@ -65,7 +65,7 @@
               <FighterInfo {fighter} />
             </div>
           </div>
-          <select class="right-align"
+          <select class="right-align-outer"
               bind:value={skills[index]}>
             <optgroup label="Improve a skill">
               {#each Object.values(StatName) as stat}

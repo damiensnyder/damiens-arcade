@@ -25,10 +25,12 @@
     <div class="horiz text-and-buttons">
       {spotInOrder + 1}. {$teams[index].name}
       {#if $ownTeam === null && $teams[index].controller === "bot"}
-        <button class="right-align"
-            on:click={() => replace(index)} on:submit={() => replace(index)}>
-          Replace
-        </button>
+        <div class="right-align-outer">
+          <button class="right-align-inner"
+              on:click={() => replace(index)} on:submit={() => replace(index)}>
+            Replace
+          </button>
+        </div>
       {/if}
     </div>
   {/each}

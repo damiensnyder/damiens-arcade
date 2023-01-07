@@ -104,11 +104,12 @@ select {
   text-align: left;
 }
 
-.right-align {
+.right-align-outer {
+  flex-flow: row;
   align-self: flex-end;
-  margin: 0.25rem 1rem;
+  margin-left: 1rem;
 }
 
-.right-align:last-child {
-  margin-right: 0;
+.right-align-inner {
+  margin: 0.25rem 0.5rem 0.25rem 0;
 }

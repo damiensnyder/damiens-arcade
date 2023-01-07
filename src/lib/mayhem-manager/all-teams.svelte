@@ -17,15 +17,17 @@
   {#each $teams as team, index}
     <div class="horiz text-and-buttons">
       {team.name} ({team.controller}): ${team.money}
-      {#if team.controller === "bot" && $ownTeamIndex === null}
-        <button class="right-align"
-            on:click={() => replace(index)} on:submit={() => replace(index)}>
-          Replace
+      <div class="right-align-outer">
+        {#if team.controller === "bot" && $ownTeamIndex === null}
+          <button class="right-align-inner"
+              on:click={() => replace(index)} on:submit={() => replace(index)}>
+            Replace
+          </button>
+        {/if}
+        <button class="right-align-inner" on:click={callback(index)} on:submit={callback(index)}>
+          View
         </button>
-      {/if}
-      <button class="right-align" on:click={callback(index)} on:submit={callback(index)}>
-        View
-      </button>
+      </div>
     </div>
   {/each}
 </div>
