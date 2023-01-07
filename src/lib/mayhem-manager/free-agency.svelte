@@ -46,7 +46,13 @@
 
 <style>
   .horiz {
+    align-self: stretch;
+    justify-content: space-between;
     text-align: left;
+  }
+
+  button {
+    margin-bottom: -0.5rem;
   }
 
   .fighters {
