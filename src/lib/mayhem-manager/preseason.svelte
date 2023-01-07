@@ -51,11 +51,15 @@
   {#if $ownTeamIndex !== null}
     <h2>Re-sign fighters</h2>
     {#each needsResigning as fighter, index}
-      <FighterInfo {fighter} {index} />
+      <div>
+        <FighterInfo {fighter} {index} />
+      </div>
     {/each}
     <h2>Repair equipment</h2>
     {#each needsRepair as equipment, index}
-      <EquipmentInfo {equipment} {index} />
+      <div>
+        <EquipmentInfo {equipment} {index} />
+      </div>
     {/each}
   {:else if $teams.length < 16}
     <div class="horiz">
