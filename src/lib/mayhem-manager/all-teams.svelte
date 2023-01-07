@@ -16,7 +16,11 @@
   <h2>Teams</h2>
   {#each $teams as team, index}
     <div class="horiz text-and-buttons">
-      {team.name} ({team.controller}): ${team.money}
+      {team.name +
+          (index === $ownTeamIndex ?
+              " (you)" :
+              (team.controller === "bot" ? " (bot)" : "")) +
+          ": $" + team.money}
       <div class="right-align-outer">
         {#if team.controller === "bot" && $ownTeamIndex === null}
           <button class="right-align-inner"
