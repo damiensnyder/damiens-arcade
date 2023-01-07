@@ -30,8 +30,10 @@
         <option value={index}>{fighter.name}</option>
       {/each}
     </select>
-    <FighterInfo fighter={$ownTeam.fighters[selectedFighter]}
-        equipment={$ownTeam.equipment.filter((_, i) => selectedEquipment[i])} />
+    <div>
+      <FighterInfo fighter={$ownTeam.fighters[selectedFighter]}
+          equipment={$ownTeam.equipment.filter((_, i) => selectedEquipment[i])} />
+    </div>
   </div>
   <div>
     <h2>Your equipment</h2>
