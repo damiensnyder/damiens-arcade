@@ -70,15 +70,15 @@
       {team.name}: ${team.money} ({team.controller})
       {#if team.controller === "bot"}
         {#if $ownTeamIndex === null}
-          <button class="right-button"
+          <button class="right-align"
               on:click={() => replace(index)} on:submit={() => replace(index)}>Replace</button>
         {/if}
         {#if $host === $pov}
-          <button class="right-button"
+          <button class="right-align"
               on:click={() => remove(index)} on:submit={() => remove(index)}>Remove</button>
         {/if}
       {:else if team.controller === $pov}
-        <button class="right-button"
+        <button class="right-align"
             on:click={leave} on:submit={leave}>Leave</button>
       {/if}
     </div>
@@ -86,10 +86,10 @@
   {#if $host === $pov}
     <div class="horiz host-controls">
       {#if $teams.length < 16}
-        <button class="right-button"
+        <button class="right-align"
             on:click={addBot} on:submit={addBot}>Add Bot</button>
       {/if}
-      <button class="right-button"
+      <button class="right-align"
           on:click={advance} on:submit={advance}>Go to draft</button>
     </div>
   {/if}

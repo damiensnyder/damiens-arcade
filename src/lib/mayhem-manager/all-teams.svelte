@@ -18,12 +18,12 @@
     <div class="horiz text-and-buttons">
       {team.name} ({team.controller}): ${team.money}
       {#if team.controller === "bot" && $ownTeamIndex === null}
-        <button class="right-button"
+        <button class="right-align"
             on:click={() => replace(index)} on:submit={() => replace(index)}>
           Replace
         </button>
       {/if}
-      <button class="right-button" on:click={callback(index)} on:submit={callback(index)}>
+      <button class="right-align" on:click={callback(index)} on:submit={callback(index)}>
         View
       </button>
     </div>

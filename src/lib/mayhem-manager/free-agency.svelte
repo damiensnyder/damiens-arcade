@@ -31,7 +31,7 @@
     <div class="horiz">
       {spotInOrder + 1}. {$teams[index].name}
       {#if $ownTeam === null && $teams[index].controller === "bot"}
-        <button class="right-button"
+        <button class="right-align"
             on:click={() => replace(index)} on:submit={() => replace(index)}>
           Replace
         </button>

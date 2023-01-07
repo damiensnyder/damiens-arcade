@@ -104,11 +104,11 @@ select {
   text-align: left;
 }
 
-.right-button {
+.right-align {
   align-self: flex-end;
   margin: 0.25rem 1rem;
 }
 
-.right-button:last-child {
+.right-align:last-child {
   margin-right: 0;
 }
