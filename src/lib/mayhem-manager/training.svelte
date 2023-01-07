@@ -48,38 +48,42 @@
 {#if $ownTeamIndex !== null}
   <div>
     <h2>Equipment</h2>
-    <div class="fighters">
+    <div class="equipment">
       {#each $equipment as equipment, index}
         <EquipmentInfo {equipment} {index} callback={pick} />
       {/each}
     </div>
   </div>
   <div>
-  <h2>Select training</h2>
-  <div class="list-container">
-    {#each $ownTeam.fighters as fighter, index}
-      <div class="show-child-on-hover">
-        {fighter.name}
-        <div class="show-on-hover">
-          <FighterInfo {fighter} />
+    <h2>Select training</h2>
+    <div class="list-container">
+      {#each $ownTeam.fighters as fighter, index}
+        <div class="horiz text-and-buttons">
+          <div class="show-child-on-hover">
+            {fighter.name}
+            <div class="show-on-hover">
+              <FighterInfo {fighter} />
+            </div>
+          </div>
+          <select class="right-align"
+              bind:value={skills[index]}>
+            <optgroup label="Improve a skill">
+              {#each Object.values(StatName) as stat}
+                <option value={stat}>{stat}</option>
+              {/each}
+            </optgroup>
+            <optgroup label="Attune to an equipment">
+              {#each $ownTeam.equipment as equipment}
+                <option value={equipment.name}>{equipment.name}</option>
+              {/each}
+            </optgroup>
+          </select>
         </div>
-      </div>
-      <select bind:value={skills[index]}>
-        <optgroup label="Improve a skill">
-          {#each Object.values(StatName) as stat}
-            <option value={stat}>{stat}</option>
-          {/each}
-        </optgroup>
-        <optgroup label="Attune to an equipment">
-          {#each $ownTeam.equipment as equipment}
-            <option value={equipment.name}>{equipment.name}</option>
-          {/each}
-        </optgroup>
-      </select>
-    {/each}
+      {/each}
     </div>
 
-    <button on:click={practice} on:submit={practice}>Ready!</button>
+    <button class="ready"
+        on:click={practice} on:submit={practice}>Ready!</button>
 
     <h2>Your equipment</h2>
 
@@ -97,8 +101,16 @@
 {/if}
 
 <style>
-  .fighters {
+  .equipment {
     flex: 1;
     align-items: stretch;
+  }
+
+  select {
+    min-width: auto;
+  }
+
+  .ready {
+    margin: 0.5rem;
   }
 </style>
