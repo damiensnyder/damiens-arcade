@@ -25,7 +25,7 @@
 
 <style>
   .winner {
-    width: 6rem;
+    width: 10rem;
     padding: 0.5rem;
     text-align: right;
     border-right: 2px solid var(--bg-1);
