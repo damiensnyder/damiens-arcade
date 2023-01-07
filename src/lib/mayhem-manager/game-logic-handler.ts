@@ -23,29 +23,29 @@ const TEAM_NAME_STARTS = [
   "Wise",
   "Worrisome",
   "Flippin'",
-  "Futuristic",
+  "Unknown",
   "Lovely",
   "Healthy",
-  "Motivated",
+  "Blue",
   "Nefarious",
-  "Meticulous"
+  "Unusual"
 ];
 const TEAM_NAME_ENDS = [
   "Bashers",
-  "Megalodons",
+  "Mastodons",
   "Birds",
-  "Pterodactyls",
+  "Parakeets",
   "Marigolds",
   "Whirlwinds",
   "Apricots",
   "Yaks",
-  "Electricians",
+  "Specters",
   "Monocles",
   "Manatees",
   "Bakers",
   "Wallabies",
   "Cats",
-  "Swashbucklers",
+  "Sprites",
   "Locksmiths",
   "Pickles",
   "Pandas",
@@ -574,9 +574,18 @@ export default class Tourney extends GameLogicHandlerBase {
 
   addTeam(viewerIndex: number | "bot"): void {
     if (this.teams.length < 16) {
+      // generate a random name where neither part is already in use
+      let nameStart = this.randElement(TEAM_NAME_STARTS);
+      let nameEnd = this.randElement(TEAM_NAME_ENDS);
+      while (this.teams.find(t => t.name.startsWith(nameStart)) !== undefined) {
+        nameStart = this.randElement(TEAM_NAME_STARTS);
+      }
+      while (this.teams.find(t => t.name.endsWith(nameEnd)) !== undefined) {
+        nameEnd = this.randElement(TEAM_NAME_ENDS);
+      }
       this.teams.push({
         controller: viewerIndex,
-        name: this.randElement(TEAM_NAME_STARTS) + " " + this.randElement(TEAM_NAME_ENDS),
+        name: nameStart + " " + nameEnd,
         money: 100,
         fighters: [],
         equipment: [],
@@ -586,7 +595,7 @@ export default class Tourney extends GameLogicHandlerBase {
       this.emitEventToAll({
         type: "join",
         controller: viewerIndex,
-        name: this.teams[this.teams.length - 1].name
+        name: nameStart + " " + nameEnd
       });
     }
   }
@@ -691,12 +700,19 @@ export default class Tourney extends GameLogicHandlerBase {
   // Generate a random fighter
   generateFighter(): Fighter {
     const gender = ["M", "F", "A"][this.randInt(0, 2)];
+    let firstName;
+    // if androgynous, pick a first name from either bank. otherwise pick from the matching bank
+    if (gender === "A") {
+      firstName = this.randElement(this.decks.fighters["firstNames" +
+          ["M", "F"][this.randInt(0, 1)]]);
+    } else {
+      firstName = this.randElement(this.decks.fighters["firstNames" + gender]);
+    }
 
     // in the future, first/last names and abilities should not cross over between decks.
     // but thats such a minor deal. i do not care.
     const fighter: Fighter = {
-      name: this.randElement(this.decks.fighters["firstNames" + gender]) + " " +
-          this.randElement(this.decks.fighters.lastNames),
+      name: firstName + " " + this.randElement(this.decks.fighters.lastNames),
       gender,
       price: 0,
       abilities: [],

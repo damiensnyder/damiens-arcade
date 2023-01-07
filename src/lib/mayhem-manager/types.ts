@@ -148,7 +148,6 @@ export interface Settings {
 export interface FighterNames {
   firstNamesM: string[]
   firstNamesF: string[]
-  firstNamesA: string[]
   lastNames: string[]
 }
 
