@@ -77,6 +77,11 @@
     } else {
       // @ts-ignore
       eventHandler[event.type](event);
+
+      // if you replace a team and you were viewing all teams, change view to main
+      if (event.type === "replace" && event.controller === $pov && viewing === "allTeams") {
+        changeView("main");
+      }
     }
   });
 
