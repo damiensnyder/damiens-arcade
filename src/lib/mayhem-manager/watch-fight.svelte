@@ -11,6 +11,7 @@
   let fighters: FighterInBattle[] = [];
   let rotation: AnimationState[] = [];
   let flipped: boolean[] = [];
+  let hitFlashIntensity: number[] = [];
   let particles: Particle[] = [];
   let tick: number = 0;
   let tickInterval = null;
@@ -76,8 +77,14 @@
           return AnimationState.Stationary1;
         }
       });
+      hitFlashIntensity = hitFlashIntensity.map(x => x / 4);
       particles.forEach((p) => {
         p.ticksUntil--;
+        if (p.type === "text" &&
+            p.text !== "Dodged" &&
+            p.ticksUntil === 0) {
+          hitFlashIntensity[p.fighter] = 1;
+        }
       });
       particles = particles.filter(p => p.ticksUntil >= 0);
     } else {
@@ -90,6 +97,7 @@
     fighters = [];
     rotation = [];
     flipped = [];
+    hitFlashIntensity = []
     tick = 0;
     play();
   }
@@ -103,6 +111,7 @@
       rotation.push(AnimationState.Stationary1);
       rotation = rotation;
       flipped.push(false);
+      hitFlashIntensity.push(0);
     } else if (event.type === "move") {
       // make them face the direction they are going
       flipped[event.fighter] = fighters[event.fighter].x < event.x;
@@ -141,6 +150,7 @@
             style:left={(f.x - 7.5).toFixed(2) + "%"}
             style:top={(f.y - 7.5).toFixed(2) + "%"}
             style:transform={`rotate(${rotation[i]})`}
+            style:filter={`sepia(${hitFlashIntensity[i] / 2}) brightness(${1 + hitFlashIntensity[i]})`}
             style:z-index={10 * f.y}>
           <FighterImage fighter={f} equipment={f.equipment} inBattle={true} />
         </div>
@@ -211,7 +221,7 @@
     width: 15%;
     height: 15%;
 
-    transition: all 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out, filter 0s ease;
   }
 
   .controls {
