@@ -54,7 +54,7 @@
   {#if playingInNextGame}
     <!-- redundant check so validity updates whenever equipmentChoices updates -->
     {@const valid = equipmentChoices === equipmentChoices ? choicesAreValid() : true}
-    <div>
+    <div class="assign-equipment">
       <h2>Assign equipment</h2>
       {#each $ownTeam.fighters as fighter, i}
         <div class="fighter">
@@ -101,5 +101,9 @@
 
   input[type="checkbox"] {
     margin: 0.15rem 0.6rem 0;
+  }
+
+  .assign-equipment {
+    margin-right: 3rem;
   }
 </style>
