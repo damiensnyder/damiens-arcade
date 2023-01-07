@@ -68,16 +68,18 @@
   {#each $teams as team, index}
     <div class="horiz">
       <span class="team-info">{team.name}: ${team.money} ({team.controller})</span>
-      {#if team.controller === "bot"}
-        {#if $ownTeamIndex === null}
-          <button on:click={() => replace(index)} on:submit={() => replace(index)}>Replace</button>
+      <div class="buttons horiz">
+        {#if team.controller === "bot"}
+          {#if $ownTeamIndex === null}
+            <button on:click={() => replace(index)} on:submit={() => replace(index)}>Replace</button>
+          {/if}
+          {#if $host === $pov}
+            <button on:click={() => remove(index)} on:submit={() => remove(index)}>Remove</button>
+          {/if}
+        {:else if team.controller === $pov}
+          <button on:click={leave} on:submit={leave}>Leave</button>
         {/if}
-        {#if $host === $pov}
-          <button on:click={() => remove(index)} on:submit={() => remove(index)}>Remove</button>
-        {/if}
-      {:else if team.controller === $pov}
-        <button on:click={leave} on:submit={leave}>Leave</button>
-      {/if}
+      </div>
     </div>
   {/each}
   {#if $host === $pov}
@@ -96,7 +98,8 @@
   }
 
   .players-list > .horiz {
-    align-self: flex-start;
+    align-self: stretch;
+    justify-content: space-between;
     align-items: center;
   }
 
@@ -106,7 +109,7 @@
   }
 
   button {
-    margin: 0 0.25rem;
+    margin: 0.5rem 0.25rem;
   }
   
   button:last-child {
