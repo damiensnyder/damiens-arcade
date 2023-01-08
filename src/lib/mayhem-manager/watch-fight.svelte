@@ -32,12 +32,12 @@
   enum AnimationState {
     Stationary1 = "0deg",
     Stationary2 = "0deg ",
-    WalkingStart1 = "-15deg ",
-    Walking1 = "-15deg",
-    WalkingStart2 = "15deg ",
-    Walking2 = "15deg",
-    BackswingStart = "-10deg ",
-    Backswing = "-10deg",
+    WalkingStart1 = "-10deg ",
+    Walking1 = "-10deg",
+    WalkingStart2 = "10deg ",
+    Walking2 = "10deg",
+    BackswingStart = "-11deg ",
+    Backswing = "-11deg",
     ForwardSwing = "30deg"
   }
 
