@@ -66,7 +66,9 @@
           </div>
           {#each $ownTeam.equipment as equipment, j}
             <div class="show-child-on-hover horiz">
-              <span>{equipment.name} ({slotsToString(equipment.slots)})</span>
+              <span style:font-weight={
+                fighter.attunements.includes(equipment.name) ? 600 : 400
+              }>{equipment.name} ({slotsToString(equipment.slots)})</span>
               <div class="show-on-hover">
                 <EquipmentInfo equipment={equipment} />
               </div>
