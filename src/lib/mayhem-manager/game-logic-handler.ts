@@ -260,7 +260,7 @@ export default class Tourney extends GameLogicHandlerBase {
           }
           const picks = Bot.getFAPicks(pickingTeam, this.fighters);
           for (const pick of picks) {
-            this.pickFighter(this.spotInDraftOrder, pick);
+            this.pickFighter(this.draftOrder[this.spotInDraftOrder], pick);
           }
           this.emitEventToAll({
             type: "pass"
