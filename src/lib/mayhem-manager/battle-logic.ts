@@ -29,6 +29,7 @@ const ability = object({
 
 const DECK_FILEPATH_BASE = "src/lib/mayhem-manager/data/";
 export const TICK_LENGTH = 0.2;  // length of a tick in seconds
+const EPSILON = 0.00001;  // to account for rounding errors
 
 const fighterNames: FighterNames =
     JSON.parse(readFileSync(DECK_FILEPATH_BASE + "fighters/names.json").toString());
@@ -279,94 +280,36 @@ class Fight {
 
     while (!this.fightIsOver()) {
       const tick: MidFightEvent[] = [];
-      this.fighters.forEach((f, i) => {
+      this.fighters.forEach((f) => {
         if (f.hp <= 0) return;  // do nothing if fighter is down
-        const target = this.closestNotOnTeam(f);
-        if (!target) return;  // in case your teammate downed the last enemy
-        const distanceToTarget = distance(f, target);
-        if (distanceToTarget > 2) {
-          // move toward the target by the max the fighter's speed allows or until within 1.5 m,
-          // whichever is less. fighters with 0 speed can move 2.5 m/s, fighters with 10 speed move
-          // 7.5 m/s
-          const distanceToMove = Math.min((2.5 + f.stats.speed / 2) * TICK_LENGTH,
-                                          distanceToTarget - 1.5);
-          const deltaX = Math.pow(target.x - f.x, 2) / Math.pow(distanceToTarget, 2) * distanceToMove;
-          const deltaY = Math.pow(target.y - f.y, 2) / Math.pow(distanceToTarget, 2) * distanceToMove;
-          f.x += Math.sign(target.x - f.x) * deltaX;
-          f.y += Math.sign(target.y - f.y) * deltaY;
-          tick.push({
-            type: "move",
-            fighter: i,
-            x: Number(f.x.toFixed(2)),  // round to save data
-            y: Number(f.y.toFixed(2))
-          });
-        }
-        // if within melee range (2 m) and not cooling down, attack.
-        // added a bit of buffer in case rounding adds imprecision to the cooldown
-        if (distance(f, target) <= 2 && f.cooldown < 0.0001) {
-          // choose a random melee weapon if one is equipped; otherwise punch.
-          const meleeWeapons = f.equipment.filter(e => 
-            e.abilities.find(a => a.type === "meleeAttack") !== undefined
-          );
-          let baseDamage = 1;
-          if (meleeWeapons.length !== 0) {
-            const weaponChosen = this.rng.randElement(meleeWeapons);
-            baseDamage = (weaponChosen.abilities.find(a => a.type === "meleeAttack") as MeleeAttackAbility).damage;
-            if (f.attunements.includes(weaponChosen.name)) {
-              baseDamage *= 1.25;
-            }
+        const closest = this.closestNotOnTeam(f);
+        if (!closest) return;  // in case your teammate downed the last enemy
+
+        const closestDistance = distance(f, closest);
+        const distanceMovableByCooldownEnd = f.cooldown * (2.5 + f.stats.speed / 2) * TICK_LENGTH;
+
+        // if the fighter is within melee range and their cooldown is over, they attack and then
+        // run away.
+        // if they can't reach the target by the time their cooldown ends, they run towards the
+        // target and do a melee attack if within range.
+        // if they can reach the target by the time their cooldown ends, they run away.
+        if (closestDistance <= 2 && f.cooldown < EPSILON) {
+          this.meleeAttack(f, closest, tick);
+          this.moveAwayFromTarget(f, closest, tick);
+        } else if (distanceMovableByCooldownEnd < closestDistance) {
+          this.moveTowardsTarget(f, closest, tick);
+          if (distance(f, closest) <= 2 && f.cooldown < EPSILON) {
+            this.meleeAttack(f, closest, tick);
           }
-          // if the target has 0 reflexes, they have no chance to dodge. if they have 10 reflexes,
-          // they have a 50% chance to dodge.
-          const dodged = this.rng.randReal() < target.stats.reflexes / 20;
-          // base damage is 5 + fighter's strength. this is reduced by 0% if the target has 0
-          // toughness, 50% if they have 10 toughness. it is multiplied by the weapon's damage.
-          // damage is roundedup to the nearest integer.
-          let damage = Math.ceil(baseDamage *
-              (5 + f.stats.strength) *
-              (1 - target.stats.toughness / 20));
-
-          // strafe to the right if dodged, otherwise add a little knockback
-          const unitVectorX = Math.pow(target.x - f.x, 2) / Math.pow(distance(f, target), 2);
-          const unitVectorY = Math.pow(target.y - f.y, 2) / Math.pow(distance(f, target), 2);
-          if (dodged) {
-            damage = 0;
-            target.x -= unitVectorY * 0.2;
-            target.y += unitVectorX * 0.2;
-            tick.push({
-              type: "move",
-              fighter: this.fighters.findIndex(z => z === target),
-              x: Number(target.x.toFixed(2)),
-              y: Number(target.y.toFixed(2))
-            });
-          } else {
-            target.hp -= damage;
-            target.x += unitVectorX * 0.5;
-            target.y += unitVectorY * 0.5;
-            tick.push({
-              type: "move",
-              fighter: this.fighters.findIndex(z => z === target),
-              x: Number(target.x.toFixed(2)),
-              y: Number(target.y.toFixed(2))
-            });
-          }
-
-          tick.push({
-            type: "meleeAttack",
-            fighter: i,
-            target: this.fighters.findIndex(f2 => f2 === target),
-            dodged,
-            damage
-          });
-
-          // cooldown is 5 seconds for a fighter with 0 energy, 2.5 seconds if 10 energy
-          f.cooldown = 5 * (1 - 0.05 * f.stats.energy);
+        } else {
+          this.moveAwayFromTarget(f, closest, tick);
         }
 
         // decrease cooldown. cooldown can go slightly below 0 to compensate for if a cooldown
         // is not a multiple of tick length, but if already at or below 0 it cannot go lower
-        f.cooldown = f.cooldown <= 0.0001 ? 0 : f.cooldown - TICK_LENGTH;
+        f.cooldown = f.cooldown <= EPSILON ? 0 : f.cooldown - TICK_LENGTH;
       });
+      
       // we stringify the tick so later mutations don't mess up earlier ticks
       this.eventLog.push(tick);
       writeFileSync("logs/ticks.txt", JSON.stringify(tick), { flag: "a+" });
@@ -395,7 +338,110 @@ class Fight {
     if (teamsRemaining.length === 1) {
       this.placementOrder.unshift(teamsRemaining[0]);
     }
+    // forcibly end the match if it has been more than 5 minutes
+    if (this.eventLog.length > 300 / TICK_LENGTH) {
+      while (teamsRemaining.length > 0) {
+        this.placementOrder.unshift(teamsRemaining.pop());
+      }
+    }
+
     return teamsRemaining.length <= 1;
+  }
+
+  // Moves f towards target as far as possible or within 1.5m, whichever is less. Returns the
+  // distance traveled. 
+  moveTowardsTarget(f: FighterInBattle, target: FighterInBattle, tick: MidFightEvent[]): number {
+    const distanceToTarget = distance(f, target);
+    const distanceToMove = Math.min((2.5 + f.stats.speed / 2) * TICK_LENGTH,
+                                    distanceToTarget - 1.5);
+    const deltaX = Math.pow(target.x - f.x, 2) / Math.pow(distanceToTarget, 2) * distanceToMove;
+    const deltaY = Math.pow(target.y - f.y, 2) / Math.pow(distanceToTarget, 2) * distanceToMove;
+    f.x += Math.sign(target.x - f.x) * deltaX;
+    f.y += Math.sign(target.y - f.y) * deltaY;
+    tick.push({
+      type: "move",
+      fighter: this.fighters.findIndex(f2 => f2 === f),
+      x: Number(f.x.toFixed(2)),  // round to save data
+      y: Number(f.y.toFixed(2))
+    });
+    return distanceToMove;
+  }
+
+  // Moves f away from target as far as possible.
+  moveAwayFromTarget(f: FighterInBattle, target: FighterInBattle, tick: MidFightEvent[]): number {
+    const distanceToTarget = distance(f, target);
+    const distanceToMove = (2.5 + f.stats.speed / 2) * TICK_LENGTH;
+    const deltaX = Math.pow(target.x - f.x, 2) / Math.pow(distanceToTarget, 2) * distanceToMove;
+    const deltaY = Math.pow(target.y - f.y, 2) / Math.pow(distanceToTarget, 2) * distanceToMove;
+    f.x -= Math.sign(target.x - f.x) * deltaX;
+    f.y -= Math.sign(target.y - f.y) * deltaY;
+    tick.push({
+      type: "move",
+      fighter: this.fighters.findIndex(f2 => f2 === f),
+      x: Number(f.x.toFixed(2)),  // round to save data
+      y: Number(f.y.toFixed(2))
+    });
+    return distanceToMove;
+  }
+
+  meleeAttack(f: FighterInBattle, target: FighterInBattle, tick: MidFightEvent[]): void {
+    // choose a random melee weapon if one is equipped; otherwise punch.
+    const meleeWeapons = f.equipment.filter(e => 
+      e.abilities.find(a => a.type === "meleeAttack") !== undefined
+    );
+    let baseDamage = 1;
+    if (meleeWeapons.length !== 0) {
+      const weaponChosen = this.rng.randElement(meleeWeapons);
+      baseDamage = (weaponChosen.abilities.find(a => a.type === "meleeAttack") as MeleeAttackAbility).damage;
+      if (f.attunements.includes(weaponChosen.name)) {
+        baseDamage *= 1.25;
+      }
+    }
+    // if the target has 0 reflexes, they have no chance to dodge. if they have 10 reflexes,
+    // they have a 50% chance to dodge.
+    const dodged = this.rng.randReal() < target.stats.reflexes / 20;
+    // base damage is 5 + fighter's strength. this is reduced by 0% if the target has 0
+    // toughness, 50% if they have 10 toughness. it is multiplied by the weapon's damage.
+    // damage is roundedup to the nearest integer.
+    let damage = Math.ceil(baseDamage *
+        (5 + f.stats.strength) *
+        (1 - target.stats.toughness / 20));
+
+    // strafe to the right if dodged, otherwise add a little knockback
+    const unitVectorX = Math.pow(target.x - f.x, 2) / Math.pow(distance(f, target), 2);
+    const unitVectorY = Math.pow(target.y - f.y, 2) / Math.pow(distance(f, target), 2);
+    if (dodged) {
+      damage = 0;
+      target.x -= unitVectorY * 0.2;
+      target.y += unitVectorX * 0.2;
+      tick.push({
+        type: "move",
+        fighter: this.fighters.findIndex(z => z === target),
+        x: Number(target.x.toFixed(2)),
+        y: Number(target.y.toFixed(2))
+      });
+    } else {
+      target.hp -= damage;
+      target.x += unitVectorX * 0.5;
+      target.y += unitVectorY * 0.5;
+      tick.push({
+        type: "move",
+        fighter: this.fighters.findIndex(z => z === target),
+        x: Number(target.x.toFixed(2)),
+        y: Number(target.y.toFixed(2))
+      });
+    }
+
+    tick.push({
+      type: "meleeAttack",
+      fighter: this.fighters.findIndex(f2 => f2 === f),
+      target: this.fighters.findIndex(f2 => f2 === target),
+      dodged,
+      damage
+    });
+
+    // cooldown is 5 seconds for a fighter with 0 energy, 2.5 seconds if 10 energy
+    f.cooldown = 5 * (1 - 0.05 * f.stats.energy);
   }
 }
 
