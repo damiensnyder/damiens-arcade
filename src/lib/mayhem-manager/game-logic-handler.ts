@@ -413,9 +413,14 @@ export default class Tourney extends GameLogicHandlerBase {
       this.fighters.push(this.generateFighter());
     }
 
-    // in the future, fighters should have prices based on how good they are
+    // set price based on how good the fighter is and how old they are
     for (const fighter of this.fighters) {
-      fighter.price = 20;
+      fighter.price = 10 - fighter.experience + this.randInt(-5, 5);
+      for (const stat in fighter.stats) {
+        // compress stat ranges so super high or low ones don't affect price a ton
+        fighter.price += Math.min(Math.max(fighter.stats[stat], 2), 9);
+      }
+      fighter.price = Math.max(fighter.price, 5);
     }
 
     this.emitEventToAll({ type: "goToFA", fighters: this.fighters });
