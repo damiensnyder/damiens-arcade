@@ -325,10 +325,32 @@ class Fight {
           let damage = Math.ceil(baseDamage *
               (5 + f.stats.strength) *
               (1 - target.stats.toughness / 20));
+
+          // strafe to the right if dodged, otherwise add a little knockback
+          const unitVectorX = Math.pow(target.x - f.x, 2) / Math.pow(distance(f, target), 2);
+          const unitVectorY = Math.pow(target.y - f.y, 2) / Math.pow(distance(f, target), 2);
           if (dodged) {
             damage = 0;
+            target.x -= unitVectorY * 0.2;
+            target.y += unitVectorX * 0.2;
+            tick.push({
+              type: "move",
+              fighter: this.fighters.findIndex(z => z === target),
+              x: Number(target.x.toFixed(2)),
+              y: Number(target.y.toFixed(2))
+            });
+          } else {
+            target.hp -= damage;
+            target.x += unitVectorX * 0.5;
+            target.y += unitVectorY * 0.5;
+            tick.push({
+              type: "move",
+              fighter: this.fighters.findIndex(z => z === target),
+              x: Number(target.x.toFixed(2)),
+              y: Number(target.y.toFixed(2))
+            });
           }
-          target.hp -= damage;
+
           tick.push({
             type: "meleeAttack",
             fighter: i,
