@@ -223,12 +223,27 @@ class Fight {
     this.fighters = fighters.map((f) => {
       return {
         ...f,
+        equipment: f.equipment.slice(),
         stats: { ...f.stats },
-        abilities: { ...f.abilities }
+        abilities: f.abilities.slice()
       };
     });
     this.eventLog = [];
     this.placementOrder = [];
+
+    // do stat changes
+    this.fighters.forEach((f) => {
+      f.equipment.forEach(e => {
+        e.abilities.forEach((a) => {
+          if (a.type === "statChange") {
+            f.stats[a.stat] += a.amount;
+            if (f.attunements.includes(e.name)) {
+              f.stats[a.stat] += 1;
+            }
+          }
+        });
+      });
+    });
   }
 
   // Returns the closest fighter not on fighter f's team
