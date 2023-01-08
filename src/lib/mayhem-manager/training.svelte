@@ -104,7 +104,7 @@
 
 <style>
   .equipment {
-    flex: 1;
+    align-self: stretch;
     align-items: stretch;
   }
 

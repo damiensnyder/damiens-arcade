@@ -31,11 +31,14 @@
 
 <div class="horiz top-bar">
   <h3>{fighter.name}</h3>
-  {#if canPick}
-    <button on:click={pick} on:submit={pick}>Pick{#if fighter.price > 0}
+  <div class="horiz">
+    <span class="age">age {20 + fighter.experience}</span>
+    {#if canPick}
+      <button on:click={pick} on:submit={pick}>Pick{#if fighter.price > 0}
       : ${fighter.price}
-    {/if}</button>
-  {/if}
+      {/if}</button>
+    {/if}
+  </div>
 </div>
 <div class="horiz">
   <FighterImage {fighter} {equipment} />
@@ -97,5 +100,9 @@
   p:last-child {
     margin: 0;
     font-style: italic;
+  }
+
+  .age {
+    margin-top: 0.25rem;
   }
 </style>
