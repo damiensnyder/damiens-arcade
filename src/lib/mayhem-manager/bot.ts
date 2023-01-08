@@ -56,7 +56,7 @@ const Bot = {
     strategy: Strategy[]
   } {
     return {
-      equipment: team.fighters.map((_, i) => [i]),
+      equipment: team.fighters.map((_, i) => i < team.equipment.length ? [i] : []),
       strategy: team.fighters.map(_ => { return {}; })
     };
   }
