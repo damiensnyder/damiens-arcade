@@ -16,9 +16,12 @@
       "imgUrl": "/static/equipment/sword.png",
       "zoomedImgUrl": "/static/equipment/sword.png",
       "price": 20,
-      "description": "",
-      "flavor": "oh noooo don't tip",
-      "abilities": []
+      "description": "Deals 2x base damage.",
+      "flavor": "",
+      "abilities": [{
+        "type": "meleeAttack",
+        "damage": 2
+      }]
     },
     {
       "name": "tank top",

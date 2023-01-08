@@ -8,7 +8,14 @@ const fighterStatsSchema = array(
   number().min(0).max(10).integer()
 ).length(6);
 
-const ability = object();
+const ability = object({
+  type: string().required().oneOf(["meleeAttack"]),
+  damage: number().when("type", {
+    is: "meleeAttack",
+    then: number().integer(),
+    otherwise: undefined
+  })
+});
 
 const DECK_FILEPATH_BASE = "src/lib/mayhem-manager/data/";
 export const TICK_LENGTH = 0.2;  // length of a tick in seconds
@@ -272,12 +279,30 @@ class Fight {
         // if within melee range (2 m) and not cooling down, attack.
         // added a bit of buffer in case rounding adds imprecision to the cooldown
         if (distance(f, target) <= 2 && f.cooldown < 0.0001) {
+          // choose a random melee weapon if one is equipped; otherwise punch.
+          const meleeWeapons = f.equipment.filter(e => 
+            e.abilities.find(a => a.type === "meleeAttack") !== undefined
+          );
+          let baseDamage = 1;
+          if (meleeWeapons.length !== 0) {
+            const weaponChosen = this.rng.randElement(meleeWeapons);
+            baseDamage = weaponChosen.abilities.find(a => a.type === "meleeAttack").damage;
+            if (f.attunements.includes(weaponChosen.name)) {
+              baseDamage *= 1.25;
+            }
+          }
           // if the target has 0 reflexes, they have no chance to dodge. if they have 10 reflexes,
           // they have a 50% chance to dodge.
           const dodged = this.rng.randReal() < target.stats.reflexes / 20;
-          // base damage is 5 + fighter's strength. this is reduced by 0% if the target has 0 toughness,
-          // 50% if they have 10 toughness. damage is rounded up to the nearest integer.
-          const damage = dodged ? 0 : Math.ceil((5 + f.stats.strength) * (1 - target.stats.toughness / 20));
+          // base damage is 5 + fighter's strength. this is reduced by 0% if the target has 0
+          // toughness, 50% if they have 10 toughness. it is multiplied by the weapon's damage.
+          // damage is roundedup to the nearest integer.
+          let damage = Math.ceil(baseDamage *
+              (5 + f.stats.strength) *
+              (1 - target.stats.toughness / 20));
+          if (dodged) {
+            damage = 0;
+          }
           target.hp -= damage;
           tick.push({
             type: "meleeAttack",

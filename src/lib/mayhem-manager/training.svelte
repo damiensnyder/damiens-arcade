@@ -74,8 +74,8 @@
                 {/each}
               </optgroup>
               <optgroup label="Attune to an equipment">
-                {#each $ownTeam.equipment as equipment}
-                  <option value={equipment.name}>{equipment.name}</option>
+                {#each $ownTeam.equipment as equipment, index}
+                  <option value={index}>{equipment.name}</option>
                 {/each}
               </optgroup>
             </select>

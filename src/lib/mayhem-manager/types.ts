@@ -76,7 +76,7 @@ export interface Fighter {
   gender: string
   stats: FighterStats
   attunements: string[]
-  abilities: Ability
+  abilities: Ability[]
   experience: number
   price: number
   description: string
@@ -126,7 +126,16 @@ export interface Equipment {
   flavor: string
 }
 
-export interface Ability {}
+export interface AbilityBase {
+  type: "meleeAttack"
+}
+
+export interface MeleeAttackAbility extends AbilityBase {
+  type: "meleeAttack"
+  damage: number
+}
+
+export type Ability = MeleeAttackAbility;
 
 export interface Map {
   name: string

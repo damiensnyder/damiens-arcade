@@ -468,7 +468,7 @@ export default class Tourney extends GameLogicHandlerBase {
         }
       });
       choice.skills.forEach((skill, j) => {
-        if (typeof skill === "number" && skill >= 0 && team.equipment.length < skill) {
+        if (typeof skill === "number" && skill >= 0 && skill < team.equipment.length) {
           team.fighters[j].attunements.push(team.equipment[skill].name);
         } else if (typeof skill === "string" &&
             Object.values(StatName).includes(skill) &&
