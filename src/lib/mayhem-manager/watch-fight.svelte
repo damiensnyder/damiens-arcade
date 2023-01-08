@@ -152,7 +152,7 @@
             style:transform={`rotate(${rotation[i]})`}
             style:filter={`sepia(${hitFlashIntensity[i] / 2}) brightness(${1 + hitFlashIntensity[i]})`}
             style:z-index={10 * f.y}>
-          <FighterImage fighter={f} equipment={f.equipment} inBattle={true} />
+          <FighterImage fighter={f} equipment={f.equipment} inBattle={true} team={f.team} />
         </div>
       {/if}
     {/each}

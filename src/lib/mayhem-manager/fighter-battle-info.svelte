@@ -9,7 +9,7 @@
 
 <div class="horiz outer-container">
   <div class="image-container">
-    <FighterImage {fighter} equipment={fighter.equipment} inBattle={true} />
+    <FighterImage {fighter} equipment={fighter.equipment} inBattle={true} team={fighter.team} />
   </div>
   <div class="info">
     <div class="info name horiz">

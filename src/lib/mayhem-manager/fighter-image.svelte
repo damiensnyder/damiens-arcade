@@ -4,6 +4,7 @@
   export let fighter: Fighter;
   export let equipment: Equipment[];
   export let inBattle: boolean = false;
+  export let team: number = -1;
 
   $: head = equipment.filter(e => e.slots.includes(EquipmentSlot.Head));
   $: torso = equipment.filter(e => e.slots.includes(EquipmentSlot.Torso));
@@ -31,14 +32,14 @@
   );
 
   const SHIRT_COLORS = [[0, 0.7, 1], [0, 0, 1], [255, 0.2, 2], [120, 0.5, 1], [0, 10, 0], [240, 2, 0.5]];
-  $: shirtColor = pseudorandomFrom(
+  $: shirtColor = team === -1 ? pseudorandomFrom(
     SHIRT_COLORS, fighter.name.length, fighter.description.length, fighter.stats.reflexes
-  );
+  ) : SHIRT_COLORS[team % SHIRT_COLORS.length];
 
-  const PANTS_COLORS = [[0, 0, 1], [240, 0.2, 2], [200, 0.5, 1], [0, 10, 1], [240, 2, 0.5]];
-  $: pantsColor = pseudorandomFrom(
-    PANTS_COLORS, fighter.name.length, fighter.description.length, fighter.stats.speed
-  );
+  const SHORTS_COLORS = [[0, 0, 1], [240, 0.2, 2], [200, 0.5, 1], [0, 10, 1], [240, 2, 0.5]];
+  $: pantsColor = team === -1 ? pseudorandomFrom(
+    SHORTS_COLORS, fighter.name.length, fighter.description.length, fighter.stats.speed
+  ) : SHORTS_COLORS[team % SHORTS_COLORS.length];
 
   const FEET_COLORS = [[0, 10, 1], [0, 0, 1], [0, 0.5, 1], [240, 0.2, 0.5], [200, 0.5, 0.5]];
   $: feetColor = pseudorandomFrom(
