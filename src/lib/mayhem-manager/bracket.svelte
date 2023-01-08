@@ -8,7 +8,7 @@
 </script>
 
 <div class="horiz">
-  <div>
+  <div class="children">
     {#if left !== null}
       <svelte:self {...left} />
     {/if}
@@ -24,6 +24,10 @@
 </div>
 
 <style>
+  .children {
+    align-items: flex-end;
+  }
+
   .winner {
     width: 10rem;
     padding: 0.5rem;
