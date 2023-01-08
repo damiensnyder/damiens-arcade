@@ -127,7 +127,7 @@ export interface Equipment {
 }
 
 export interface AbilityBase {
-  type: "meleeAttack"
+  type: "meleeAttack" | "statChange"
 }
 
 export interface MeleeAttackAbility extends AbilityBase {
@@ -135,7 +135,13 @@ export interface MeleeAttackAbility extends AbilityBase {
   damage: number
 }
 
-export type Ability = MeleeAttackAbility;
+export interface StatChangeAbility extends AbilityBase {
+  type: "statChange"
+  stat: StatName
+  amount: number
+}
+
+export type Ability = MeleeAttackAbility | StatChangeAbility;
 
 export interface Map {
   name: string

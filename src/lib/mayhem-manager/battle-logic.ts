@@ -1,6 +1,6 @@
 import { array, boolean, number, object, string } from "yup";
 import { readFileSync, readdirSync, writeFileSync } from "fs";
-import { EquipmentSlot, type Equipment, type EquipmentDeck, type FighterDeck, type FighterInBattle, type FighterNames, type FighterTemplate, type Map, type MapDeck, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent } from "$lib/mayhem-manager/types";
+import { EquipmentSlot, type Equipment, type EquipmentDeck, type FighterDeck, type FighterInBattle, type FighterNames, type FighterTemplate, type Map, type MapDeck, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, type MeleeAttackAbility, StatName } from "$lib/mayhem-manager/types";
 import type { Socket } from "socket.io";
 import type { RNG } from "$lib/types";
 
@@ -9,10 +9,20 @@ const fighterStatsSchema = array(
 ).length(6);
 
 const ability = object({
-  type: string().required().oneOf(["meleeAttack"]),
+  type: string().required().oneOf(["meleeAttack", "statChange"]),
   damage: number().when("type", {
     is: "meleeAttack",
-    then: number().integer(),
+    then: number().required().integer(),
+    otherwise: undefined
+  }),
+  stat: string().when("type", {
+    is: "statChange",
+    then: string().required().oneOf(Object.values(StatName)),
+    otherwise: undefined
+  }),
+  amount: string().when("type", {
+    is: "statChange",
+    then: number().required().integer(),
     otherwise: undefined
   })
 });
@@ -286,7 +296,7 @@ class Fight {
           let baseDamage = 1;
           if (meleeWeapons.length !== 0) {
             const weaponChosen = this.rng.randElement(meleeWeapons);
-            baseDamage = weaponChosen.abilities.find(a => a.type === "meleeAttack").damage;
+            baseDamage = (weaponChosen.abilities.find(a => a.type === "meleeAttack") as MeleeAttackAbility).damage;
             if (f.attunements.includes(weaponChosen.name)) {
               baseDamage *= 1.25;
             }
