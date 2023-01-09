@@ -4,7 +4,7 @@
   import FighterImage from "$lib/mayhem-manager/fighter-image.svelte";
   import FighterBattleInfo from "$lib/mayhem-manager/fighter-battle-info.svelte";
   import { fade } from "svelte/transition";
-    import { onMount } from "svelte";
+  import { onMount } from "svelte";
 
   
   const BUFFER_PIXELS = 8;
@@ -265,8 +265,8 @@
       </label>
       <p>Tick: {@debug tick}</p>
       <p>Fighters: {@debug fighters}</p>
-      <p>Last event: {lastEvent}</p> -->
-      <p>{@debug leftCoord, topCoord, zoom, frameWidth, frameHeight}</p>
+      <p>Last event: {lastEvent}</p>
+      <p>{@debug leftCoord, topCoord, zoom, frameWidth, frameHeight}</p> -->
     {/if}
     {#each fighters as fighter}
       <FighterBattleInfo {fighter} />
@@ -341,10 +341,10 @@
     z-index: 1500;
   }
 
-  p {
+  /* p {
     width: 100%;
     overflow-x: hidden;
     white-space: normal;
     word-wrap: break-word;
-  }
+  } */
 </style>
