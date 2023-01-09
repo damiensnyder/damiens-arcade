@@ -4,6 +4,10 @@
   import FighterImage from "$lib/mayhem-manager/fighter-image.svelte";
   import FighterBattleInfo from "$lib/mayhem-manager/fighter-battle-info.svelte";
   import { fade } from "svelte/transition";
+    import { onMount } from "svelte";
+
+  
+  const BUFFER_PIXELS = 8;
 
   export let debug: boolean = true;
   let eventLogRaw: string = "";
@@ -17,19 +21,19 @@
   let tickInterval = null;
   let lastEvent: string = "";
   let tickLength: number = 200;  // ticks are 0.2 s long
-  let zoom: number = 7;
-  let leftCoord: number = 17;
-  let topCoord: number = 17;
   let frameWidth: number;
   let frameHeight: number;
+  let zoom: number = 7;
+  let leftCoord: number = 25 - BUFFER_PIXELS;
+  let topCoord: number = 25 - BUFFER_PIXELS;
 
-  const BUFFER_PIXELS = 8;
-
-  if (!debug) {
-    play();
-  } else {
-    setCamera();
-  }
+  onMount(() => {
+    if (!debug) {
+      play();
+    } else {
+      setCamera(1);
+    }
+  });
 
   type Particle = {
     fighter: number
@@ -50,50 +54,63 @@
     ForwardSwing = "30deg"
   }
 
-  // Set camera transform so all fighters are visible but the camera is as zoomed as possible
-  function setCamera(): void {
+  // Set camera transform so all fighters are visible but the camera is as zoomed as possible.
+  // Camera should be centered, and the outermost fighters should be BUFFER_PIXELS from the
+  // edge of the camera.
+  // Moves gradually towards the desired position (at a default speed of 10% per tick).
+  function setCamera(speed: number = 0.1): void {
     const frameAspectRatio = frameWidth / frameHeight;
-    if (fighters.length === 0) {
+    console.log(frameWidth, frameHeight);
+    let newLeftCoord: number, newTopCoord: number, newZoom: number;
+    if (fighters.filter(f => f.hp > 0).length === 0) {
       if (frameAspectRatio < 1) {
-        zoom = frameWidth / (50 + 2 * BUFFER_PIXELS);
-        leftCoord = 25 - BUFFER_PIXELS;
-        topCoord = 50 - (25 + BUFFER_PIXELS) / frameAspectRatio;
+        newZoom = frameWidth / (50 + 2 * BUFFER_PIXELS);
+        newLeftCoord = 25 - BUFFER_PIXELS;
+        newTopCoord = 50 - (25 + BUFFER_PIXELS) / frameAspectRatio;
       } else {
-        zoom = frameAspectRatio < 1 ? frameWidth / 65 : frameHeight / 65;
-        leftCoord = 50 - (25 + BUFFER_PIXELS) * frameAspectRatio;
-        topCoord = 25 - BUFFER_PIXELS;
+        newZoom = frameHeight / (50 + 2 * BUFFER_PIXELS);
+        console.log(frameAspectRatio);
+        newLeftCoord = 50 - (25 + BUFFER_PIXELS) * frameAspectRatio;
+        newTopCoord = 25 - BUFFER_PIXELS;
       }
-      return;
-    }
-    let left: number, right: number, top: number, bottom: number;
-    for (const f of fighters) {
-      if (f.hp > 0) {
-        if (left === undefined || f.x < left) {
-          left = f.x;
-        }
-        if (right === undefined || f.x > right) {
-          right = f.x;
-        }
-        if (top === undefined || f.y < top) {
-          top = f.y;
-        }
-        if (bottom === undefined || f.y > bottom) {
-          bottom = f.y;
-        }
-      }
-    }
-    const contentAspectRatio = (right - left + 2 * BUFFER_PIXELS) / (bottom - top + 2 * BUFFER_PIXELS);
-    // if content has wider aspect ratio than the frame, set the zoom based on width
-    // if taller, set based on height
-    if (frameAspectRatio < contentAspectRatio) {
-      zoom = frameWidth / (right - left + 2 * BUFFER_PIXELS);
-      leftCoord = left - BUFFER_PIXELS;
-      topCoord = (top + bottom - (right - left + 2 * BUFFER_PIXELS) / frameAspectRatio) / 2;
     } else {
-      zoom = frameHeight / (bottom - top + 2 * BUFFER_PIXELS);
-      leftCoord = (right + left - (bottom - top + 2 * BUFFER_PIXELS) * frameAspectRatio) / 2;
-      topCoord = top - BUFFER_PIXELS;
+      // find the leftmost, rightmost, topmost, and bottommost coordinates a fighter has
+      let left: number, right: number, top: number, bottom: number;
+      for (const f of fighters) {
+        if (f.hp > 0) {
+          if (left === undefined || f.x < left) {
+            left = f.x;
+          }
+          if (right === undefined || f.x > right) {
+            right = f.x;
+          }
+          if (top === undefined || f.y < top) {
+            top = f.y;
+          }
+          if (bottom === undefined || f.y > bottom) {
+            bottom = f.y;
+          }
+        }
+      }
+      const contentAspectRatio = (right - left + 2 * BUFFER_PIXELS) / (bottom - top + 2 * BUFFER_PIXELS);
+      // if content has wider aspect ratio than the frame, set the zoom based on width
+      // if taller, set based on height
+      if (frameAspectRatio < contentAspectRatio) {
+        newZoom = frameWidth / (right - left + 2 * BUFFER_PIXELS);
+        newLeftCoord = left - BUFFER_PIXELS;
+        newTopCoord = (top + bottom - (right - left + 2 * BUFFER_PIXELS) / frameAspectRatio) / 2;
+      } else {
+        newZoom = frameHeight / (bottom - top + 2 * BUFFER_PIXELS);
+        newLeftCoord = (right + left - (bottom - top + 2 * BUFFER_PIXELS) * frameAspectRatio) / 2;
+        newTopCoord = top - BUFFER_PIXELS;
+      }
     }
+
+    // update camera based on speed; 10% moves camera 10% of the way to desired position,
+    // 100% moves all the way, 0% doesn't move at all.
+    zoom = zoom * (1 - speed) + newZoom * speed;
+    leftCoord = leftCoord * (1 - speed) + newLeftCoord * speed;
+    topCoord = topCoord * (1 - speed) + newTopCoord * speed;
   }
 
   function enterEvents(): void {
@@ -159,8 +176,8 @@
   }
 
   function handleEvent(event: MidFightEvent): void {
-    console.debug("Event in tick " + tick + ":");
-    console.debug(event);
+    // console.debug("Event in tick " + tick + ":");
+    // console.debug(event);
     if (event.type === "spawn") {
       fighters.push(event.fighter);
       fighters = fighters;
@@ -249,6 +266,7 @@
       <p>Tick: {@debug tick}</p>
       <p>Fighters: {@debug fighters}</p>
       <p>Last event: {lastEvent}</p> -->
+      <p>{@debug leftCoord, topCoord, zoom, frameWidth, frameHeight}</p>
     {/if}
     {#each fighters as fighter}
       <FighterBattleInfo {fighter} />
@@ -272,6 +290,7 @@
     display: flex;
     justify-content: flex-start;
     align-items: flex-start;
+    /* image-rendering: pixelated;  i thought this would improve performance but it didn't */
     border: 2px solid var(--text-3);
     border-radius: 2rem;
     background-color: var(--text-3);
@@ -322,10 +341,10 @@
     z-index: 1500;
   }
 
-  /* p {
+  p {
     width: 100%;
     overflow-x: hidden;
     white-space: normal;
     word-wrap: break-word;
-  } */
+  }
 </style>
