@@ -17,6 +17,13 @@
   let tickInterval = null;
   let lastEvent: string = "";
   let tickLength: number = 200;  // ticks are 0.2 s long
+  let cameraScale: number = 0.7;
+  let cameraTransformX: number = 0;
+  let cameraTransformY: number = 0;
+  let frameWidth: number;
+  let frameHeight: number;
+
+  const BUFFER_PIXELS = 50;
 
   if (!debug) {
     play();
@@ -39,6 +46,42 @@
     BackswingStart = "-11deg ",
     Backswing = "-11deg",
     ForwardSwing = "30deg"
+  }
+
+  // Set camera transform so all fighters are visible but the camera is as zoomed as possible
+  function setCamera(): void {
+    if (fighters.length === 0) {
+      cameraScale = 0.7;
+      cameraTransformX = 0;
+      cameraTransformY = 0;
+      return;
+    }
+    let left: number, right: number, top: number, bottom: number;
+    for (const f of fighters) {
+      if (left === undefined || f.x < left) {
+        left = f.x;
+      }
+      if (right === undefined || f.x > right) {
+        right = f.x;
+      }
+      if (top === undefined || f.y < top) {
+        top = f.y;
+      }
+      if (bottom === undefined || f.y > bottom) {
+        bottom = f.y;
+      }
+    }
+    const frameAspectRatio = frameWidth / frameHeight;
+    const contentAspectRatio = (right - left + BUFFER_PIXELS * 0.5) / (bottom - top + BUFFER_PIXELS);
+    // if content has wider aspect ratio than the frame, set the zoom based on width
+    // if taller, set based on height
+    if (contentAspectRatio > frameAspectRatio) {
+      cameraScale = 100 / (right - left + BUFFER_PIXELS * 0.5);
+    } else {
+      cameraScale = 100 / (bottom - top + BUFFER_PIXELS);
+    }
+    cameraTransformX = -(right + left - 100) / 2;
+    cameraTransformY = -(bottom + top - 100) / 2;
   }
 
   function enterEvents(): void {
@@ -90,6 +133,7 @@
     } else {
       clearInterval(tickInterval);
     }
+    setCamera();
   }
   
   function restart(): void {
@@ -143,33 +187,36 @@
 </script>
 
 <div class="outer horiz">
-  <div class="arena">
-    {#each fighters as f, i}
-      {#if f.hp > 0}
-        <div class="fighter"
-            style:left={(f.x - 7.5).toFixed(2) + "%"}
-            style:top={(f.y - 7.5).toFixed(2) + "%"}
-            style:transform={`rotate(${rotation[i]})`}
-            style:filter={`sepia(${hitFlashIntensity[i] / 2}) brightness(${1 + hitFlashIntensity[i]})`}
-            style:z-index={10 * f.y}>
-          <FighterImage fighter={f} equipment={f.equipment} inBattle={true} team={f.team} />
-        </div>
-      {/if}
-    {/each}
+  <div class="camera-outer" bind:offsetWidth={frameWidth} bind:offsetHeight={frameHeight}>
+    <div class="camera-inner"
+        style:transform={`scale(${cameraScale}) translate(${cameraTransformX}%, ${cameraTransformY}%)`}>
+      <div class="arena">
+        {#each fighters as f, i}
+          {#if f.hp > 0}
+            <div class="fighter"
+                style:transform={`translate(${f.x * 10}px, ${f.y * 10}px) rotate(${rotation[i]})`}
+                style:filter={`sepia(${hitFlashIntensity[i] / 2}) brightness(${1 + hitFlashIntensity[i]})`}
+                style:z-index={10 * f.y}>
+              <FighterImage fighter={f} equipment={f.equipment} inBattle={true} team={f.team} />
+            </div>
+          {/if}
+        {/each}
 
-    {#each particles as p}
-      {#if p.ticksUntil === 0}
-        {@const f = fighters[p.fighter]}
-        {#if p.type === "text"}
-          <div class="text-particle"
-              style:left={(f.x).toFixed(2) + "%"}
-              style:top={(f.y - 8).toFixed(2) + "%"}
-              out:fade="{{duration: 400}}">
-            {p.text}
-          </div>
-        {/if}
-      {/if}
-    {/each}
+        {#each particles as p}
+          {#if p.ticksUntil === 0}
+            {@const f = fighters[p.fighter]}
+            {#if p.type === "text"}
+              <div class="text-particle"
+                  style:left={(f.x).toFixed(2) + "%"}
+                  style:top={(f.y - 8).toFixed(2) + "%"}
+                  out:fade="{{duration: 400}}">
+                {p.text}
+              </div>
+            {/if}
+          {/if}
+        {/each}
+      </div>
+    </div>
   </div>
   <div class="controls">
     {#if debug}
@@ -203,23 +250,43 @@
     flex: 1;
     padding: 2rem;
     justify-content: stretch;
-    align-items: flex-start;
+    align-items: stretch;
   }
 
+  .camera-outer {
+    width: 65%;
+    margin: 0 1.25rem;
+    overflow: hidden;
+    height: 75vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid var(--text-3);
+    border-radius: 2rem;
+    background-color: var(--text-3);
+  }
+
+  .camera-inner {
+    will-change: transform;
+    transform-origin: center center;
+    transition: all 1s ease-in-out;
+  }
+  
   .arena {
     position: relative;
-    border: 2px solid var(--text-3);
-    border-radius: 20%;
+    width: 1000px;
+    height: 1000px;
     background-color: var(--bg-2);
-    flex: 2;
-    margin-right: 2rem;
-    aspect-ratio: 1;
   }
 
   .fighter {
+    will-change: transform;
     position: absolute;
-    width: 15%;
-    height: 15%;
+    top: -75px;
+    left: -75px;
+    width: 150px;
+    height: 150px;
+    transform-origin: center center;
 
     transition: all 0.2s ease-in-out, filter 0s ease;
   }
