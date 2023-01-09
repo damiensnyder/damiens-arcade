@@ -26,6 +26,8 @@
   let zoom: number = 7;
   let leftCoord: number = 25 - BUFFER_PIXELS;
   let topCoord: number = 25 - BUFFER_PIXELS;
+  let timeOfLastRender: number;
+  let paused: boolean = true;
 
   onMount(() => {
     if (!debug) {
@@ -123,50 +125,61 @@
   }
   
   function play(): void {
-    tickInterval = setInterval(step, tickLength);
+    timeOfLastRender = new Date().getTime() - tickLength;
+    paused = false;
+    setCamera();
+    step();
   }
   
   function pause(): void {
-    clearInterval(tickInterval);
+    paused = true;
   }
   
   function step(): void {
-    if (tick < eventLog.length) {
-      eventLog[tick].forEach(handleEvent);
-      tick++;
-      rotation = rotation.map((prev) => {
-        if (prev === AnimationState.Backswing) {
-          return AnimationState.ForwardSwing;
-        } else if (prev === AnimationState.BackswingStart) {
-          return AnimationState.Backswing;
-        } else if (prev === AnimationState.WalkingStart1) {
-          return AnimationState.Walking1;
-        } else if (prev === AnimationState.WalkingStart2) {
-          return AnimationState.Walking2;
-        } else if (prev === AnimationState.Walking1) {
-          return AnimationState.Stationary2;
-        } else {
-          return AnimationState.Stationary1;
+    if (tick < eventLog.length && !paused) {
+      requestAnimationFrame(() => {
+        if (new Date().getTime() - timeOfLastRender >= tickLength) {
+          renderFrame();
+          timeOfLastRender += tickLength;
         }
-      });
-      hitFlashIntensity = hitFlashIntensity.map(x => x / 4);
-      particles.forEach((p) => {
-        p.ticksUntil--;
-        if (p.type === "text" &&
-            p.text !== "Dodged" &&
-            p.ticksUntil === 0) {
-          hitFlashIntensity[p.fighter] = 1;
-        }
-      });
-      particles = particles.filter(p => p.ticksUntil >= 0);
-    } else {
-      clearInterval(tickInterval);
+        step();
+      })
     }
+  }
+
+  function renderFrame(): void {
+    eventLog[tick].forEach(handleEvent);
+    tick++;
+    rotation = rotation.map((prev) => {
+      if (prev === AnimationState.Backswing) {
+        return AnimationState.ForwardSwing;
+      } else if (prev === AnimationState.BackswingStart) {
+        return AnimationState.Backswing;
+      } else if (prev === AnimationState.WalkingStart1) {
+        return AnimationState.Walking1;
+      } else if (prev === AnimationState.WalkingStart2) {
+        return AnimationState.Walking2;
+      } else if (prev === AnimationState.Walking1) {
+        return AnimationState.Stationary2;
+      } else {
+        return AnimationState.Stationary1;
+      }
+    });
+    hitFlashIntensity = hitFlashIntensity.map(x => x / 4);
+    particles.forEach((p) => {
+      p.ticksUntil--;
+      if (p.type === "text" &&
+          p.text !== "Dodged" &&
+          p.ticksUntil === 0) {
+        hitFlashIntensity[p.fighter] = 1;
+      }
+    });
+    particles = particles.filter(p => p.ticksUntil >= 0);
     setCamera();
   }
   
   function restart(): void {
-    clearInterval(tickInterval);
+    paused = true;
     fighters = [];
     rotation = [];
     flipped = [];
