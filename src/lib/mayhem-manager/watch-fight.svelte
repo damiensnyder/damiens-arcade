@@ -19,7 +19,7 @@
   let particles: Particle[] = [];
   let tick: number = 0;
   let tickInterval = null;
-  let lastEvent: string = "";
+  // let lastEvent: string = "";
   let tickLength: number = 200;  // ticks are 0.2 s long
   let frameWidth: number;
   let frameHeight: number;
@@ -211,7 +211,7 @@
         ticksUntil: 1
       })
     }
-    lastEvent = JSON.stringify(fighters);
+    // lastEvent = JSON.stringify(fighters);
   }
 </script>
 
