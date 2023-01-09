@@ -17,16 +17,18 @@
   let tickInterval = null;
   let lastEvent: string = "";
   let tickLength: number = 200;  // ticks are 0.2 s long
-  let cameraScale: number = 0.7;
-  let cameraTransformX: number = 0;
-  let cameraTransformY: number = 0;
+  let zoom: number = 7;
+  let leftCoord: number = 17;
+  let topCoord: number = 17;
   let frameWidth: number;
   let frameHeight: number;
 
-  const BUFFER_PIXELS = 50;
+  const BUFFER_PIXELS = 8;
 
   if (!debug) {
     play();
+  } else {
+    setCamera();
   }
 
   type Particle = {
@@ -50,38 +52,48 @@
 
   // Set camera transform so all fighters are visible but the camera is as zoomed as possible
   function setCamera(): void {
+    const frameAspectRatio = frameWidth / frameHeight;
     if (fighters.length === 0) {
-      cameraScale = 0.7;
-      cameraTransformX = 0;
-      cameraTransformY = 0;
+      if (frameAspectRatio < 1) {
+        zoom = frameWidth / (50 + 2 * BUFFER_PIXELS);
+        leftCoord = 25 - BUFFER_PIXELS;
+        topCoord = 50 - (25 + BUFFER_PIXELS) / frameAspectRatio;
+      } else {
+        zoom = frameAspectRatio < 1 ? frameWidth / 65 : frameHeight / 65;
+        leftCoord = 50 - (25 + BUFFER_PIXELS) * frameAspectRatio;
+        topCoord = 25 - BUFFER_PIXELS;
+      }
       return;
     }
     let left: number, right: number, top: number, bottom: number;
     for (const f of fighters) {
-      if (left === undefined || f.x < left) {
-        left = f.x;
-      }
-      if (right === undefined || f.x > right) {
-        right = f.x;
-      }
-      if (top === undefined || f.y < top) {
-        top = f.y;
-      }
-      if (bottom === undefined || f.y > bottom) {
-        bottom = f.y;
+      if (f.hp > 0) {
+        if (left === undefined || f.x < left) {
+          left = f.x;
+        }
+        if (right === undefined || f.x > right) {
+          right = f.x;
+        }
+        if (top === undefined || f.y < top) {
+          top = f.y;
+        }
+        if (bottom === undefined || f.y > bottom) {
+          bottom = f.y;
+        }
       }
     }
-    const frameAspectRatio = frameWidth / frameHeight;
-    const contentAspectRatio = (right - left + BUFFER_PIXELS * 0.5) / (bottom - top + BUFFER_PIXELS);
+    const contentAspectRatio = (right - left + 2 * BUFFER_PIXELS) / (bottom - top + 2 * BUFFER_PIXELS);
     // if content has wider aspect ratio than the frame, set the zoom based on width
     // if taller, set based on height
-    if (contentAspectRatio > frameAspectRatio) {
-      cameraScale = 100 / (right - left + BUFFER_PIXELS * 0.5);
+    if (frameAspectRatio < contentAspectRatio) {
+      zoom = frameWidth / (right - left + 2 * BUFFER_PIXELS);
+      leftCoord = left - BUFFER_PIXELS;
+      topCoord = (top + bottom - (right - left + 2 * BUFFER_PIXELS) / frameAspectRatio) / 2;
     } else {
-      cameraScale = 100 / (bottom - top + BUFFER_PIXELS);
+      zoom = frameHeight / (bottom - top + 2 * BUFFER_PIXELS);
+      leftCoord = (right + left - (bottom - top + 2 * BUFFER_PIXELS) * frameAspectRatio) / 2;
+      topCoord = top - BUFFER_PIXELS;
     }
-    cameraTransformX = -(right + left - 100) / 2;
-    cameraTransformY = -(bottom + top - 100) / 2;
   }
 
   function enterEvents(): void {
@@ -187,35 +199,34 @@
 </script>
 
 <div class="outer horiz">
-  <div class="camera-outer" bind:offsetWidth={frameWidth} bind:offsetHeight={frameHeight}>
-    <div class="camera-inner"
-        style:transform={`scale(${cameraScale}) translate(${cameraTransformX}%, ${cameraTransformY}%)`}>
-      <div class="arena">
-        {#each fighters as f, i}
-          {#if f.hp > 0}
-            <div class="fighter"
-                style:transform={`translate(${f.x * 10}px, ${f.y * 10}px) rotate(${rotation[i]})`}
-                style:filter={`sepia(${hitFlashIntensity[i] / 2}) brightness(${1 + hitFlashIntensity[i]})`}
-                style:z-index={10 * f.y}>
-              <FighterImage fighter={f} equipment={f.equipment} inBattle={true} team={f.team} />
+  <div class="viewport" bind:offsetWidth={frameWidth} bind:offsetHeight={frameHeight}>
+    <div class="background"
+        style:transform={`scale(${zoom}) translate(${42 - leftCoord}px, ${42 - topCoord}px)`}>
+    </div>
+    <div class="arena">
+      {#each fighters as f, i}
+        {#if f.hp > 0}
+          <div class="fighter"
+              style:transform={`scale(${zoom}) translate(${(f.x - leftCoord)}px, ${(f.y - topCoord)}px) rotate(${rotation[i]})`}
+              style:filter={`sepia(${hitFlashIntensity[i] / 2}) brightness(${1 + hitFlashIntensity[i]})`}
+              style:z-index={10 * f.y}>
+            <FighterImage fighter={f} equipment={f.equipment} inBattle={true} team={f.team} />
+          </div>
+        {/if}
+      {/each}
+
+      {#each particles as p}
+        {#if p.ticksUntil === 0}
+          {@const f = fighters[p.fighter]}
+          {#if p.type === "text"}
+            <div class="text-particle"
+                style:transform={`scale(${zoom / 10}) translate(${(f.x - leftCoord) * 10}px, ${(f.y - topCoord) * 10 - 65}px)`}
+                out:fade="{{duration: 400}}">
+              {p.text}
             </div>
           {/if}
-        {/each}
-
-        {#each particles as p}
-          {#if p.ticksUntil === 0}
-            {@const f = fighters[p.fighter]}
-            {#if p.type === "text"}
-              <div class="text-particle"
-                  style:left={(f.x).toFixed(2) + "%"}
-                  style:top={(f.y - 8).toFixed(2) + "%"}
-                  out:fade="{{duration: 400}}">
-                {p.text}
-              </div>
-            {/if}
-          {/if}
-        {/each}
-      </div>
+        {/if}
+      {/each}
     </div>
   </div>
   <div class="controls">
@@ -253,42 +264,45 @@
     align-items: stretch;
   }
 
-  .camera-outer {
+  .viewport {
     width: 65%;
     margin: 0 1.25rem;
     overflow: hidden;
     height: 75vh;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    justify-content: flex-start;
+    align-items: flex-start;
     border: 2px solid var(--text-3);
     border-radius: 2rem;
     background-color: var(--text-3);
   }
 
-  .camera-inner {
+  .background {
     will-change: transform;
+    position: absolute;
     transform-origin: center center;
-    transition: all 1s ease-in-out;
+    transition: all 0.17s ease-in-out;
+    top: 0;
+    left: 0;
+    width: 100px;
+    height: 100px;
+    background-color: var(--bg-2);
   }
   
   .arena {
     position: relative;
-    width: 1000px;
-    height: 1000px;
-    background-color: var(--bg-2);
   }
 
   .fighter {
     will-change: transform;
     position: absolute;
-    top: -75px;
-    left: -75px;
-    width: 150px;
-    height: 150px;
+    top: 0;
+    left: 0;
+    width: 15px;
+    height: 15px;
     transform-origin: center center;
 
-    transition: all 0.2s ease-in-out, filter 0s ease;
+    transition: all 0.17s ease-in-out, filter 0s ease;
   }
 
   .controls {
@@ -299,6 +313,9 @@
     position: absolute;
     text-align: center;
     width: 0;
+    top: 0;
+    left: 0;
+    font-size: 15px;
     color: var(--text-1);
     z-index: 1500;
   }
