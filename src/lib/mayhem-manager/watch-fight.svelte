@@ -201,13 +201,13 @@
 <div class="outer horiz">
   <div class="viewport" bind:offsetWidth={frameWidth} bind:offsetHeight={frameHeight}>
     <div class="background"
-        style:transform={`scale(${zoom}) translate(${42 - leftCoord}px, ${42 - topCoord}px)`}>
+        style:transform={`scale(${zoom}) translate3d(${42 - leftCoord}px, ${42 - topCoord}px, 0)`}>
     </div>
     <div class="arena">
       {#each fighters as f, i}
         {#if f.hp > 0}
           <div class="fighter"
-              style:transform={`scale(${zoom}) translate(${(f.x - leftCoord)}px, ${(f.y - topCoord)}px) rotate(${rotation[i]})`}
+              style:transform={`scale(${zoom}) translate3d(${(f.x - leftCoord)}px, ${(f.y - topCoord)}px, 0) rotate(${rotation[i]})`}
               style:filter={`sepia(${hitFlashIntensity[i] / 2}) brightness(${1 + hitFlashIntensity[i]})`}
               style:z-index={10 * f.y}>
             <FighterImage fighter={f} equipment={f.equipment} inBattle={true} team={f.team} />
@@ -220,7 +220,7 @@
           {@const f = fighters[p.fighter]}
           {#if p.type === "text"}
             <div class="text-particle"
-                style:transform={`scale(${zoom / 10}) translate(${(f.x - leftCoord) * 10}px, ${(f.y - topCoord) * 10 - 65}px)`}
+                style:transform={`scale(${zoom / 10}) translate3d(${(f.x - leftCoord) * 10}px, ${(f.y - topCoord) * 10 - 65}px, 0)`}
                 out:fade="{{duration: 400}}">
               {p.text}
             </div>
@@ -279,9 +279,10 @@
 
   .background {
     will-change: transform;
+    backface-visibility: hidden;
     position: absolute;
     transform-origin: center center;
-    transition: all 0.17s ease-in-out;
+    transition: all 0.2s ease-in-out;
     top: 0;
     left: 0;
     width: 100px;
@@ -295,6 +296,7 @@
 
   .fighter {
     will-change: transform;
+    backface-visibility: hidden;
     position: absolute;
     top: 0;
     left: 0;
@@ -302,7 +304,7 @@
     height: 15px;
     transform-origin: center center;
 
-    transition: all 0.17s ease-in-out, filter 0s ease;
+    transition: all 0.2s ease-in-out, filter 0s ease;
   }
 
   .controls {
