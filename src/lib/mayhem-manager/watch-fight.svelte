@@ -7,7 +7,7 @@
   import { onMount } from "svelte";
 
   
-  const BUFFER_PIXELS = 8;
+  const BUFFER_PIXELS = 15;
 
   export let debug: boolean = true;
   let eventLogRaw: string = "";
@@ -18,7 +18,6 @@
   let hitFlashIntensity: number[] = [];
   let particles: Particle[] = [];
   let tick: number = 0;
-  let tickInterval = null;
   // let lastEvent: string = "";
   let tickLength: number = 200;  // ticks are 0.2 s long
   let frameWidth: number;
