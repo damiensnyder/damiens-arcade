@@ -28,6 +28,21 @@
       }]
     },
     {
+      "name": "Sword That You Can Throw Infinitely",
+      "slots": ["hand", "hand"],
+      "imgUrl": "/static/equipment/sword.png",
+      "zoomedImgUrl": "/static/equipment/sword.png",
+      "price": 10,
+      "description": "Base damage 15. Base cooldown 5s.",
+      "flavor": "",
+      "abilities": [{
+        "type": "rangedAttack",
+        "damage": 15,
+        "cooldown": 5,
+        "projectile": "/static/equipment/sword.png"
+      }]
+    },
+    {
       "name": "tank top",
       "slots": ["torso"],
       "imgUrl": "/static/equipment/tank-top.png",

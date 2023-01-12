@@ -127,12 +127,19 @@ export interface Equipment {
 }
 
 export interface AbilityBase {
-  type: "meleeAttack" | "statChange"
+  type: "meleeAttack" | "rangedAttack" | "statChange"
 }
 
 export interface MeleeAttackAbility extends AbilityBase {
   type: "meleeAttack"
   damage: number
+}
+
+export interface RangedAttackAbility extends AbilityBase {
+  type: "rangedAttack"
+  damage: number
+  cooldown: number
+  projectile: string
 }
 
 export interface StatChangeAbility extends AbilityBase {
@@ -141,7 +148,9 @@ export interface StatChangeAbility extends AbilityBase {
   amount: number
 }
 
-export type Ability = MeleeAttackAbility | StatChangeAbility;
+export type Ability = MeleeAttackAbility |
+    RangedAttackAbility |
+    StatChangeAbility;
 
 export interface Map {
   name: string
@@ -377,9 +386,19 @@ interface MFMeleeAttackEvent {
   damage: number
 }
 
+interface MFRangedAttackEvent {
+  type: "rangedAttack"
+  fighter: number
+  target: number
+  missed: boolean
+  damage: number
+  projectile: string
+}
+
 export type MidFightEvent = MFSpawnEvent |
     MFMoveEvent |
-    MFMeleeAttackEvent;
+    MFMeleeAttackEvent |
+    MFRangedAttackEvent;
 
 export type Bracket = {
   left: Bracket
