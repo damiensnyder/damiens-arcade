@@ -37,10 +37,15 @@
   });
 
   type Particle = {
-    fighter: number
     type: "text"
+    fighter: number
     text: string
     ticksUntil: number
+  } | {
+    type: "projectile"
+    fighter: number
+    target: number
+    imgUrl: string
   };
 
   enum AnimationState {
