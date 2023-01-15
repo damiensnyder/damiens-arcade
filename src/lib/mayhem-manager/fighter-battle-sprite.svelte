@@ -2,6 +2,7 @@
   import { type Fighter, type Equipment, EquipmentSlot } from "$lib/mayhem-manager/types";
   import { Sprite } from "svelte-pixi";
   import * as PIXI from "pixi.js";
+    import { onMount } from "svelte";
 
   export let fighter: Fighter;
   export let equipment: Equipment[];
@@ -48,25 +49,27 @@
   );
 
   const skinColorFilter = new PIXI.ColorMatrixFilter();
-  skinColorFilter.hue(25, false);
-  skinColorFilter.brightness(skinColor[0], false);
-  skinColorFilter.saturate(skinColor[1], false);
   const hairColorFilter = new PIXI.ColorMatrixFilter();
-  hairColorFilter.hue(25, false);
-  hairColorFilter.brightness(hairColor[0], false);
-  hairColorFilter.saturate(hairColor[1], false);
   const shirtColorFilter = new PIXI.ColorMatrixFilter();
-  shirtColorFilter.hue(shirtColor[0], false);
-  shirtColorFilter.brightness(shirtColor[1], false);
-  shirtColorFilter.saturate(shirtColor[2], false);
   const shortsColorFilter = new PIXI.ColorMatrixFilter();
-  shortsColorFilter.hue(shortsColor[0], false);
-  shortsColorFilter.brightness(shortsColor[1], false);
-  shortsColorFilter.saturate(shortsColor[2], false);
   const shoesColorFilter = new PIXI.ColorMatrixFilter();
-  shoesColorFilter.hue(shoesColor[0], false);
-  shoesColorFilter.brightness(shoesColor[1], false);
-  shoesColorFilter.saturate(shoesColor[2], false);
+  onMount(() => {
+    skinColorFilter.hue(25, true);
+    skinColorFilter.brightness(skinColor[0], true);
+    skinColorFilter.saturate(skinColor[1], true);
+    hairColorFilter.hue(25, true);
+    hairColorFilter.brightness(hairColor[0], true);
+    hairColorFilter.saturate(hairColor[1], true);
+    shirtColorFilter.hue(shirtColor[0], true);
+    shirtColorFilter.brightness(shirtColor[1], true);
+    shirtColorFilter.saturate(shirtColor[2], true);
+    shortsColorFilter.hue(shortsColor[0], true);
+    shortsColorFilter.brightness(shortsColor[1], true);
+    shortsColorFilter.saturate(shortsColor[2], true);
+    shoesColorFilter.hue(shoesColor[0], true);
+    shoesColorFilter.brightness(shoesColor[1], true);
+    shoesColorFilter.saturate(shoesColor[2], true);
+  });
 </script>
 
 <Sprite texture={PIXI.Texture.from(`/static/base/body_${fighter.gender}1.png`)}

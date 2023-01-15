@@ -1,12 +1,11 @@
 <script lang="ts">
   import type { FighterInBattle, MidFightEvent } from "$lib/mayhem-manager/types";
   import { fightEvents } from "$lib/mayhem-manager/stores";
-  import FighterImage from "$lib/mayhem-manager/fighter-image.svelte";
   import FighterBattleInfo from "$lib/mayhem-manager/fighter-battle-info.svelte";
-  import { fade } from "svelte/transition";
   import { onMount } from "svelte";
+  import { Application, Container, Graphics, onTick, Ticker } from "svelte-pixi";
+  import FighterBattleSprite from "$lib/mayhem-manager/fighter-battle-sprite.svelte";
 
-  
   const BUFFER_PIXELS = 15;
 
   export let debug: boolean = true;
@@ -16,27 +15,19 @@
   let rotation: AnimationState[] = [];
   let flipped: boolean[] = [];
   let hitFlashIntensity: number[] = [];
-  let particles: Particle[] = [];
+  // let particles: Particle[] = [];
   let tick: number = 0;
   // let lastEvent: string = "";
   let tickLength: number = 200;  // ticks are 0.2 s long
   let frameWidth: number;
   let frameHeight: number;
-  let zoom: number = 7;
-  let leftCoord: number = 25 - BUFFER_PIXELS;
-  let topCoord: number = 25 - BUFFER_PIXELS;
-  let timeOfLastRender: number;
+  let cameraScale: number = 7;
+  let cameraX: number = 0;
+  let cameraY: number = 50;
+  let timeSinceLastRender: number = 0;
   let paused: boolean = true;
 
-  onMount(() => {
-    if (!debug) {
-      play();
-    } else {
-      setCamera(1);
-    }
-  });
-
-  type Particle = {
+  /*type Particle = {
     type: "text"
     fighter: number
     text: string
@@ -46,39 +37,53 @@
     fighter: number
     target: number
     imgUrl: string
-  };
+  };*/
 
   enum AnimationState {
-    Stationary1 = "0deg",
-    Stationary2 = "0deg ",
-    WalkingStart1 = "-10deg ",
-    Walking1 = "-10deg",
-    WalkingStart2 = "10deg ",
-    Walking2 = "10deg",
-    BackswingStart = "-11deg ",
-    Backswing = "-11deg",
-    ForwardSwing = "30deg"
+    Stationary1 = 0,
+    Stationary2 = 0.1,
+    WalkingStart1 = -10,
+    Walking1 = -10.1,
+    WalkingStart2 = 10,
+    Walking2 = 10.1,
+    BackswingStart = -11.1,
+    Backswing = -11,
+    ForwardSwing = 30
+  }
+
+  onMount(() => {
+    if (!debug) {
+      play();
+    } else {
+      setCamera();
+    }
+  });
+
+  function doTick(e: CustomEvent) {
+    const delta = e.detail;
+    timeSinceLastRender += delta;
+    if (tick < eventLog.length &&
+        !paused &&
+        timeSinceLastRender >= 1) {
+      renderFrame();
+      tick++;
+      timeSinceLastRender -= 1;
+    }
   }
 
   // Set camera transform so all fighters are visible but the camera is as zoomed as possible.
   // Camera should be centered, and the outermost fighters should be BUFFER_PIXELS from the
   // edge of the camera.
-  // Moves gradually towards the desired position (at a default speed of 10% per tick).
-  function setCamera(speed: number = 0.1): void {
+  function setCamera(): void {
     const frameAspectRatio = frameWidth / frameHeight;
-    console.log(frameWidth, frameHeight);
-    let newLeftCoord: number, newTopCoord: number, newZoom: number;
     if (fighters.filter(f => f.hp > 0).length === 0) {
       if (frameAspectRatio < 1) {
-        newZoom = frameWidth / (50 + 2 * BUFFER_PIXELS);
-        newLeftCoord = 25 - BUFFER_PIXELS;
-        newTopCoord = 50 - (25 + BUFFER_PIXELS) / frameAspectRatio;
+        cameraScale = frameWidth / (50 + 2 * BUFFER_PIXELS);
       } else {
-        newZoom = frameHeight / (50 + 2 * BUFFER_PIXELS);
-        console.log(frameAspectRatio);
-        newLeftCoord = 50 - (25 + BUFFER_PIXELS) * frameAspectRatio;
-        newTopCoord = 25 - BUFFER_PIXELS;
+        cameraScale = frameHeight / (50 + 2 * BUFFER_PIXELS);
       }
+      cameraX = 50;
+      cameraY = 50;
     } else {
       // find the leftmost, rightmost, topmost, and bottommost coordinates a fighter has
       let left: number, right: number, top: number, bottom: number;
@@ -102,21 +107,13 @@
       // if content has wider aspect ratio than the frame, set the zoom based on width
       // if taller, set based on height
       if (frameAspectRatio < contentAspectRatio) {
-        newZoom = frameWidth / (right - left + 2 * BUFFER_PIXELS);
-        newLeftCoord = left - BUFFER_PIXELS;
-        newTopCoord = (top + bottom - (right - left + 2 * BUFFER_PIXELS) / frameAspectRatio) / 2;
+        cameraScale = frameWidth / (right - left + 2 * BUFFER_PIXELS);
       } else {
-        newZoom = frameHeight / (bottom - top + 2 * BUFFER_PIXELS);
-        newLeftCoord = (right + left - (bottom - top + 2 * BUFFER_PIXELS) * frameAspectRatio) / 2;
-        newTopCoord = top - BUFFER_PIXELS;
+        cameraScale = frameHeight / (bottom - top + 2 * BUFFER_PIXELS);
       }
+      cameraX = (right + left) / 2;
+      cameraY = (top + bottom) / 2;
     }
-
-    // update camera based on speed; 10% moves camera 10% of the way to desired position,
-    // 100% moves all the way, 0% doesn't move at all.
-    zoom = zoom * (1 - speed) + newZoom * speed;
-    leftCoord = leftCoord * (1 - speed) + newLeftCoord * speed;
-    topCoord = topCoord * (1 - speed) + newTopCoord * speed;
   }
 
   function enterEvents(): void {
@@ -129,25 +126,19 @@
   }
   
   function play(): void {
-    timeOfLastRender = new Date().getTime() - tickLength;
+    timeSinceLastRender = 0;
     paused = false;
     setCamera();
-    step();
   }
   
   function pause(): void {
     paused = true;
   }
-  
+
   function step(): void {
-    if (tick < eventLog.length && !paused) {
-      requestAnimationFrame(() => {
-        if (new Date().getTime() - timeOfLastRender >= tickLength) {
-          renderFrame();
-          timeOfLastRender += tickLength;
-        }
-        step();
-      })
+    if (tick < eventLog.length) {
+      renderFrame();
+      tick++;
     }
   }
 
@@ -170,7 +161,7 @@
       }
     });
     hitFlashIntensity = hitFlashIntensity.map(x => x / 4);
-    particles.forEach((p) => {
+    /*particles.forEach((p) => {
       p.ticksUntil--;
       if (p.type === "text" &&
           p.text !== "Dodged" &&
@@ -178,17 +169,19 @@
         hitFlashIntensity[p.fighter] = 1;
       }
     });
-    particles = particles.filter(p => p.ticksUntil >= 0);
+    particles = particles.filter(p => p.ticksUntil >= 0);*/
     setCamera();
   }
   
   function restart(): void {
-    paused = true;
+    pause();
     fighters = [];
     rotation = [];
     flipped = [];
-    hitFlashIntensity = []
+    hitFlashIntensity = [];
     tick = 0;
+    timeSinceLastRender = 0;
+    renderFrame();
     play();
   }
 
@@ -221,12 +214,12 @@
     } else if (event.type === "meleeAttack") {
       fighters[event.target].hp -= event.damage;
       rotation[event.fighter] = AnimationState.BackswingStart;
-      particles.push({
+      /* particles.push({
         fighter: event.target,
         type: "text",
         text: event.dodged ? "Dodged" : event.damage.toString(),
         ticksUntil: 1
-      })
+      }) */
     }
     // lastEvent = JSON.stringify(fighters);
   }
@@ -234,34 +227,21 @@
 
 <div class="outer horiz">
   <div class="viewport" bind:offsetWidth={frameWidth} bind:offsetHeight={frameHeight}>
-    <div class="background"
-        style:transform={`scale(${zoom}) translate3d(${42 - leftCoord}px, ${42 - topCoord}px, 0)`}>
-    </div>
-    <div class="arena">
-      {#each fighters as f, i}
-        {#if f.hp > 0}
-          <div class="fighter"
-              style:transform={`scale(${zoom}) translate3d(${(f.x - leftCoord)}px, ${(f.y - topCoord)}px, 0) rotate(${rotation[i]})`}
-              style:filter={`sepia(${hitFlashIntensity[i] / 2}) brightness(${1 + hitFlashIntensity[i]})`}
-              style:z-index={10 * f.y}>
-            <FighterImage fighter={f} equipment={f.equipment} inBattle={true} team={f.team} />
-          </div>
-        {/if}
-      {/each}
-
-      {#each particles as p}
-        {#if p.ticksUntil === 0}
-          {@const f = fighters[p.fighter]}
-          {#if p.type === "text"}
-            <div class="text-particle"
-                style:transform={`scale(${zoom / 10}) translate3d(${(f.x - leftCoord) * 10}px, ${(f.y - topCoord) * 10 - 65}px, 0)`}
-                out:fade="{{duration: 400}}">
-              {p.text}
-            </div>
-          {/if}
-        {/if}
-      {/each}
-    </div>
+    <Application width={frameWidth} height={frameHeight}>
+      <Ticker on:tick={doTick} speed={(1000 / 60) / tickLength} />
+      <Container x={frameWidth / 2} y={frameHeight / 2} pivot={0.5} scale={cameraScale}>
+        <Graphics x={-cameraX} y={-cameraY} pivot={0.5} draw={(graphics) => {
+          graphics.clear();
+          graphics.beginFill(0x555555);
+          graphics.drawRect(0, 0, 100, 100);
+        }} />
+        {#each fighters as f, i}
+          <Container x={f.x - cameraX} y={f.y - cameraY} width={15} height={15} zIndex={f.y} pivot={0.5} angle={rotation[i]} visible={f.hp > 0}>
+            <FighterBattleSprite fighter={f} equipment={f.equipment} />
+          </Container>
+        {/each}
+      </Container>
+    </Application>
   </div>
   <div class="controls">
     {#if debug}
@@ -307,55 +287,13 @@
     display: flex;
     justify-content: flex-start;
     align-items: flex-start;
-    /* image-rendering: pixelated;  i thought this would improve performance but it didn't */
     border: 2px solid var(--text-3);
     border-radius: 2rem;
     background-color: var(--text-3);
   }
 
-  .background {
-    will-change: transform;
-    backface-visibility: hidden;
-    position: absolute;
-    transform-origin: center center;
-    transition: all 0.2s ease-in-out;
-    top: 0;
-    left: 0;
-    width: 100px;
-    height: 100px;
-    background-color: var(--bg-2);
-  }
-  
-  .arena {
-    position: relative;
-  }
-
-  .fighter {
-    will-change: transform;
-    backface-visibility: hidden;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 15px;
-    height: 15px;
-    transform-origin: center center;
-
-    transition: all 0.2s ease-in-out, filter 0s ease;
-  }
-
   .controls {
     flex: 1;
-  }
-
-  .text-particle {
-    position: absolute;
-    text-align: center;
-    width: 0;
-    top: 0;
-    left: 0;
-    font-size: 15px;
-    color: var(--text-1);
-    z-index: 1500;
   }
 
   /* p {
