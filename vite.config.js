@@ -69,6 +69,9 @@ const roomManagerMiddleware = {
 /** @type {import('vite').UserConfig} */
 const config = {
 	envPrefix: "BACKEND_",
+	optimizeDeps: {
+		include: ["pixi.js"]
+	},
 	plugins: [
 		roomManagerMiddleware,
 		sveltekit({ configFile: "svelte.config.js" }),
