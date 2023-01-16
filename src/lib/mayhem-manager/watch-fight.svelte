@@ -140,7 +140,7 @@
 <div class="outer horiz">
   <div class="viewport" bind:offsetWidth={frameWidth} bind:offsetHeight={frameHeight}>
     {#if loaded}
-      <Application width={frameWidth} height={frameHeight} antialias>
+      <Application width={frameWidth} height={frameHeight} antialias={true}>
         <Ticker on:tick={doTick} speed={(1000 / 60) / tickLength} />
         <Container x={frameWidth / 2} y={frameHeight / 2} pivot={0.5} scale={cameraScale}>
           <Graphics x={-cameraX} y={-cameraY} pivot={0.5} draw={(graphics) => {
@@ -155,14 +155,18 @@
               </Container>
             {/if}
           {/each}
-          <!--{#each particles as p}
+          {#each particles as p}
             {#if p.type === "image"}
               <Sprite texture={PIXI.Texture.from(p.imgUrl)}
-                  x={p.x} y={p.y} height={15} width={15} anchor={0.5} zIndex={p.y} rotation={p.rotation} />
+                  x={p.x - cameraX} y={p.y - cameraY} height={15} width={15} anchor={0.5} zIndex={p.y} rotation={p.rotation} />
             {:else}
-              <Text text={p.text} x={p.x} y={p.y} height={15} width={15} alpha={p.opacity} />
+              <Text text={p.text} x={p.x - cameraX} y={p.y - cameraY} anchor={0.5} zIndex={1001} alpha={p.opacity} scale={1/16} style={{
+                fill: 0xeeeeee,
+                fontFamily: "Comic Sans MS",
+                fontSize: 32  // we do big text and then downscale it so it's not blurry
+              }} />
             {/if}
-          {/each}-->
+          {/each}
         </Container>
       </Application>
     {/if}

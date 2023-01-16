@@ -39,7 +39,7 @@
         "type": "rangedAttack",
         "damage": 15,
         "cooldown": 5,
-        "projectile": "/static/equipment/sword.png"
+        "projectileImg": "/static/equipment/sword.png"
       }]
     },
     {

@@ -126,7 +126,7 @@ export default class AnimationState {
             type: "text",
             text: event.dodged ? "Dodged" : event.damage.toString(),
             x: this.nextFighters[t].x,
-            y: this.nextFighters[t].y + 8,
+            y: this.nextFighters[t].y - 7,  // moved up to be just over the fighter's head
             opacity: 1
           });
           if (!event.dodged) this.nextHitFlashIntensity[t] = 1;
@@ -146,7 +146,7 @@ export default class AnimationState {
             type: "text",
             text: event.missed ? "Missed" : event.damage.toString(),
             x: t.x,
-            y: t.y,
+            y: t.y - 7,
             opacity: 1
           });
           if (!event.missed) this.nextHitFlashIntensity[event.target] = 1;
