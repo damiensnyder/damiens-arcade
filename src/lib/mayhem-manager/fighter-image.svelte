@@ -13,9 +13,9 @@
   $: feet = equipment.filter(e => e.slots.includes(EquipmentSlot.Feet));
 
   function pseudorandomFrom<T>(arr: T[], seed1: number, seed2: number, seed3: number): T {
-    seed1 = Math.abs(seed1);
-    seed2 = Math.abs(seed2);
-    seed3 = Math.abs(seed3);
+    seed1++;
+    seed2++;
+    seed3++;
     return arr[
       (seed1 + seed2 + seed3 + seed1 * seed2 + seed1 * seed3 + seed2 * seed3)
       % arr.length
