@@ -2,18 +2,24 @@
 import type { FighterInBattle, MFMeleeAttackEvent, MFMoveEvent, MFRangedAttackEvent, MFSpawnEvent, MidFightEvent } from "$lib/mayhem-manager/types";
 
 interface TextParticle {
-  fighter: number
+  type: "text"
+  x: number
+  y: number
   text: string
   opacity: number
 }
 
 interface ImageParticle {
+  type: "image"
   x: number
   y: number
-  rotation: number
+  destX?: number
+  destY?: number
+  rotation?: number
   imgUrl: string
-  done: boolean
 }
+
+export type Particle = TextParticle | ImageParticle;
 
 enum RotationState {
   Stationary1 = 0,
@@ -36,14 +42,12 @@ export default class AnimationState {
   rotation: RotationState[];
   flipped: boolean[];
   hitFlashIntensity: number[];
-  textParticles: TextParticle[];
-  imageParticles: ImageParticle[];
+  particles: Particle[];
   nextFighters: FighterInBattle[];
   nextRotation: RotationState[];
   nextFlipped: boolean[];
   nextHitFlashIntensity: number[];
-  nextTextParticles: TextParticle[];
-  nextImageParticles: ImageParticle[];
+  nextParticles: Particle[];
 
   constructor(eventLog: MidFightEvent[][]) {
     this.eventLog = eventLog;
@@ -52,120 +56,119 @@ export default class AnimationState {
     this.rotation = [];
     this.flipped = [];
     this.hitFlashIntensity = [];
-    this.textParticles = [];
-    this.imageParticles = [];
+    this.particles = [];
     this.nextFighters = [];
     this.nextRotation = [];
     this.nextFlipped = [];
     this.nextHitFlashIntensity = [];
-    this.nextTextParticles = [];
-    this.nextImageParticles = [];
+    this.nextParticles = [];
   }
 
+  // Figure out what the next tick is going to look like so we can interpolate between the current
+  // tick and the next one.
   prepareTick(): void {
     this.fighters = this.nextFighters.slice();
     this.rotation = this.nextRotation.slice();
     this.flipped = this.nextFlipped.slice();
     this.hitFlashIntensity = this.nextHitFlashIntensity.slice();
-    this.textParticles = this.nextTextParticles.slice();
-    this.imageParticles = this.nextImageParticles.slice();
+    this.particles = this.nextParticles.slice();
+    this.nextParticles = this.nextParticles.filter(p => p.type === "text" && p.opacity > 0.5)
+        .map(p => { return { ...p, opacity: (p as TextParticle).opacity - 0.5 } });
     if (this.tick < this.eventLog.length - 1) {
       this.tick++;
     }
     const nextTick = this.eventLog[this.tick];
     this.nextHitFlashIntensity = this.nextHitFlashIntensity.map(i => Math.min(i - 0.5, 0));
-    for (let event of nextTick) {
-      if (event.type === "spawn") {
-        event = event as MFSpawnEvent
-        this.nextFighters.push(event.fighter);
-        this.rotation.push(RotationState.Stationary1);
-        this.flipped.push(false);
-        this.hitFlashIntensity.push(0);
-      } else if (event.type === "move") {
-        event = event as MFMoveEvent;
-        const f: number = event.fighter;
-        this.nextFlipped[f] = event.x > this.nextFighters[f].x;
-        this.nextFighters[f] = {
-          ...this.nextFighters[f],
-          x: event.x,
-          y: event.y
-        };
-        if (f < this.rotation.length) {
-          const prevRotation = this.rotation[event.fighter];
-          if (prevRotation === RotationState.Stationary1) {
-            this.nextRotation[f] = RotationState.WalkingStart1;
-          } else if (prevRotation === RotationState.WalkingStart1) {
-            this.nextRotation[f] = RotationState.Walking1;
-          } else if (prevRotation === RotationState.Walking1) {
-            this.nextRotation[f] = RotationState.Stationary2;
-          } else if (prevRotation === RotationState.Stationary2) {
-            this.nextRotation[f] = RotationState.WalkingStart2;
-          } else if (prevRotation === RotationState.WalkingStart2) {
-            this.nextRotation[f] = RotationState.Walking2;
-          } else if (prevRotation === RotationState.Walking2 ||
-              prevRotation === RotationState.ForwardSwing ||
-              prevRotation === RotationState.Aim) {
-            this.nextRotation[f] = RotationState.Stationary1;
-          }
-        }
-      } else if (event.type === "meleeAttack") {
-        event = event as MFMeleeAttackEvent;
-        const f: number = event.fighter;
-        const t: number = event.target;
-        this.nextRotation[f] = RotationState.ForwardSwing;
-        this.nextFighters[t] = {
-          ...this.nextFighters[t],
-          hp: this.nextFighters[t].hp - event.damage
-        }
-        this.nextParticles.push({
-          type: "text",
-          text: event.dodged ? "Dodged" : event.damage.toString(),
-          fighter: event.target,
-          opacity: 1
-        });
-        if (!event.dodged) this.nextHitFlashIntensity[t] = 1;
-      } else if (event.type === "rangedAttack") {
-        event = event as MFRangedAttackEvent;
-        const f = this.fighters[event.fighter];
-        const t = this.nextFighters[event.target];
-        this.imageParticles.push({
-          imgUrl: event.projectileImg,
-          rotation: Math.atan2(t.x - f.x, t.y - f.y),
-          x: f.x,
-          y: f.y,
-          done: false
-        });
-        this.nextImageParticles.push({
-          imgUrl: event.projectileImg,
-          rotation: Math.atan2(t.x - f.x, t.y - f.y),
-          x: t.x,
-          y: t.y,
-          done: true
-        });
-        this.nextTextParticles.push({
-          type: "text",
-          text: event.missed ? "Missed" : event.damage.toString(),
-          fighter: event.target,
-          opacity: 1
-        });
-        if (!event.missed) this.nextHitFlashIntensity[event.target] = 1;
-      }
 
-      // cycle through attack animation if in one
-      this.nextRotation = this.nextRotation.map((r) => {
-        if (r === RotationState.BackswingStart) {
-          return RotationState.Backswing;
-        } else if (r === RotationState.AimStart) {
-          return RotationState.Aim
-        } else if (r === RotationState.Backswing) {
-          return RotationState.ForwardSwing;
-        } else if (r === RotationState.ForwardSwing ||
-            r === RotationState.Aim) {
-          return RotationState.Stationary1;
+    if (this.tick < this.eventLog.length - 1) {
+      for (let event of nextTick) {
+        if (event.type === "spawn") {
+          event = event as MFSpawnEvent
+          this.nextFighters.push(event.fighter);
+          this.rotation.push(RotationState.Stationary1);
+          this.flipped.push(false);
+          this.hitFlashIntensity.push(0);
+        } else if (event.type === "move") {
+          event = event as MFMoveEvent;
+          const f: number = event.fighter;
+          this.nextFlipped[f] = event.x > this.nextFighters[f].x;
+          this.nextFighters[f] = {
+            ...this.nextFighters[f],
+            x: event.x,
+            y: event.y
+          };
+          if (f < this.rotation.length) {
+            const prevRotation = this.rotation[event.fighter];
+            if (prevRotation === RotationState.Stationary1) {
+              this.nextRotation[f] = RotationState.WalkingStart1;
+            } else if (prevRotation === RotationState.WalkingStart1) {
+              this.nextRotation[f] = RotationState.Walking1;
+            } else if (prevRotation === RotationState.Walking1) {
+              this.nextRotation[f] = RotationState.Stationary2;
+            } else if (prevRotation === RotationState.Stationary2) {
+              this.nextRotation[f] = RotationState.WalkingStart2;
+            } else if (prevRotation === RotationState.WalkingStart2) {
+              this.nextRotation[f] = RotationState.Walking2;
+            } else if (prevRotation === RotationState.Walking2 ||
+                prevRotation === RotationState.ForwardSwing ||
+                prevRotation === RotationState.Aim) {
+              this.nextRotation[f] = RotationState.Stationary1;
+            }
+          }
+        } else if (event.type === "meleeAttack") {
+          event = event as MFMeleeAttackEvent;
+          const t: number = event.target;
+          this.nextFighters[t] = {
+            ...this.nextFighters[t],
+            hp: this.nextFighters[t].hp - event.damage
+          }
+          this.nextParticles.push({
+            type: "text",
+            text: event.dodged ? "Dodged" : event.damage.toString(),
+            x: this.nextFighters[t].x,
+            y: this.nextFighters[t].y + 8,
+            opacity: 1
+          });
+          if (!event.dodged) this.nextHitFlashIntensity[t] = 1;
+        } else if (event.type === "rangedAttack") {
+          event = event as MFRangedAttackEvent;
+          const f = this.fighters[event.fighter];
+          const t = this.nextFighters[event.target];
+          this.particles.push({
+            type: "image",
+            x: f.x,
+            y: f.y,
+            destX: t.x,
+            destY: t.y,
+            imgUrl: event.projectileImg
+          });
+          this.nextParticles.push({
+            type: "text",
+            text: event.missed ? "Missed" : event.damage.toString(),
+            x: t.x,
+            y: t.y,
+            opacity: 1
+          });
+          if (!event.missed) this.nextHitFlashIntensity[event.target] = 1;
         }
-        return r;
-      });
+      }
     }
+
+    // cycle through attack animation if in one
+    this.nextRotation = this.nextRotation.map((r) => {
+      if (r === RotationState.BackswingStart) {
+        return RotationState.Backswing;
+      } else if (r === RotationState.AimStart) {
+        return RotationState.Aim
+      } else if (r === RotationState.Backswing) {
+        return RotationState.ForwardSwing;
+      } else if (r === RotationState.ForwardSwing ||
+          r === RotationState.Aim) {
+        return RotationState.Stationary1;
+      }
+      return r;
+    });
+
     // start animations for swings and aiming 2 ticks in advance
     if (this.tick < this.eventLog.length - 2) {
       const tick2Away = this.eventLog[this.tick + 2];
@@ -178,5 +181,68 @@ export default class AnimationState {
         this.nextRotation[e.fighter] = RotationState.AimStart;
       });
     }
+  }
+
+  // Fighters with correct coordinate interpolation
+  getFighters(delta: number): FighterInBattle[] {
+    return this.fighters.map((f1, i) => {
+      const f2 = this.nextFighters[i];
+      return {
+        ...f1,
+        x: f2.x * delta + f1.x * (1 - delta),
+        y: f2.y * delta + f1.y * (1 - delta)
+      };
+    });
+  }
+
+  // Rotation with correct interpolation
+  getRotation(delta: number): number[] {
+    return this.rotation.map((r1, i) => {
+      const r2 = this.nextRotation[i];
+      return r2 * delta + r1 * (1 - delta);
+    });
+  }
+
+  // Flippedness with correct interpolation
+  getFlipped(delta: number): number[] {
+    return this.flipped.map((f1, i) => {
+      const f2 = this.nextFlipped[i];
+      return (f2 ? 1 : -1) * delta + (f1 ? 1 : -1) * (1 - delta);
+    });
+  }
+
+  // Flippedness with correct interpolation
+  getHitFlashIntensity(delta: number): number[] {
+    return this.hitFlashIntensity.map((h1, i) => {
+      const h2 = this.nextHitFlashIntensity[i];
+      return h2 * delta + h1 * (1 - delta);
+    });
+  }
+
+  // Flippedness with correct interpolation
+  getParticles(delta: number): Particle[] {
+    const projectiles: ImageParticle[] = this.particles.filter(p => p.type === "image")
+        .map((p) => {
+      p = p as ImageParticle;
+      return {
+        type: "image",
+        x: p.destX * delta + p.x * (1 - delta),
+        y: p.destY * delta + p.y * (1 - delta),
+        rotation: Math.atan2(p.destX - p.x, p.destY - p.y),
+        imgUrl: p.imgUrl
+      };
+    });
+    const text: TextParticle[] = this.particles.filter(p => p.type === "text")
+        .map((p) => {
+      p = p as TextParticle;
+      return {
+        type: "text",
+        x: p.x,
+        y: p.y,
+        text: p.text,
+        opacity: (p.opacity - 0.5) * delta + p.opacity * (1 - delta)
+      };
+    });
+    return (projectiles as Particle[]).concat(text);
   }
 }

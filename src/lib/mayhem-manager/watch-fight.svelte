@@ -3,20 +3,22 @@
   import { fightEvents } from "$lib/mayhem-manager/stores";
   import FighterBattleInfo from "$lib/mayhem-manager/fighter-battle-info.svelte";
   import { onMount } from "svelte";
-  import { Application, Container, Graphics, onTick, Ticker } from "svelte-pixi";
+  import { Application, Container, Graphics, onTick, Sprite, Text, Ticker } from "svelte-pixi";
   import FighterBattleSprite from "$lib/mayhem-manager/fighter-battle-sprite.svelte";
+  import AnimationState, { type Particle } from "$lib/mayhem-manager/animation-state";
+  import * as PIXI from "pixi.js";
 
   const BUFFER_PIXELS = 15;
 
   export let debug: boolean = true;
   let eventLogRaw: string = "";
   let eventLog: MidFightEvent[][] = debug ? [] : $fightEvents;
+  $: animationState = new AnimationState(eventLog);
   let fighters: FighterInBattle[] = [];
-  let rotation: AnimationState[] = [];
-  let flipped: boolean[] = [];
+  let rotation: number[] = [];
+  let flipped: number[] = [];
   let hitFlashIntensity: number[] = [];
-  // let particles: Particle[] = [];
-  let tick: number = 0;
+  let particles: Particle[] = [];
   // let lastEvent: string = "";
   let tickLength: number = 200;  // ticks are 0.2 s long
   let frameWidth: number;
@@ -24,34 +26,12 @@
   let cameraScale: number = 7;
   let cameraX: number = 0;
   let cameraY: number = 50;
-  let timeSinceLastRender: number = 0;
+  let tickDelta: number = 0;
   let paused: boolean = true;
-
-  /*type Particle = {
-    type: "text"
-    fighter: number
-    text: string
-    ticksUntil: number
-  } | {
-    type: "projectile"
-    fighter: number
-    target: number
-    imgUrl: string
-  };*/
-
-  enum AnimationState {
-    Stationary1 = 0,
-    Stationary2 = 0.1,
-    WalkingStart1 = -10,
-    Walking1 = -10.1,
-    WalkingStart2 = 10,
-    Walking2 = 10.1,
-    BackswingStart = -11.1,
-    Backswing = -11,
-    ForwardSwing = 30
-  }
+  let loaded: boolean = false;  // keeps pixi canvas from existing before its size is known
 
   onMount(() => {
+    loaded = true;
     if (!debug) {
       play();
     } else {
@@ -61,14 +41,23 @@
 
   function doTick(e: CustomEvent) {
     const delta = e.detail;
-    timeSinceLastRender += delta;
-    if (tick < eventLog.length &&
-        !paused &&
-        timeSinceLastRender >= 1) {
+    if (!paused) {
+      tickDelta += delta;
+      if (tickDelta > 1) {
+        animationState.prepareTick();
+        tickDelta -= 1;
+      }
       renderFrame();
-      tick++;
-      timeSinceLastRender -= 1;
     }
+  }
+
+  function renderFrame(): void {
+    fighters = animationState.getFighters(tickDelta);
+    rotation = animationState.getRotation(tickDelta);
+    flipped = animationState.getFlipped(tickDelta);
+    hitFlashIntensity = animationState.getHitFlashIntensity(tickDelta);
+    particles = animationState.getParticles(tickDelta);
+    setCamera();
   }
 
   // Set camera transform so all fighters are visible but the camera is as zoomed as possible.
@@ -119,14 +108,13 @@
   function enterEvents(): void {
     try {
       eventLog = JSON.parse("[" + eventLogRaw.replaceAll("][", "],[") + "]");
-      tick = 0;
     } catch (e) {
       window.alert("Error: Could not parse events.");
     }
   }
   
   function play(): void {
-    timeSinceLastRender = 0;
+    tickDelta = 0;
     paused = false;
     setCamera();
   }
@@ -136,112 +124,48 @@
   }
 
   function step(): void {
-    if (tick < eventLog.length) {
-      renderFrame();
-      tick++;
-    }
-  }
-
-  function renderFrame(): void {
-    eventLog[tick].forEach(handleEvent);
-    tick++;
-    rotation = rotation.map((prev) => {
-      if (prev === AnimationState.Backswing) {
-        return AnimationState.ForwardSwing;
-      } else if (prev === AnimationState.BackswingStart) {
-        return AnimationState.Backswing;
-      } else if (prev === AnimationState.WalkingStart1) {
-        return AnimationState.Walking1;
-      } else if (prev === AnimationState.WalkingStart2) {
-        return AnimationState.Walking2;
-      } else if (prev === AnimationState.Walking1) {
-        return AnimationState.Stationary2;
-      } else {
-        return AnimationState.Stationary1;
-      }
-    });
-    hitFlashIntensity = hitFlashIntensity.map(x => x / 4);
-    /*particles.forEach((p) => {
-      p.ticksUntil--;
-      if (p.type === "text" &&
-          p.text !== "Dodged" &&
-          p.ticksUntil === 0) {
-        hitFlashIntensity[p.fighter] = 1;
-      }
-    });
-    particles = particles.filter(p => p.ticksUntil >= 0);*/
-    setCamera();
+    animationState.prepareTick();
+    renderFrame();
   }
   
   function restart(): void {
     pause();
-    fighters = [];
-    rotation = [];
-    flipped = [];
-    hitFlashIntensity = [];
-    tick = 0;
-    timeSinceLastRender = 0;
+    tickDelta = 0;
+    animationState = new AnimationState(eventLog);
     renderFrame();
     play();
-  }
-
-  function handleEvent(event: MidFightEvent): void {
-    // console.debug("Event in tick " + tick + ":");
-    // console.debug(event);
-    if (event.type === "spawn") {
-      fighters.push(event.fighter);
-      fighters = fighters;
-      rotation.push(AnimationState.Stationary1);
-      rotation = rotation;
-      flipped.push(false);
-      hitFlashIntensity.push(0);
-    } else if (event.type === "move") {
-      // make them face the direction they are going
-      flipped[event.fighter] = fighters[event.fighter].x < event.x;
-
-      // move them to their new coordinates
-      fighters[event.fighter].x = event.x;
-      fighters[event.fighter].y = event.y;
-
-      // update their rotation
-      if (rotation[event.fighter] !== AnimationState.Stationary2 &&
-          rotation[event.fighter] !== AnimationState.Walking1 &&
-          rotation[event.fighter] !== AnimationState.Walking2) {
-        rotation[event.fighter] = AnimationState.WalkingStart1;
-      } else if (rotation[event.fighter] === AnimationState.Stationary2) {
-        rotation[event.fighter] = AnimationState.WalkingStart2;
-      }
-    } else if (event.type === "meleeAttack") {
-      fighters[event.target].hp -= event.damage;
-      rotation[event.fighter] = AnimationState.BackswingStart;
-      /* particles.push({
-        fighter: event.target,
-        type: "text",
-        text: event.dodged ? "Dodged" : event.damage.toString(),
-        ticksUntil: 1
-      }) */
-    }
-    // lastEvent = JSON.stringify(fighters);
   }
 </script>
 
 <div class="outer horiz">
   <div class="viewport" bind:offsetWidth={frameWidth} bind:offsetHeight={frameHeight}>
-    <Application width={frameWidth} height={frameHeight}>
-      <Ticker on:tick={doTick} speed={(1000 / 60) / tickLength} />
-      <Container x={frameWidth / 2} y={frameHeight / 2} pivot={0.5} scale={cameraScale}>
-        <Graphics x={-cameraX} y={-cameraY} pivot={0.5} draw={(graphics) => {
-          graphics.clear();
-          graphics.beginFill(0x555555);
-          graphics.drawRect(0, 0, 100, 100);
-        }} />
-        {#each fighters as f, i}
-          <Container x={f.x - cameraX} y={f.y - cameraY} width={15} height={15} zIndex={f.y} pivot={0.5} angle={rotation[i]} visible={f.hp > 0}>
-            <FighterBattleSprite fighter={f} equipment={f.equipment} />
-          </Container>
-        {/each}
-      </Container>
-    </Application>
+    {#if loaded}
+      <Application width={frameWidth} height={frameHeight} antialias>
+        <Ticker on:tick={doTick} speed={(1000 / 60) / tickLength} />
+        <Container x={frameWidth / 2} y={frameHeight / 2} pivot={0.5} scale={cameraScale}>
+          <Graphics x={-cameraX} y={-cameraY} pivot={0.5} draw={(graphics) => {
+            graphics.clear();
+            graphics.beginFill(0x555555);
+            graphics.drawRect(0, 0, 100, 100);
+          }} />
+          {#each fighters as f, i}
+            {#if f.hp > 0}
+              <Container x={f.x - cameraX} y={f.y - cameraY} width={15} height={15} zIndex={f.y} pivot={0.5} angle={rotation[i]}>
+                <FighterBattleSprite fighter={f} equipment={f.equipment} />
+              </Container>
+            {/if}
+          {/each}
+          <!--{#each particles as p}
+            {#if p.type === "image"}
+              <Sprite texture={PIXI.Texture.from(p.imgUrl)}
+                  x={p.x} y={p.y} height={15} width={15} anchor={0.5} zIndex={p.y} rotation={p.rotation} />
+            {:else}
+              <Text text={p.text} x={p.x} y={p.y} height={15} width={15} alpha={p.opacity} />
+            {/if}
+          {/each}-->
+        </Container>
+      </Application>
+    {/if}
   </div>
   <div class="controls">
     {#if debug}
