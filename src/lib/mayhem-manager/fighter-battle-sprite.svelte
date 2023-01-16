@@ -1,12 +1,11 @@
 <script lang="ts">
-  import { type Fighter, type Equipment, EquipmentSlot } from "$lib/mayhem-manager/types";
+  import { type Equipment, EquipmentSlot, type FighterInBattle } from "$lib/mayhem-manager/types";
   import { Sprite } from "svelte-pixi";
   import * as PIXI from "pixi.js";
-    import { onMount } from "svelte";
+  import { onMount } from "svelte";
 
-  export let fighter: Fighter;
+  export let fighter: FighterInBattle;
   export let equipment: Equipment[];
-  export let team: number = -1;
 
   $: head = equipment.filter(e => e.slots.includes(EquipmentSlot.Head));
   $: torso = equipment.filter(e => e.slots.includes(EquipmentSlot.Torso));
@@ -15,37 +14,36 @@
   $: feet = equipment.filter(e => e.slots.includes(EquipmentSlot.Feet));
 
   function pseudorandomFrom<T>(arr: T[], seed1: number, seed2: number, seed3: number): T {
+    seed1 = Math.abs(seed1);
+    seed2 = Math.abs(seed2);
+    seed3 = Math.abs(seed3);
     return arr[
       (seed1 + seed2 + seed3 + seed1 * seed2 + seed1 * seed3 + seed2 * seed3)
       % arr.length
     ];
   }
 
-  const HAIR_COLORS = [[0.1, 0], [0.1, 0.1], [0.2, 0.3], [0.4, 0.4], [0.5, 0.5], [0.5, 0.8],
-                       [0.8, 0.3], [2, 0.5], [4, 0.4], [5, 0.1]];
+  const HAIR_COLORS = [[6, 6, 6], [7, 6, 5], [21, 10, 8], [47, 17, 15], [67, 20, 17], [90, 15, 10],
+                       [83, 38, 34], [167, 62, 46], [168, 99, 70], [139, 123, 114]];
   $: hairColor = pseudorandomFrom(
-    HAIR_COLORS, fighter.name.length, fighter.description.length, fighter.stats.accuracy
+    HAIR_COLORS, fighter.name.length, fighter.description.length, fighter.name.indexOf("e")
   );
 
-  const SKIN_COLORS = [[0.3, 1], [0.5, 0.8], [1, 0.6], [1.5, 0.5], [2, 0.3], [3, 0.4],
-                      [5, 0.5], [7, 0.4], [8, 0.4], [10, 0.3]];
+  const SKIN_COLORS = [[63, 7, 2], [90, 15, 10], [150, 37, 30], [163, 54, 43], [133, 70, 60], [159, 82, 61],
+                      [188, 113, 68], [194, 148, 97], [202, 164, 105], [214, 197, 141]];
   $: skinColor = pseudorandomFrom(
-    SKIN_COLORS, fighter.name.length, fighter.description.length, fighter.stats.energy
+    SKIN_COLORS, fighter.name.length, fighter.name.indexOf("a"), fighter.description.length
   );
 
-  const SHIRT_COLORS = [[0, 0.7, 1], [0, 0, 1], [255, 0.2, 2], [120, 0.5, 1], [0, 10, 0], [240, 2, 0.5]];
-  $: shirtColor = team === -1 ? pseudorandomFrom(
-    SHIRT_COLORS, fighter.name.length, fighter.description.length, fighter.stats.reflexes
-  ) : SHIRT_COLORS[team % SHIRT_COLORS.length];
+  const SHIRT_COLORS = [[176, 6, 15], [0, 0, 0], [12, 9, 89], [3, 55, 4], [54, 54, 54], [5, 11, 30]];
+  $: shirtColor = SHIRT_COLORS[fighter.team % SHIRT_COLORS.length];
 
-  const SHORTS_COLORS = [[0, 0, 1], [240, 0.2, 2], [200, 0.5, 1], [0, 10, 1], [240, 2, 0.5]];
-  $: shortsColor = team === -1 ? pseudorandomFrom(
-    SHORTS_COLORS, fighter.name.length, fighter.description.length, fighter.stats.speed
-  ) : SHORTS_COLORS[team % SHORTS_COLORS.length];
+  const SHORTS_COLORS = [[0, 0, 0], [1, 14, 89], [3, 47, 86], [252, 13, 27], [5, 11, 30]];
+  $: shortsColor = SHORTS_COLORS[fighter.team % SHORTS_COLORS.length];
 
-  const SHOES_COLORS = [[0, 10, 1], [0, 0, 1], [0, 0.5, 1], [240, 0.2, 0.5], [200, 0.5, 0.5]];
+  const SHOES_COLORS = [[91, 31, 31], [0, 0, 0], [126, 3, 8], [5, 11, 30], [21, 43, 62]];
   $: shoesColor = pseudorandomFrom(
-    SHOES_COLORS, fighter.name.length, fighter.description.length, fighter.stats.strength
+    SHOES_COLORS, fighter.name.length, fighter.name.indexOf("t"), fighter.name.indexOf("o")
   );
 
   const skinColorFilter = new PIXI.ColorMatrixFilter();
@@ -54,21 +52,26 @@
   const shortsColorFilter = new PIXI.ColorMatrixFilter();
   const shoesColorFilter = new PIXI.ColorMatrixFilter();
   onMount(() => {
-    skinColorFilter.hue(25, true);
-    skinColorFilter.brightness(skinColor[0], true);
-    skinColorFilter.saturate(skinColor[1], true);
-    hairColorFilter.hue(25, true);
-    hairColorFilter.brightness(hairColor[0], true);
-    hairColorFilter.saturate(hairColor[1], true);
-    shirtColorFilter.hue(shirtColor[0], true);
-    shirtColorFilter.brightness(shirtColor[1], true);
-    shirtColorFilter.saturate(shirtColor[2], true);
-    shortsColorFilter.hue(shortsColor[0], true);
-    shortsColorFilter.brightness(shortsColor[1], true);
-    shortsColorFilter.saturate(shortsColor[2], true);
-    shoesColorFilter.hue(shoesColor[0], true);
-    shoesColorFilter.brightness(shoesColor[1], true);
-    shoesColorFilter.saturate(shoesColor[2], true);
+    skinColorFilter.matrix = [skinColor[0] / 255, 0, 0, 0, 0,
+                              skinColor[1] / 255, 0, 0, 0, 0,
+                              skinColor[2] / 255, 0, 0, 0, 0,
+                              0, 0, 0, 1, 0];
+    hairColorFilter.matrix = [hairColor[0] / 255, 0, 0, 0, 0,
+                              hairColor[1] / 255, 0, 0, 0, 0,
+                              hairColor[2] / 255, 0, 0, 0, 0,
+                              0, 0, 0, 1, 0];
+    shirtColorFilter.matrix = [shirtColor[0] / 255, 0, 0, 0, 0,
+                               shirtColor[1] / 255, 0, 0, 0, 0,
+                               shirtColor[2] / 255, 0, 0, 0, 0,
+                               0, 0, 0, 1, 0];
+    shortsColorFilter.matrix = [shortsColor[0] / 255, 0, 0, 0, 0,
+                                shortsColor[1] / 255, 0, 0, 0, 0,
+                                shortsColor[2] / 255, 0, 0, 0, 0,
+                                0, 0, 0, 1, 0];
+    shoesColorFilter.matrix = [shoesColor[0] / 255, 0, 0, 0, 0,
+                               shoesColor[1] / 255, 0, 0, 0, 0,
+                               shoesColor[2] / 255, 0, 0, 0, 0,
+                               0, 0, 0, 1, 0];
   });
 </script>
 
