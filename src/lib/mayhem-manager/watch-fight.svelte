@@ -150,7 +150,15 @@
           }} />
           {#each fighters as f, i}
             {#if f.hp > 0}
-              <Container x={f.x - cameraX} y={f.y - cameraY} width={15} height={15} zIndex={f.y} pivot={0.5} angle={rotation[i]}>
+              <Container x={f.x - cameraX} y={f.y - cameraY} width={15} height={15} zIndex={f.y} pivot={0.5} angle={rotation[i]}
+                  filters={[{}].map((_) => {
+                    const filter = new PIXI.ColorMatrixFilter();
+                    filter.matrix = [1, 0, 0, 0, hitFlashIntensity[i] / 2,
+                                     0, 1, 0, 0, hitFlashIntensity[i] / 2,
+                                     0, 0, 1, 0, hitFlashIntensity[i] / 2,
+                                     0, 0, 0, 1, 0];
+                    return filter;
+                  })}>
                 <FighterBattleSprite fighter={f} equipment={f.equipment} />
               </Container>
             {/if}

@@ -78,7 +78,7 @@ export default class AnimationState {
       this.tick++;
     }
     const nextTick = this.eventLog[this.tick];
-    this.nextHitFlashIntensity = this.nextHitFlashIntensity.map(i => Math.min(i - 0.5, 0));
+    this.nextHitFlashIntensity = this.nextHitFlashIntensity.map(h => Math.max(h - 0.75, 0));
 
     if (this.tick < this.eventLog.length - 1) {
       for (let event of nextTick) {
@@ -215,7 +215,7 @@ export default class AnimationState {
   getHitFlashIntensity(delta: number): number[] {
     return this.hitFlashIntensity.map((h1, i) => {
       const h2 = this.nextHitFlashIntensity[i];
-      return h2 * delta + h1 * (1 - delta);
+      return Math.min(h1, h2) * delta + h1 * (1 - delta);
     });
   }
 
