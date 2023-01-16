@@ -139,7 +139,7 @@ export interface RangedAttackAbility extends AbilityBase {
   type: "rangedAttack"
   damage: number
   cooldown: number
-  projectile: string
+  projectileImg: string
 }
 
 export interface StatChangeAbility extends AbilityBase {

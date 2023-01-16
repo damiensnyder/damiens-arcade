@@ -506,7 +506,7 @@ class Fight {
       target: this.fighters.findIndex(f2 => f2 === target),
       missed,
       damage,
-      projectileImg: abilityUsed.projectile
+      projectileImg: abilityUsed.projectileImg
     });
 
     // cooldown is set by the weapon. it is reduced by 0% if 0 energy, 50% if 10 energy.
