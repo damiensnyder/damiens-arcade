@@ -19,7 +19,6 @@
   let flipped: number[] = [];
   let hitFlash: PIXI.ColorMatrixFilter[] = [];
   let particles: Particle[] = [];
-  // let lastEvent: string = "";
   let tickLength: number = 200;  // ticks are 0.2 s long
   let frameWidth: number;
   let frameHeight: number;
@@ -39,7 +38,7 @@
     }
   });
 
-  function doTick(e: CustomEvent) {
+  function doTick(e: CustomEvent): void {
     const delta = e.detail;
     if (!paused) {
       tickDelta += delta;
@@ -121,7 +120,6 @@
   function play(): void {
     tickDelta = 0;
     paused = false;
-    setCamera();
   }
   
   function pause(): void {
@@ -155,7 +153,7 @@
           }} />
           {#each fighters as f, i}
             {#if f.hp > 0}
-              <Container x={f.x - cameraX} y={f.y - cameraY} height={15} zIndex={f.y} pivot={0.5}
+              <Container x={f.x - cameraX} y={f.y - cameraY} zIndex={f.y} height={15} pivot={0.5}
                   width={15 * flipped[i]} angle={rotation[i]} filters={[hitFlash[i]]}>
                 <FighterBattleSprite fighter={f} equipment={f.equipment} />
               </Container>

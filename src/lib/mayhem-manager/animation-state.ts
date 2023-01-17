@@ -219,7 +219,6 @@ export default class AnimationState {
 
   // Hit flash with correct interpolation
   getHitFlash(delta: number): ColorMatrixFilter[] {
-    console.log("hitflash", this.hitFlash);
     return this.hitFlash.map((h1, i) => {
       const h2 = this.nextHitFlash[i];
       const intensity = Math.min(h1, h2) * delta + h1 * (1 - delta);
