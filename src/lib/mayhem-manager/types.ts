@@ -139,7 +139,7 @@ export interface RangedAttackAbility extends AbilityBase {
   type: "rangedAttack"
   damage: number
   cooldown: number
-  projectile: string
+  projectileImg: string
 }
 
 export interface StatChangeAbility extends AbilityBase {
@@ -366,19 +366,19 @@ interface FightEvent {
   eventLog: MidFightEvent[][]
 }
 
-interface MFSpawnEvent {
+export interface MFSpawnEvent {
   type: "spawn"
   fighter: FighterInBattle
 }
 
-interface MFMoveEvent {
+export interface MFMoveEvent {
   type: "move"
   fighter: number
   x: number
   y: number
 }
 
-interface MFMeleeAttackEvent {
+export interface MFMeleeAttackEvent {
   type: "meleeAttack"
   fighter: number
   target: number
@@ -386,13 +386,13 @@ interface MFMeleeAttackEvent {
   damage: number
 }
 
-interface MFRangedAttackEvent {
+export interface MFRangedAttackEvent {
   type: "rangedAttack"
   fighter: number
   target: number
   missed: boolean
   damage: number
-  projectile: string
+  projectileImg: string
 }
 
 export type MidFightEvent = MFSpawnEvent |

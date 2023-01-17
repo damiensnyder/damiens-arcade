@@ -13,6 +13,9 @@
   $: feet = equipment.filter(e => e.slots.includes(EquipmentSlot.Feet));
 
   function pseudorandomFrom<T>(arr: T[], seed1: number, seed2: number, seed3: number): T {
+    seed1++;
+    seed2++;
+    seed3++;
     return arr[
       (seed1 + seed2 + seed3 + seed1 * seed2 + seed1 * seed3 + seed2 * seed3)
       % arr.length
@@ -22,28 +25,28 @@
   const HAIR_COLORS = [[0.1, 0], [0.1, 0.1], [0.2, 0.3], [0.4, 0.4], [0.5, 0.5], [0.5, 0.8],
                        [0.8, 0.3], [2, 0.5], [4, 0.4], [5, 0.1]];
   $: hairColor = pseudorandomFrom(
-    HAIR_COLORS, fighter.name.length, fighter.description.length, fighter.stats.accuracy
+    HAIR_COLORS, fighter.name.length, fighter.description.length, fighter.name.indexOf("e")
   );
 
   const SKIN_COLORS = [[0.3, 1], [0.5, 0.8], [1, 0.6], [1.5, 0.5], [2, 0.3], [3, 0.4],
                       [5, 0.5], [7, 0.4], [8, 0.4], [10, 0.3]];
   $: skinColor = pseudorandomFrom(
-    SKIN_COLORS, fighter.name.length, fighter.description.length, fighter.stats.energy
+    SKIN_COLORS, fighter.name.length, fighter.name.indexOf("a"), fighter.description.length
   );
 
   const SHIRT_COLORS = [[0, 0.7, 1], [0, 0, 1], [255, 0.2, 2], [120, 0.5, 1], [0, 10, 0], [240, 2, 0.5]];
   $: shirtColor = team === -1 ? pseudorandomFrom(
-    SHIRT_COLORS, fighter.name.length, fighter.description.length, fighter.stats.reflexes
+    SHIRT_COLORS, fighter.name.length, fighter.description.length, fighter.name.indexOf("t")
   ) : SHIRT_COLORS[team % SHIRT_COLORS.length];
 
   const SHORTS_COLORS = [[0, 0, 1], [240, 0.2, 2], [200, 0.5, 1], [0, 10, 1], [240, 2, 0.5]];
   $: pantsColor = team === -1 ? pseudorandomFrom(
-    SHORTS_COLORS, fighter.name.length, fighter.description.length, fighter.stats.speed
+    SHORTS_COLORS, fighter.name.length, fighter.name.indexOf("e"), fighter.name.indexOf("i")
   ) : SHORTS_COLORS[team % SHORTS_COLORS.length];
 
-  const FEET_COLORS = [[0, 10, 1], [0, 0, 1], [0, 0.5, 1], [240, 0.2, 0.5], [200, 0.5, 0.5]];
+  const FEET_COLORS = [[0, 0.8, 0.3], [0, 0, 1], [0, 0.5, 1], [240, 0.2, 0.5], [200, 0.5, 0.5]];
   $: feetColor = pseudorandomFrom(
-    FEET_COLORS, fighter.name.length, fighter.description.length, fighter.stats.strength
+    FEET_COLORS, fighter.name.length, fighter.name.indexOf("t"), fighter.name.indexOf("o")
   );
 </script>
 
@@ -77,13 +80,13 @@
     <img src={legs[0].imgUrl} class="equipment legs" />
   {:else}
     <img src={`/static/base/legs_${fighter.gender}1.png`} class="equipment legs"
-        style:filter={`hue-rotate(${pantsColor[0]}deg) brightness(${pantsColor[1]}) grayscale(${pantsColor[2]})`} />
+        style:filter={`hue-rotate(${pantsColor[0]}deg) brightness(${pantsColor[1]}) saturate(${pantsColor[2]})`} />
   {/if}
   {#if feet.length >= 1}
     <img src={feet[0].imgUrl} class="equipment" />
   {:else}
     <img src={`/static/base/feet_${fighter.gender}1.png`} class="equipment"
-        style:filter={`hue-rotate(${feetColor[0]}deg) brightness(${feetColor[1]}) grayscale(${feetColor[2]})`} />
+        style:filter={`hue-rotate(${feetColor[0]}deg) brightness(${feetColor[1]}) saturate(${feetColor[2]})`} />
   {/if}
 </div>
 
