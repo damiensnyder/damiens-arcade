@@ -96,7 +96,6 @@ export default class AnimationState {
         } else if (event.type === "move") {
           event = event as MFMoveEvent;
           const f: number = event.fighter;
-          this.nextFlipped[f] = event.x > this.nextFighters[f].x;
           this.nextFighters[f] = {
             ...this.nextFighters[f],
             x: event.x,
@@ -123,6 +122,7 @@ export default class AnimationState {
         } else if (event.type === "meleeAttack") {
           event = event as MFMeleeAttackEvent;
           const t: number = event.target;
+          this.nextFlipped[event.fighter] = this.nextFighters[event.fighter].x > this.nextFighters[t].x;
           this.nextFighters[t] = {
             ...this.nextFighters[t],
             hp: this.nextFighters[t].hp - event.damage
@@ -139,6 +139,7 @@ export default class AnimationState {
           event = event as MFRangedAttackEvent;
           const f = this.fighters[event.fighter];
           const t = this.nextFighters[event.target];
+          this.nextFlipped[event.fighter] = f.x > t.x;
           this.particles.push({
             type: "image",
             x: f.x,
@@ -216,7 +217,7 @@ export default class AnimationState {
     });
   }
 
-  // Flippedness with correct interpolation
+  // Hit flash with correct interpolation
   getHitFlash(delta: number): ColorMatrixFilter[] {
     console.log("hitflash", this.hitFlash);
     return this.hitFlash.map((h1, i) => {
@@ -231,7 +232,7 @@ export default class AnimationState {
     });
   }
 
-  // Flippedness with correct interpolation
+  // Particles with correct interpolation
   getParticles(delta: number): Particle[] {
     const projectiles: ImageParticle[] = this.particles.filter(p => p.type === "image")
         .map((p) => {
