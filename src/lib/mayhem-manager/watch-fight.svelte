@@ -145,7 +145,7 @@
   <div class="viewport" bind:offsetWidth={frameWidth} bind:offsetHeight={frameHeight}>
     {#if loaded}
       <Application width={frameWidth} height={frameHeight} antialias={true}>
-        <Ticker on:tick={doTick} speed={1000 / 60 / 20000 * playbackSpeed || 0} />
+        <Ticker on:tick={doTick} speed={(playbackSpeed || 0) / 1200} />
         <Container x={frameWidth / 2} y={frameHeight / 2} pivot={0.5} scale={cameraScale}>
           <Graphics x={-cameraX} y={-cameraY} pivot={0.5} draw={(graphics) => {
             graphics.clear();

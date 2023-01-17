@@ -1,6 +1,7 @@
 
 import type { FighterInBattle, MFMeleeAttackEvent, MFMoveEvent, MFRangedAttackEvent, MFSpawnEvent, MidFightEvent } from "$lib/mayhem-manager/types";
 import { ColorMatrixFilter } from "pixi.js";
+import { watchingFight } from "./stores";
 
 interface TextParticle {
   type: "text"
@@ -77,6 +78,11 @@ export default class AnimationState {
         .map(p => { return { ...p, opacity: (p as TextParticle).opacity - 0.5 } });
     if (this.tick < this.eventLog.length - 1) {
       this.tick++;
+    } else {
+      // stop watching 1 second after the fight is over
+      setTimeout(() => {
+        watchingFight.set(false);
+      }, 1000);
     }
     const nextTick = this.eventLog[this.tick];
     this.nextHitFlash = this.nextHitFlash.map(h => Math.max(h - 0.75, 0));

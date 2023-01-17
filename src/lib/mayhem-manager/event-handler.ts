@@ -126,13 +126,7 @@ export const eventHandler: EventHandler<MayhemManagerEvent> = {
     map.set(event.map);
     clearTimeout(fightTimeout);
     fightEvents.set(event.eventLog);
-    // don't stop showing the fight screen till 3 seconds after the fight will finish showing
-    // 200 ms per tick
     watchingFight.set(true);
-    fightTimeout = setTimeout(() => {
-      watchingFight.set(false);
-      fightEvents.set([]);
-    }, event.eventLog.length * 200 + 3000);
   },
   bracket: function (event): void {
     gameStage.set("tournament");
