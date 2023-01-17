@@ -155,8 +155,8 @@
           }} />
           {#each fighters as f, i}
             {#if f.hp > 0}
-              <Container x={f.x - cameraX} y={f.y - cameraY} width={15 * flipped[i]} height={15} zIndex={f.y} pivot={0.5}
-              angle={rotation[i]}>
+              <Container x={f.x - cameraX} y={f.y - cameraY} height={15} zIndex={f.y} pivot={0.5}
+                  width={15 * flipped[i]} angle={rotation[i]} filters={[hitFlash[i]]}>
                 <FighterBattleSprite fighter={f} equipment={f.equipment} />
               </Container>
             {/if}

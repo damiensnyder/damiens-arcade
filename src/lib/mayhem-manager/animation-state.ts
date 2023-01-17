@@ -223,9 +223,9 @@ export default class AnimationState {
       const h2 = this.nextHitFlash[i];
       const intensity = Math.min(h1, h2) * delta + h1 * (1 - delta);
       const filter = new ColorMatrixFilter();
-      filter.matrix = [1, 0, 0, 0, intensity[i] / 2,
-                       0, 1, 0, 0, intensity[i] / 2,
-                       0, 0, 1, 0, intensity[i] / 2,
+      filter.matrix = [1, 0, 0, 0, intensity / 2,
+                       0, 1, 0, 0, intensity / 2,
+                       0, 0, 1, 0, intensity / 2,
                        0, 0, 0, 1, 0];
       return filter;
     });
