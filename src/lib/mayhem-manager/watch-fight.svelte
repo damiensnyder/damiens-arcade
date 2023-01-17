@@ -3,28 +3,28 @@
   import { fightEvents } from "$lib/mayhem-manager/stores";
   import FighterBattleInfo from "$lib/mayhem-manager/fighter-battle-info.svelte";
   import { onMount } from "svelte";
-  import { Application, Container, Graphics, onTick, Sprite, Text, Ticker } from "svelte-pixi";
+  import { Application, Container, Graphics, Sprite, Text, Ticker } from "svelte-pixi";
   import FighterBattleSprite from "$lib/mayhem-manager/fighter-battle-sprite.svelte";
   import AnimationState, { type Particle } from "$lib/mayhem-manager/animation-state";
   import * as PIXI from "pixi.js";
 
   const BUFFER_PIXELS = 15;
 
-  export let debug: boolean = true;
+  export let debug: boolean = false;
   let eventLogRaw: string = "";
   let eventLog: MidFightEvent[][] = debug ? [] : $fightEvents;
   $: animationState = new AnimationState(eventLog);
   let fighters: FighterInBattle[] = [];
   let rotation: number[] = [];
   let flipped: number[] = [];
-  let hitFlashIntensity: number[] = [];
+  let hitFlash: PIXI.ColorMatrixFilter[] = [];
   let particles: Particle[] = [];
   // let lastEvent: string = "";
   let tickLength: number = 200;  // ticks are 0.2 s long
   let frameWidth: number;
   let frameHeight: number;
   let cameraScale: number = 7;
-  let cameraX: number = 0;
+  let cameraX: number = 50;
   let cameraY: number = 50;
   let tickDelta: number = 0;
   let paused: boolean = true;
@@ -55,7 +55,7 @@
     fighters = animationState.getFighters(tickDelta);
     rotation = animationState.getRotation(tickDelta);
     flipped = animationState.getFlipped(tickDelta);
-    hitFlashIntensity = animationState.getHitFlashIntensity(tickDelta);
+    hitFlash = animationState.getHitFlash(tickDelta);
     particles = animationState.getParticles(tickDelta);
     setCamera();
   }
@@ -105,14 +105,19 @@
     }
   }
 
+  // Parse events entered manually
   function enterEvents(): void {
     try {
-      eventLog = JSON.parse("[" + eventLogRaw.replaceAll("][", "],[") + "]");
+      const e = JSON.parse("[" + eventLogRaw.replaceAll("][", "],[") + "]");
+      e.splice(1, 0, [], [], [], [], []);  // pause for a second after spawning in fighters
+      e.push([]);  // repeat an empty tick after the last tick
+      eventLog = e;
     } catch (e) {
       window.alert("Error: Could not parse events.");
     }
   }
   
+  // Start playing the fight
   function play(): void {
     tickDelta = 0;
     paused = false;
@@ -150,15 +155,8 @@
           }} />
           {#each fighters as f, i}
             {#if f.hp > 0}
-              <Container x={f.x - cameraX} y={f.y - cameraY} width={15} height={15} zIndex={f.y} pivot={0.5} angle={rotation[i]}
-                  filters={[{}].map((_) => {
-                    const filter = new PIXI.ColorMatrixFilter();
-                    filter.matrix = [1, 0, 0, 0, hitFlashIntensity[i] / 2,
-                                     0, 1, 0, 0, hitFlashIntensity[i] / 2,
-                                     0, 0, 1, 0, hitFlashIntensity[i] / 2,
-                                     0, 0, 0, 1, 0];
-                    return filter;
-                  })}>
+              <Container x={f.x - cameraX} y={f.y - cameraY} width={15 * flipped[i]} height={15} zIndex={f.y} pivot={0.5}
+              angle={rotation[i]}>
                 <FighterBattleSprite fighter={f} equipment={f.equipment} />
               </Container>
             {/if}
@@ -193,13 +191,6 @@
         <button on:click={enterEvents} on:submit={enterEvents}>Enter events</button>
         <textarea rows={1} bind:value={eventLogRaw}></textarea>
       </div>
-      <!-- <label>Tick length
-        <input type="range" min="100" max="5000" bind:value={tickLength} />
-      </label>
-      <p>Tick: {@debug tick}</p>
-      <p>Fighters: {@debug fighters}</p>
-      <p>Last event: {lastEvent}</p>
-      <p>{@debug leftCoord, topCoord, zoom, frameWidth, frameHeight}</p> -->
     {/if}
     {#each fighters as fighter}
       <FighterBattleInfo {fighter} />

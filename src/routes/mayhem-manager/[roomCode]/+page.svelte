@@ -164,7 +164,7 @@
     {:else if viewing === "allTeams"}
       <AllTeams callback={changeView} />
     {:else if viewing === "watchFight"}
-      <WatchFight />
+      <WatchFight debug={true} />
     {:else if viewing === "settings"}
       <SettingsEditor />
     {:else if $gameStage === "preseason"}
@@ -178,7 +178,7 @@
     {:else if $gameStage === "battle royale"}
       <PickBrFighter />
     {:else if $watchingFight}
-      <WatchFight debug={false} />
+      <WatchFight />
     {:else}
       <PickFighters />
     {/if}
@@ -200,7 +200,7 @@
     background-color: var(--bg-1);
     color: var(--text-1);
     font-family: var(--font-fun);
-}
+  }
 
   .top-icons {
     justify-content: stretch;

@@ -1,5 +1,6 @@
 
 import type { FighterInBattle, MFMeleeAttackEvent, MFMoveEvent, MFRangedAttackEvent, MFSpawnEvent, MidFightEvent } from "$lib/mayhem-manager/types";
+import { ColorMatrixFilter } from "pixi.js";
 
 interface TextParticle {
   type: "text"
@@ -41,12 +42,12 @@ export default class AnimationState {
   fighters: FighterInBattle[];
   rotation: RotationState[];
   flipped: boolean[];
-  hitFlashIntensity: number[];
+  hitFlash: number[];
   particles: Particle[];
   nextFighters: FighterInBattle[];
   nextRotation: RotationState[];
   nextFlipped: boolean[];
-  nextHitFlashIntensity: number[];
+  nextHitFlash: number[];
   nextParticles: Particle[];
 
   constructor(eventLog: MidFightEvent[][]) {
@@ -55,12 +56,12 @@ export default class AnimationState {
     this.fighters = [];
     this.rotation = [];
     this.flipped = [];
-    this.hitFlashIntensity = [];
+    this.hitFlash = [];
     this.particles = [];
     this.nextFighters = [];
     this.nextRotation = [];
     this.nextFlipped = [];
-    this.nextHitFlashIntensity = [];
+    this.nextHitFlash = [];
     this.nextParticles = [];
   }
 
@@ -70,7 +71,7 @@ export default class AnimationState {
     this.fighters = this.nextFighters.slice();
     this.rotation = this.nextRotation.slice();
     this.flipped = this.nextFlipped.slice();
-    this.hitFlashIntensity = this.nextHitFlashIntensity.slice();
+    this.hitFlash = this.nextHitFlash.slice();
     this.particles = this.nextParticles.slice();
     this.nextParticles = this.nextParticles.filter(p => p.type === "text" && p.opacity > 0.5)
         .map(p => { return { ...p, opacity: (p as TextParticle).opacity - 0.5 } });
@@ -78,16 +79,20 @@ export default class AnimationState {
       this.tick++;
     }
     const nextTick = this.eventLog[this.tick];
-    this.nextHitFlashIntensity = this.nextHitFlashIntensity.map(h => Math.max(h - 0.75, 0));
+    this.nextHitFlash = this.nextHitFlash.map(h => Math.max(h - 0.75, 0));
 
     if (this.tick < this.eventLog.length - 1) {
       for (let event of nextTick) {
         if (event.type === "spawn") {
-          event = event as MFSpawnEvent
-          this.nextFighters.push(event.fighter);
+          event = event as MFSpawnEvent;
+          this.fighters.push(event.fighter);
           this.rotation.push(RotationState.Stationary1);
           this.flipped.push(false);
-          this.hitFlashIntensity.push(0);
+          this.hitFlash.push(0);
+          this.nextFighters.push(event.fighter);
+          this.nextRotation.push(RotationState.Stationary1);
+          this.nextFlipped.push(false);
+          this.nextHitFlash.push(0);
         } else if (event.type === "move") {
           event = event as MFMoveEvent;
           const f: number = event.fighter;
@@ -129,7 +134,7 @@ export default class AnimationState {
             y: this.nextFighters[t].y - 7,  // moved up to be just over the fighter's head
             opacity: 1
           });
-          if (!event.dodged) this.nextHitFlashIntensity[t] = 1;
+          if (!event.dodged) this.nextHitFlash[t] = 1;
         } else if (event.type === "rangedAttack") {
           event = event as MFRangedAttackEvent;
           const f = this.fighters[event.fighter];
@@ -149,7 +154,7 @@ export default class AnimationState {
             y: t.y - 7,
             opacity: 1
           });
-          if (!event.missed) this.nextHitFlashIntensity[event.target] = 1;
+          if (!event.missed) this.nextHitFlash[event.target] = 1;
         }
       }
     }
@@ -212,10 +217,17 @@ export default class AnimationState {
   }
 
   // Flippedness with correct interpolation
-  getHitFlashIntensity(delta: number): number[] {
-    return this.hitFlashIntensity.map((h1, i) => {
-      const h2 = this.nextHitFlashIntensity[i];
-      return Math.min(h1, h2) * delta + h1 * (1 - delta);
+  getHitFlash(delta: number): ColorMatrixFilter[] {
+    console.log("hitflash", this.hitFlash);
+    return this.hitFlash.map((h1, i) => {
+      const h2 = this.nextHitFlash[i];
+      const intensity = Math.min(h1, h2) * delta + h1 * (1 - delta);
+      const filter = new ColorMatrixFilter();
+      filter.matrix = [1, 0, 0, 0, intensity[i] / 2,
+                       0, 1, 0, 0, intensity[i] / 2,
+                       0, 0, 1, 0, intensity[i] / 2,
+                       0, 0, 0, 1, 0];
+      return filter;
     });
   }
 
