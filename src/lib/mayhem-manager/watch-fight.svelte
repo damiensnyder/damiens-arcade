@@ -19,7 +19,7 @@
   let flipped: number[] = [];
   let hitFlash: PIXI.ColorMatrixFilter[] = [];
   let particles: Particle[] = [];
-  let tickLength: number = 200;  // ticks are 0.2 s long
+  let playbackSpeed: number = 100;  // ticks are 0.2 s long
   let frameWidth: number;
   let frameHeight: number;
   let cameraScale: number = 7;
@@ -42,7 +42,7 @@
     const delta = e.detail;
     if (!paused) {
       tickDelta += delta;
-      if (tickDelta > 1) {
+      while (tickDelta > 1) {
         animationState.prepareTick();
         tickDelta -= 1;
       }
@@ -111,6 +111,7 @@
       e.splice(1, 0, [], [], [], [], []);  // pause for a second after spawning in fighters
       e.push([]);  // repeat an empty tick after the last tick
       eventLog = e;
+      play();
     } catch (e) {
       window.alert("Error: Could not parse events.");
     }
@@ -144,7 +145,7 @@
   <div class="viewport" bind:offsetWidth={frameWidth} bind:offsetHeight={frameHeight}>
     {#if loaded}
       <Application width={frameWidth} height={frameHeight} antialias={true}>
-        <Ticker on:tick={doTick} speed={(1000 / 60) / tickLength} />
+        <Ticker on:tick={doTick} speed={1000 / 60 / 20000 * playbackSpeed || 0} />
         <Container x={frameWidth / 2} y={frameHeight / 2} pivot={0.5} scale={cameraScale}>
           <Graphics x={-cameraX} y={-cameraY} pivot={0.5} draw={(graphics) => {
             graphics.clear();
@@ -177,18 +178,21 @@
     {/if}
   </div>
   <div class="controls">
+    <div class="horiz controls-row">
+      <button on:click={play} on:submit={play}>Play</button>
+      <button on:click={pause} on:submit={pause}>Pause</button>
+      <button on:click={restart} on:submit={restart}>Rewind to beginning</button>
+    </div>
+    <div class="horiz controls-row">
+      <label class="horiz">Playback speed:
+        <input type="number" min=0 max=1000 bind:value={playbackSpeed} />%
+      </label>
+    </div>
     {#if debug}
-      <div class="horiz">
-        <button on:click={play} on:submit={play}>Play</button>
-        <button on:click={pause} on:submit={pause}>Pause</button>
-      </div>
-      <div class="horiz">
+      <div class="horiz controls-row">
         <button on:click={step} on:submit={step}>Step</button>
-        <button on:click={restart} on:submit={restart}>Restart</button>
-      </div>
-      <div class="horiz">
         <button on:click={enterEvents} on:submit={enterEvents}>Enter events</button>
-        <textarea rows={1} bind:value={eventLogRaw}></textarea>
+        <input type="text" bind:value={eventLogRaw} />
       </div>
     {/if}
     {#each fighters as fighter}
@@ -220,6 +224,32 @@
 
   .controls {
     flex: 1;
+    align-items: stretch;
+  }
+
+  input {
+    flex-basis: 3rem;
+  }
+
+  .controls-row,
+  label {
+    justify-content: stretch;
+    align-items: center;
+  }
+
+  .controls button:first-child,
+  .controls button:last-child,
+  .controls input:first-child
+  .controls input:last-child {
+    flex-grow: 1;
+    margin: 0.5rem 0;
+  }
+
+  .controls button,
+  .controls input,
+  label input {
+    flex-grow: 1;
+    margin: 0.5rem;
   }
 
   /* p {
