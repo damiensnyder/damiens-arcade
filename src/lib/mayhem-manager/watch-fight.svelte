@@ -153,8 +153,9 @@
           }} />
           {#each fighters as f, i}
             {#if f.hp > 0}
-              <Container x={f.x - cameraX} y={f.y - cameraY} zIndex={f.y} height={15} pivot={0.5}
-                  width={15 * flipped[i]} angle={rotation[i]} filters={[hitFlash[i]]}>
+              <Container x={f.x - cameraX} y={f.y - cameraY} pivot={0.5}
+                  scale={[15 / 384 * flipped[i], 15 / 384]} angle={rotation[i]} filters={[hitFlash[i]]}>
+              <!-- using height / width does not work on the first run and i have no idea why -->
                 <FighterBattleSprite fighter={f} equipment={f.equipment} />
               </Container>
             {/if}
@@ -162,7 +163,7 @@
           {#each particles as p}
             {#if p.type === "image"}
               <Sprite texture={PIXI.Texture.from(p.imgUrl)}
-                  x={p.x - cameraX} y={p.y - cameraY} height={15} width={15} anchor={0.5} zIndex={p.y} rotation={p.rotation} />
+                  x={p.x - cameraX} y={p.y - cameraY} scale={15 / 384} anchor={0.5} zIndex={p.y} rotation={p.rotation} />
             {:else}
               <Text text={p.text} x={p.x - cameraX} y={p.y - cameraY} anchor={0.5} zIndex={1001} alpha={p.opacity} scale={1/16} style={{
                 fill: 0xeeeeee,
