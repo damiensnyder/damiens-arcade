@@ -1,6 +1,8 @@
-import type { BasicViewpointInfo, GameType } from "$lib/types";
+// @ts-ignore – why does it not recognize the usage in ViewpointBase? idk
+import { GameType } from "$lib/types";
+import type { BasicViewpointInfo, ChangeRoomSettingsAction, RoomEvent } from "$lib/types";
 
-export type AuctionTTTGameStatus = "pregame" | "midgame" | "postgame";
+export type AuctionTTTGameStage = "pregame" | "midgame" | "postgame";
 
 export enum TurnPart {
   Nominating,
@@ -9,21 +11,21 @@ export enum TurnPart {
 }
 
 export type AuctionTTTViewpoint = PregameViewpoint |
-    MidgameViewpoint | PostgameViewpoint;
+    MidgameViewpoint |
+    PostgameViewpoint;
 
 interface ViewpointBase extends BasicViewpointInfo {
-  gameStatus: AuctionTTTGameStatus
-  gameType: GameType.AuctionTTT
+  gameStage: AuctionTTTGameStage
   settings: Settings
   players: Record<Side.X | Side.O, Player>
 }
 
 export interface PregameViewpoint extends ViewpointBase {
-  gameStatus: "pregame"
+  gameStage: "pregame"
 }
 
 export interface MidgameViewpointBase extends ViewpointBase {
-  gameStatus: "midgame"
+  gameStage: "midgame"
   squares: Side[][]
   turnPart: TurnPart
   whoseTurnToNominate: Side
@@ -44,7 +46,7 @@ interface NominatingViewpoint extends MidgameViewpointBase {
 type MidgameViewpoint = BiddingViewpoint | NominatingViewpoint;
 
 interface PostgameViewpoint extends ViewpointBase {
-  gameStatus: "postgame"
+  gameStage: "postgame"
   squares: Side[][]
   winner: Winner
 }
@@ -120,7 +122,8 @@ interface BackToSettingsAction {
   type: "backToSettings"
 }
 
-export type AuctionTTTAction = ChangeGameSettingsAction |
+export type AuctionTTTAction = ChangeRoomSettingsAction |
+    ChangeGameSettingsAction |
     JoinAction |
     LeaveAction |
     StartGameAction |
@@ -186,7 +189,8 @@ interface BackToSettingsEvent {
   type: "backToSettings"
 }
 
-export type AuctionTTTEvent = ChangeGameSettingsEvent |
+export type AuctionTTTEvent = RoomEvent |
+    ChangeGameSettingsEvent |
     JoinEvent |
     LeaveEvent |
     StartEvent |

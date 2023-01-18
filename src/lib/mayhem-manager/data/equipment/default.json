@@ -1,0 +1,107 @@
+{
+  "equipment": [
+    {
+      "name": "epic shield",
+      "slots": ["hand"],
+      "imgUrl": "/static/equipment/shield.png",
+      "zoomedImgUrl": "/static/equipment/shield.png",
+      "price": 6,
+      "description": "Adds 10% to dodge chance.",
+      "flavor": "oh? did you hit the shield? fuckin idiot",
+      "abilities": [{
+        "type": "statChange",
+        "stat": "reflexes",
+        "amount": 2
+      }]
+    },
+    {
+      "name": "Sword That Imbalances You",
+      "slots": ["hand", "hand"],
+      "imgUrl": "/static/equipment/sword.png",
+      "zoomedImgUrl": "/static/equipment/sword.png",
+      "price": 15,
+      "description": "Deals 2x damage.",
+      "flavor": "",
+      "abilities": [{
+        "type": "meleeAttack",
+        "damage": 2
+      }]
+    },
+    {
+      "name": "Sword That You Can Throw Infinitely",
+      "slots": ["hand", "hand"],
+      "imgUrl": "/static/equipment/sword.png",
+      "zoomedImgUrl": "/static/equipment/sword.png",
+      "price": 10,
+      "description": "Base damage 15. Base cooldown 5s.",
+      "flavor": "",
+      "abilities": [{
+        "type": "rangedAttack",
+        "damage": 15,
+        "cooldown": 5,
+        "projectileImg": "/static/equipment/sword.png"
+      }]
+    },
+    {
+      "name": "tank top",
+      "slots": ["torso"],
+      "imgUrl": "/static/equipment/tank-top.png",
+      "zoomedImgUrl": "/static/equipment/tank-top.png",
+      "price": 15,
+      "description": "Increases base damage by 2.",
+      "flavor": "",
+      "abilities": [{
+        "type": "statChange",
+        "stat": "strength",
+        "amount": 4
+      }]
+    },
+    {
+      "name": "cute hat :)",
+      "slots": ["head"],
+      "imgUrl": "/static/equipment/viking-helmet.png",
+      "zoomedImgUrl": "/static/equipment/viking-helmet.png",
+      "price": 3,
+      "description": "Reduces damage taken by 5%.",
+      "flavor": "",
+      "abilities": [{
+        "type": "statChange",
+        "stat": "toughness",
+        "amount": 1
+      }]
+    },
+    {
+      "name": "speedo",
+      "slots": ["legs"],
+      "imgUrl": "/static/equipment/speedo.png",
+      "zoomedImgUrl": "/static/equipment/speedo.png",
+      "price": 8,
+      "description": "Reduces cooldowns by 5%. Adds 0.5 m/s to speed.",
+      "flavor": "ahhh so nice to have less clothing weighing you down",
+      "abilities": [{
+        "type": "statChange",
+        "stat": "energy",
+        "amount": 1
+      },
+      {
+        "type": "statChange",
+        "stat": "speed",
+        "amount": 1
+      }]
+    },
+    {
+      "name": "boots",
+      "slots": ["feet"],
+      "imgUrl": "/static/equipment/boots.png",
+      "zoomedImgUrl": "/static/equipment/boots.png",
+      "price": 4,
+      "description": "Adds 1 m/s to speed.",
+      "flavor": "shoes and i get service",
+      "abilities": [{
+        "type": "statChange",
+        "stat": "speed",
+        "amount": 2
+      }]
+    }
+  ]
+}

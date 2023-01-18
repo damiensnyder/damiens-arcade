@@ -4,6 +4,12 @@ node_modules
 /target
 /.svelte-kit
 /package
+/logs
 .env
 .env.*
 !.env.example
+*.kra
+*.kra~
+ticks.txt
+.yarn/*
+/secrets

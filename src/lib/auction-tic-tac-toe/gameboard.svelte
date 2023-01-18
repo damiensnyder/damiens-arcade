@@ -1,6 +1,6 @@
 <script lang="ts">
   import Square from "$lib/auction-tic-tac-toe/square.svelte";
-  import { gameStatus, winner } from "$lib/auction-tic-tac-toe/stores";
+  import { gameStage, winner } from "$lib/auction-tic-tac-toe/stores";
   import { Side } from "$lib/auction-tic-tac-toe/types";
 </script>
 
@@ -10,7 +10,7 @@
       <Square x={x} y={y} />
     {/each}
   {/each}
-  {#if $gameStatus === "postgame" && $winner.winningSide !== Side.None}
+  {#if $gameStage === "postgame" && $winner.winningSide !== Side.None}
     <svg viewBox="0 0 300 300">
       <line x1={$winner.start[1] === $winner.end[1] ? 50 + 100 * $winner.start[1] : 10 + 140 * $winner.start[1]}
             y1={$winner.start[0] === $winner.end[0] ? 50 + 100 * $winner.start[0] : 10 + 140 * $winner.start[0]}
@@ -22,7 +22,7 @@
     <div class="winner-name">
       <span>{$winner.winningSide} wins!</span>
     </div>
-  {:else if $gameStatus === "postgame"}
+  {:else if $gameStage === "postgame"}
     <div class="winner-name">
       <span style="border-color: var(--bg-5);">It's a draw.</span>
     </div>

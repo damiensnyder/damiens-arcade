@@ -1,0 +1,10 @@
+{
+  "seed": [0, 1, 2, 3],
+  "gameType": "mayhem-manager",
+  "actions": [
+    {
+      "macro": "startTourney",
+      "dynamicParams": ["tourney started"]
+    }
+  ]
+}

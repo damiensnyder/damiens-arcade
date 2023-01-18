@@ -1,8 +1,10 @@
 {
+  "seed": [0, 1, 2, 3],
+  "gameType": "auction-tic-tac-toe",
   "actions": [
     {
       "macro": "startATTT",
-      "dynamicParams": ["started"]
+      "dynamicParams": ["ATTT started"]
     }
   ]
 }

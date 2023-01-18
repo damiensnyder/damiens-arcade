@@ -1,14 +1,14 @@
 import type { Socket } from "socket.io";
-import type { AuctionTTTAction, AuctionTTTEvent, AuctionTTTGameStatus, AuctionTTTViewpoint } from "$lib/auction-tic-tac-toe/types";
-import type { NoneGameStatus, NoneViewpoint } from "$lib/no-game-selected/types";
+import type { AuctionTTTGameStage } from "$lib/auction-tic-tac-toe/types";
 import type { TestRoomAction } from "$lib/test/set-up-test-rooms";
+import type { MayhemManagerGameStage } from "$lib/mayhem-manager/types";
 
 export interface PublicRoomInfo {
   roomName: string
   roomCode: string
   isPublic: boolean
   gameType: GameType
-  gameStatus: GameStatus
+  gameStage: GameStage
 }
 
 export enum PacketType {
@@ -18,13 +18,12 @@ export enum PacketType {
 }
 
 export enum GameType {
-  NoGameSelected = "[none selected]",
-  AuctionTTT = "Auction Tic-Tac-Toe",
-  Tourney = "Colosseum Clash"
+  AuctionTTT = "auction-tic-tac-toe",
+  MayhemManager = "mayhem-manager"
 }
 
-export type GameStatus = NoneGameStatus |
-    AuctionTTTGameStatus;
+export type GameStage = AuctionTTTGameStage |
+    MayhemManagerGameStage;
 
 export interface BasicViewpointInfo {
   roomCode: string
@@ -32,51 +31,27 @@ export interface BasicViewpointInfo {
   isPublic: boolean
   host: number
   pov: number
-  gameType: GameType
 }
 
-export type Viewpoint = NoneViewpoint |
-    AuctionTTTViewpoint;
-
-interface ChangeGameTypeAction {
-  type: "changeGameType"
-  newGameType: GameType
-}
-
-interface ChangeSettingsAction {
+export interface ChangeRoomSettingsAction {
   type: "changeRoomSettings"
   roomName: string
   isPublic: boolean
 }
 
-export type RoomAction = ChangeGameTypeAction | ChangeSettingsAction;
-
-export type Action = RoomAction |
-    TestRoomAction |
-    AuctionTTTAction;
-
-interface ChangeRoomSettingsEvent {
+export interface ChangeRoomSettingsEvent {
   type: "changeRoomSettings"
-  roomName?: string
-  isPublic?: boolean
+  roomName: string
+  isPublic: boolean
 }
 
-interface ChangeGameTypeEvent {
-  type: "changeGameType"
-  gameType: GameType
-}
-
-interface ChangeHostEvent {
+export interface ChangeHostEvent {
   type: "changeHost"
   host: number
 }
 
-type RoomEvent = ChangeRoomSettingsEvent |
-    ChangeGameTypeEvent |
+export type RoomEvent = ChangeRoomSettingsEvent |
     ChangeHostEvent;
-
-export type Event = RoomEvent |
-    AuctionTTTEvent;
 
 // The information contained in a packet sent from a viewer
 export interface PacketInfo {
@@ -93,4 +68,14 @@ export interface Viewer {
 
 export type TeardownCallback = (roomCode: string) => void;
 
-export type ActionCallback = (action: Action) => void;
+export type ActionCallback<T> = (action: T) => void;
+
+export type EventHandler<T extends { type: string }> = {
+  [key in T["type"]]: (event: T & { type: key }) => void;
+};
+
+export interface RNG {
+  randInt: (min: number, max: number) => number
+  randReal: () => number
+  randElement: <T>(arr: T[]) => T
+}

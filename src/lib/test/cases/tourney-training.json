@@ -1,0 +1,65 @@
+{
+  "seed": [0, 1, 2, 3],
+  "gameType": "mayhem-manager",
+  "actions": [
+    {
+      "macro": "startTourney",
+      "dynamicParams": ["tourney training"]
+    },
+    {
+      "type": "connect",
+      "index": 2
+    },
+    {
+      "type": "connect",
+      "index": 3
+    },
+    {
+      "type": "join",
+      "index": 2
+    },
+    {
+      "type": "join",
+      "index": 3
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "pick",
+      "_index": 0,
+      "index": 2
+    },
+    {
+      "type": "pick",
+      "_index": 0,
+      "index": 3
+    },
+    {
+      "type": "pick",
+      "_index": 0,
+      "index": 2
+    },
+    {
+      "type": "pass",
+      "index": 2
+    },
+    {
+      "type": "pass",
+      "index": 3
+    },
+    {
+      "type": "pass",
+      "index": 2
+    },
+    {
+      "type": "disconnect",
+      "index": 2
+    },
+    {
+      "type": "disconnect",
+      "index": 3
+    }
+  ]
+}

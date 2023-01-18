@@ -13,7 +13,7 @@
   });
 
   async function fetchGames(): Promise<PublicRoomInfo[]> {
-    const res = await fetch("/activeRooms", {
+    const res = await fetch("/active-rooms", {
       method: "GET",
     });
     return (await res.json()).rooms;
@@ -30,7 +30,7 @@
         <p>
           <a href={`/game/${room.roomCode}`}>{room.roomName}</a> &middot;
           {room.gameType} &middot;
-          {room.gameStatus}
+          {room.gameStage}
         </p>
       {/each}
       {#if rooms.length === 0}

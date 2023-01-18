@@ -1,5 +1,4 @@
 <script lang="ts">
-import GameTypeSwitcher from "$lib/game-type-switcher.svelte";
 import { host, isPublic, lastAction, pov, roomName } from "$lib/stores";
 
 function changeRoomSettings() {
@@ -13,7 +12,6 @@ function changeRoomSettings() {
 
 <h3>Room Settings</h3>
 <form on:submit|preventDefault={changeRoomSettings}>
-  <GameTypeSwitcher />
   <div class="form-field">
     <label for="roomName">Room name:</label>
     <input id="roomName" type="text" disabled={$host !== $pov} bind:value={$roomName} />

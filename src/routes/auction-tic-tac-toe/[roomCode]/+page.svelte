@@ -1,14 +1,16 @@
 <script lang="ts">
 import { page } from "$app/stores";
-import { connected, eventLog, gameType, host, isPublic, lastAction, pov, roomCode, roomName } from "$lib/stores";
+import { connected, eventLog, host, isPublic, lastAction, pov, roomCode, roomName } from "$lib/stores";
 import { io } from "socket.io-client";
-import { GameType, type Action, type Event } from "$lib/types";
-import type { Viewpoint } from "$lib/types";
-import AuctionTicTacToe from "$lib/auction-tic-tac-toe/frontend-main.svelte";
-import NoGameSelected from "$lib/no-game-selected/frontend-main.svelte";
-import { eventHandler as auctionTTTEventHandler, handleGamestate, switchToType as switchToAuctionTTT } from "$lib/auction-tic-tac-toe/event-handler";
+import { eventHandler as auctionTTTEventHandler, handleGamestate as handleAuctionTTTGamestate, switchToType as switchToAuctionTTT } from "$lib/auction-tic-tac-toe/event-handler";
+import type { AuctionTTTAction, AuctionTTTEvent, AuctionTTTViewpoint } from "$lib/auction-tic-tac-toe/types";
 import EventLog from "$lib/event-log.svelte";
-import "../../styles/global.css";
+import "../../../styles/global.css";
+import "../../../styles/techno.css";
+import Pregame from "$lib/auction-tic-tac-toe/pregame.svelte";
+import Midgame from "$lib/auction-tic-tac-toe/midgame.svelte";
+import Postgame from "$lib/auction-tic-tac-toe/postgame.svelte";
+import { gameStage } from "$lib/auction-tic-tac-toe/stores";
 
 const relativeUrl = $page.url.pathname;
 const socket = io(relativeUrl);
@@ -38,31 +40,21 @@ socket.on('connect', () => {
 
 socket.on('disconnect', handleDisconnect);
 
-socket.on('gamestate', (gamestate: Viewpoint) => {
+socket.on('gamestate', (gamestate: AuctionTTTViewpoint) => {
   $roomCode = gamestate.roomCode;
   $roomName = gamestate.roomName;
   $isPublic = gamestate.isPublic;
   $host = gamestate.host;
   $pov = gamestate.pov;
-  $gameType = gamestate.gameType;
-  if (gamestate.gameType === GameType.AuctionTTT) {
-    handleGamestate(gamestate);
-  }
-  // console.log(gamestate);
+  handleAuctionTTTGamestate(gamestate);
+  console.log(gamestate);
 });
 
-socket.on("event", (event: Event) => {
-  // console.log(event);
+socket.on("event", (event: AuctionTTTEvent) => {
+  console.log(event);
 
-  // CHANGE GAME TYPE
-  if (event.type === "changeGameType") {
-    $gameType = event.gameType;
-    if ($gameType === GameType.AuctionTTT) {
-      switchToAuctionTTT();
-    }
-
-    // CHANGE ROOM SETTINGS
-  } else if (event.type === "changeRoomSettings") {
+  // CHANGE ROOM SETTINGS
+  if (event.type === "changeRoomSettings") {
     $isPublic = event.isPublic;
     $roomName = event.roomName;
 
@@ -74,7 +66,7 @@ socket.on("event", (event: Event) => {
     }
 
     // HANDLE AUCTION TTT EVENTS
-  } else if ($gameType === GameType.AuctionTTT) {
+  } else {
     // @ts-ignore — "union type too complex to represent"?? maybe for you...
     // anyway this calls the event handler corresponding to the event's type
     auctionTTTEventHandler[event.type](event);
@@ -82,24 +74,24 @@ socket.on("event", (event: Event) => {
 });
 
 // emit every action sent via this store to the server
-lastAction.subscribe((action: Action) => {
+lastAction.subscribe((action: AuctionTTTAction) => {
   socket.emit('action', action);
-  // console.log($lastAction);
+  console.log($lastAction);
 });
 </script>
 
 <svelte:head>
-  <title>Damien's Arcade | Connecting...</title>
+  <title>Damien's Arcade | Auction Tic-Tac-Toe | {$roomName}</title>
 </svelte:head>
 
-{#if $roomCode !== ""}
-  {#if $gameType === GameType.NoGameSelected}
-    <NoGameSelected />
-  {:else if $gameType === GameType.AuctionTTT}
-    <AuctionTicTacToe />
-  {/if}
-{:else}
+{#if $gameStage === null}
   <h1>Damien's Arcade</h1>
   <p>Connecting to game...</p>
+{:else if $gameStage === "pregame"}
+  <Pregame />
+{:else if $gameStage === "midgame"}
+  <Midgame />
+{:else}
+  <Postgame />
 {/if}
 <EventLog />

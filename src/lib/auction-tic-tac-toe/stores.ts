@@ -1,12 +1,12 @@
 import { writable } from "svelte/store";
-import { Side, TurnPart, type AuctionTTTGameStatus, type Player, type Winner } from "$lib/auction-tic-tac-toe/types";
+import { Side, TurnPart, type AuctionTTTGameStage, type Player, type Winner } from "$lib/auction-tic-tac-toe/types";
 
 export const players = writable({
   X: { money: 15 },
   O: { money: 15 }
 } as Record<Side.X | Side.O, Player>);
 export const turnPart = writable(TurnPart.None);
-export const gameStatus = writable("pregame" as AuctionTTTGameStatus);
+export const gameStage = writable(null as AuctionTTTGameStage | null);
 export const squares = writable([
   [Side.None, Side.None, Side.None],
   [Side.None, Side.None, Side.None],
