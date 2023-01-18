@@ -119,7 +119,7 @@ const repairSchema = object({
   equipment: number().integer().min(0)
 });
 
-export default class Tourney extends GameLogicHandlerBase {
+export default class MayhemManager extends GameLogicHandlerBase {
   settings: Settings
   decks?: {
     fighters: FighterDeck,
