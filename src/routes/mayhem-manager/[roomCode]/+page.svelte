@@ -17,7 +17,7 @@
   import Training from "$lib/mayhem-manager/training.svelte";
   import PickBrFighter from "$lib/mayhem-manager/pick-br-fighter.svelte";
   import PickFighters from "$lib/mayhem-manager/pick-fighters.svelte";
-    import SettingsEditor from "$lib/mayhem-manager/settings-editor.svelte";
+  import SettingsEditor from "$lib/mayhem-manager/settings-editor.svelte";
 
   const relativeUrl = $page.url.pathname;
   const socket = io(relativeUrl);
