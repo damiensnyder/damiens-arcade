@@ -1,5 +1,6 @@
 import { StatName, type Strategy } from "$lib/mayhem-manager/types";
 import type { Equipment, Fighter, PreseasonTeam, Team } from "$lib/mayhem-manager/types";
+import { isValidEquipmentBR, isValidEquipmentTournament } from "./battle-logic";
 
 const Bot = {
   getPreseasonPicks: function (team: PreseasonTeam): {
@@ -42,21 +43,39 @@ const Bot = {
       skills: team.fighters.map((_f) => StatName.Strength)
     };
   },
-  getBRPicks: function (_team: Team): {
+  getBRPicks: function (team: Team): {
     fighter: number
     equipment: number[]
   } {
+    const equipment = [];
+    // try adding each piece of equipment, and remove any that aren't allowed
+    for (let i = 0; i < team.equipment.length; i++) {
+      equipment.push(i);
+      if (!isValidEquipmentBR(team, equipment)) {
+        equipment.pop();
+      }
+    }
     return {
       fighter: 0,
-      equipment: [0]
+      equipment
     };
   },
   getFightPicks: function (team: Team): {
     equipment: number[][]
     strategy: Strategy[]
   } {
+    const equipment = team.fighters.map(_ => []);
+    // try adding each piece of equipment to each fighter, and remove any that aren't allowed
+    for (let i = 0; i < team.fighters.length; i++) {
+      for (let j = 0; j < team.equipment.length; j++) {
+        equipment[i].push(j);
+        if (!isValidEquipmentTournament(team, equipment)) {
+          equipment[i].pop();
+        }
+      }
+    }
     return {
-      equipment: team.fighters.map((_, i) => i < team.equipment.length ? [i] : []),
+      equipment,
       strategy: team.fighters.map(_ => { return {}; })
     };
   }

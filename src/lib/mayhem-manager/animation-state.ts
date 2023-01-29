@@ -146,6 +146,10 @@ export default class AnimationState {
           const f = this.fighters[event.fighter];
           const t = this.nextFighters[event.target];
           this.nextFlipped[event.fighter] = f.x > t.x;
+          this.nextFighters[event.target] = {
+            ...t,
+            hp: t.hp - event.damage
+          }
           this.particles.push({
             type: "image",
             x: f.x,
@@ -246,7 +250,7 @@ export default class AnimationState {
         type: "image",
         x: p.destX * delta + p.x * (1 - delta),
         y: p.destY * delta + p.y * (1 - delta),
-        rotation: Math.atan2(p.destX - p.x, p.destY - p.y),
+        rotation: -Math.atan2(p.destX - p.x, p.destY - p.y),
         imgUrl: p.imgUrl
       };
     });
