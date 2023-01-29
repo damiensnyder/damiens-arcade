@@ -1,37 +1,127 @@
 {
   "equipment": [
     {
-      "name": "epic shield",
-      "slots": ["hand"],
-      "imgUrl": "/static/equipment/shield.png",
-      "zoomedImgUrl": "/static/equipment/shield.png",
-      "price": 6,
-      "description": "Adds 10% to dodge chance.",
-      "flavor": "oh? did you hit the shield? fuckin idiot",
+      "name": "Battle Axe",
+      "slots": ["hand", "hand"],
+      "imgUrl": "/static/equipment/battle-axe.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/battle-axe.png",
+      "price": 18,
+      "description": "Base damage 25.",
+      "flavor": "learn this one secret trick lumberjacks DON'T want you to know",
       "abilities": [{
-        "type": "statChange",
-        "stat": "reflexes",
-        "amount": 2
+        "type": "meleeAttack",
+        "damage": 5
       }]
     },
     {
-      "name": "Sword That Imbalances You",
-      "slots": ["hand", "hand"],
-      "imgUrl": "/static/equipment/sword.png",
-      "zoomedImgUrl": "/static/equipment/sword.png",
-      "price": 15,
-      "description": "Deals 2x damage.",
+      "name": "Chainsaw Headband",
+      "slots": ["head"],
+      "imgUrl": "/static/equipment/chainsaw-headband.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/chainsaw-headband.png",
+      "price": 10,
+      "description": "Base damage 15.",
       "flavor": "",
+      "abilities": [{
+        "type": "meleeAttack",
+        "damage": 3
+      }]
+    },
+    {
+      "name": "Claws for Alarm",
+      "slots": ["hand"],
+      "imgUrl": "/static/equipment/claws-for-alarm.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/claws-for-alarm.png",
+      "price": 5,
+      "description": "Base damage 10. Accuracy -2.",
+      "flavor": "",
+      "abilities": [{
+        "type": "meleeAttack",
+        "damage": 2
+      },
+      {
+        "type": "statChange",
+        "stat": "accuracy",
+        "amount": -4
+      }]
+    },
+    {
+      "name": "Diamond Sword",
+      "slots": ["hand"],
+      "imgUrl": "/static/equipment/diamond-sword.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/diamond-sword.png",
+      "price": 15,
+      "description": "Base damage 20.",
+      "flavor": "",
+      "abilities": [{
+        "type": "meleeAttack",
+        "damage": 4
+      }]
+    },
+    {
+      "name": "Headbutter's Delight",
+      "slots": ["head"],
+      "imgUrl": "/static/equipment/headbutters-delight.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/headbutters-delight.png",
+      "price": 8,
+      "description": "Base damage 12.",
+      "flavor": "for when two fists just isn't enough",
+      "abilities": [{
+        "type": "meleeAttack",
+        "damage": 2.4
+      }]
+    },
+    {
+      "name": "Shiv",
+      "slots": ["hand"],
+      "imgUrl": "/static/equipment/shiv.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/shiv.png",
+      "price": 3,
+      "description": "Base damage 8.",
+      "flavor": "",
+      "abilities": [{
+        "type": "meleeAttack",
+        "damage": 1.6
+      }]
+    },
+    {
+      "name": "Steel Toed Boots",
+      "slots": ["feet"],
+      "imgUrl": "/static/equipment/steel-toed-boots.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/steel-toed-boots.png",
+      "price": 4,
+      "description": "Base damage 12. Speed -0.5.",
+      "flavor": "",
+      "abilities": [{
+        "type": "meleeAttack",
+        "damage": 2.4
+      },
+      {
+        "type": "statChange",
+        "stat": "speed",
+        "amount": -1
+      }]
+    },
+    {
+      "name": "The Ratio-inator",
+      "slots": ["hand"],
+      "imgUrl": "/static/equipment/the-ratio-inator.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/the-ratio-inator.png",
+      "price": 5,
+      "description": "Base damage 10.",
+      "flavor": "hold this.",
       "abilities": [{
         "type": "meleeAttack",
         "damage": 2
       }]
     },
+
+
+
     {
-      "name": "Sword That You Can Throw Infinitely",
+      "name": "Bow",
       "slots": ["hand", "hand"],
-      "imgUrl": "/static/equipment/sword.png",
-      "zoomedImgUrl": "/static/equipment/sword.png",
+      "imgUrl": "/static/equipment/bow.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/bow.png",
       "price": 10,
       "description": "Base damage 15. Base cooldown 5s.",
       "flavor": "",
@@ -39,45 +129,141 @@
         "type": "rangedAttack",
         "damage": 15,
         "cooldown": 5,
-        "projectileImg": "/static/equipment/sword.png"
+        "projectileImg": "/static/equipment/arrow.png"
       }]
     },
     {
-      "name": "tank top",
-      "slots": ["torso"],
-      "imgUrl": "/static/equipment/tank-top.png",
-      "zoomedImgUrl": "/static/equipment/tank-top.png",
+      "name": "Laser Blaster",
+      "slots": ["hand"],
+      "imgUrl": "/static/equipment/laser-blaster.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/laser-blaster.png",
       "price": 15,
-      "description": "Increases base damage by 2.",
+      "description": "Base damage 12. Base cooldown 3s.",
       "flavor": "",
       "abilities": [{
+        "type": "rangedAttack",
+        "damage": 12,
+        "cooldown": 3,
+        "projectileImg": "/static/equipment/laser.png"
+      }]
+    },
+    {
+      "name": "Wand of Flames",
+      "slots": ["hand"],
+      "imgUrl": "/static/equipment/wand-of-flames.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/wand-of-flames.png",
+      "price": 12,
+      "description": "Base damage 30. Base cooldown 8s.",
+      "flavor": "",
+      "abilities": [{
+        "type": "rangedAttack",
+        "damage": 30,
+        "cooldown": 8,
+        "projectileImg": "/static/equipment/flame.png"
+      }]
+    },
+    {
+      "name": "Zap Helmet",
+      "slots": ["head"],
+      "imgUrl": "/static/equipment/zap-helmet.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/zap-helmet.png",
+      "price": 3,
+      "description": "Base damage 10. Base cooldown 5s.",
+      "flavor": "i did it with my mind",
+      "abilities": [{
+        "type": "rangedAttack",
+        "damage": 10,
+        "cooldown": 5,
+        "projectileImg": "/static/equipment/laser.png"
+      }]
+    },
+
+
+
+    {
+      "name": "Censored Bar",
+      "slots": ["legs"],
+      "imgUrl": "/static/equipment/censored-bar.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/censored-bar.png",
+      "price": 10,
+      "description": "+2 reflexes.",
+      "flavor": "this attack has been banned by the Motion Picture Association of America",
+      "abilities": [{
         "type": "statChange",
-        "stat": "strength",
+        "stat": "reflexes",
         "amount": 4
       }]
     },
     {
-      "name": "cute hat :)",
+      "name": "Devil Horns",
       "slots": ["head"],
-      "imgUrl": "/static/equipment/viking-helmet.png",
-      "zoomedImgUrl": "/static/equipment/viking-helmet.png",
-      "price": 3,
-      "description": "Reduces damage taken by 5%.",
-      "flavor": "",
+      "imgUrl": "/static/equipment/devil-horns.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/devil-horns.png",
+      "price": 15,
+      "description": "+3 strength. +3 accuracy. -2 reflexes. -2 toughness.",
+      "flavor": "the devil takes his due",
       "abilities": [{
         "type": "statChange",
+        "stat": "strength",
+        "amount": 6
+      },
+      {
+        "type": "statChange",
+        "stat": "accuracy",
+        "amount": 6
+      },
+      {
+        "type": "statChange",
+        "stat": "reflexes",
+        "amount": -4
+      },
+      {
+        "type": "statChange",
         "stat": "toughness",
-        "amount": 1
+        "amount": -4
       }]
     },
     {
-      "name": "speedo",
+      "name": "Eyepatch",
+      "slots": ["head"],
+      "imgUrl": "/static/equipment/eyepatch.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/eyepatch.png",
+      "price": 7,
+      "description": "+2.5 accuracy. -1 reflexes.",
+      "flavor": "depth perception is sooo cliché",
+      "abilities": [{
+        "type": "statChange",
+        "stat": "accuracy",
+        "amount": 5
+      },
+      {
+        "type": "statChange",
+        "stat": "reflexes",
+        "amount": -2
+      }]
+    },
+    {
+      "name": "Flamingo Floaty",
+      "slots": ["legs"],
+      "imgUrl": "/static/equipment/flamingo-floaty.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/flamingo-floaty.png",
+      "price": 6,
+      "description": "+1 toughness.",
+      "flavor": "Flamingo Phil is always looking out for you",
+      "abilities": [{
+        "type": "statChange",
+        "stat": "toughness",
+        "amount": 2
+      }]
+    },
+    {
+      "name": "Speedo",
       "slots": ["legs"],
       "imgUrl": "/static/equipment/speedo.png",
-      "zoomedImgUrl": "/static/equipment/speedo.png",
-      "price": 8,
-      "description": "Reduces cooldowns by 5%. Adds 0.5 m/s to speed.",
-      "flavor": "ahhh so nice to have less clothing weighing you down",
+      "zoomedImgUrl": "/static/zoomed/equipment/speedo.png",
+      "price": 5,
+      "description": "+0.5 stamina. +0.5 speed.",
+      "flavor": "ahhh, how light and aerodynamic",
       "abilities": [{
         "type": "statChange",
         "stat": "energy",
@@ -90,17 +276,17 @@
       }]
     },
     {
-      "name": "boots",
-      "slots": ["feet"],
-      "imgUrl": "/static/equipment/boots.png",
-      "zoomedImgUrl": "/static/equipment/boots.png",
-      "price": 4,
-      "description": "Adds 1 m/s to speed.",
-      "flavor": "shoes and i get service",
+      "name": "Sports Jersey",
+      "slots": ["torso"],
+      "imgUrl": "/static/equipment/sports-jersey.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/sports-jersey.png",
+      "price": 11,
+      "description": "+2 energy.",
+      "flavor": "did you see the big game last night?",
       "abilities": [{
         "type": "statChange",
-        "stat": "speed",
-        "amount": 2
+        "stat": "energy",
+        "amount": 4
       }]
     }
   ]
