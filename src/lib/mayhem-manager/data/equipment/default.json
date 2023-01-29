@@ -129,7 +129,7 @@
         "type": "rangedAttack",
         "damage": 15,
         "cooldown": 5,
-        "projectileImg": "/static/equipment/arrow.png"
+        "projectileImg": "/static/projectiles/arrow.png"
       }]
     },
     {
@@ -144,7 +144,7 @@
         "type": "rangedAttack",
         "damage": 12,
         "cooldown": 3,
-        "projectileImg": "/static/equipment/laser.png"
+        "projectileImg": "/static/projectiles/laser.png"
       }]
     },
     {
@@ -159,7 +159,7 @@
         "type": "rangedAttack",
         "damage": 30,
         "cooldown": 8,
-        "projectileImg": "/static/equipment/flame.png"
+        "projectileImg": "/static/projectiles/flame.png"
       }]
     },
     {
@@ -174,7 +174,7 @@
         "type": "rangedAttack",
         "damage": 10,
         "cooldown": 5,
-        "projectileImg": "/static/equipment/laser.png"
+        "projectileImg": "/static/projectiles/laser.png"
       }]
     },
 
