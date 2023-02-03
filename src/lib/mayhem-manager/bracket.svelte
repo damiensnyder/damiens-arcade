@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Bracket } from "$lib/mayhem-manager/types";
-  import { teams } from "$lib/mayhem-manager/stores";
+  import { ownTeamIndex, teams } from "$lib/mayhem-manager/stores";
 
   export let left: Bracket | null = null;
   export let right: Bracket | null = null;
@@ -17,7 +17,9 @@
     {/if}
   </div>
   {#if winner !== null}
-    <p class="winner">{$teams[winner].name}</p>
+    <p class="winner" style:color={winner === $ownTeamIndex ? "var(--accent-4)" : "var(--text-1)"}>
+      {$teams[winner].name}
+    </p>
   {:else}
     <p class="winner tbd">winner</p>
   {/if}

@@ -2,7 +2,7 @@
   import type { FighterInBattle } from "$lib/mayhem-manager/types";
   import FighterImage from "$lib/mayhem-manager/fighter-image.svelte";
   import FighterInfo from "$lib/mayhem-manager/fighter-info.svelte";
-  import { teams } from "$lib/mayhem-manager/stores";
+  import { ownTeamIndex, teams } from "$lib/mayhem-manager/stores";
 
   export let fighter: FighterInBattle;
 </script>
@@ -16,7 +16,9 @@
       <div class="show-child-on-hover">
         <!-- we check for null because, if we watch a fight from a different
           league for debug purposes, the number of teams might be different -->
-        {fighter.name} &bull; {$teams[fighter.team] == null ? fighter.team : $teams[fighter.team].name}
+        <span class="team-name" style:color={fighter.team === $ownTeamIndex ? "var(--accent-4)" : "var(--text-1)"}>
+          {fighter.name} &bull; {$teams[fighter.team] == null ? fighter.team : $teams[fighter.team].name}
+        </span>
         <div class="show-on-hover">
           <FighterInfo {fighter} />
         </div>

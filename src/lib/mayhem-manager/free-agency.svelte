@@ -29,7 +29,9 @@
   <h2>Pick Order</h2>
   {#each $draftOrder as index, spotInOrder}
     <div class="horiz">
-      {spotInOrder + 1}. {$teams[index].name}
+      <span class="team-name" style:color={index === $ownTeamIndex ? "var(--accent-4)" : "var(--text-1)"}>
+        {spotInOrder + 1}. {$teams[index].name}
+      </span>
       {#if $ownTeam === null && $teams[index].controller === "bot"}
         <div class="right-align-outer">
           <button class="right-align-inner"

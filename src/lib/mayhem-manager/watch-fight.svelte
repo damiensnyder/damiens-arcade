@@ -185,7 +185,7 @@
     </div>
     <div class="horiz controls-row">
       <label class="horiz">Playback speed:
-        <input type="number" min=0 max=1000 bind:value={playbackSpeed} />%
+        <input type="number" min=0 max=1000 step=10 bind:value={playbackSpeed} />%
       </label>
     </div>
     {#if debug}

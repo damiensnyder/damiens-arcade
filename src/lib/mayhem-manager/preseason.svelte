@@ -67,7 +67,9 @@
   <h2>Players</h2>
   {#each $teams as team, index}
     <div class="horiz text-and-buttons">
-      {team.name}: ${team.money} ({team.controller})
+      <span class="team-name" style:color={index === $ownTeamIndex ? "var(--accent-4)" : "var(--text-1)"}>
+        {team.name}: ${team.money} {team.controller === "bot" ? "(bot)" : ""}
+      </span>
       <div class="right-align-outer">
         {#if team.controller === "bot"}
           {#if $ownTeamIndex === null}
@@ -105,5 +107,9 @@
   .players-list > .host-controls {
     align-self: center;
     margin-top: 1rem;
+  }
+
+  .team-name {
+    flex-grow: 0
   }
 </style>
