@@ -132,6 +132,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
   draftOrder?: number[]
   spotInDraftOrder?: number
   fighters?: Fighter[]
+  unsignedVeterans?: Fighter[]
   equipmentAvailable?: Equipment[][]
   trainingChoices?: { equipment: number[], skills: (number | StatName)[] }[]
   fightersInBattle?: FighterInBattle[]
@@ -390,6 +391,11 @@ export default class MayhemManager extends GameLogicHandlerBase {
   advanceToDraft(): void {
     this.gameStage = "draft";
 
+    this.unsignedVeterans = [];
+    this.teams.forEach((team: PreseasonTeam) => {
+      this.unsignedVeterans = this.unsignedVeterans.concat(team.needsResigning);
+    });
+
     // shuffle the draft order to start
     // in the future this should go in reverse order of results of previous tourney
     this.draftOrder = [];
@@ -424,8 +430,9 @@ export default class MayhemManager extends GameLogicHandlerBase {
     this.draftOrder.reverse(); // free agency has reverse pick order from the draft
     this.spotInDraftOrder = 0;
 
-    // for now we are generating random fighters, but in the future they should be fighters who
-    // have already been generated but their contracts ran out or they weren't picked
+    // free agents are undrafted fighters and unsigned veterans, padded with random new ones if
+    // there aren't enough
+    this.fighters = this.unsignedVeterans.concat(this.fighters);
     while (this.fighters.length < this.teams.length + 4) {
       this.fighters.push(this.generateFighter());
     }
