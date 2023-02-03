@@ -417,6 +417,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
     for (let i = 0; i < this.teams.length + 4; i++) {
       this.fighters.push(this.generateFighter());
     }
+    this.fighters.sort((a, b) => fighterValue(b) - fighterValue(a));
 
     this.emitEventToAll({
       type: "goToDraft",
@@ -436,6 +437,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
     while (this.fighters.length < this.teams.length + 4) {
       this.fighters.push(this.generateFighter());
     }
+    this.fighters.sort((a, b) => fighterValue(b) - fighterValue(a));
 
     // set price based on how good the fighter is and how old they are
     for (const fighter of this.fighters) {
