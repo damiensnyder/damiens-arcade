@@ -122,7 +122,7 @@
   <title>Damien's Arcade | Mayhem Manager | {$roomName}</title>
 </svelte:head>
 
-<main>
+<div class="page-outer">
   <div class="top-icons horiz">
     <h2>{$gameStage}</h2>
     {#if $ownTeamIndex !== null}
@@ -158,7 +158,7 @@
     {/if}
   </div>
 
-  <div class="container horiz">
+  <main class="horiz">
     {#if typeof viewing === "number"}
       <TeamView team={$teams[viewing]} />
     {:else if viewing === "allTeams"}
@@ -182,11 +182,11 @@
     {:else}
       <PickFighters />
     {/if}
-  </div>
-</main>
+  </main>
+</div>
   
 <style>
-  main {
+  .page-outer {
     position: absolute;
     top: 0;
     left: 0;
@@ -196,6 +196,7 @@
     flex-flow: column;
     justify-content: stretch;
     align-items: stretch;
+    overflow: hidden;
 
     background-color: var(--bg-1);
     color: var(--text-1);
@@ -204,14 +205,16 @@
 
   .top-icons {
     justify-content: stretch;
-    margin: 0 1.5rem;
+    margin: 0.25rem 1rem;
   }
 
-  .container {
+  main {
     flex: 1;
-    margin: 1rem 2rem 2rem 2rem;
+    margin: 0 1.5rem 1.5rem 1.5rem;
     justify-content: space-evenly;
     align-items: stretch;
+    overflow: hidden;
+
     background-color: var(--bg-3);
     border-radius: 1.5rem;
     border: 3px solid var(--bg-2);

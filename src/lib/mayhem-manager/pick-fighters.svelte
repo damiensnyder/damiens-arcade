@@ -50,44 +50,42 @@
   }
 </script>
 
-<div class="horiz">
-  {#if playingInNextGame}
-    <!-- redundant check so validity updates whenever equipmentChoices updates -->
-    {@const valid = equipmentChoices === equipmentChoices ? choicesAreValid() : true}
-    <div class="assign-equipment">
-      <h2>Assign equipment</h2>
-      {#each $ownTeam.fighters as fighter, i}
-        <div class="fighter">
-          <div class="show-child-on-hover">
-            <h3>{fighter.name}</h3>
-            <div class="show-on-hover">
-              <FighterInfo {fighter} />
-            </div>
+{#if playingInNextGame}
+  <!-- redundant check so validity updates whenever equipmentChoices updates -->
+  {@const valid = equipmentChoices === equipmentChoices ? choicesAreValid() : true}
+  <div class="assign-equipment column" style:flex=1>
+    <h2 class="column-title">Assign equipment</h2>
+    {#each $ownTeam.fighters as fighter, i}
+      <div class="fighter">
+        <div class="show-child-on-hover">
+          <h3>{fighter.name}</h3>
+          <div class="show-on-hover">
+            <FighterInfo {fighter} />
           </div>
-          {#each $ownTeam.equipment as equipment, j}
-            <div class="show-child-on-hover horiz">
-              <span style:font-weight={
-                fighter.attunements.includes(equipment.name) ? 600 : 400
-              }>{equipment.name} ({slotsToString(equipment.slots)})</span>
-              <div class="show-on-hover">
-                <EquipmentInfo equipment={equipment} />
-              </div>
-              <input type="checkbox" bind:checked={equipmentChoices[i][j]} />
-            </div>
-          {/each}
         </div>
-      {/each}
-      {#if valid === true}
-        <button class="ready" on:click={ready} on:submit={ready}>Ready</button>
-      {:else}
-        <p class="error">Cannot submit: {valid}</p>
-      {/if}
-    </div>
-  {/if}
-  <div>
-    <h2>Bracket</h2>
-    <Bracket {...$bracket} />
+        {#each $ownTeam.equipment as equipment, j}
+          <div class="show-child-on-hover horiz">
+            <span style:font-weight={
+              fighter.attunements.includes(equipment.name) ? 600 : 400
+            }>{equipment.name} ({slotsToString(equipment.slots)})</span>
+            <div class="show-on-hover">
+              <EquipmentInfo equipment={equipment} />
+            </div>
+            <input type="checkbox" bind:checked={equipmentChoices[i][j]} />
+          </div>
+        {/each}
+      </div>
+    {/each}
+    {#if valid === true}
+      <button class="ready" on:click={ready} on:submit={ready}>Ready</button>
+    {:else}
+      <p class="error">Cannot submit: {valid}</p>
+    {/if}
   </div>
+{/if}
+<div class="column" style:flex=1>
+  <h2 class="column-title">Bracket</h2>
+  <Bracket {...$bracket} />
 </div>
 
 <style>
@@ -103,10 +101,6 @@
 
   input[type="checkbox"] {
     margin: 0.15rem 0.6rem 0;
-  }
-
-  .assign-equipment {
-    margin-right: 3rem;
   }
 
   .ready {

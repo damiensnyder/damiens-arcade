@@ -46,16 +46,16 @@
 </script>
 
 {#if $ownTeamIndex !== null}
-  <div>
-    <h2>Equipment</h2>
+  <div class="column" style:flex=2>
+    <h2 class="column-title">Equipment</h2>
     <div class="equipment">
       {#each $equipment as equipment, index}
         <EquipmentInfo {equipment} {index} callback={pick} />
       {/each}
     </div>
   </div>
-  <div>
-    <h2>Select training</h2>
+  <div class="column" style:flex=1>
+    <h2 class="column-title">Select training</h2>
     <div class="list-container">
       {#each $ownTeam.fighters as fighter, index}
         <div class="horiz text-and-buttons">

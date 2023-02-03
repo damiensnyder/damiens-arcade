@@ -2,6 +2,7 @@
   --bg-1: #311;
   --bg-2: #755;
   --bg-3: #632;
+  --bg-3-semitransparent: #632e;
   --bg-4: #521;
   --text-1: #ddd;
   --text-2: #aaa;
@@ -113,4 +114,20 @@ select {
 
 .right-align-inner {
   margin: 0.25rem 0.5rem 0.25rem 0;
+}
+
+.column {
+  position: relative;
+  overflow-y: scroll;
+  margin: 0 2rem;
+}
+
+.column-title {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  text-align: center;
+  background-color: var(--bg-3-semitransparent);
+  padding: 0.5rem 0 1rem 0;
+  z-index: 10;
 }
