@@ -142,42 +142,44 @@
 </script>
 
 <div class="outer horiz">
-  <div class="viewport" bind:offsetWidth={frameWidth} bind:offsetHeight={frameHeight}>
-    {#if loaded}
-      <Application width={frameWidth} height={frameHeight} antialias={true}>
-        <Ticker on:tick={doTick} speed={(playbackSpeed || 0) / 1200} />
-        <Container x={frameWidth / 2} y={frameHeight / 2} pivot={0.5} scale={cameraScale}>
-          <Graphics x={-cameraX} y={-cameraY} pivot={0.5} draw={(graphics) => {
-            graphics.clear();
-            graphics.beginFill(0x555555);
-            graphics.drawRect(0, 0, 100, 100);
-          }} />
-          {#each fighters as f, i}
-            {#if f.hp > 0}
-              <Container x={f.x - cameraX} y={f.y - cameraY} pivot={0.5}
-                  scale={[15 / 384 * flipped[i], 15 / 384]} angle={rotation[i]} filters={[hitFlash[i]]}>
-              <!-- using height / width does not work on the first run and i have no idea why -->
-                <FighterBattleSprite fighter={f} equipment={f.equipment} />
-              </Container>
-            {/if}
-          {/each}
-          {#each particles as p}
-            {#if p.type === "image"}
-              <Sprite texture={PIXI.Texture.from(p.imgUrl)}
-                  x={p.x - cameraX} y={p.y - cameraY} scale={15 / 384} anchor={0.5} zIndex={p.y} rotation={p.rotation} />
-            {:else}
-              <Text text={p.text} x={p.x - cameraX} y={p.y - cameraY} anchor={0.5} zIndex={1001} alpha={p.opacity} scale={1/16} style={{
-                fill: 0xeeeeee,
-                fontFamily: "Comic Sans MS",
-                fontSize: 32  // we do big text and then downscale it so it's not blurry
-              }} />
-            {/if}
-          {/each}
-        </Container>
-      </Application>
-    {/if}
+  <div class="column" style:flex=2 style:overflow="visible">
+    <div class="viewport" bind:offsetWidth={frameWidth} bind:offsetHeight={frameHeight}>
+      {#if loaded}
+        <Application width={frameWidth} height={frameHeight} antialias={true}>
+          <Ticker on:tick={doTick} speed={(playbackSpeed || 0) / 1200} />
+          <Container x={frameWidth / 2} y={frameHeight / 2} pivot={0.5} scale={cameraScale}>
+            <Graphics x={-cameraX} y={-cameraY} pivot={0.5} draw={(graphics) => {
+              graphics.clear();
+              graphics.beginFill(0x555555);
+              graphics.drawRect(0, 0, 100, 100);
+            }} />
+            {#each fighters as f, i}
+              {#if f.hp > 0}
+                <Container x={f.x - cameraX} y={f.y - cameraY} pivot={0.5}
+                    scale={[15 / 384 * flipped[i], 15 / 384]} angle={rotation[i]} filters={[hitFlash[i]]}>
+                <!-- using height / width does not work on the first run and i have no idea why -->
+                  <FighterBattleSprite fighter={f} equipment={f.equipment} />
+                </Container>
+              {/if}
+            {/each}
+            {#each particles as p}
+              {#if p.type === "image"}
+                <Sprite texture={PIXI.Texture.from(p.imgUrl)}
+                    x={p.x - cameraX} y={p.y - cameraY} scale={15 / 384} anchor={0.5} zIndex={p.y} rotation={p.rotation} />
+              {:else}
+                <Text text={p.text} x={p.x - cameraX} y={p.y - cameraY} anchor={0.5} zIndex={1001} alpha={p.opacity} scale={1/16} style={{
+                  fill: 0xeeeeee,
+                  fontFamily: "Comic Sans MS",
+                  fontSize: 32  // we do big text and then downscale it so it's not blurry
+                }} />
+              {/if}
+            {/each}
+          </Container>
+        </Application>
+      {/if}
+    </div>
   </div>
-  <div class="controls">
+  <div class="column controls" style:flex=1>
     <div class="horiz controls-row">
       <button on:click={play} on:submit={play}>Play</button>
       <button on:click={pause} on:submit={pause}>Pause</button>
@@ -210,10 +212,9 @@
   }
 
   .viewport {
-    width: 65%;
-    margin: 0 1.25rem;
+    width: calc(100% - 4px);
+    height: calc(100% - 4px);
     overflow: hidden;
-    height: 75vh;
     display: flex;
     justify-content: flex-start;
     align-items: flex-start;
@@ -223,7 +224,6 @@
   }
 
   .controls {
-    flex: 1;
     align-items: stretch;
   }
 
@@ -251,11 +251,4 @@
     flex-grow: 1;
     margin: 0.5rem;
   }
-
-  /* p {
-    width: 100%;
-    overflow-x: hidden;
-    white-space: normal;
-    word-wrap: break-word;
-  } */
 </style>
