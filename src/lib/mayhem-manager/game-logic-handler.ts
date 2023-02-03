@@ -4,7 +4,7 @@ import type GameRoom from "$lib/backend/game-room";
 import type { MayhemManagerGameStage, MayhemManagerViewpoint, ViewpointBase, Team, Settings, Fighter, Bracket, FighterInBattle, Equipment, PreseasonTeam, Map, MapDeck, EquipmentDeck, FighterDeck } from "$lib/mayhem-manager/types";
 import { StatName } from "$lib/mayhem-manager/types";
 import { array, mixed, number, object, string } from "yup";
-import { getIndexByController, getTeamByController, nextMatch } from "$lib/mayhem-manager/utils";
+import { fighterValue, getIndexByController, getTeamByController, nextMatch } from "$lib/mayhem-manager/utils";
 import { settingsAreValid, collatedSettings, isValidEquipmentTournament, isValidEquipmentBR, simulateFight, TICK_LENGTH } from "$lib/mayhem-manager/battle-logic";
 import Bot from "$lib/mayhem-manager/bot";
 
@@ -432,7 +432,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
 
     // set price based on how good the fighter is and how old they are
     for (const fighter of this.fighters) {
-      fighter.price = Math.floor(1.5 * fighterPrice(fighter) + this.randInt(-5, 5));
+      fighter.price = Math.floor(1.5 * fighterValue(fighter) + this.randInt(-5, 5));
     }
 
     this.emitEventToAll({ type: "goToFA", fighters: this.fighters });
@@ -564,7 +564,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
       team.needsResigning = team.fighters.filter((fighter) => {
         fighter.experience++;
         if ((fighter.experience % 3) === 2) {
-          fighter.price = fighterPrice(fighter) + this.randInt(-5, 5);
+          fighter.price = fighterValue(fighter) + this.randInt(-5, 5);
           return true;
         }
         return false;
@@ -896,13 +896,4 @@ function generateBracket(components: Bracket[]): Bracket {
     }
     return generateBracket(newComponents);
   }
-}
-
-function fighterPrice(fighter: Fighter): number {
-  let price = 20 - fighter.experience;
-  for (const stat in fighter.stats) {
-    // compress stat ranges so super high or low ones don't affect price a ton
-    price += fighter.stats[stat];
-  }
-  return price;
 }
