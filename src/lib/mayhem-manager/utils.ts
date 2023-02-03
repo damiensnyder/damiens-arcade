@@ -1,4 +1,4 @@
-import type { Bracket, EquipmentSlot, PreseasonTeam, Team } from "$lib/mayhem-manager/types";
+import type { Bracket, EquipmentSlot, Fighter, PreseasonTeam, Team } from "$lib/mayhem-manager/types";
 
 export function getIndexByController(teams: Team[], controller: number): number | null {
   if (teams === undefined) return null;
@@ -46,4 +46,13 @@ export function nextMatch(bracket: Bracket): Bracket & {
     }
   }
   return nextMatch;
+}
+
+export function fighterValue(fighter: Fighter): number {
+  let price = 20 - fighter.experience;
+  for (const stat in fighter.stats) {
+    // compress stat ranges so super high or low ones don't affect price a ton
+    price += fighter.stats[stat];
+  }
+  return price;
 }

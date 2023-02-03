@@ -432,12 +432,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
 
     // set price based on how good the fighter is and how old they are
     for (const fighter of this.fighters) {
-      fighter.price = 10 - fighter.experience + this.randInt(-5, 5);
-      for (const stat in fighter.stats) {
-        // compress stat ranges so super high or low ones don't affect price a ton
-        fighter.price += Math.min(Math.max(fighter.stats[stat], 2), 9);
-      }
-      fighter.price = Math.max(fighter.price, 5);
+      fighter.price = Math.floor(1.5 * fighterPrice(fighter) + this.randInt(-5, 5));
     }
 
     this.emitEventToAll({ type: "goToFA", fighters: this.fighters });
@@ -564,12 +559,12 @@ export default class MayhemManager extends GameLogicHandlerBase {
       // add 1 to experience (for fighters) and years owned (for equipment)
       // fighters need to be re-signed every 3 years, starting after their 2nd
       // equipment needs to be repaired every 2 years, starting after the 1st
-      // fighter price is based on their skill (not yet implemented), whereas repair price is
+      // fighter price is based on their skill, whereas repair price is
       // solely dependent on years owned
       team.needsResigning = team.fighters.filter((fighter) => {
         fighter.experience++;
         if ((fighter.experience % 3) === 2) {
-          fighter.price = 20;
+          fighter.price = fighterPrice(fighter) + this.randInt(-5, 5);
           return true;
         }
         return false;
@@ -642,10 +637,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
   }
 
   resignFighter(teamIndex: number, fighterIndex: number): void {
-    // console.debug(teamIndex, fighterIndex);
     const team: PreseasonTeam = this.teams[teamIndex] as PreseasonTeam;
-    // console.debug(team.needsResigning.length);
-    // console.debug(team.money, team.needsResigning[fighterIndex].price);
     if (fighterIndex < team.needsResigning.length &&
         team.money >= team.needsResigning[fighterIndex].price) {
       const fighterResigned = team.needsResigning.splice(fighterIndex, 1)[0];
@@ -904,4 +896,13 @@ function generateBracket(components: Bracket[]): Bracket {
     }
     return generateBracket(newComponents);
   }
+}
+
+function fighterPrice(fighter: Fighter): number {
+  let price = 20 - fighter.experience;
+  for (const stat in fighter.stats) {
+    // compress stat ranges so super high or low ones don't affect price a ton
+    price += fighter.stats[stat];
+  }
+  return price;
 }
