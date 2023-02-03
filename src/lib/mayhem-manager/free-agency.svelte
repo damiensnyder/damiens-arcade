@@ -42,7 +42,7 @@
   {/each}
   {#if $draftOrder[$spotInDraftOrder] === $ownTeamIndex}
     <button on:click={pass} on:submit={pass}>
-      Pass
+      Done
     </button>
   {/if}
 </div>

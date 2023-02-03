@@ -229,88 +229,16 @@ export default class MayhemManager extends GameLogicHandlerBase {
       // ADVANCE
     } else if (advanceSchema.isValidSync(action) &&
         isHost) {
-      // advance does a different thing depending on what stage you are in
-      if (this.gameStage === "preseason" &&
-          this.teams.length >= 1) {
-        this.advanceToDraft();
-      } else if (this.gameStage === "draft") {
-        let firstIteration = true;
-        while (this.spotInDraftOrder < this.teams.length) {
-          const pickingTeam = this.teams[this.draftOrder[this.spotInDraftOrder]];
-          // stop auto-drafting if the next team up is not bot-controlled
-          // but if it's the first iteration we assume the advancement is desired
-          if (!firstIteration && pickingTeam.controller !== "bot") {
-            break;
-          }
-          const pick = Bot.getDraftPick(pickingTeam, this.fighters);
-          this.pickFighter(this.draftOrder[this.spotInDraftOrder], pick);
-          firstIteration = false;
-        }
-        if (this.spotInDraftOrder === this.draftOrder.length) {
-          this.advanceToFreeAgency();
-        }
-      } else if (this.gameStage === "free agency") {
-        let firstIteration = true;
-        while (this.spotInDraftOrder < this.teams.length) {
-          const pickingTeam = this.teams[this.draftOrder[this.spotInDraftOrder]];
-          // stop auto-drafting if the next team up is not bot-controlled
-          // but if it's the first iteration we assume the advancement is desired
-          if (!firstIteration && pickingTeam.controller !== "bot") {
-            break;
-          }
-          const picks = Bot.getFAPicks(pickingTeam, this.fighters);
-          for (const pick of picks) {
-            this.pickFighter(this.draftOrder[this.spotInDraftOrder], pick);
-          }
-          this.emitEventToAll({
-            type: "pass"
-          });
-          firstIteration = false;
-          this.spotInDraftOrder++;
-        }
-        if (this.spotInDraftOrder === this.draftOrder.length) {
-          this.advanceToTraining();
-        }
-      } else if (this.gameStage === "training") {
-        for (let i = 0; i < this.teams.length; i++) {
-          if (!this.ready[i]) {
-            const trainingPicks = Bot.getTrainingPicks(this.teams[i], this.equipmentAvailable[i]);
-            this.trainingChoices[i] = {
-              equipment: trainingPicks.equipment,
-              skills: trainingPicks.skills
-            };
-          }
-        }
-        this.advanceToBattleRoyale();
-      } else if (this.gameStage === "battle royale") {
-        for (let i = 0; i < this.teams.length; i++) {
-          if (!this.ready[i]) {
-            const brPicks = Bot.getBRPicks(this.teams[i]);
-            this.submitBRPick(i, brPicks.fighter, brPicks.equipment);
-          }
-        }
-      } else if (this.gameStage === "tournament") {
-        // if the tournament is over, advance to preseason
-        if (this.bracket.winner !== null) {
-          this.advanceToPreseason();
-        } else {
-          // otherwise, simulate the next fight
-          for (let i = 0; i < this.teams.length; i++) {
-            if (!this.ready[i]) {
-              const fightPicks = Bot.getFightPicks(this.teams[i]);
-              this.submitFightPicks(i, fightPicks.equipment);
-            }
-          }
-        }
-      }
+      this.advance();
       
       // PICK (draft)
     } else if (pickSchema.isValidSync(action) &&
         indexControlledByViewer !== null &&
         this.gameStage === "draft") {
       this.pickFighter(indexControlledByViewer, action.index);
-      if (this.spotInDraftOrder === this.draftOrder.length) {
-        this.advanceToFreeAgency();
+      if (this.spotInDraftOrder === this.draftOrder.length ||
+          this.teams[this.draftOrder[this.spotInDraftOrder]].controller === "bot") {
+        this.advance();
       }
 
       // PICK (free agency)
@@ -325,8 +253,9 @@ export default class MayhemManager extends GameLogicHandlerBase {
         this.gameStage === "free agency") {
       this.emitEventToAll(action);
       this.spotInDraftOrder++;
-      if (this.spotInDraftOrder === this.draftOrder.length) {
-        this.advanceToTraining();
+      if (this.spotInDraftOrder === this.draftOrder.length ||
+          this.teams[this.draftOrder[this.spotInDraftOrder]].controller === "bot") {
+        this.advance();
       }
 
       // PRACTICE
@@ -340,7 +269,14 @@ export default class MayhemManager extends GameLogicHandlerBase {
         skills: action.skills
       };
       this.ready[indexControlledByViewer] = true;
-      if (this.ready.every(x => x)) {
+      // if the only players not ready or bots, make them pick and ready
+      if (this.teams.every((t, i) => this.ready[i] || t.controller === "bot")) {
+        this.teams.forEach((t, i) => {
+          if (t.controller === "bot" && !this.ready[i]) {
+            this.ready[i] = true;
+            this.trainingChoices[i] = Bot.getTrainingPicks(t, this.equipmentAvailable[i]);
+          }
+        });
         this.advanceToBattleRoyale();
       }
 
@@ -367,6 +303,83 @@ export default class MayhemManager extends GameLogicHandlerBase {
         this.gameStage === "preseason" &&
         indexControlledByViewer !== null) {
       this.repairEquipment(indexControlledByViewer, action.equipment);
+    }
+  }
+
+  advance(): void {
+    // advance does a different thing depending on what stage you are in
+    if (this.gameStage === "preseason" &&
+        this.teams.length >= 1) {
+      this.advanceToDraft();
+    } else if (this.gameStage === "draft") {
+      let firstIteration = true;
+      while (this.spotInDraftOrder < this.teams.length) {
+        const pickingTeam = this.teams[this.draftOrder[this.spotInDraftOrder]];
+        // stop auto-drafting if the next team up is not bot-controlled
+        // but if it's the first iteration we assume the advancement is desired
+        if (!firstIteration && pickingTeam.controller !== "bot") {
+          break;
+        }
+        const pick = Bot.getDraftPick(pickingTeam, this.fighters);
+        this.pickFighter(this.draftOrder[this.spotInDraftOrder], pick);
+        firstIteration = false;
+      }
+      if (this.spotInDraftOrder === this.draftOrder.length) {
+        this.advanceToFreeAgency();
+      }
+    } else if (this.gameStage === "free agency") {
+      let firstIteration = true;
+      while (this.spotInDraftOrder < this.teams.length) {
+        const pickingTeam = this.teams[this.draftOrder[this.spotInDraftOrder]];
+        // stop auto-drafting if the next team up is not bot-controlled
+        // but if it's the first iteration we assume the advancement is desired
+        if (!firstIteration && pickingTeam.controller !== "bot") {
+          break;
+        }
+        const picks = Bot.getFAPicks(pickingTeam, this.fighters);
+        for (const pick of picks) {
+          this.pickFighter(this.draftOrder[this.spotInDraftOrder], pick);
+        }
+        this.emitEventToAll({
+          type: "pass"
+        });
+        firstIteration = false;
+        this.spotInDraftOrder++;
+      }
+      if (this.spotInDraftOrder === this.draftOrder.length) {
+        this.advanceToTraining();
+      }
+    } else if (this.gameStage === "training") {
+      for (let i = 0; i < this.teams.length; i++) {
+        if (!this.ready[i]) {
+          const trainingPicks = Bot.getTrainingPicks(this.teams[i], this.equipmentAvailable[i]);
+          this.trainingChoices[i] = {
+            equipment: trainingPicks.equipment,
+            skills: trainingPicks.skills
+          };
+        }
+      }
+      this.advanceToBattleRoyale();
+    } else if (this.gameStage === "battle royale") {
+      for (let i = 0; i < this.teams.length; i++) {
+        if (!this.ready[i]) {
+          const brPicks = Bot.getBRPicks(this.teams[i]);
+          this.submitBRPick(i, brPicks.fighter, brPicks.equipment);
+        }
+      }
+    } else if (this.gameStage === "tournament") {
+      // if the tournament is over, advance to preseason
+      if (this.bracket.winner !== null) {
+        this.advanceToPreseason();
+      } else {
+        // otherwise, simulate the next fight
+        for (let i = 0; i < this.teams.length; i++) {
+          if (!this.ready[i]) {
+            const fightPicks = Bot.getFightPicks(this.teams[i]);
+            this.submitFightPicks(i, fightPicks.equipment);
+          }
+        }
+      }
     }
   }
 
@@ -673,7 +686,25 @@ export default class MayhemManager extends GameLogicHandlerBase {
         cooldown: 0
       });
       this.ready[teamIndex] = true;
-      if (this.ready.every(x => x)) {
+
+      // if the only players not still ready are bots, make them pick and ready
+      if (this.teams.every((t, i) => t.controller === "bot" || this.ready[i])) {
+        this.teams.forEach((t, i) => {
+          if (t.controller === "bot" && !this.ready[i]) {
+            const picks = Bot.getBRPicks(t);
+            this.ready[i] = true;
+            this.fightersInBattle.push({
+              ...this.teams[i].fighters[picks.fighter],
+              team: i,
+              hp: 100,
+              maxHP: 100,
+              equipment: picks.equipment.map((e) => this.teams[i].equipment[e]),
+              x: 0,
+              y: 0,
+              cooldown: 0
+            });
+          }
+        })
         this.simulateBattleRoyale();
       }
     }
@@ -695,7 +726,27 @@ export default class MayhemManager extends GameLogicHandlerBase {
           cooldown: 0
         });
       }
-      if (this.ready.every(x => x)) {
+
+      // if the only players not still ready are bots, make them pick and ready
+      if (this.teams.every((t, i) => t.controller === "bot" || this.ready[i])) {
+        this.teams.forEach((t, i) => {
+          if (t.controller === "bot" && !this.ready[i]) {
+            const picks = Bot.getFightPicks(t);
+            this.ready[i] = true;
+            for (let j = 0; j < this.teams[teamIndex].fighters.length; j++) {
+              this.fightersInBattle.push({
+                ...this.teams[i].fighters[j],
+                team: i,
+                hp: 100,
+                maxHP: 100,
+                equipment: picks.equipment[j].map((e) => this.teams[i].equipment[e]),
+                x: 0,
+                y: 0,
+                cooldown: 0
+              });
+            }
+          }
+        });
         this.simulateFight();
         this.prepareForNextMatch();
       }
