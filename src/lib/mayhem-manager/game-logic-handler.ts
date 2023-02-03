@@ -361,24 +361,28 @@ export default class MayhemManager extends GameLogicHandlerBase {
       }
       this.advanceToBattleRoyale();
     } else if (this.gameStage === "battle royale") {
+      // get bot picks from unready players then simulate battle royale
       for (let i = 0; i < this.teams.length; i++) {
         if (!this.ready[i]) {
           const brPicks = Bot.getBRPicks(this.teams[i]);
-          this.submitBRPick(i, brPicks.fighter, brPicks.equipment);
+          this.submitBRPick(i, brPicks.fighter, brPicks.equipment, false);
         }
       }
+      this.simulateBattleRoyale();
     } else if (this.gameStage === "tournament") {
       // if the tournament is over, advance to preseason
       if (this.bracket.winner !== null) {
         this.advanceToPreseason();
       } else {
         // otherwise, simulate the next fight
+        // need to get bot picks from unready players first
         for (let i = 0; i < this.teams.length; i++) {
           if (!this.ready[i]) {
             const fightPicks = Bot.getFightPicks(this.teams[i]);
-            this.submitFightPicks(i, fightPicks.equipment);
+            this.submitFightPicks(i, fightPicks.equipment, false);
           }
         }
+        this.simulateFight();
       }
     }
   }
@@ -536,6 +540,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
       },
       this.fightersInBattle
     )[0];
+    this.prepareForNextMatch();
   }
 
   prepareForNextMatch(): void {
@@ -671,7 +676,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
     }
   }
 
-  submitBRPick(teamIndex: number, fighter: number, equipment: number[]) {
+  submitBRPick(teamIndex: number, fighter: number, equipment: number[], doUnreadyBots: boolean = true) {
     if (!this.ready[teamIndex] &&
         fighter < this.teams[teamIndex].fighters.length &&
         isValidEquipmentBR(this.teams[teamIndex], equipment)) {
@@ -688,7 +693,8 @@ export default class MayhemManager extends GameLogicHandlerBase {
       this.ready[teamIndex] = true;
 
       // if the only players not still ready are bots, make them pick and ready
-      if (this.teams.every((t, i) => t.controller === "bot" || this.ready[i])) {
+      if (doUnreadyBots &&
+          this.teams.every((t, i) => t.controller === "bot" || this.ready[i])) {
         this.teams.forEach((t, i) => {
           if (t.controller === "bot" && !this.ready[i]) {
             const picks = Bot.getBRPicks(t);
@@ -710,7 +716,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
     }
   }
 
-  submitFightPicks(teamIndex: number, equipment: number[][]): void {
+  submitFightPicks(teamIndex: number, equipment: number[][], doUnreadyBots: boolean = true): void {
     if (!this.ready[teamIndex] &&
         isValidEquipmentTournament(this.teams[teamIndex], equipment)) {
       this.ready[teamIndex] = true;
@@ -728,7 +734,8 @@ export default class MayhemManager extends GameLogicHandlerBase {
       }
 
       // if the only players not still ready are bots, make them pick and ready
-      if (this.teams.every((t, i) => t.controller === "bot" || this.ready[i])) {
+      if (doUnreadyBots &&
+          this.teams.every((t, i) => t.controller === "bot" || this.ready[i])) {
         this.teams.forEach((t, i) => {
           if (t.controller === "bot" && !this.ready[i]) {
             const picks = Bot.getFightPicks(t);
@@ -748,7 +755,6 @@ export default class MayhemManager extends GameLogicHandlerBase {
           }
         });
         this.simulateFight();
-        this.prepareForNextMatch();
       }
     }
   }
