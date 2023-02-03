@@ -85,7 +85,9 @@
 {/if}
 <div class="column" style:flex=1>
   <h2 class="column-title">Bracket</h2>
-  <Bracket {...$bracket} />
+  <div class="bracket">
+    <Bracket {...$bracket} />
+  </div>
 </div>
 
 <style>
@@ -110,5 +112,10 @@
 
   .ready {
     margin-bottom: 1.25rem;
+  }
+
+  .bracket {
+    overflow: scroll;
+    padding-left: 1rem;
   }
 </style>

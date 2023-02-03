@@ -18,7 +18,7 @@
   </div>
   {#if winner !== null}
     <p class="winner" style:color={winner === $ownTeamIndex ? "var(--accent-4)" : "var(--text-1)"}>
-      {$teams[winner].name}
+      {$teams[winner].name.split(" ").pop()}
     </p>
   {:else}
     <p class="winner tbd">winner</p>
@@ -31,7 +31,7 @@
   }
 
   .winner {
-    width: 10rem;
+    width: 6rem;
     padding: 0.5rem;
     text-align: right;
     border-right: 2px solid var(--bg-1);
