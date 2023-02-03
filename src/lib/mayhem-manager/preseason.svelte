@@ -47,9 +47,9 @@
   }
 </script>
 
-<div>
+<div class="column" style:flex=5>
   {#if $ownTeamIndex !== null}
-    <h2>Re-sign fighters</h2>
+    <h2 class="column-title">Re-sign fighters</h2>
     {#each needsResigning as fighter, index}
       <FighterInfo {fighter} {index} />
     {/each}
@@ -63,8 +63,8 @@
     </div>
   {/if}
 </div>
-<div class="players-list">
-  <h2>Players</h2>
+<div class="players-list column" style:flex=3>
+  <h2 class="column-title">Players</h2>
   {#each $teams as team, index}
     <div class="horiz text-and-buttons">
       <span class="team-name" style:color={index === $ownTeamIndex ? "var(--accent-4)" : "var(--text-1)"}>
@@ -100,10 +100,6 @@
 </div>
 
 <style>
-  h2 {
-    padding-bottom: 1rem;
-  }
-
   .players-list > .host-controls {
     align-self: center;
     margin-top: 1rem;

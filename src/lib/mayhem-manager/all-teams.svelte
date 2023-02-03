@@ -12,8 +12,8 @@
   }
 </script>
 
-<div>
-  <h2>Teams</h2>
+<div class="column">
+  <h2 class="column-title">Teams</h2>
   {#each $teams as team, index}
     <div class="horiz text-and-buttons">
       {team.name +

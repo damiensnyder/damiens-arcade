@@ -23,8 +23,8 @@
   }
 </script>
 {#if $ownTeamIndex !== null}
-  <div>
-    <h2>Select fighter</h2>
+  <div class="column" style:flex=2>
+    <h2 class="column-title">Select fighter</h2>
     <select bind:value={selectedFighter}>
       {#each $ownTeam.fighters as fighter, index}
         <option value={index}>{fighter.name}</option>
@@ -33,8 +33,8 @@
     <FighterInfo fighter={$ownTeam.fighters[selectedFighter]}
         equipment={$ownTeam.equipment.filter((_, i) => selectedEquipment[i])} />
   </div>
-  <div>
-    <h2>Your equipment</h2>
+  <div class="column" style:flex=1>
+    <h2 class="column-title">Your equipment</h2>
     {#each $ownTeam.equipment as equipment, index}
       <div class="show-child-on-hover horiz">
         <span style:font-weight={

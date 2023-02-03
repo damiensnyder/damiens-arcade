@@ -11,16 +11,16 @@
   }
 </script>
 
-<div>
-  <h2>Fighters</h2>
+<div class="column" style:flex=2>
+  <h2 class="column-title">Fighters</h2>
   <div class="fighters">
     {#each $fighters as fighter, index}
       <FighterInfo {fighter} {index} />
     {/each}
   </div>
 </div>
-<div>
-  <h2>Pick Order</h2>
+<div class="column" style:flex=1>
+  <h2 class="column-title">Pick Order</h2>
   {#each $draftOrder as index, spotInOrder}
     <div class="horiz text-and-buttons">
       <span class="team-name" style:color={index === $ownTeamIndex ? "var(--accent-4)" : "var(--text-1)"}>

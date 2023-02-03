@@ -86,9 +86,9 @@ export interface Fighter {
 export enum StatName {
   Strength = "strength",
   Accuracy = "accuracy",
-  Reflexes = "reflexes",
   Energy = "energy",
   Speed = "speed",
+  Reflexes = "reflexes",
   Toughness = "toughness"
 }
 

@@ -32,13 +32,11 @@
     <button on:click={pick} on:submit={pick}>Pick</button>
   {/if}
 </div>
-<div class="horiz">
+<div class="horiz image-and-description">
   <img src={equipment.zoomedImgUrl} width="150" height="150" alt={equipment.name} />
-  <div class="horiz info">
-    <div class="description">
-      <p>{equipment.description}</p>
-      <p>{equipment.flavor}</p>
-    </div>
+  <div class="description">
+    <p>{equipment.description}</p>
+    <p>{equipment.flavor}</p>
   </div>
 </div>
 
@@ -73,8 +71,9 @@
     margin: 0.2rem 0 0 0.75rem;
   }
 
-  .info {
-    align-items: stretch;
+  .image-and-description {
+    align-self: stretch;
+    justify-content: stretch;
   }
 
   .description {

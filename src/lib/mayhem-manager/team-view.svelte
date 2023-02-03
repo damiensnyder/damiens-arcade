@@ -6,16 +6,16 @@
   export let team: Team;
 </script>
 
-<div>
-  <h2>Fighters</h2>
+<div class="column" style:flex=1>
+  <h2 class="column-title">Fighters</h2>
   <div class="fighters">
     {#each team.fighters as fighter}
       <FighterInfo {fighter} />
     {/each}
   </div>
 </div>
-<div>
-  <h2>Equipment</h2>
+<div class="column" style:flex=1>
+  <h2 class="column-title">Equipment</h2>
   <div class="fighters">
     {#each team.equipment as equipment}
       <EquipmentInfo {equipment} />
