@@ -159,7 +159,7 @@
         "type": "rangedAttack",
         "damage": 30,
         "cooldown": 8,
-        "projectileImg": "/static/projectiles/flame.png"
+        "projectileImg": "/static/projectiles/fireball.png"
       }]
     },
     {

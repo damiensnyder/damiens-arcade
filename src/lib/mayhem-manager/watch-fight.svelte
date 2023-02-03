@@ -251,4 +251,8 @@
     flex-grow: 1;
     margin: 0.5rem;
   }
+
+  .column {
+    margin: 0 1rem;
+  }
 </style>
