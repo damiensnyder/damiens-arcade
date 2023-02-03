@@ -88,11 +88,11 @@ select {
 }
 
 .show-on-hover {
-  position: absolute;
-  top: 0;
-  left: -17.5rem;
-  right: 0;
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
   width: fit-content;
+  height: fit-content;
   z-index: 1;
   padding: 0 1rem;
   border: 2px solid var(--bg-2);

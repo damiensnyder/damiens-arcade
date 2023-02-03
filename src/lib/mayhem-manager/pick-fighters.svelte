@@ -99,6 +99,11 @@
     justify-content: space-between;
   }
 
+  .show-on-hover {
+    left: unset;
+    right: 1rem;
+  }
+
   input[type="checkbox"] {
     margin: 0.15rem 0.6rem 0;
   }
