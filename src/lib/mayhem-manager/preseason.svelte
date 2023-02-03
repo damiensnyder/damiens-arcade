@@ -63,7 +63,7 @@
     </div>
   {/if}
 </div>
-<div class="players-list column" style:flex=3>
+<div class="players-list column" style:flex=4>
   <h2 class="column-title">Players</h2>
   {#each $teams as team, index}
     <div class="horiz text-and-buttons">
