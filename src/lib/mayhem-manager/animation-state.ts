@@ -52,6 +52,8 @@ export default class AnimationState {
   nextParticles: Particle[];
 
   constructor(eventLog: MidFightEvent[][]) {
+    eventLog.splice(1, 0, [], [], [], [], []);  // pause for a second after spawning in fighters
+    eventLog.push([], [], [], [], []);  // repeat an empty tick after the last tick
     this.eventLog = eventLog;
     this.tick = -1;
     this.fighters = [];

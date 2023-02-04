@@ -6,7 +6,7 @@
   export let right: Bracket | null = null;
   export let winner: number | string;
 
-  const winnerShortenedName = (
+  const winnerShortenedName = winner === null ? null : (
     typeof winner === "string" ? winner : $teams[winner].name
   ).split(" ").pop();
   const isOwnTeam = typeof winner === "string" ?

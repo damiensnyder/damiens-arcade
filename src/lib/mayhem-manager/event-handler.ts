@@ -4,8 +4,6 @@ import { get } from "svelte/store";
 import { roomName, isPublic, host } from "$lib/stores";
 import type { ChangeHostEvent, ChangeRoomSettingsEvent, EventHandler } from "$lib/types";
 
-let fightTimeout;
-
 export function handleGamestate(gamestate: MayhemManagerViewpoint): void {
   rawSettings.set(JSON.stringify(gamestate.settings));
   gameStage.set(gamestate.gameStage);
@@ -125,7 +123,6 @@ export const eventHandler: EventHandler<MayhemManagerEvent> = {
   },
   fight: function (event): void {
     map.set(event.map);
-    clearTimeout(fightTimeout);
     fightEvents.set(event.eventLog);
     watchingFight.set(true);
   },
@@ -135,7 +132,6 @@ export const eventHandler: EventHandler<MayhemManagerEvent> = {
     map.set(null);
   },
   goToPreseason: function (event): void {
-    clearTimeout(fightTimeout);
     watchingFight.set(false);
     fightEvents.set([]);
     history.set(event.history);

@@ -108,8 +108,6 @@
   function enterEvents(): void {
     try {
       const e = JSON.parse("[" + eventLogRaw.replaceAll("][", "],[") + "]");
-      e.splice(1, 0, [], [], [], [], []);  // pause for a second after spawning in fighters
-      e.push([]);  // repeat an empty tick after the last tick
       eventLog = e;
       play();
     } catch (e) {
