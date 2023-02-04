@@ -262,7 +262,7 @@
       "imgUrl": "/static/equipment/speedo.png",
       "zoomedImgUrl": "/static/zoomed/equipment/speedo.png",
       "price": 5,
-      "description": "+0.5 stamina. +0.5 speed.",
+      "description": "+0.5 energy. +0.5 speed.",
       "flavor": "ahhh, how light and aerodynamic",
       "abilities": [{
         "type": "statChange",
