@@ -9,6 +9,7 @@ let fightTimeout;
 export function handleGamestate(gamestate: MayhemManagerViewpoint): void {
   rawSettings.set(JSON.stringify(gamestate.settings));
   gameStage.set(gamestate.gameStage);
+  history.set(gamestate.history);
   teams.set(gamestate.teams);
   if (gamestate.gameStage === "draft" || gamestate.gameStage === "free agency") {
     draftOrder.set(gamestate.draftOrder);

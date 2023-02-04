@@ -597,7 +597,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
     
     // add the last season's bracket to the league's history
     this.history.unshift(preserveBracket(this.bracket, this.teams));
-    
+
     this.gameStage = "preseason";
     this.emitEventToAll({
       type: "goToPreseason",
@@ -838,7 +838,9 @@ export default class MayhemManager extends GameLogicHandlerBase {
     return {
       ...super.basicViewpointInfo(viewer),
       gameStage: this.gameStage,
-      settings: this.settings
+      settings: this.settings,
+      history: this.history,
+      teams: this.teams
     }
   }
 
@@ -847,15 +849,13 @@ export default class MayhemManager extends GameLogicHandlerBase {
         this.gameStage === "training") {
       return {
         ...this.basicViewpointInfo(viewer),
-        gameStage: this.gameStage,
-        teams: this.teams
+        gameStage: this.gameStage
       }
     } else if (this.gameStage === "draft" ||
         this.gameStage === "free agency") {
       return {
         ...this.basicViewpointInfo(viewer),
         gameStage: this.gameStage,
-        teams: this.teams,
         draftOrder: this.draftOrder,
         spotInDraftOrder: this.spotInDraftOrder,
         fighters: this.fighters
@@ -864,7 +864,6 @@ export default class MayhemManager extends GameLogicHandlerBase {
       return {
         ...this.basicViewpointInfo(viewer),
         gameStage: this.gameStage,
-        teams: this.teams,
         fightersInBattle: this.fightersInBattle,
         map: this.map
       }
@@ -872,7 +871,6 @@ export default class MayhemManager extends GameLogicHandlerBase {
       return {
         ...this.basicViewpointInfo(viewer),
         gameStage: this.gameStage,
-        teams: this.teams,
         bracket: this.bracket,
         fightersInBattle: this.fightersInBattle,
         map: this.map

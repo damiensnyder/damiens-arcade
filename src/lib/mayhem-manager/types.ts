@@ -17,41 +17,39 @@ export type MayhemManagerViewpoint = PreseasonViewpoint |
 export interface ViewpointBase extends BasicViewpointInfo {
   gameStage: MayhemManagerGameStage
   settings: Settings
-}
-
-interface MidgameViewpointBase extends ViewpointBase {
+  history: Bracket[]
   teams: Team[]
 }
 
-interface PreseasonViewpoint extends MidgameViewpointBase {
+interface PreseasonViewpoint extends ViewpointBase {
   gameStage: "preseason"
 }
 
-interface DraftViewpoint extends MidgameViewpointBase {
+interface DraftViewpoint extends ViewpointBase {
   gameStage: "draft"
   draftOrder: number[]
   spotInDraftOrder: number
   fighters: Fighter[]
 }
 
-interface FAViewpoint extends MidgameViewpointBase {
+interface FAViewpoint extends ViewpointBase {
   gameStage: "free agency"
   draftOrder: number[]
   spotInDraftOrder: number
   fighters: Fighter[]
 }
 
-interface TrainingViewpoint extends MidgameViewpointBase {
+interface TrainingViewpoint extends ViewpointBase {
   gameStage: "training"
 }
 
-interface BRViewpoint extends MidgameViewpointBase {
+interface BRViewpoint extends ViewpointBase {
   gameStage: "battle royale"
   fightersInBattle?: FighterInBattle[]
   map?: number
 }
 
-interface TournamentViewpoint extends MidgameViewpointBase {
+interface TournamentViewpoint extends ViewpointBase {
   gameStage: "tournament"
   bracket: Bracket
   fightersInBattle?: FighterInBattle[]
