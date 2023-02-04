@@ -1,10 +1,17 @@
 <script lang="ts">
   import type { Bracket } from "$lib/mayhem-manager/types";
-  import { ownTeamIndex, teams } from "$lib/mayhem-manager/stores";
+  import { ownTeam, ownTeamIndex, teams } from "$lib/mayhem-manager/stores";
 
   export let left: Bracket | null = null;
   export let right: Bracket | null = null;
-  export let winner: number;
+  export let winner: number | string;
+
+  const winnerShortenedName = (
+    typeof winner === "string" ? winner : $teams[winner].name
+  ).split(" ").pop();
+  const isOwnTeam = typeof winner === "string" ?
+      $ownTeam !== null && winner === $ownTeam.name :
+      winner === $ownTeamIndex;
 </script>
 
 <div class="horiz">
@@ -17,8 +24,8 @@
     {/if}
   </div>
   {#if winner !== null}
-    <p class="winner" style:color={winner === $ownTeamIndex ? "var(--accent-4)" : "var(--text-1)"}>
-      {$teams[winner].name.split(" ").pop()}
+    <p class="winner" style:color={isOwnTeam ? "var(--accent-4)" : "var(--text-1)"}>
+      {winnerShortenedName}
     </p>
   {:else}
     <p class="winner tbd">winner</p>

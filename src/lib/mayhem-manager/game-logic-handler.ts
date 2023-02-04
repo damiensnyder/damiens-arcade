@@ -139,6 +139,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
   map?: number
   bracket?: Bracket
   nextMatch?: Bracket & { left: Bracket, right: Bracket }
+  history: Bracket[]
 
   constructor(room: GameRoom) {
     super(room);
@@ -153,6 +154,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
     this.gameStage = "preseason";
     this.teams = [];
     this.decks = collatedSettings(this.settings);
+    this.history = [];
   }
 
   handleAction(viewer: Viewer, action?: any): void {
@@ -590,12 +592,17 @@ export default class MayhemManager extends GameLogicHandlerBase {
       team.equipment = team.equipment.filter((equipment) => (equipment.yearsOwned % 2) !== 1);
       team.money = Math.ceil(team.money / 2) + 100;
     });
-    this.gameStage = "preseason";
     delete this.fightersInBattle;
     delete this.map;
+    
+    // add the last season's bracket to the league's history
+    this.history.unshift(preserveBracket(this.bracket, this.teams));
+    
+    this.gameStage = "preseason";
     this.emitEventToAll({
       type: "goToPreseason",
-      teams: this.teams as PreseasonTeam[]
+      teams: this.teams as PreseasonTeam[],
+      history: this.history
     });
   }
 
@@ -905,4 +912,20 @@ function generateBracket(components: Bracket[]): Bracket {
     }
     return generateBracket(newComponents);
   }
+}
+
+function preserveBracket(bracket: Bracket, teams: Team[]): Bracket {
+  // @ts-ignore
+  if (bracket.left !== undefined) {
+    return {
+      winner: teams[bracket.winner].name,
+      // @ts-ignore
+      left: preserveBracket(bracket.left, teams),
+      // @ts-ignore
+      right: preserveBracket(bracket.right, teams)
+    }
+  }
+  return {
+    winner: teams[bracket.winner].name
+  };
 }

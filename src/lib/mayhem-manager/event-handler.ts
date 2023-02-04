@@ -1,5 +1,5 @@
 import type { Fighter, PreseasonTeam, MayhemManagerEvent, MayhemManagerViewpoint } from "$lib/mayhem-manager/types";
-import { bracket, draftOrder, fightEvents, gameStage, rawSettings, settings, teams, spotInDraftOrder, fighters, map, equipment, watchingFight } from "$lib/mayhem-manager/stores";
+import { bracket, draftOrder, fightEvents, gameStage, rawSettings, settings, teams, spotInDraftOrder, fighters, map, equipment, watchingFight, history } from "$lib/mayhem-manager/stores";
 import { get } from "svelte/store";
 import { roomName, isPublic, host } from "$lib/stores";
 import type { ChangeHostEvent, ChangeRoomSettingsEvent, EventHandler } from "$lib/types";
@@ -137,6 +137,7 @@ export const eventHandler: EventHandler<MayhemManagerEvent> = {
     clearTimeout(fightTimeout);
     watchingFight.set(false);
     fightEvents.set([]);
+    history.set(event.history);
     gameStage.set("preseason");
     teams.set(event.teams);
   }

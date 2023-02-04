@@ -116,6 +116,6 @@
 
   .bracket {
     overflow: scroll;
-    padding-left: 1rem;
+    padding: 0 1rem;
   }
 </style>

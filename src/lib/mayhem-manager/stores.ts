@@ -21,6 +21,7 @@ export const equipmentPicked = writable([] as Equipment[]);
 export const strategyPicked = writable([] as Strategy[]);
 export const fightEvents = writable([] as MidFightEvent[][]);
 export const watchingFight = writable(false);
+export const history = writable([] as Bracket[]);
 
 export const ownTeamIndex = derived([teams, pov], ([$teams, $pov]) => getIndexByController($teams, $pov));
 export const ownTeam = derived([teams, pov], ([$teams, $pov]) => getTeamByController($teams, $pov));

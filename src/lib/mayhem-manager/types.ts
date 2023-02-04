@@ -403,9 +403,9 @@ export type MidFightEvent = MFSpawnEvent |
 export type Bracket = {
   left: Bracket
   right: Bracket
-  winner: number | null
+  winner: number | string | null
 } | {
-  winner: number
+  winner: number | string
 };
 
 interface BracketEvent {
@@ -416,6 +416,7 @@ interface BracketEvent {
 interface GoToPreseasonEvent {
   type: "goToPreseason"
   teams: PreseasonTeam[]
+  history: Bracket[]
 }
 
 export type MayhemManagerEvent = RoomEvent |
