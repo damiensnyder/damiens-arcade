@@ -31,6 +31,14 @@ export function nextMatch(bracket: Bracket): Bracket & {
   left: Bracket,
   right: Bracket
 } {
+  // @ts-ignore
+  if (bracket.left === undefined) {
+    return {
+      left: { winner: -1 },
+      right: { winner: -1 },
+      winner: null
+    };
+  }
   let nextMatch: Bracket & {
     left: Bracket,
     right: Bracket

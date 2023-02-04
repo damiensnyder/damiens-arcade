@@ -7,7 +7,7 @@
   import "../../../styles/global.css";
   import "../../../styles/fun.css";
   import type { MayhemManagerAction, MayhemManagerEvent, MayhemManagerViewpoint } from "$lib/mayhem-manager/types";
-  import { bracket, draftOrder, equipment, fighters, gameStage, ownTeam, ownTeamIndex, spotInDraftOrder, teams, watchingFight } from "$lib/mayhem-manager/stores";
+  import { bracket, draftOrder, equipment, fighters, gameStage, nextMatch, ownTeam, ownTeamIndex, spotInDraftOrder, teams, watchingFight } from "$lib/mayhem-manager/stores";
   import TeamView from "$lib/mayhem-manager/team-view.svelte";
   import AllTeams from "$lib/mayhem-manager/all-teams.svelte";
   import WatchFight from "$lib/mayhem-manager/watch-fight.svelte";
@@ -116,6 +116,19 @@
       gameStage: $gameStage
     });
   }
+
+  // if in next fight or if last fight was championship, just stop watching. else advance
+  function advance(): void {
+    if ($gameStage === "tournament" &&
+        $watchingFight &&
+        ($bracket.winner !== null || 
+         ($nextMatch.left.winner === $ownTeamIndex ||
+          $nextMatch.right.winner === $ownTeamIndex))) {
+      $watchingFight = false;
+    } else {
+      lastAction.set({ type: "advance" });
+    }
+  }
 </script>
 
 <svelte:head>
@@ -137,7 +150,7 @@
     {/if}
     {#if $host === $pov}
       <button on:click={() => changeView("settings")} on:submit={() => changeView("settings")}>settings</button>
-      <button on:click={() => lastAction.set({ type: "advance" })} on:submit={() => lastAction.set({ type: "advance" })}>advance</button>
+      <button on:click={advance} on:submit={advance}>advance</button>
     {/if}
     {#if viewing !== "main"}
       <button on:click={() => changeView("main")} on:submit={() => changeView("main")}>
