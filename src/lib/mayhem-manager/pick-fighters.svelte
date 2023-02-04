@@ -53,7 +53,7 @@
 {#if playingInNextGame}
   <!-- redundant check so validity updates whenever equipmentChoices updates -->
   {@const valid = equipmentChoices === equipmentChoices ? choicesAreValid() : true}
-  <div class="assign-equipment column" style:flex=1>
+  <div class="assign-equipment column" style:flex=2>
     <h2 class="column-title">Assign equipment</h2>
     {#each $ownTeam.fighters as fighter, i}
       <div class="fighter">
@@ -83,7 +83,7 @@
     {/if}
   </div>
 {/if}
-<div class="column" style:flex=1>
+<div class="column" style:flex=3>
   <h2 class="column-title">Bracket</h2>
   <div class="bracket">
     <Bracket {...$bracket} />
@@ -116,6 +116,5 @@
 
   .bracket {
     overflow: scroll;
-    padding: 0 1rem;
   }
 </style>

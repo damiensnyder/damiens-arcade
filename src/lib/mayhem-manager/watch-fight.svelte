@@ -12,8 +12,7 @@
 
   export let debug: boolean = false;
   let eventLogRaw: string = "";
-  let eventLog: MidFightEvent[][] = debug ? [] : $fightEvents;
-  $: animationState = new AnimationState(eventLog);
+  $: animationState = new AnimationState(debug ? [] : $fightEvents);
   let fighters: FighterInBattle[] = [];
   let rotation: number[] = [];
   let flipped: number[] = [];
@@ -108,7 +107,7 @@
   function enterEvents(): void {
     try {
       const e = JSON.parse("[" + eventLogRaw.replaceAll("][", "],[") + "]");
-      eventLog = e;
+      $fightEvents = e;
       play();
     } catch (e) {
       window.alert("Error: Could not parse events.");
@@ -133,7 +132,7 @@
   function restart(): void {
     pause();
     tickDelta = 0;
-    animationState = new AnimationState(eventLog);
+    animationState = new AnimationState($fightEvents);
     renderFrame();
     play();
   }
