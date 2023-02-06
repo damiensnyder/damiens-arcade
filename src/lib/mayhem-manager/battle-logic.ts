@@ -1,6 +1,6 @@
 import { array, boolean, number, object, string } from "yup";
 import { readFileSync, readdirSync, writeFileSync } from "fs";
-import { EquipmentSlot, type Equipment, type EquipmentDeck, type FighterDeck, type FighterInBattle, type FighterNames, type FighterTemplate, type Map, type MapDeck, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, type MeleeAttackAbility, StatName, type RangedAttackAbility, Target } from "$lib/mayhem-manager/types";
+import { EquipmentSlot, type Equipment, type EquipmentDeck, type FighterDeck, type FighterInBattle, type FighterNames, type FighterTemplate, type Map, type MapDeck, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, type MeleeAttackAbility, StatName, type RangedAttackAbility, Target, Trigger, type Effect, type TriggeredEffect } from "$lib/mayhem-manager/types";
 import type { Socket } from "socket.io";
 import type { RNG } from "$lib/types";
 
@@ -225,7 +225,8 @@ class Fight {
       return {
         ...f,
         equipment: f.equipment.slice(),
-        stats: { ...f.stats }
+        stats: { ...f.stats },
+        statusEffects: []
       };
     });
     this.eventLog = [];
@@ -267,7 +268,8 @@ class Fight {
           x: Number(f.x.toFixed(2)),  // round to save data
           y: Number(f.y.toFixed(2)),
           stats: { ...f.stats },
-          abilities: { ...f.abilities }
+          abilities: { ...f.abilities },
+          statusEffects: []
         }
       });
     });
@@ -458,12 +460,11 @@ class Fight {
     // choose a random ranged weapon. (function should only be called if one is equipped.)
     const rangedWeapons = f.equipment.filter(e => e.abilities.rangedAttack !== undefined);
     let baseDamage = 1;
-    let abilityUsed: RangedAttackAbility;
+    let weaponUsed: Equipment;
     if (rangedWeapons.length !== 0) {
-      const weaponChosen = this.rng.randElement(rangedWeapons);
-      abilityUsed = weaponChosen.abilities.rangedAttack;
-      baseDamage = abilityUsed.damage;
-      if (f.attunements.includes(weaponChosen.name)) {
+      weaponUsed = this.rng.randElement(rangedWeapons);
+      baseDamage = weaponUsed.abilities.rangedAttack.damage;
+      if (f.attunements.includes(weaponUsed.name)) {
         baseDamage *= 1.25;
       }
     }
@@ -489,6 +490,21 @@ class Fight {
         x: Number(target.x.toFixed(2)),
         y: Number(target.y.toFixed(2))
       });
+
+      // trigger all the weapon's hitDealt abilities
+      (weaponUsed.abilities.triggeredEffects || []).forEach((a) => {
+        if (a.trigger === Trigger.HitDealt) {
+          this.doEffect(a, f, target);
+        }
+      });
+      // trigger all the target's equipment's hitTaken abilities
+      target.equipment.forEach((e) => {
+        (e.abilities.triggeredEffects || []).forEach((a) => {
+          if (a.trigger === Trigger.HitTaken) {
+            this.doEffect(a, target, f);
+          }
+        });
+      });
     }
 
     tick.push({
@@ -497,14 +513,27 @@ class Fight {
       target: this.fighters.findIndex(f2 => f2 === target),
       missed,
       damage,
-      projectileImg: abilityUsed.projectileImg
+      projectileImg: weaponUsed.abilities.rangedAttack.projectileImg
     });
 
     // cooldown is set by the weapon. it is reduced by 0% if 0 energy, 50% if 10 energy.
-    f.cooldown = abilityUsed.cooldown * (1 - 0.05 * f.stats.energy);
+    f.cooldown = weaponUsed.abilities.rangedAttack.cooldown * (1 - 0.05 * f.stats.energy);
   }
 
-  targetsAffected(target: Target, fighter: FighterInBattle, attackTarget?: FighterInBattle): FighterInBattle[] {
+  doEffect(effect: TriggeredEffect, fighter: FighterInBattle, actionTarget?: FighterInBattle): void {
+    this.targetsAffected(effect.target, fighter, actionTarget).forEach((t) => {
+      // TODO: need events for these
+      if (effect.type === "hpChange") {
+        t.hp += effect.amount;
+      } else if (effect.type === "damage") {
+        t.hp -= effect.amount * (1 - t.stats.toughness / 10);
+      } else if (effect.type === "statChange") {
+        t.statusEffects.push(effect);
+      }
+    });
+  }
+
+  targetsAffected(target: Target, fighter: FighterInBattle, actionTarget?: FighterInBattle): FighterInBattle[] {
     return [];
   }
 }

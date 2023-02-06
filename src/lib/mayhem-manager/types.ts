@@ -102,6 +102,7 @@ export interface FighterInBattle extends Fighter {
   x: number
   y: number
   cooldown: number
+  statusEffects: StatChangeEffect[]
 }
 
 export enum EquipmentSlot {
@@ -179,7 +180,7 @@ export enum Target {
   AllFighters = "allFighters"
 }
 
-export type TriggeredAbility = Effect & {
+export type TriggeredEffect = Effect & {
   trigger: Trigger
   target: Target
 }
@@ -195,7 +196,7 @@ export interface Abilities {
   rangedAttack?: RangedAttackAbility
   specialAction?: SpecialAction
   statChanges?: StatChangeAbility[]
-  triggeredAbilities?: TriggeredAbility[]
+  triggeredEffects?: TriggeredEffect[]
 }
 
 export interface Map {
