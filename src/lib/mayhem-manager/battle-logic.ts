@@ -296,9 +296,7 @@ class Fight {
         if (closestDistance <= 2 && f.cooldown < EPSILON) {
           this.meleeAttack(f, closest, tick);
           this.moveAwayFromTarget(f, closest, tick);
-        } else if (f.equipment.find(
-          e => e.abilities.rangedAttack !== undefined
-        ) !== undefined) {
+        } else if (f.equipment.find(e => e.abilities.rangedAttack !== undefined) !== undefined) {
           if (f.cooldown < EPSILON) {
             this.rangedAttack(f, closest, tick);
           } else if (f.cooldown > 1 + EPSILON) {
@@ -400,9 +398,7 @@ class Fight {
 
   meleeAttack(f: FighterInBattle, target: FighterInBattle, tick: MidFightEvent[]): void {
     // choose a random melee weapon if one is equipped; otherwise punch.
-    const meleeWeapons = f.equipment.filter(e => 
-      e.abilities.meleeAttack !== undefined
-    );
+    const meleeWeapons = f.equipment.filter(e => e.abilities.meleeAttack !== undefined);
     let baseDamage = 1;
     if (meleeWeapons.length !== 0) {
       const weaponChosen = this.rng.randElement(meleeWeapons);
@@ -460,9 +456,7 @@ class Fight {
 
   rangedAttack(f: FighterInBattle, target: FighterInBattle, tick: MidFightEvent[]): void {
     // choose a random ranged weapon. (function should only be called if one is equipped.)
-    const rangedWeapons = f.equipment.filter(e => 
-      e.abilities.rangedAttack !== undefined
-    );
+    const rangedWeapons = f.equipment.filter(e => e.abilities.rangedAttack !== undefined);
     let baseDamage = 1;
     let abilityUsed: RangedAttackAbility;
     if (rangedWeapons.length !== 0) {
