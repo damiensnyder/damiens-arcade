@@ -117,38 +117,90 @@ export interface Equipment {
   imgUrl: string
   zoomedImgUrl: string
   slots: EquipmentSlot[]
-  abilities: Ability[]
+  abilities: Abilities
   yearsOwned: number
   price: number
   description: string
   flavor: string
 }
 
-export interface AbilityBase {
-  type: "meleeAttack" | "rangedAttack" | "statChange"
-}
-
-export interface MeleeAttackAbility extends AbilityBase {
-  type: "meleeAttack"
+export interface MeleeAttackAbility {
   damage: number
 }
 
-export interface RangedAttackAbility extends AbilityBase {
-  type: "rangedAttack"
+export interface RangedAttackAbility {
   damage: number
   cooldown: number
   projectileImg: string
 }
 
-export interface StatChangeAbility extends AbilityBase {
+export interface StatChangeAbility {
+  stat: StatName
+  amount: number
+}
+
+interface HpChangeEffect {
+  type: "hpChange"
+  amount: number
+}
+
+interface DamageEffect {
+  type: "damage"
+  amount: number
+}
+
+interface StatChangeEffect {
   type: "statChange"
   stat: StatName
   amount: number
+  duration: number
+  tint?: string
+}
+
+type Effect = HpChangeEffect |
+  DamageEffect |
+  StatChangeEffect;
+
+enum Trigger {
+  HitDealt = "hitDealt",
+  HitTaken = "hitTaken",
+  Interval = "interval"
+}
+
+enum Target {
+  Self = "self",
+  Target = "target",
+  AllTeammates = "allTeammates",
+  AllEnemies = "allEnemies",
+  NearestEnemy = "nearestEnemy",
+  NearestTeammate = "nearestTeammate",
+  RandomEnemy = "randomEnemy",
+  RandomTeammate = "randomTeammate",
+  AllFighters = "allFighters"
+}
+
+type TriggeredAbility = Effect & {
+  trigger: Trigger
+  target: Target
+}
+
+interface SpecialAction {
+  target: Target
+  effects: Effect[]
+  cooldown: number
 }
 
 export type Ability = MeleeAttackAbility |
     RangedAttackAbility |
     StatChangeAbility;
+
+interface Abilities {
+  meleeAttack?: MeleeAttackAbility
+  rangedAttack?: RangedAttackAbility
+  specialAction?: SpecialAction
+  statChanges?: StatChangeAbility[]
+  triggeredAbilities?: TriggeredAbility[]
+}
 
 export interface Map {
   name: string
@@ -182,7 +234,7 @@ export interface FighterTemplate {
   description?: string
   flavor?: string
   price: number
-  abilities: Ability[]
+  abilities: Abilities
 }
 
 export interface EquipmentDeck {

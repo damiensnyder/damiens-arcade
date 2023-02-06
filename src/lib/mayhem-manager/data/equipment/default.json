@@ -8,10 +8,11 @@
       "price": 18,
       "description": "Base damage 25.",
       "flavor": "learn this one secret trick lumberjacks DON'T want you to know",
-      "abilities": [{
-        "type": "meleeAttack",
-        "damage": 5
-      }]
+      "abilities": {
+        "meleeAttack": {
+          "damage": 5
+        }
+      }
     },
     {
       "name": "Chainsaw Headband",
@@ -21,10 +22,11 @@
       "price": 10,
       "description": "Base damage 15.",
       "flavor": "",
-      "abilities": [{
-        "type": "meleeAttack",
-        "damage": 3
-      }]
+      "abilities": {
+        "meleeAttack": {
+          "damage": 3
+        }
+      }
     },
     {
       "name": "Claws for Alarm",
@@ -34,15 +36,17 @@
       "price": 5,
       "description": "Base damage 10. Accuracy -2.",
       "flavor": "",
-      "abilities": [{
-        "type": "meleeAttack",
-        "damage": 2
-      },
-      {
-        "type": "statChange",
-        "stat": "accuracy",
-        "amount": -4
-      }]
+      "abilities": {
+        "meleeAttack": {
+          "damage": 2
+        },
+        "statChanges": [
+          {  
+            "stat": "accuracy",
+            "amount": -4
+          }
+        ]
+      }
     },
     {
       "name": "Diamond Sword",
@@ -52,10 +56,11 @@
       "price": 15,
       "description": "Base damage 20.",
       "flavor": "",
-      "abilities": [{
-        "type": "meleeAttack",
-        "damage": 4
-      }]
+      "abilities": {
+        "meleeAttack": {
+          "damage": 4
+        }
+      }
     },
     {
       "name": "Headbutter's Delight",
@@ -65,10 +70,11 @@
       "price": 8,
       "description": "Base damage 12.",
       "flavor": "for when two fists just isn't enough",
-      "abilities": [{
-        "type": "meleeAttack",
-        "damage": 2.4
-      }]
+      "abilities": {
+        "meleeAttack": {
+          "damage": 2.4
+        }
+      }
     },
     {
       "name": "Shiv",
@@ -78,10 +84,11 @@
       "price": 3,
       "description": "Base damage 8.",
       "flavor": "",
-      "abilities": [{
-        "type": "meleeAttack",
-        "damage": 1.6
-      }]
+      "abilities": {
+        "meleeAttack": {
+          "damage": 1.6
+        }
+      }
     },
     {
       "name": "Steel Toed Boots",
@@ -91,15 +98,17 @@
       "price": 4,
       "description": "Base damage 12. Speed -0.5.",
       "flavor": "",
-      "abilities": [{
-        "type": "meleeAttack",
-        "damage": 2.4
-      },
-      {
-        "type": "statChange",
-        "stat": "speed",
-        "amount": -1
-      }]
+      "abilities": {
+        "meleeAttack": {
+          "damage": 2.4
+        },
+        "statChanges": [
+          {
+            "stat": "speed",
+            "amount": -1
+          }
+        ]
+      }
     },
     {
       "name": "The Ratio-inator",
@@ -109,10 +118,11 @@
       "price": 5,
       "description": "Base damage 10.",
       "flavor": "hold this.",
-      "abilities": [{
-        "type": "meleeAttack",
-        "damage": 2
-      }]
+      "abilities": {
+        "meleeAttack": {
+          "damage": 2
+        }
+      }
     },
 
 
@@ -125,12 +135,13 @@
       "price": 10,
       "description": "Base damage 15. Base cooldown 5s.",
       "flavor": "",
-      "abilities": [{
-        "type": "rangedAttack",
-        "damage": 15,
-        "cooldown": 5,
-        "projectileImg": "/static/projectiles/arrow.png"
-      }]
+      "abilities": {
+        "rangedAttack": {
+          "damage": 15,
+          "cooldown": 5,
+          "projectileImg": "/static/projectiles/arrow.png"
+        }
+      }
     },
     {
       "name": "Laser Blaster",
@@ -140,12 +151,13 @@
       "price": 15,
       "description": "Base damage 12. Base cooldown 3s.",
       "flavor": "",
-      "abilities": [{
-        "type": "rangedAttack",
-        "damage": 12,
-        "cooldown": 3,
-        "projectileImg": "/static/projectiles/laser.png"
-      }]
+      "abilities": {
+        "rangedAttack": {
+          "damage": 12,
+          "cooldown": 3,
+          "projectileImg": "/static/projectiles/laser.png"
+        }
+      }
     },
     {
       "name": "Wand of Flames",
@@ -153,14 +165,15 @@
       "imgUrl": "/static/equipment/wand-of-flames.png",
       "zoomedImgUrl": "/static/zoomed/equipment/wand-of-flames.png",
       "price": 12,
-      "description": "Base damage 30. Base cooldown 8s.",
+      "description": "Base damage 30. Base cooldown 7s.",
       "flavor": "",
-      "abilities": [{
-        "type": "rangedAttack",
-        "damage": 30,
-        "cooldown": 8,
-        "projectileImg": "/static/projectiles/fireball.png"
-      }]
+      "abilities": {
+        "rangedAttack": {
+          "damage": 30,
+          "cooldown": 7,
+          "projectileImg": "/static/projectiles/fireball.png"
+        }
+      }
     },
     {
       "name": "Zap Helmet",
@@ -170,12 +183,13 @@
       "price": 3,
       "description": "Base damage 10. Base cooldown 5s.",
       "flavor": "i did it with my mind",
-      "abilities": [{
-        "type": "rangedAttack",
-        "damage": 10,
-        "cooldown": 5,
-        "projectileImg": "/static/projectiles/laser.png"
-      }]
+      "abilities": {
+        "rangedAttack": {
+          "damage": 10,
+          "cooldown": 5,
+          "projectileImg": "/static/projectiles/laser.png"
+        }
+      }
     },
 
 
@@ -188,40 +202,43 @@
       "price": 10,
       "description": "+2 reflexes.",
       "flavor": "this attack has been banned by the Motion Picture Association of America",
-      "abilities": [{
-        "type": "statChange",
-        "stat": "reflexes",
-        "amount": 4
-      }]
+      "abilities": {
+        "statChanges": [
+          {
+            "stat": "reflexes",
+            "amount": 4
+          }
+        ]
+      }
     },
     {
       "name": "Devil Horns",
       "slots": ["head"],
       "imgUrl": "/static/equipment/devil-horns.png",
       "zoomedImgUrl": "/static/zoomed/equipment/devil-horns.png",
-      "price": 15,
+      "price": 25,
       "description": "+3 strength. +3 accuracy. -2 reflexes. -2 toughness.",
       "flavor": "the devil takes his due",
-      "abilities": [{
-        "type": "statChange",
-        "stat": "strength",
-        "amount": 6
-      },
-      {
-        "type": "statChange",
-        "stat": "accuracy",
-        "amount": 6
-      },
-      {
-        "type": "statChange",
-        "stat": "reflexes",
-        "amount": -4
-      },
-      {
-        "type": "statChange",
-        "stat": "toughness",
-        "amount": -4
-      }]
+      "abilities": {
+        "statChanges": [
+          {
+            "stat": "strength",
+            "amount": 6
+          },
+          {
+            "stat": "accuracy",
+            "amount": 6
+          },
+          {
+            "stat": "reflexes",
+            "amount": -4
+          },
+          {
+            "stat": "toughness",
+            "amount": -4
+          }
+        ]
+      }
     },
     {
       "name": "Eyepatch",
@@ -231,16 +248,18 @@
       "price": 7,
       "description": "+2.5 accuracy. -1 reflexes.",
       "flavor": "depth perception is sooo cliché",
-      "abilities": [{
-        "type": "statChange",
-        "stat": "accuracy",
-        "amount": 5
-      },
-      {
-        "type": "statChange",
-        "stat": "reflexes",
-        "amount": -2
-      }]
+      "abilities": {
+        "statChanges": [
+          {
+            "stat": "accuracy",
+            "amount": 5
+          },
+          {
+            "stat": "reflexes",
+            "amount": -2
+          }
+        ]
+      }
     },
     {
       "name": "Flamingo Floaty",
@@ -250,11 +269,14 @@
       "price": 6,
       "description": "+1 toughness.",
       "flavor": "Flamingo Phil is always looking out for you",
-      "abilities": [{
-        "type": "statChange",
-        "stat": "toughness",
-        "amount": 2
-      }]
+      "abilities": {
+        "statChanges": [
+          {
+            "stat": "toughness",
+            "amount": 2
+          }
+        ]
+      }
     },
     {
       "name": "Speedo",
@@ -264,16 +286,18 @@
       "price": 5,
       "description": "+0.5 energy. +0.5 speed.",
       "flavor": "ahhh, how light and aerodynamic",
-      "abilities": [{
-        "type": "statChange",
-        "stat": "energy",
-        "amount": 1
-      },
-      {
-        "type": "statChange",
-        "stat": "speed",
-        "amount": 1
-      }]
+      "abilities": {
+        "statChanges": [
+          {
+            "stat": "energy",
+            "amount": 1
+          },
+          {
+            "stat": "speed",
+            "amount": 1
+          }
+        ]
+      }
     },
     {
       "name": "Sports Jersey",
@@ -283,11 +307,14 @@
       "price": 11,
       "description": "+2 energy.",
       "flavor": "did you see the big game last night?",
-      "abilities": [{
-        "type": "statChange",
-        "stat": "energy",
-        "amount": 4
-      }]
+      "abilities": {
+        "statChanges": [
+          {
+            "stat": "energy",
+            "amount": 4
+          }
+        ]
+      }
     }
   ]
 }

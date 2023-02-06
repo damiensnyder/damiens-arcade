@@ -235,12 +235,10 @@ class Fight {
     // do stat changes
     this.fighters.forEach((f) => {
       f.equipment.forEach(e => {
-        e.abilities.forEach((a) => {
-          if (a.type === "statChange") {
-            f.stats[a.stat] += a.amount;
-            if (f.attunements.includes(e.name)) {
-              f.stats[a.stat] += 1;
-            }
+        e.abilities.statChanges.forEach((a) => {
+          f.stats[a.stat] += a.amount;
+          if (f.attunements.includes(e.name)) {
+            f.stats[a.stat] += 1;
           }
         });
       });
@@ -300,7 +298,7 @@ class Fight {
           this.meleeAttack(f, closest, tick);
           this.moveAwayFromTarget(f, closest, tick);
         } else if (f.equipment.find(
-          e => e.abilities.find(a => a.type === "rangedAttack") !== undefined
+          e => e.abilities.rangedAttack !== undefined
         ) !== undefined) {
           if (f.cooldown < EPSILON) {
             this.rangedAttack(f, closest, tick);
@@ -404,12 +402,12 @@ class Fight {
   meleeAttack(f: FighterInBattle, target: FighterInBattle, tick: MidFightEvent[]): void {
     // choose a random melee weapon if one is equipped; otherwise punch.
     const meleeWeapons = f.equipment.filter(e => 
-      e.abilities.find(a => a.type === "meleeAttack") !== undefined
+      e.abilities.meleeAttack !== undefined
     );
     let baseDamage = 1;
     if (meleeWeapons.length !== 0) {
       const weaponChosen = this.rng.randElement(meleeWeapons);
-      baseDamage = (weaponChosen.abilities.find(a => a.type === "meleeAttack") as MeleeAttackAbility).damage;
+      baseDamage = weaponChosen.abilities.meleeAttack.damage;
       if (f.attunements.includes(weaponChosen.name)) {
         baseDamage *= 1.25;
       }
@@ -464,13 +462,13 @@ class Fight {
   rangedAttack(f: FighterInBattle, target: FighterInBattle, tick: MidFightEvent[]): void {
     // choose a random ranged weapon. (function should only be called if one is equipped.)
     const rangedWeapons = f.equipment.filter(e => 
-      e.abilities.find(a => a.type === "rangedAttack") !== undefined
+      e.abilities.rangedAttack !== undefined
     );
     let baseDamage = 1;
     let abilityUsed: RangedAttackAbility;
     if (rangedWeapons.length !== 0) {
       const weaponChosen = this.rng.randElement(rangedWeapons);
-      abilityUsed = weaponChosen.abilities.find(a => a.type === "rangedAttack") as RangedAttackAbility;
+      abilityUsed = weaponChosen.abilities.rangedAttack;
       baseDamage = abilityUsed.damage;
       if (f.attunements.includes(weaponChosen.name)) {
         baseDamage *= 1.25;
