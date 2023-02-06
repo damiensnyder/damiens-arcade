@@ -74,7 +74,7 @@ export interface Fighter {
   gender: string
   stats: FighterStats
   attunements: string[]
-  abilities: Ability[]
+  abilities: Abilities
   experience: number
   price: number
   description: string
@@ -139,17 +139,17 @@ export interface StatChangeAbility {
   amount: number
 }
 
-interface HpChangeEffect {
+export interface HpChangeEffect {
   type: "hpChange"
   amount: number
 }
 
-interface DamageEffect {
+export interface DamageEffect {
   type: "damage"
   amount: number
 }
 
-interface StatChangeEffect {
+export interface StatChangeEffect {
   type: "statChange"
   stat: StatName
   amount: number
@@ -157,19 +157,19 @@ interface StatChangeEffect {
   tint?: string
 }
 
-type Effect = HpChangeEffect |
+export type Effect = HpChangeEffect |
   DamageEffect |
   StatChangeEffect;
 
-enum Trigger {
+export enum Trigger {
   HitDealt = "hitDealt",
   HitTaken = "hitTaken",
   Interval = "interval"
 }
 
-enum Target {
+export enum Target {
   Self = "self",
-  Target = "target",
+  AttackTarget = "attackTarget",
   AllTeammates = "allTeammates",
   AllEnemies = "allEnemies",
   NearestEnemy = "nearestEnemy",
@@ -179,22 +179,18 @@ enum Target {
   AllFighters = "allFighters"
 }
 
-type TriggeredAbility = Effect & {
+export type TriggeredAbility = Effect & {
   trigger: Trigger
   target: Target
 }
 
-interface SpecialAction {
+export interface SpecialAction {
   target: Target
   effects: Effect[]
   cooldown: number
 }
 
-export type Ability = MeleeAttackAbility |
-    RangedAttackAbility |
-    StatChangeAbility;
-
-interface Abilities {
+export interface Abilities {
   meleeAttack?: MeleeAttackAbility
   rangedAttack?: RangedAttackAbility
   specialAction?: SpecialAction

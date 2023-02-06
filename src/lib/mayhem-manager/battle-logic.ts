@@ -1,6 +1,6 @@
 import { array, boolean, number, object, string } from "yup";
 import { readFileSync, readdirSync, writeFileSync } from "fs";
-import { EquipmentSlot, type Equipment, type EquipmentDeck, type FighterDeck, type FighterInBattle, type FighterNames, type FighterTemplate, type Map, type MapDeck, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, type MeleeAttackAbility, StatName, type RangedAttackAbility } from "$lib/mayhem-manager/types";
+import { EquipmentSlot, type Equipment, type EquipmentDeck, type FighterDeck, type FighterInBattle, type FighterNames, type FighterTemplate, type Map, type MapDeck, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, type MeleeAttackAbility, StatName, type RangedAttackAbility, Target } from "$lib/mayhem-manager/types";
 import type { Socket } from "socket.io";
 import type { RNG } from "$lib/types";
 
@@ -225,8 +225,7 @@ class Fight {
       return {
         ...f,
         equipment: f.equipment.slice(),
-        stats: { ...f.stats },
-        abilities: f.abilities.slice()
+        stats: { ...f.stats }
       };
     });
     this.eventLog = [];
@@ -509,6 +508,10 @@ class Fight {
 
     // cooldown is set by the weapon. it is reduced by 0% if 0 energy, 50% if 10 energy.
     f.cooldown = abilityUsed.cooldown * (1 - 0.05 * f.stats.energy);
+  }
+
+  targetsAffected(target: Target, fighter: FighterInBattle, attackTarget?: FighterInBattle): FighterInBattle[] {
+    return [];
   }
 }
 
