@@ -551,15 +551,17 @@ class Fight {
       fighter.equipment.forEach((e) => {
         (e.abilities.triggeredEffects || []).forEach((a) => {
           if (a.trigger === Trigger.HitDealt) {
-            this.doEffect(
-              a,
-              fighter,
-              target,
-              tick,
-              fighter.attunements.includes(e.name),
-              false,
-              false
-            );
+            this.targetsAffected(a.target, fighter, target).forEach((f) => {
+              this.doEffect(
+                a,
+                fighter,
+                f,
+                tick,
+                fighter.attunements.includes(e.name),
+                false,
+                false
+              );
+            });
           }
         });
       });
@@ -568,15 +570,17 @@ class Fight {
       target.equipment.forEach((e) => {
         (e.abilities.triggeredEffects || []).forEach((a) => {
           if (a.trigger === Trigger.HitTaken) {
-            this.doEffect(
-              a,
-              target,
-              fighter,
-              tick,
-              target.attunements.includes(e.name),
-              false,
-              false
-            );
+            this.targetsAffected(a.target, target, fighter).forEach((f) => {
+              this.doEffect(
+                a,
+                target,
+                f,
+                tick,
+                target.attunements.includes(e.name),
+                false,
+                false
+              );
+            });
           }
         });
       });

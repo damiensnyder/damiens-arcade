@@ -428,19 +428,19 @@
 
     {
       "name": "Flower of Power",
-      "slots": ["torso"],
+      "slots": ["hand"],
       "imgUrl": "/static/equipment/flower-of-power.png",
       "zoomedImgUrl": "/static/zoomed/equipment/flower-of-power.png",
-      "price": 10,
-      "description": "Upon hitting an enemy, gain 5 HP.",
-      "flavor": "ahhh, how light and aerodynamic",
+      "price": 5,
+      "description": "Upon hitting an enemy, gain 3 HP.",
+      "flavor": "because a positive attitude is the best medicine :)",
       "abilities": {
         "triggeredEffects": [
           {
-            "trigger": "hitTaken",
-            "target": "actionTarget",
+            "trigger": "hitDealt",
+            "target": "self",
             "type": "hpChange",
-            "amount": -5
+            "amount": 3
           }
         ]
       }
@@ -452,7 +452,7 @@
       "zoomedImgUrl": "/static/zoomed/equipment/scary-mask.png",
       "price": 10,
       "description": "Upon taking a hit, causes the attacker to lose 5 HP.",
-      "flavor": "ahhh, how light and aerodynamic",
+      "flavor": "BOO! that is what the mask says when someone hits you",
       "abilities": {
         "triggeredEffects": [
           {
