@@ -1,5 +1,6 @@
 import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
+import { writeFileSync } from "fs";
 import type GameRoom from "$lib/backend/game-room";
 import type { MayhemManagerGameStage, MayhemManagerViewpoint, ViewpointBase, Team, Settings, Fighter, Bracket, FighterInBattle, Equipment, PreseasonTeam, Map, MapDeck, EquipmentDeck, FighterDeck } from "$lib/mayhem-manager/types";
 import { StatName } from "$lib/mayhem-manager/types";
@@ -158,6 +159,8 @@ export default class MayhemManager extends GameLogicHandlerBase {
   }
 
   handleAction(viewer: Viewer, action?: any): void {
+    writeFileSync("logs/" + this.room.publicRoomInfo.roomName + ".json", this.exportLeague());
+
     const indexControlledByViewer = getIndexByController(this.teams, viewer.index);
     const teamControlledByViewer = getTeamByController(this.teams, viewer.index);
     const isHost = this.room.host === viewer.index;
@@ -774,7 +777,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
           if (t.controller === "bot" && !this.ready[i]) {
             const picks = Bot.getFightPicks(t);
             this.ready[i] = true;
-            for (let j = 0; j < this.teams[teamIndex].fighters.length; j++) {
+            for (let j = 0; j < t.fighters.length; j++) {
               this.fightersInBattle.push({
                 ...this.teams[i].fighters[j],
                 team: i,
@@ -905,6 +908,37 @@ export default class MayhemManager extends GameLogicHandlerBase {
         map: this.map
       }
     }
+  }
+
+  importLeague(from: string): void {
+    const league: any = JSON.parse(from);
+    this.teams = league.teams;
+    this.draftOrder = league.draftOrder;
+    this.spotInDraftOrder = league.spotInDraftOrder;
+    this.fighters = league.fighters;
+    this.unsignedVeterans = league.unsignedVeterans,
+    this.equipmentAvailable = league.equipmentAvailable,
+    this.bracket = league.bracket,
+    this.nextMatch = league.nextMatch,
+    this.history = league.history
+    this.ready = this.teams.map((_) => false);
+    this.trainingChoices = this.teams.map((_) => { return { equipment: [], skills: [] } });
+    this.fightersInBattle = [];
+    this.emitGamestateToAll();
+  }
+
+  exportLeague(): string {
+    return JSON.stringify({
+      teams: this.teams,
+      draftOrder: this.draftOrder,
+      spotInDraftOrder: this.spotInDraftOrder,
+      fighters: this.fighters,
+      unsignedVeterans: this.unsignedVeterans,
+      equipmentAvailable: this.equipmentAvailable,
+      bracket: this.bracket,
+      nextMatch: this.nextMatch,
+      history: this.history
+    });
   }
 }
 
