@@ -6,7 +6,7 @@
       "imgUrl": "/static/equipment/battle-axe.png",
       "zoomedImgUrl": "/static/zoomed/equipment/battle-axe.png",
       "price": 20,
-      "description": "Base damage 30. Base cooldown 8s.",
+      "description": "Deals 30 damage. Cooldown 8s.",
       "flavor": "learn this one secret trick lumberjacks DON'T want you to know",
       "abilities": {
         "action": {
@@ -29,7 +29,7 @@
       "imgUrl": "/static/equipment/chainsaw-headband.png",
       "zoomedImgUrl": "/static/zoomed/equipment/chainsaw-headband.png",
       "price": 10,
-      "description": "Base damage 10. Base cooldown 3s.",
+      "description": "Deals 10 damage. Cooldown 3s.",
       "flavor": "",
       "abilities": {
         "action": {
@@ -52,7 +52,7 @@
       "imgUrl": "/static/equipment/claws-for-alarm.png",
       "zoomedImgUrl": "/static/zoomed/equipment/claws-for-alarm.png",
       "price": 5,
-      "description": "Base damage 10. Base cooldown 5s. Accuracy -2.",
+      "description": "Deals 10 damage. Cooldown 5s. Accuracy -2.",
       "flavor": "who needs to aim when you can PINCH",
       "abilities": {
         "action": {
@@ -81,7 +81,7 @@
       "imgUrl": "/static/equipment/diamond-sword.png",
       "zoomedImgUrl": "/static/zoomed/equipment/diamond-sword.png",
       "price": 20,
-      "description": "Base damage 20. Base cooldown 5s.",
+      "description": "Deals 20 damage. Cooldown 5s.",
       "flavor": "",
       "abilities": {
         "action": {
@@ -104,7 +104,7 @@
       "imgUrl": "/static/equipment/headbutters-delight.png",
       "zoomedImgUrl": "/static/zoomed/equipment/headbutters-delight.png",
       "price": 8,
-      "description": "Base damage 12. Base cooldown 5s.",
+      "description": "Deals 12 damage. Cooldown 5s.",
       "flavor": "for when two fists just isn't enough",
       "abilities": {
         "action": {
@@ -127,7 +127,7 @@
       "imgUrl": "/static/equipment/shiv.png",
       "zoomedImgUrl": "/static/zoomed/equipment/shiv.png",
       "price": 3,
-      "description": "Base damage 6. Base cooldown 3s.",
+      "description": "Deals 6 damage. Cooldown 3s.",
       "flavor": "",
       "abilities": {
         "action": {
@@ -150,7 +150,7 @@
       "imgUrl": "/static/equipment/steel-toed-boots.png",
       "zoomedImgUrl": "/static/zoomed/equipment/steel-toed-boots.png",
       "price": 4,
-      "description": "Base damage 12. Base cooldown 5. Speed -0.5.",
+      "description": "Deals 12 damage. Cooldown 5. Speed -0.5.",
       "flavor": "",
       "abilities": {
         "action": {
@@ -179,7 +179,7 @@
       "imgUrl": "/static/equipment/the-ratio-inator.png",
       "zoomedImgUrl": "/static/zoomed/equipment/the-ratio-inator.png",
       "price": 5,
-      "description": "Base damage 10. Base cooldown 5.",
+      "description": "Deals 10 damage. Cooldown 5.",
       "flavor": "hold this.",
       "abilities": {
         "action": {
@@ -204,8 +204,8 @@
       "slots": ["hand", "hand"],
       "imgUrl": "/static/equipment/bow.png",
       "zoomedImgUrl": "/static/zoomed/equipment/bow.png",
-      "price": 10,
-      "description": "Base damage 15. Base cooldown 5s.",
+      "price": 8,
+      "description": "Deals 15 damage. Cooldown 5s.",
       "flavor": "",
       "abilities": {
         "action": {
@@ -229,8 +229,8 @@
       "slots": ["hand"],
       "imgUrl": "/static/equipment/laser-blaster.png",
       "zoomedImgUrl": "/static/zoomed/equipment/laser-blaster.png",
-      "price": 15,
-      "description": "Base damage 12. Base cooldown 3s.",
+      "price": 14,
+      "description": "Deals 12 damage. Cooldown 3s.",
       "flavor": "",
       "abilities": {
         "action": {
@@ -255,7 +255,7 @@
       "imgUrl": "/static/equipment/wand-of-flames.png",
       "zoomedImgUrl": "/static/zoomed/equipment/wand-of-flames.png",
       "price": 12,
-      "description": "Base damage 30. Base cooldown 7s.",
+      "description": "Deals 30 damage. Cooldown 7s.",
       "flavor": "",
       "abilities": {
         "action": {
@@ -280,7 +280,7 @@
       "imgUrl": "/static/equipment/zap-helmet.png",
       "zoomedImgUrl": "/static/zoomed/equipment/zap-helmet.png",
       "price": 3,
-      "description": "Base damage 10. Base cooldown 5s. Cannot miss.",
+      "description": "Deals 10 damage. Cooldown 5s. Cannot miss.",
       "flavor": "i did it with my mind",
       "abilities": {
         "action": {

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Equipment, EquipmentSlot, FighterStats } from "$lib/mayhem-manager/types";
+  import { Target, type Equipment } from "$lib/mayhem-manager/types";
   import { ownTeam } from "$lib/mayhem-manager/stores";
   import { slotsToString } from "./utils";
   import { lastAction } from "$lib/stores";
@@ -24,7 +24,8 @@
 <div class="horiz top-bar">
   <h3>{equipment.name}</h3>
   <div>
-    {slotsToString(equipment.slots)}
+    {slotsToString(equipment.slots,
+                   equipment.abilities.action && equipment.abilities.action.target === Target.Melee)}
     {#if index > -1} &bull; ${equipment.price}{/if}
   </div>
   {#if index > -1 &&

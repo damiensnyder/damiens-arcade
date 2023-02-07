@@ -20,11 +20,11 @@ export function getTeamByController(teams: Team[] | PreseasonTeam[], controller:
   return null;
 }
 
-export function slotsToString(slots: EquipmentSlot[]): string {
+export function slotsToString(slots: EquipmentSlot[], melee: boolean = false): string {
   let joined = slots.join(", ");
-  if (joined === "") return "none";
-  if (joined === "hand, hand") return "two-handed";
-  return joined;
+  if (joined === "") return melee ? "melee • none" : "none";
+  if (joined === "hand, hand") return melee ? "melee • two-handed" : "two-handed";
+  return melee ? "melee • " + joined : joined;
 }
 
 export function nextMatch(bracket: Bracket): Bracket & {
