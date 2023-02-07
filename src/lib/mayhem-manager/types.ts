@@ -137,11 +137,11 @@ export enum Target {
   Self = "self",
   Melee = "melee",
   AnyEnemy = "anyEnemy",
-  AttackTarget = "attackTarget",
+  AnyTeammate = "anyTeammate",
+  ActionTarget = "attackTarget",
   AllTeammates = "allTeammates",
   AllEnemies = "allEnemies",
   NearestEnemy = "nearestEnemy",
-  NearestTeammate = "nearestTeammate",
   RandomEnemy = "randomEnemy",
   RandomTeammate = "randomTeammate",
   AllFighters = "allFighters"

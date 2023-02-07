@@ -1,6 +1,6 @@
 import { array, number, object, string } from "yup";
 import { readFileSync, readdirSync, writeFileSync } from "fs";
-import { EquipmentSlot, type Equipment, type EquipmentDeck, type FighterDeck, type FighterInBattle, type FighterNames, type FighterTemplate, type Map, type MapDeck, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, StatName, Target, Trigger, type TriggeredEffect } from "$lib/mayhem-manager/types";
+import { EquipmentSlot, type Equipment, type EquipmentDeck, type FighterDeck, type FighterInBattle, type FighterNames, type FighterTemplate, type Map, type MapDeck, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, StatName, Target, Trigger, type TriggeredEffect, type Effect } from "$lib/mayhem-manager/types";
 import type { RNG } from "$lib/types";
 
 const FISTS: Equipment = {
@@ -234,7 +234,7 @@ class Fight {
     // do stat changes
     this.fighters.forEach((f) => {
       f.equipment.forEach(e => {
-        e.abilities.statChanges.forEach((a) => {
+        (e.abilities.statChanges || []).forEach((a) => {
           f.stats[a.stat] += a.amount;
           if (f.attunements.includes(e.name)) {
             f.stats[a.stat] += 1;
@@ -245,7 +245,7 @@ class Fight {
   }
 
   // Returns the closest fighter not on fighter f's team
-  closestNotOnTeam(f: FighterInBattle): FighterInBattle {
+  closestEnemy(f: FighterInBattle): FighterInBattle {
     return this.fighters
         .filter(f2 => f2.team !== f.team && f2.hp > 0)
         .sort((a, b) => distance(a, f) - distance(b, f))[0];
@@ -280,7 +280,7 @@ class Fight {
       const tick: MidFightEvent[] = [];
       this.fighters.forEach((f) => {
         if (f.hp <= 0) return;  // do nothing if fighter is down
-        const closest = this.closestNotOnTeam(f);
+        const closest = this.closestEnemy(f);
         if (!closest) return;  // in case your teammate downed the last enemy
 
         const closestDistance = distance(f, closest);
@@ -400,8 +400,7 @@ class Fight {
   }
 
   doAction(f: FighterInBattle, tick: MidFightEvent[]): void {
-    const target = this.closestNotOnTeam(f);
-    const distanceBetween = distance(f, target);
+    const distanceBetween = distance(f, this.closestEnemy(f));
     
     let equipmentUsed: Equipment;
     if (distanceBetween < 2) {
@@ -422,15 +421,6 @@ class Fight {
       }
     }
 
-    // if the fighter has 0 accuracy, they have a 75% chance to miss. if they have 10 accuracy,
-    // they have a 25% chance to miss.
-    const missed = equipmentUsed.abilities.action.missable ?
-        this.rng.randReal() < (15 - f.stats.accuracy) / 20 :
-        false;
-    const dodged = equipmentUsed.abilities.action.dodgeable ?
-        this.rng.randReal() < target.stats.reflexes / 20 :
-        false;
-
     if (equipmentUsed.abilities.action.animation) {
       tick.push({
         type: "animation",
@@ -438,120 +428,175 @@ class Fight {
         animation: equipmentUsed.abilities.action.animation
       });
     }
-    if (equipmentUsed.abilities.action.projectileImg) {
-      tick.push({
-        type: "projectile",
-        fighter: this.fighters.findIndex(f2 => f2 === f),
-        target: this.fighters.findIndex(t2 => t2 === target),
-        projectileImg: equipmentUsed.abilities.action.projectileImg
-      });
-    }
     
-    if (!missed && !dodged) {
-      // trigger all the weapon's hitDealt abilities
-      (equipmentUsed.abilities.triggeredEffects || []).forEach((a) => {
-        if (a.trigger === Trigger.HitDealt) {
+    const targets = this.targetsAffected(equipmentUsed.abilities.action.target, f);
+    targets.forEach((t) => {
+      // if the fighter has 0 accuracy, they have a 75% chance to miss. if they have 10 accuracy,
+      // they have a 25% chance to miss.
+      const missed = equipmentUsed.abilities.action.missable ?
+          this.rng.randReal() < (15 - f.stats.accuracy) / 20 :
+          false;
+      const dodged = equipmentUsed.abilities.action.dodgeable && !missed ?
+          this.rng.randReal() < t.stats.reflexes / 20 :
+          false;
+      
+      if (!missed && !dodged) {
+        // trigger all the weapon's effects
+        equipmentUsed.abilities.action.effects.forEach((a) => {
           this.doEffect(
             a,
-            f.attunements.includes(equipmentUsed.name),
-            equipmentUsed.abilities.action.target === Target.Melee,
-            tick,
             f,
-            target
+            t,
+            tick,
+            f.attunements.includes(equipmentUsed.name),
+            equipmentUsed.abilities.action.target === Target.Melee
           );
-        }
-      });
-
-      // trigger all the target's equipment's hitTaken abilities
-      target.equipment.forEach((e) => {
-        (e.abilities.triggeredEffects || []).forEach((a) => {
-          if (a.trigger === Trigger.HitTaken) {
-            this.doEffect(
-              a,
-              target.attunements.includes(equipmentUsed.name),
-              false,
-              tick,
-              target,
-              f
-            );
-          }
         });
-      });
+  
+        // trigger all the fighter's equipment's hitDealt abilities
+        f.equipment.forEach((e) => {
+          (e.abilities.triggeredEffects || []).forEach((a) => {
+            if (a.trigger === Trigger.HitDealt) {
+              this.doEffect(
+                a,
+                f,
+                t,
+                tick,
+                f.attunements.includes(equipmentUsed.name),
+                false
+              );
+            }
+          });
+        });
+  
+        // trigger all the target's equipment's hitTaken abilities
+        t.equipment.forEach((e) => {
+          (e.abilities.triggeredEffects || []).forEach((a) => {
+            if (a.trigger === Trigger.HitTaken) {
+              this.doEffect(
+                a,
+                t,
+                f,
+                tick,
+                t.attunements.includes(equipmentUsed.name),
+                false
+              );
+            }
+          });
+        });
 
-      // if the equipment has knockback, apply that much knockback
-      // except it cannot send the fighter past ±45 on either axis
-      if (equipmentUsed.abilities.action.knockback) {
-        const unitVectorX = Math.pow(target.x - f.x, 2) / Math.pow(distance(f, target), 2);
-        const unitVectorY = Math.pow(target.y - f.y, 2) / Math.pow(distance(f, target), 2);
-        target.x += unitVectorX * equipmentUsed.abilities.action.knockback;
-        target.y += unitVectorY * equipmentUsed.abilities.action.knockback;
-        target.x = Math.max(Math.min(target.x, 45), -45);
-        target.y = Math.max(Math.min(target.y, 45), -45);
+        // if the equipment has knockback, apply that much knockback
+        // except it cannot send the fighter out of [5, 95] on either axis
+        if (equipmentUsed.abilities.action.knockback) {
+          const unitVectorX = Math.pow(t.x - f.x, 2) / Math.pow(distance(f, t), 2);
+          const unitVectorY = Math.pow(t.y - f.y, 2) / Math.pow(distance(f, t), 2);
+          t.x += unitVectorX * equipmentUsed.abilities.action.knockback;
+          t.y += unitVectorY * equipmentUsed.abilities.action.knockback;
+          t.x = Math.max(Math.min(t.x, 95), 5);
+          t.y = Math.max(Math.min(t.y, 95), 5);
+          tick.push({
+            type: "move",
+            fighter: this.fighters.findIndex(z => z === t),
+            x: Number(t.x.toFixed(2)),
+            y: Number(t.y.toFixed(2))
+          });
+        }
+      } else if (missed) {
         tick.push({
-          type: "move",
-          fighter: this.fighters.findIndex(z => z === target),
-          x: Number(target.x.toFixed(2)),
-          y: Number(target.y.toFixed(2))
+          type: "text",
+          fighter: this.fighters.findIndex(t2 => t2 === t),
+          text: "Missed"
+        });
+      } else if (dodged) {
+        tick.push({
+          type: "text",
+          fighter: this.fighters.findIndex(t2 => t2 === t),
+          text: "Dodged"
         });
       }
-    }
+      if (equipmentUsed.abilities.action.projectileImg) {
+        tick.push({
+          type: "projectile",
+          fighter: this.fighters.findIndex(f2 => f2 === f),
+          target: this.fighters.findIndex(t2 => t2 === t),
+          projectileImg: equipmentUsed.abilities.action.projectileImg
+        });
+      }
+    });
     // cooldown is set by the weapon. it is reduced by 0% if 0 energy, 50% if 10 energy.
     f.cooldown = equipmentUsed.abilities.action.cooldown * (1 - 0.05 * f.stats.energy);
   }
 
   doEffect(
-    effect: TriggeredEffect,
-    attuned: boolean,
-    melee: boolean,
-    tick: MidFightEvent[],
+    effect: Effect,
     fighter: FighterInBattle,
-    actionTarget?: FighterInBattle
+    target: FighterInBattle,
+    tick: MidFightEvent[],
+    attuned: boolean,
+    melee: boolean
   ): void {
-    this.targetsAffected(effect.target, fighter, actionTarget).forEach((t) => {
-      if (effect.type === "hpChange") {
-        let amount = effect.amount;
-        if (attuned) amount *= 1.25;
-        t.hp += Math.round(amount);
+    if (effect.type === "hpChange") {
+      let amount = effect.amount;
+      if (attuned) amount *= 1.25;
+      target.hp += Math.round(amount);
+      tick.push({
+        type: "hpChange",
+        fighter: this.fighters.findIndex(t2 => t2 === target),
+        newHp: target.hp
+      });
+      tick.push({
+        type: "text",
+        fighter: this.fighters.findIndex(t2 => t2 === target),
+        text: `${amount > -0.5 ? "+" : ""}${Math.round(amount)} HP`
+      });
+    } else if (effect.type === "damage") {
+      let damage = effect.amount * (1 - target.stats.toughness / 20);
+      if (attuned) damage *= 1.25;
+      if (melee) damage *= 1 + fighter.stats.strength / 5;
+      target.hp -= Math.round(damage);
+      tick.push({
+        type: "hpChange",
+        fighter: this.fighters.findIndex(t2 => t2 === target),
+        newHp: target.hp
+      });
+      tick.push({
+        type: "text",
+        fighter: this.fighters.findIndex(t2 => t2 === target),
+        text: Math.round(damage).toString()
+      });
+    } else if (effect.type === "statChange") {
+      target.statusEffects.push(effect);
+      if (effect.tint) {
         tick.push({
-          type: "hpChange",
-          fighter: this.fighters.findIndex(t2 => t2 === t),
-          newHp: t.hp
+          type: "tint",
+          fighter: this.fighters.findIndex(t2 => t2 === target),
+          tint: effect.tint
         });
-        tick.push({
-          type: "text",
-          fighter: this.fighters.findIndex(t2 => t2 === t),
-          text: `${amount > -0.5 ? "+" : ""}${Math.round(amount)} HP`
-        });
-      } else if (effect.type === "damage") {
-        let damage = effect.amount * (1 - t.stats.toughness / 10);
-        if (attuned) damage *= 1.25;
-        if (melee) damage *= 1 + fighter.stats.strength / 5;
-        t.hp -= Math.round(damage);
-        tick.push({
-          type: "hpChange",
-          fighter: this.fighters.findIndex(t2 => t2 === t),
-          newHp: t.hp
-        });
-        tick.push({
-          type: "text",
-          fighter: this.fighters.findIndex(t2 => t2 === t),
-          text: Math.round(damage).toString()
-        });
-      } else if (effect.type === "statChange") {
-        t.statusEffects.push(effect);
-        if (effect.tint) {
-          tick.push({
-            type: "tint",
-            fighter: this.fighters.findIndex(t2 => t2 === t),
-            tint: effect.tint
-          });
-        }
       }
-    });
+    }
   }
 
   targetsAffected(target: Target, fighter: FighterInBattle, actionTarget?: FighterInBattle): FighterInBattle[] {
-    return [];
+    if (target === Target.Self) {
+      return [fighter];
+    } else if (target === Target.Melee || target === Target.NearestEnemy) {
+      const enemies = this.fighters.filter(f => f.team !== fighter.team && f.hp > 0);
+      return enemies.length === 0 ? [] : [this.closestEnemy(fighter)];
+    } else if (target === Target.AllEnemies) {
+      return this.fighters.filter(f => f.team !== fighter.team && f.hp > 0);
+    } else if (target === Target.AllTeammates) {
+      return this.fighters.filter(f => f.team === fighter.team && f.hp > 0);
+    } else if (target === Target.RandomEnemy || target === Target.AnyEnemy) {
+      const enemies = this.fighters.filter(f => f.team !== fighter.team && f.hp > 0);
+      return enemies.length === 0 ? [] : [this.rng.randElement(enemies)];
+    } else if (target === Target.RandomTeammate || target === Target.AnyTeammate) {
+      const teammates = this.fighters.filter(f => f.team === fighter.team && f.hp > 0);
+      return teammates.length === 0 ? [] : [this.rng.randElement(teammates)];
+    } else if (target === Target.ActionTarget) {
+      return [actionTarget];
+    } else {
+      return [];
+    }
   }
 }
 
