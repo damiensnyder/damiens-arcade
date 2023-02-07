@@ -125,15 +125,7 @@ export interface Equipment {
   flavor: string
 }
 
-export interface MeleeAttackAbility {
-  damage: number
-}
 
-export interface RangedAttackAbility {
-  damage: number
-  cooldown: number
-  projectileImg: string
-}
 
 export interface StatChangeAbility {
   stat: StatName
@@ -208,6 +200,8 @@ export interface Abilities {
   triggeredEffects?: TriggeredEffect[]
 }
 
+
+
 export interface Map {
   name: string
   imgUrl: string
@@ -261,6 +255,8 @@ export interface EquipmentTemplate {
 export interface MapDeck {
   maps: Map[]
 }
+
+
 
 interface ChangeGameSettingsAction {
   type: "changeGameSettings"
@@ -347,6 +343,8 @@ export type MayhemManagerAction = ChangeRoomSettingsAction |
     RepairAction |
     ResignAction;
 
+
+
 interface ChangeGameSettingsEvent {
   type: "changeGameSettings"
   settings: Settings
@@ -422,6 +420,8 @@ interface FightEvent {
   eventLog: MidFightEvent[][]
 }
 
+
+
 export interface MFSpawnEvent {
   type: "spawn"
   fighter: FighterInBattle
@@ -434,27 +434,46 @@ export interface MFMoveEvent {
   y: number
 }
 
-export interface MFMeleeAttackEvent {
-  type: "meleeAttack"
+export interface MFAnimationEvent {
+  type: "animation"
   fighter: number
-  target: number
-  dodged: boolean
-  damage: number
+  animation: ActionAnimation
 }
 
-export interface MFRangedAttackEvent {
-  type: "rangedAttack"
+export interface MFProjectileEvent {
+  type: "projectile"
   fighter: number
   target: number
-  missed: boolean
-  damage: number
   projectileImg: string
+}
+
+export interface MFTextEvent {
+  type: "text"
+  fighter: number
+  text: string
+}
+
+export interface MFTintEvent {
+  type: "tint"
+  fighter: number
+  tint: string
+}
+
+export interface MFHpChangeEvent {
+  type: "hpChange"
+  fighter: number
+  newHp: number
 }
 
 export type MidFightEvent = MFSpawnEvent |
     MFMoveEvent |
-    MFMeleeAttackEvent |
-    MFRangedAttackEvent;
+    MFAnimationEvent |
+    MFProjectileEvent |
+    MFTextEvent |
+    MFTintEvent |
+    MFHpChangeEvent;
+
+
 
 export type Bracket = {
   left: Bracket

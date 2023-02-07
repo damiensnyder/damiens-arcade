@@ -1,12 +1,7 @@
-import { array, boolean, number, object, string } from "yup";
+import { array, number, object, string } from "yup";
 import { readFileSync, readdirSync, writeFileSync } from "fs";
-import { EquipmentSlot, type Equipment, type EquipmentDeck, type FighterDeck, type FighterInBattle, type FighterNames, type FighterTemplate, type Map, type MapDeck, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, type MeleeAttackAbility, StatName, type RangedAttackAbility, Target, Trigger, type Effect, type TriggeredEffect } from "$lib/mayhem-manager/types";
-import type { Socket } from "socket.io";
+import { EquipmentSlot, type Equipment, type EquipmentDeck, type FighterDeck, type FighterInBattle, type FighterNames, type FighterTemplate, type Map, type MapDeck, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, StatName, Target, Trigger, type TriggeredEffect } from "$lib/mayhem-manager/types";
 import type { RNG } from "$lib/types";
-
-const fighterStatsSchema = array(
-  number().min(0).max(10).integer()
-).length(6);
 
 const ability = object({
   type: string().required().oneOf(["meleeAttack", "statChange"]),
@@ -403,7 +398,6 @@ class Fight {
     const distanceBetween = distance(f, target);
     
     let equipmentUsed: Equipment;
-
     if (distanceBetween < 2) {
       const meleeWeapons = f.equipment.filter(e => e.abilities.action && e.abilities.action.melee);
       if (meleeWeapons.length !== 0) {
@@ -416,6 +410,7 @@ class Fight {
         equipmentUsed = this.rng.randElement(rangedEquipment);
       }
     }
+
     // if the fighter has 0 accuracy, they have a 75% chance to miss. if they have 10 accuracy,
     // they have a 25% chance to miss.
     const missed = equipmentUsed.abilities.action.missable ?
@@ -424,14 +419,51 @@ class Fight {
     const dodged = equipmentUsed.abilities.action.dodgeable ?
         this.rng.randReal() < target.stats.reflexes / 20 :
         false;
+
+    if (equipmentUsed.abilities.action.animation) {
+      tick.push({
+        type: "animation",
+        fighter: this.fighters.findIndex(f2 => f2 === f),
+        animation: equipmentUsed.abilities.action.animation
+      });
+    }
     
-    // add a little knockback on a hit
-    const unitVectorX = Math.pow(target.x - f.x, 2) / Math.pow(distance(f, target), 2);
-    const unitVectorY = Math.pow(target.y - f.y, 2) / Math.pow(distance(f, target), 2);
     if (!missed && !dodged) {
+      // trigger all the weapon's hitDealt abilities
+      (equipmentUsed.abilities.triggeredEffects || []).forEach((a) => {
+        if (a.trigger === Trigger.HitDealt) {
+          this.doEffect(
+            a,
+            f.attunements.includes(equipmentUsed.name),
+            equipmentUsed.abilities.action.melee,
+            tick,
+            f,
+            target
+          );
+        }
+      });
+
+      // trigger all the target's equipment's hitTaken abilities
+      target.equipment.forEach((e) => {
+        (e.abilities.triggeredEffects || []).forEach((a) => {
+          if (a.trigger === Trigger.HitTaken) {
+            this.doEffect(
+              a,
+              target.attunements.includes(equipmentUsed.name),
+              false,
+              tick,
+              target,
+              f
+            );
+          }
+        });
+      });
+
       // if the equipment has knockback, apply that much knockback
       // except it cannot send the fighter past ±45 on either axis
       if (equipmentUsed.abilities.action.knockback) {
+        const unitVectorX = Math.pow(target.x - f.x, 2) / Math.pow(distance(f, target), 2);
+        const unitVectorY = Math.pow(target.y - f.y, 2) / Math.pow(distance(f, target), 2);
         target.x += unitVectorX * equipmentUsed.abilities.action.knockback;
         target.y += unitVectorY * equipmentUsed.abilities.action.knockback;
         target.x = Math.max(Math.min(target.x, 45), -45);
@@ -443,33 +475,6 @@ class Fight {
           y: Number(target.y.toFixed(2))
         });
       }
-
-      // trigger all the weapon's hitDealt abilities
-      (equipmentUsed.abilities.triggeredEffects || []).forEach((a) => {
-        if (a.trigger === Trigger.HitDealt) {
-          this.doEffect(
-            a,
-            f.attunements.includes(equipmentUsed.name),
-            equipmentUsed.abilities.action.melee,
-            f,
-            target
-          );
-        }
-      });
-      // trigger all the target's equipment's hitTaken abilities
-      target.equipment.forEach((e) => {
-        (e.abilities.triggeredEffects || []).forEach((a) => {
-          if (a.trigger === Trigger.HitTaken) {
-            this.doEffect(
-              a,
-              target.attunements.includes(equipmentUsed.name),
-              false,
-              target,
-              f
-            );
-          }
-        });
-      });
     }
     // cooldown is set by the weapon. it is reduced by 0% if 0 energy, 50% if 10 energy.
     f.cooldown = equipmentUsed.abilities.action.cooldown * (1 - 0.05 * f.stats.energy);
@@ -479,22 +484,49 @@ class Fight {
     effect: TriggeredEffect,
     attuned: boolean,
     melee: boolean,
+    tick: MidFightEvent[],
     fighter: FighterInBattle,
     actionTarget?: FighterInBattle
   ): void {
     this.targetsAffected(effect.target, fighter, actionTarget).forEach((t) => {
-      // TODO: need events for these
       if (effect.type === "hpChange") {
         let amount = effect.amount;
         if (attuned) amount *= 1.25;
         t.hp += Math.round(amount);
+        tick.push({
+          type: "hpChange",
+          fighter: this.fighters.findIndex(t2 => t2 === t),
+          newHp: t.hp
+        });
+        tick.push({
+          type: "text",
+          fighter: this.fighters.findIndex(t2 => t2 === t),
+          text: `${amount > -0.5 ? "+" : ""}${Math.round(amount)} HP`
+        });
       } else if (effect.type === "damage") {
         let damage = effect.amount * (1 - t.stats.toughness / 10);
         if (attuned) damage *= 1.25;
         if (melee) damage *= 1 + fighter.stats.strength / 5;
         t.hp -= Math.round(damage);
+        tick.push({
+          type: "hpChange",
+          fighter: this.fighters.findIndex(t2 => t2 === t),
+          newHp: t.hp
+        });
+        tick.push({
+          type: "text",
+          fighter: this.fighters.findIndex(t2 => t2 === t),
+          text: Math.round(damage).toString()
+        });
       } else if (effect.type === "statChange") {
         t.statusEffects.push(effect);
+        if (effect.tint) {
+          tick.push({
+            type: "tint",
+            fighter: this.fighters.findIndex(t2 => t2 === t),
+            tint: effect.tint
+          });
+        }
       }
     });
   }

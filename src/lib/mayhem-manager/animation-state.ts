@@ -1,5 +1,5 @@
 
-import type { FighterInBattle, MFMeleeAttackEvent, MFMoveEvent, MFRangedAttackEvent, MFSpawnEvent, MidFightEvent } from "$lib/mayhem-manager/types";
+import type { FighterInBattle, MFAnimationEvent, MFMoveEvent, MFTextEvent, MFSpawnEvent, MidFightEvent } from "$lib/mayhem-manager/types";
 import { ColorMatrixFilter } from "pixi.js";
 import { watchingFight } from "./stores";
 
@@ -128,7 +128,7 @@ export default class AnimationState {
             }
           }
         } else if (event.type === "meleeAttack") {
-          event = event as MFMeleeAttackEvent;
+          event = event as MFAnimationEvent;
           const t: number = event.target;
           this.nextFlipped[event.fighter] = this.nextFighters[event.fighter].x > this.nextFighters[t].x;
           this.nextFighters[t] = {
@@ -144,7 +144,7 @@ export default class AnimationState {
           });
           if (!event.dodged) this.nextHitFlash[t] = 1;
         } else if (event.type === "rangedAttack") {
-          event = event as MFRangedAttackEvent;
+          event = event as MFTextEvent;
           const f = this.fighters[event.fighter];
           const t = this.nextFighters[event.target];
           this.nextFlipped[event.fighter] = f.x > t.x;
@@ -191,11 +191,11 @@ export default class AnimationState {
     if (this.tick < this.eventLog.length - 2) {
       const tick2Away = this.eventLog[this.tick + 2];
       tick2Away.filter(e => e.type === "meleeAttack").forEach((e) => {
-        e = e as MFMeleeAttackEvent;
+        e = e as MFAnimationEvent;
         this.nextRotation[e.fighter] = RotationState.BackswingStart;
       });
       tick2Away.filter(e => e.type === "rangedAttack").forEach((e) => {
-        e = e as MFRangedAttackEvent;
+        e = e as MFTextEvent;
         this.nextRotation[e.fighter] = RotationState.AimStart;
       });
     }
