@@ -516,6 +516,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
             team.fighters[j].stats[skill] < 10) {
           team.fighters[j].stats[skill] += 1;
         }
+        this.doAgeBasedDevelopment(team.fighters[j]);
       });
     });
     delete this.trainingChoices;
@@ -528,6 +529,15 @@ export default class MayhemManager extends GameLogicHandlerBase {
     });
     this.fightersInBattle = [];
     this.ready.fill(false);
+  }
+
+  doAgeBasedDevelopment(f: Fighter) {
+    for (const stat in f.stats) {
+      if (this.randReal() < 0.5) {
+        f.stats[stat] += Math.round(this.randReal() + this.randReal() - 0.5 - f.experience / 8);
+        f.stats[stat] = Math.min(Math.max(f.stats[stat], 0), 10);
+      }
+    }
   }
 
   simulateBattleRoyale(): void {
@@ -804,12 +814,12 @@ export default class MayhemManager extends GameLogicHandlerBase {
       price: 0,
       abilities: {},
       stats: {
-        strength: this.randInt(0, 10),
-        accuracy: this.randInt(0, 10),
-        reflexes: this.randInt(0, 10),
-        energy: this.randInt(0, 10),
-        speed: this.randInt(0, 10),
-        toughness: this.randInt(0, 10)
+        strength: this.randInt(0, 8),
+        accuracy: this.randInt(0, 8),
+        reflexes: this.randInt(0, 8),
+        energy: this.randInt(0, 8),
+        speed: this.randInt(0, 8),
+        toughness: this.randInt(0, 8)
       },
       attunements: [],
       experience: 0,
@@ -824,6 +834,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
         ...specialTemplate
       }
     }
+    this.doAgeBasedDevelopment(fighter);
     return fighter;
   }
 

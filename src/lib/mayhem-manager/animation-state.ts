@@ -134,7 +134,7 @@ export default class AnimationState {
               this.nextRotation[f] = RotationState.Stationary1;
             }
           }
-        } else if (event.type === "text") {
+        } else if (event.type === "text" && event.text !== "0") {
           event = event as MFTextEvent;
           this.nextParticles.push({
             type: "text",
