@@ -393,6 +393,19 @@ export default class MayhemManager extends GameLogicHandlerBase {
   advanceToDraft(): void {
     this.gameStage = "draft";
 
+    // get picks from bot teams
+    this.teams.forEach((team: PreseasonTeam, i) => {
+      if (team.controller === "bot") {
+        const picks = Bot.getPreseasonPicks(team);
+        picks.fighters.forEach((f) => {
+          this.resignFighter(i, f);
+        });
+        picks.equipment.forEach((e) => {
+          this.repairEquipment(i, e);
+        });
+      }
+    })
+
     this.unsignedVeterans = [];
     this.teams.forEach((team: PreseasonTeam) => {
       this.unsignedVeterans = this.unsignedVeterans.concat(team.needsResigning);
@@ -696,7 +709,8 @@ export default class MayhemManager extends GameLogicHandlerBase {
         equipment: equipment.map((e) => this.teams[teamIndex].equipment[e]),
         x: 0,
         y: 0,
-        cooldown: 0
+        cooldown: 0,
+        statusEffects: []
       });
       this.ready[teamIndex] = true;
 
@@ -715,7 +729,8 @@ export default class MayhemManager extends GameLogicHandlerBase {
               equipment: picks.equipment.map((e) => this.teams[i].equipment[e]),
               x: 0,
               y: 0,
-              cooldown: 0
+              cooldown: 0,
+              statusEffects: []
             });
           }
         })
@@ -737,7 +752,8 @@ export default class MayhemManager extends GameLogicHandlerBase {
           equipment: equipment[i].map((e) => this.teams[teamIndex].equipment[e]),
           x: 0,
           y: 0,
-          cooldown: 0
+          cooldown: 0,
+          statusEffects: []
         });
       }
 
@@ -757,7 +773,8 @@ export default class MayhemManager extends GameLogicHandlerBase {
                 equipment: picks.equipment[j].map((e) => this.teams[i].equipment[e]),
                 x: 0,
                 y: 0,
-                cooldown: 0
+                cooldown: 0,
+                statusEffects: []
               });
             }
           }
@@ -785,7 +802,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
       name: firstName + " " + this.randElement(this.decks.fighters.lastNames),
       gender,
       price: 0,
-      abilities: [],
+      abilities: {},
       stats: {
         strength: this.randInt(0, 10),
         accuracy: this.randInt(0, 10),
@@ -812,6 +829,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
 
   // Select a random equipment from the deck of equipment
   generateEquipment(): Equipment {
+    // @ts-ignore
     return {
       description: "",
       flavor: "",

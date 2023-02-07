@@ -8,8 +8,8 @@ const Bot = {
     equipment: number[]
   } {
     return {
-      fighters: team.fighters.length >= 1 ? [0] : [],
-      equipment: team.fighters.length >= 1 ? [1] : []
+      fighters: team.needsResigning.length >= 1 ? [0] : [],
+      equipment: team.needsRepair.length >= 2 ? [0, 1] : []
     };
   },
   getDraftPick: function (_team: Team, fighters: Fighter[]): number {
