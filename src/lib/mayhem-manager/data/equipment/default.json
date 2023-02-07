@@ -5,12 +5,21 @@
       "slots": ["hand", "hand"],
       "imgUrl": "/static/equipment/battle-axe.png",
       "zoomedImgUrl": "/static/zoomed/equipment/battle-axe.png",
-      "price": 18,
-      "description": "Base damage 25.",
+      "price": 20,
+      "description": "Base damage 30. Base cooldown 8s.",
       "flavor": "learn this one secret trick lumberjacks DON'T want you to know",
       "abilities": {
-        "meleeAttack": {
-          "damage": 5
+        "action": {
+          "target": "melee",
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 30
+            }
+          ],
+          "cooldown": 8,
+          "dodgeable": true,
+          "knockback": 0.7
         }
       }
     },
@@ -20,11 +29,20 @@
       "imgUrl": "/static/equipment/chainsaw-headband.png",
       "zoomedImgUrl": "/static/zoomed/equipment/chainsaw-headband.png",
       "price": 10,
-      "description": "Base damage 15.",
+      "description": "Base damage 10. Base cooldown 3s.",
       "flavor": "",
       "abilities": {
-        "meleeAttack": {
-          "damage": 3
+        "action": {
+          "target": "melee",
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 10
+            }
+          ],
+          "cooldown": 3,
+          "dodgeable": true,
+          "knockback": 0.5
         }
       }
     },
@@ -34,11 +52,20 @@
       "imgUrl": "/static/equipment/claws-for-alarm.png",
       "zoomedImgUrl": "/static/zoomed/equipment/claws-for-alarm.png",
       "price": 5,
-      "description": "Base damage 10. Accuracy -2.",
-      "flavor": "",
+      "description": "Base damage 10. Base cooldown 5s. Accuracy -2.",
+      "flavor": "who needs to aim when you can PINCH",
       "abilities": {
-        "meleeAttack": {
-          "damage": 2
+        "action": {
+          "target": "melee",
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 10
+            }
+          ],
+          "cooldown": 5,
+          "dodgeable": true,
+          "knockback": 0.5
         },
         "statChanges": [
           {  
@@ -53,12 +80,21 @@
       "slots": ["hand"],
       "imgUrl": "/static/equipment/diamond-sword.png",
       "zoomedImgUrl": "/static/zoomed/equipment/diamond-sword.png",
-      "price": 15,
-      "description": "Base damage 20.",
+      "price": 20,
+      "description": "Base damage 20. Base cooldown 5s.",
       "flavor": "",
       "abilities": {
-        "meleeAttack": {
-          "damage": 4
+        "action": {
+          "target": "melee",
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 20
+            }
+          ],
+          "cooldown": 5,
+          "dodgeable": true,
+          "knockback": 0.5
         }
       }
     },
@@ -68,11 +104,20 @@
       "imgUrl": "/static/equipment/headbutters-delight.png",
       "zoomedImgUrl": "/static/zoomed/equipment/headbutters-delight.png",
       "price": 8,
-      "description": "Base damage 12.",
+      "description": "Base damage 12. Base cooldown 5s.",
       "flavor": "for when two fists just isn't enough",
       "abilities": {
-        "meleeAttack": {
-          "damage": 2.4
+        "action": {
+          "target": "melee",
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 12
+            }
+          ],
+          "cooldown": 5,
+          "dodgeable": true,
+          "knockback": 0.5
         }
       }
     },
@@ -82,11 +127,20 @@
       "imgUrl": "/static/equipment/shiv.png",
       "zoomedImgUrl": "/static/zoomed/equipment/shiv.png",
       "price": 3,
-      "description": "Base damage 8.",
+      "description": "Base damage 6. Base cooldown 3s.",
       "flavor": "",
       "abilities": {
-        "meleeAttack": {
-          "damage": 1.6
+        "action": {
+          "target": "melee",
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 6
+            }
+          ],
+          "cooldown": 3,
+          "dodgeable": true,
+          "knockback": 0.5
         }
       }
     },
@@ -96,11 +150,20 @@
       "imgUrl": "/static/equipment/steel-toed-boots.png",
       "zoomedImgUrl": "/static/zoomed/equipment/steel-toed-boots.png",
       "price": 4,
-      "description": "Base damage 12. Speed -0.5.",
+      "description": "Base damage 12. Base cooldown 5. Speed -0.5.",
       "flavor": "",
       "abilities": {
-        "meleeAttack": {
-          "damage": 2.4
+        "action": {
+          "target": "melee",
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 12
+            }
+          ],
+          "cooldown": 5,
+          "dodgeable": true,
+          "knockback": 0.5
         },
         "statChanges": [
           {
@@ -116,11 +179,20 @@
       "imgUrl": "/static/equipment/the-ratio-inator.png",
       "zoomedImgUrl": "/static/zoomed/equipment/the-ratio-inator.png",
       "price": 5,
-      "description": "Base damage 10.",
+      "description": "Base damage 10. Base cooldown 5.",
       "flavor": "hold this.",
       "abilities": {
-        "meleeAttack": {
-          "damage": 2
+        "action": {
+          "target": "melee",
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 10
+            }
+          ],
+          "cooldown": 5,
+          "dodgeable": true,
+          "knockback": 0.5
         }
       }
     },
@@ -136,10 +208,19 @@
       "description": "Base damage 15. Base cooldown 5s.",
       "flavor": "",
       "abilities": {
-        "rangedAttack": {
-          "damage": 15,
+        "action": {
+          "target": "anyEnemy",
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 15
+            }
+          ],
           "cooldown": 5,
-          "projectileImg": "/static/projectiles/arrow.png"
+          "missable": true,
+          "animation": "aim",
+          "projectileImg": "/static/projectiles/arrow.png",
+          "knockback": 0.3
         }
       }
     },
@@ -152,10 +233,19 @@
       "description": "Base damage 12. Base cooldown 3s.",
       "flavor": "",
       "abilities": {
-        "rangedAttack": {
-          "damage": 12,
+        "action": {
+          "target": "anyEnemy",
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 12
+            }
+          ],
           "cooldown": 3,
-          "projectileImg": "/static/projectiles/laser.png"
+          "missable": true,
+          "animation": "aim",
+          "projectileImg": "/static/projectiles/laser.png",
+          "knockback": 0.3
         }
       }
     },
@@ -168,10 +258,19 @@
       "description": "Base damage 30. Base cooldown 7s.",
       "flavor": "",
       "abilities": {
-        "rangedAttack": {
-          "damage": 30,
+        "action": {
+          "target": "anyEnemy",
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 30
+            }
+          ],
           "cooldown": 7,
-          "projectileImg": "/static/projectiles/fireball.png"
+          "missable": true,
+          "animation": "aim",
+          "projectileImg": "/static/projectiles/fireball.png",
+          "knockback": 0.7
         }
       }
     },
@@ -181,13 +280,21 @@
       "imgUrl": "/static/equipment/zap-helmet.png",
       "zoomedImgUrl": "/static/zoomed/equipment/zap-helmet.png",
       "price": 3,
-      "description": "Base damage 10. Base cooldown 5s.",
+      "description": "Base damage 10. Base cooldown 5s. Cannot miss.",
       "flavor": "i did it with my mind",
       "abilities": {
-        "rangedAttack": {
-          "damage": 10,
+        "action": {
+          "target": "anyEnemy",
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 10
+            }
+          ],
           "cooldown": 5,
-          "projectileImg": "/static/projectiles/laser.png"
+          "animation": "aim",
+          "projectileImg": "/static/projectiles/laser.png",
+          "knockback": 0.3
         }
       }
     },

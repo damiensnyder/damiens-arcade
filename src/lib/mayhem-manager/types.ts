@@ -127,6 +127,31 @@ export interface Equipment {
 
 
 
+export enum Trigger {
+  HitDealt = "hitDealt",
+  HitTaken = "hitTaken",
+  Interval = "interval"
+}
+
+export enum Target {
+  Self = "self",
+  Melee = "melee",
+  AnyEnemy = "anyEnemy",
+  AttackTarget = "attackTarget",
+  AllTeammates = "allTeammates",
+  AllEnemies = "allEnemies",
+  NearestEnemy = "nearestEnemy",
+  NearestTeammate = "nearestTeammate",
+  RandomEnemy = "randomEnemy",
+  RandomTeammate = "randomTeammate",
+  AllFighters = "allFighters"
+}
+
+export enum ActionAnimation {
+  Aim = "aim",
+  Swing = "swing"
+}
+
 export interface StatChangeAbility {
   stat: StatName
   amount: number
@@ -154,30 +179,6 @@ export type Effect = HpChangeEffect |
   DamageEffect |
   StatChangeEffect;
 
-export enum Trigger {
-  HitDealt = "hitDealt",
-  HitTaken = "hitTaken",
-  Interval = "interval"
-}
-
-export enum Target {
-  Self = "self",
-  AnyEnemy = "anyEnemy",
-  AttackTarget = "attackTarget",
-  AllTeammates = "allTeammates",
-  AllEnemies = "allEnemies",
-  NearestEnemy = "nearestEnemy",
-  NearestTeammate = "nearestTeammate",
-  RandomEnemy = "randomEnemy",
-  RandomTeammate = "randomTeammate",
-  AllFighters = "allFighters"
-}
-
-export enum ActionAnimation {
-  Aim = "aim",
-  Swing = "swing"
-}
-
 export type TriggeredEffect = Effect & {
   trigger: Trigger
   target: Target
@@ -188,9 +189,9 @@ export interface ActionAbility {
   effects: Effect[]
   cooldown: number
   dodgeable?: boolean
-  melee?: boolean
   missable?: boolean
   animation?: ActionAnimation
+  projectileImg?: string
   knockback?: number
 }
 

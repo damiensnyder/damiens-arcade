@@ -3,24 +3,28 @@ import { readFileSync, readdirSync, writeFileSync } from "fs";
 import { EquipmentSlot, type Equipment, type EquipmentDeck, type FighterDeck, type FighterInBattle, type FighterNames, type FighterTemplate, type Map, type MapDeck, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, StatName, Target, Trigger, type TriggeredEffect } from "$lib/mayhem-manager/types";
 import type { RNG } from "$lib/types";
 
-const ability = object({
-  type: string().required().oneOf(["meleeAttack", "statChange"]),
-  damage: number().when("type", {
-    is: "meleeAttack",
-    then: number().required().integer(),
-    otherwise: undefined
-  }),
-  stat: string().when("type", {
-    is: "statChange",
-    then: string().required().oneOf(Object.values(StatName)),
-    otherwise: undefined
-  }),
-  amount: string().when("type", {
-    is: "statChange",
-    then: number().required().integer(),
-    otherwise: undefined
-  })
-});
+const FISTS: Equipment = {
+  name: "fists",
+  imgUrl: "",
+  zoomedImgUrl: "",
+  slots: [],
+  abilities: {
+    action: {
+      target: Target.Melee,
+      effects: [{
+        type: "damage",
+        amount: 5
+      }],
+      cooldown: 5
+    }
+  },
+  yearsOwned: 0,
+  price: 0,
+  description: "",
+  flavor: ""
+}
+
+const ability = object();
 
 const DECK_FILEPATH_BASE = "src/lib/mayhem-manager/data/";
 export const TICK_LENGTH = 0.2;  // length of a tick in seconds
@@ -293,7 +297,9 @@ class Fight {
         if (closestDistance <= 2 && f.cooldown < EPSILON) {
           this.doAction(f, tick);
           this.moveAwayFromTarget(f, closest, tick);
-        } else if (f.equipment.find(e => e.abilities.action && !e.abilities.action.melee)) {
+        } else if (
+          f.equipment.find(e => e.abilities.action && e.abilities.action.target !== Target.Melee)
+        ) {
           if (f.cooldown < EPSILON) {
             this.doAction(f, tick);
           } else if (f.cooldown > 1 + EPSILON) {
@@ -399,15 +405,20 @@ class Fight {
     
     let equipmentUsed: Equipment;
     if (distanceBetween < 2) {
-      const meleeWeapons = f.equipment.filter(e => e.abilities.action && e.abilities.action.melee);
+      const meleeWeapons = f.equipment.filter(e => e.abilities.action && e.abilities.action.target === Target.Melee);
       if (meleeWeapons.length !== 0) {
         equipmentUsed = this.rng.randElement(meleeWeapons);
+      } else {
+        equipmentUsed = FISTS;
       }
     } else {
-      // choose a random ranged weapon. (function should only be called if one is equipped.)
-      const rangedEquipment = f.equipment.filter(e => e.abilities.action && !e.abilities.action.melee);
+      // choose a random ranged weapon. (branch should only be reached if one is equipped.)
+      const rangedEquipment = f.equipment.filter(e => e.abilities.action && e.abilities.action.target !== Target.Melee);
       if (rangedEquipment.length !== 0) {
         equipmentUsed = this.rng.randElement(rangedEquipment);
+      } else {
+        console.log("ERROR: Attempted to use an ability with no abilities available.")
+        return;
       }
     }
 
@@ -427,6 +438,14 @@ class Fight {
         animation: equipmentUsed.abilities.action.animation
       });
     }
+    if (equipmentUsed.abilities.action.projectileImg) {
+      tick.push({
+        type: "projectile",
+        fighter: this.fighters.findIndex(f2 => f2 === f),
+        target: this.fighters.findIndex(t2 => t2 === target),
+        projectileImg: equipmentUsed.abilities.action.projectileImg
+      });
+    }
     
     if (!missed && !dodged) {
       // trigger all the weapon's hitDealt abilities
@@ -435,7 +454,7 @@ class Fight {
           this.doEffect(
             a,
             f.attunements.includes(equipmentUsed.name),
-            equipmentUsed.abilities.action.melee,
+            equipmentUsed.abilities.action.target === Target.Melee,
             tick,
             f,
             target
