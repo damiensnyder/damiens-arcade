@@ -552,6 +552,7 @@ class Fight {
       let damage = effect.amount * (1.25 - target.stats.toughness / 20);
       if (attuned) damage *= 1.25;
       if (melee) damage *= 0.5 + fighter.stats.strength / 10;
+      damage = Math.max(damage, 1);
       target.hp -= Math.round(damage);
       tick.push({
         type: "hpChange",
