@@ -16,8 +16,8 @@
   let fighters: FighterInBattle[] = [];
   let rotation: number[] = [];
   let flipped: number[] = [];
-  let hitFlash: PIXI.ColorMatrixFilter[] = [];
   let particles: Particle[] = [];
+  let tint: PIXI.ColorMatrixFilter[] = [];
   let playbackSpeed: number = 100;  // ticks are 0.2 s long
   let frameWidth: number;
   let frameHeight: number;
@@ -53,8 +53,8 @@
     fighters = animationState.getFighters(tickDelta);
     rotation = animationState.getRotation(tickDelta);
     flipped = animationState.getFlipped(tickDelta);
-    hitFlash = animationState.getHitFlash(tickDelta);
     particles = animationState.getParticles(tickDelta);
+    tint = animationState.getTint(tickDelta);
     setCamera();
   }
 
@@ -153,7 +153,7 @@
             {#each fighters as f, i}
               {#if f.hp > 0}
                 <Container x={f.x - cameraX} y={f.y - cameraY} pivot={0.5}
-                    scale={[15 / 384 * flipped[i], 15 / 384]} angle={rotation[i]} filters={[hitFlash[i]]}>
+                    scale={[15 / 384 * flipped[i], 15 / 384]} angle={rotation[i]} filters={[tint[i]]}>
                 <!-- using height / width does not work on the first run and i have no idea why -->
                   <FighterBattleSprite fighter={f} equipment={f.equipment} />
                 </Container>

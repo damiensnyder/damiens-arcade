@@ -320,8 +320,8 @@ class Fight {
       }
 
       // tick down status effects, and end them if they're done
-      let prevTint = "#ffffff00";
-      let newTint = "#ffffff00";
+      let prevTint = [0, 0, 0, 0];
+      let newTint: [number, number, number, number] = [0, 0, 0, 0];
       f.statusEffects.forEach((s) => {
         s.duration -= TICK_LENGTH;
         if (s.tint) {
@@ -335,7 +335,7 @@ class Fight {
         }
       });
       f.statusEffects = f.statusEffects.filter((s) => s.duration > 0);
-      if (newTint !== prevTint) {
+      if (!newTint.every((v, i) => v === prevTint[i])) {
         tick.push({
           type: "tint",
           fighter: i,
@@ -565,7 +565,7 @@ class Fight {
         text: Math.round(damage).toString()
       });
     } else if (effect.type === "statChange") {
-      target.statusEffects.push(effect);
+      target.statusEffects.push({ ...effect });
       target.stats[effect.stat] += effect.amount;
       if (effect.tint) {
         tick.push({

@@ -45,13 +45,13 @@ export default class AnimationState {
   flipped: boolean[];
   hitFlash: number[];
   particles: Particle[];
-  tint: string[];
+  tint: [number, number, number, number][];
   nextFighters: FighterInBattle[];
   nextRotation: RotationState[];
   nextFlipped: boolean[];
   nextHitFlash: number[];
   nextParticles: Particle[];
-  nextTint: string[];
+  nextTint: [number, number, number, number][];
 
   constructor(eventLog: MidFightEvent[][]) {
     eventLog.splice(1, 0, [], [], [], [], []);  // pause for a second after spawning in fighters
@@ -80,6 +80,7 @@ export default class AnimationState {
     this.flipped = this.nextFlipped.slice();
     this.hitFlash = this.nextHitFlash.slice();
     this.particles = this.nextParticles.slice();
+    this.tint = this.nextTint.slice();
     this.nextParticles = this.nextParticles.filter(p => p.type === "text" && p.opacity > 0.5)
         .map(p => { return { ...p, opacity: (p as TextParticle).opacity - 0.5 } });
     if (this.tick < this.eventLog.length - 1) {
@@ -101,10 +102,12 @@ export default class AnimationState {
           this.rotation.push(RotationState.Stationary1);
           this.flipped.push(false);
           this.hitFlash.push(0);
+          this.tint.push([0, 0, 0, 0]);
           this.nextFighters.push(event.fighter);
           this.nextRotation.push(RotationState.Stationary1);
           this.nextFlipped.push(false);
           this.nextHitFlash.push(0);
+          this.nextTint.push([0, 0, 0, 0]);
         } else if (event.type === "move") {
           event = event as MFMoveEvent;
           const f: number = event.fighter;
@@ -227,14 +230,18 @@ export default class AnimationState {
   }
 
   // Hit flash with correct interpolation
-  getHitFlash(delta: number): ColorMatrixFilter[] {
+  getTint(delta: number): ColorMatrixFilter[] {
     return this.hitFlash.map((h1, i) => {
       const h2 = this.nextHitFlash[i];
       const intensity = Math.min(h1, h2) * delta + h1 * (1 - delta);
+      const tint = this.tint[i].slice();
+      for (let j = 0; j < 4; j++) {
+        tint[j] = this.nextTint[i][j] * delta + tint[j] * (1 - delta);
+      }
       const filter = new ColorMatrixFilter();
-      filter.matrix = [1, 0, 0, 0, intensity / 2,
-                       0, 1, 0, 0, intensity / 2,
-                       0, 0, 1, 0, intensity / 2,
+      filter.matrix = [1 - tint[3], 0, 0, 0, intensity / 2 + tint[0] * tint[3],
+                       0, 1 - tint[3], 0, 0, intensity / 2 + tint[1] * tint[3],
+                       0, 0, 1 - tint[3], 0, intensity / 2 + tint[2] * tint[3],
                        0, 0, 0, 1, 0];
       return filter;
     });

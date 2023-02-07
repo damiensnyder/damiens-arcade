@@ -446,6 +446,28 @@
       }
     },
     {
+      "name": "Jorts of Power",
+      "slots": ["legs"],
+      "imgUrl": "/static/equipment/jorts-of-power.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/jorts-of-power.png",
+      "price": 12,
+      "description": "Upon hitting an enemy, the enemy has no strength for the next 5s.",
+      "flavor": "the sheer embarrassment is what gets 'em",
+      "abilities": {
+        "triggeredEffects": [
+          {
+            "trigger": "hitDealt",
+            "target": "actionTarget",
+            "type": "statChange",
+            "amount": -100,
+            "stat": "strength",
+            "duration": 5,
+            "tint": [1, 0.5, 0.5, 0.5]
+          }
+        ]
+      }
+    },
+    {
       "name": "Scary Mask",
       "slots": ["torso"],
       "imgUrl": "/static/equipment/scary-mask.png",

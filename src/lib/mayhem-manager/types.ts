@@ -172,7 +172,7 @@ export interface StatChangeEffect {
   stat: StatName
   amount: number
   duration: number
-  tint?: string
+  tint?: [number, number, number, number]
 }
 
 export type Effect = HpChangeEffect |
@@ -457,7 +457,7 @@ export interface MFTextEvent {
 export interface MFTintEvent {
   type: "tint"
   fighter: number
-  tint: string
+  tint: [number, number, number, number]
 }
 
 export interface MFHpChangeEvent {
