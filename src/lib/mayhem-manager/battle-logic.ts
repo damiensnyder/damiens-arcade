@@ -547,7 +547,7 @@ class Fight {
       tick.push({
         type: "text",
         fighter: this.fighters.findIndex(t2 => t2 === target),
-        text: amount > -0.5 ? Math.round(amount).toString() : "+" + Math.round(amount).toString()
+        text: amount < 0.5 ? Math.round(-amount).toString() : "+" + Math.round(amount).toString()
       });
     } else if (effect.type === "damage") {
       let damage = effect.amount * (1.25 - target.stats.toughness / 20);
