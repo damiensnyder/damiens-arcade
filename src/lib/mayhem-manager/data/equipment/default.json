@@ -422,6 +422,28 @@
           }
         ]
       }
+    },
+
+
+
+    {
+      "name": "Scary Mask",
+      "slots": ["torso"],
+      "imgUrl": "/static/equipment/scary-mask.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/scary-mask.png",
+      "price": 10,
+      "description": "Upon taking a hit, causes the attacker to lose 5 HP.",
+      "flavor": "ahhh, how light and aerodynamic",
+      "abilities": {
+        "triggeredEffects": [
+          {
+            "trigger": "hitTaken",
+            "target": "actionTarget",
+            "type": "hpChange",
+            "amount": -5
+          }
+        ]
+      }
     }
   ]
 }

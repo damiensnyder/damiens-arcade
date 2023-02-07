@@ -138,7 +138,7 @@ export enum Target {
   Melee = "melee",
   AnyEnemy = "anyEnemy",
   AnyTeammate = "anyTeammate",
-  ActionTarget = "attackTarget",
+  ActionTarget = "actionTarget",
   AllTeammates = "allTeammates",
   AllEnemies = "allEnemies",
   NearestEnemy = "nearestEnemy",
