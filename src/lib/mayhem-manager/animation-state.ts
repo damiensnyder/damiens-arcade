@@ -1,5 +1,5 @@
 
-import type { FighterInBattle, MFAnimationEvent, MFMoveEvent, MFTextEvent, MFSpawnEvent, MidFightEvent } from "$lib/mayhem-manager/types";
+import type { FighterInBattle, MFAnimationEvent, MFMoveEvent, MFTextEvent, MFSpawnEvent, MidFightEvent, MFTintEvent, MFProjectileEvent, MFHpChangeEvent } from "$lib/mayhem-manager/types";
 import { ColorMatrixFilter } from "pixi.js";
 import { watchingFight } from "./stores";
 
@@ -45,11 +45,13 @@ export default class AnimationState {
   flipped: boolean[];
   hitFlash: number[];
   particles: Particle[];
+  tint: string[];
   nextFighters: FighterInBattle[];
   nextRotation: RotationState[];
   nextFlipped: boolean[];
   nextHitFlash: number[];
   nextParticles: Particle[];
+  nextTint: string[];
 
   constructor(eventLog: MidFightEvent[][]) {
     eventLog.splice(1, 0, [], [], [], [], []);  // pause for a second after spawning in fighters
@@ -61,11 +63,13 @@ export default class AnimationState {
     this.flipped = [];
     this.hitFlash = [];
     this.particles = [];
+    this.tint = [];
     this.nextFighters = [];
     this.nextRotation = [];
     this.nextFlipped = [];
     this.nextHitFlash = [];
     this.nextParticles = [];
+    this.nextTint = [];
   }
 
   // Figure out what the next tick is going to look like so we can interpolate between the current
@@ -127,31 +131,20 @@ export default class AnimationState {
               this.nextRotation[f] = RotationState.Stationary1;
             }
           }
-        } else if (event.type === "meleeAttack") {
-          event = event as MFAnimationEvent;
-          const t: number = event.target;
-          this.nextFlipped[event.fighter] = this.nextFighters[event.fighter].x > this.nextFighters[t].x;
-          this.nextFighters[t] = {
-            ...this.nextFighters[t],
-            hp: this.nextFighters[t].hp - event.damage
-          }
+        } else if (event.type === "text") {
+          event = event as MFTextEvent;
           this.nextParticles.push({
             type: "text",
-            text: event.dodged ? "Dodged" : event.damage.toString(),
-            x: this.nextFighters[t].x,
-            y: this.nextFighters[t].y - 7,  // moved up to be just over the fighter's head
+            text: event.text,
+            x: this.nextFighters[event.fighter].x,
+            y: this.nextFighters[event.fighter].y - 7,  // moved up to be just over the fighter's head
             opacity: 1
           });
-          if (!event.dodged) this.nextHitFlash[t] = 1;
-        } else if (event.type === "rangedAttack") {
-          event = event as MFTextEvent;
+        } else if (event.type === "projectile") {
+          event = event as MFProjectileEvent;
           const f = this.fighters[event.fighter];
           const t = this.nextFighters[event.target];
           this.nextFlipped[event.fighter] = f.x > t.x;
-          this.nextFighters[event.target] = {
-            ...t,
-            hp: t.hp - event.damage
-          }
           this.particles.push({
             type: "image",
             x: f.x,
@@ -160,14 +153,18 @@ export default class AnimationState {
             destY: t.y,
             imgUrl: event.projectileImg
           });
-          this.nextParticles.push({
-            type: "text",
-            text: event.missed ? "Missed" : event.damage.toString(),
-            x: t.x,
-            y: t.y - 7,
-            opacity: 1
-          });
-          if (!event.missed) this.nextHitFlash[event.target] = 1;
+        } else if (event.type === "hpChange") {
+          event = event as MFHpChangeEvent;
+          const f = this.fighters[event.fighter];
+          this.nextFighters[event.fighter] = {
+            ...f,
+            hp: event.newHp
+          };
+          if (event.newHp < f.hp) {
+            this.nextHitFlash[event.fighter] = 1;
+          }
+        } else if (event.type === "tint") {
+          this.nextTint[event.fighter] = event.tint;
         }
       }
     }
@@ -187,16 +184,16 @@ export default class AnimationState {
       return r;
     });
 
-    // start animations for swings and aiming 2 ticks in advance
+    // start animations 2 ticks in advance
     if (this.tick < this.eventLog.length - 2) {
       const tick2Away = this.eventLog[this.tick + 2];
-      tick2Away.filter(e => e.type === "meleeAttack").forEach((e) => {
+      tick2Away.filter(e => e.type === "animation").forEach((e) => {
         e = e as MFAnimationEvent;
-        this.nextRotation[e.fighter] = RotationState.BackswingStart;
-      });
-      tick2Away.filter(e => e.type === "rangedAttack").forEach((e) => {
-        e = e as MFTextEvent;
-        this.nextRotation[e.fighter] = RotationState.AimStart;
+        if (e.animation === "swing") {
+          this.nextRotation[e.fighter] = RotationState.BackswingStart;
+        } else if (e.animation === "aim") {
+          this.nextRotation[e.fighter] = RotationState.AimStart;
+        }
       });
     }
   }
