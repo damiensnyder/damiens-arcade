@@ -277,52 +277,80 @@ class Fight {
     writeFileSync("logs/ticks.txt", JSON.stringify(initialTick));
 
     while (!this.fightIsOver()) {
-      const tick: MidFightEvent[] = [];
-      this.fighters.forEach((f) => {
-        if (f.hp <= 0) return;  // do nothing if fighter is down
-        const closest = this.closestEnemy(f);
-        if (!closest) return;  // in case your teammate downed the last enemy
+      this.doTick();
+    }
+  }
 
-        const closestDistance = distance(f, closest);
-        const distanceMovableByCooldownEnd = f.cooldown * (2.5 + f.stats.speed / 2) * TICK_LENGTH;
+  doTick(): void {
+    const tick: MidFightEvent[] = [];
+    this.fighters.forEach((f, i) => {
+      if (f.hp <= 0) return;  // do nothing if fighter is down
+      const closest = this.closestEnemy(f);
+      if (!closest) return;  // in case your teammate downed the last enemy
 
-        // if the fighter is within melee range and their cooldown is over, they attack and then
-        // run away.
-        // if the fighter has a ranged ability and their cooldown is over, they shoot the nearest enemy.
-        // if the fighter has a ranged ability and their cooldown ends in <1 second, they stand still.
-        // if the fighter has a ranged ability but can't use it in <1 second, they run away.
-        // if they can't reach the target by the time their cooldown ends, they run towards the
-        // target and do a melee attack if within range.
-        // if they can reach the target by the time their cooldown ends, they run away.
-        if (closestDistance <= 2 && f.cooldown < EPSILON) {
+      const closestDistance = distance(f, closest);
+      const distanceMovableByCooldownEnd = f.cooldown * (2.5 + f.stats.speed / 2) * TICK_LENGTH;
+
+      // if the fighter is within melee range and their cooldown is over, they attack and then
+      // run away.
+      // if the fighter has a ranged ability and their cooldown is over, they shoot the nearest enemy.
+      // if the fighter has a ranged ability and their cooldown ends in <1 second, they stand still.
+      // if the fighter has a ranged ability but can't use it in <1 second, they run away.
+      // if they can't reach the target by the time their cooldown ends, they run towards the
+      // target and do a melee attack if within range.
+      // if they can reach the target by the time their cooldown ends, they run away.
+      if (closestDistance <= 2 && f.cooldown < EPSILON) {
+        this.doAction(f, tick);
+        this.moveAwayFromTarget(f, closest, tick);
+      } else if (
+        f.equipment.find(e => e.abilities.action && e.abilities.action.target !== Target.Melee)
+      ) {
+        if (f.cooldown < EPSILON) {
           this.doAction(f, tick);
-          this.moveAwayFromTarget(f, closest, tick);
-        } else if (
-          f.equipment.find(e => e.abilities.action && e.abilities.action.target !== Target.Melee)
-        ) {
-          if (f.cooldown < EPSILON) {
-            this.doAction(f, tick);
-          } else if (f.cooldown > 1 + EPSILON) {
-            this.moveAwayFromTarget(f, closest, tick);
-          }
-        } else if (distanceMovableByCooldownEnd < closestDistance) {
-          this.moveTowardsTarget(f, closest, tick);
-          if (distance(f, closest) <= 2 && f.cooldown < EPSILON) {
-            this.doAction(f, tick);
-          }
-        } else {
+        } else if (f.cooldown > 1 + EPSILON) {
           this.moveAwayFromTarget(f, closest, tick);
         }
+      } else if (distanceMovableByCooldownEnd < closestDistance) {
+        this.moveTowardsTarget(f, closest, tick);
+        if (distance(f, closest) <= 2 && f.cooldown < EPSILON) {
+          this.doAction(f, tick);
+        }
+      } else {
+        this.moveAwayFromTarget(f, closest, tick);
+      }
 
-        // decrease cooldown. cooldown can go slightly below 0 to compensate for if a cooldown
-        // is not a multiple of tick length, but if already at or below 0 it stays at 0
-        f.cooldown = f.cooldown <= EPSILON ? 0 : f.cooldown - TICK_LENGTH;
+      // tick down status effects, and end them if they're done
+      let prevTint = "#ffffff00";
+      let newTint = "#ffffff00";
+      f.statusEffects.forEach((s) => {
+        s.duration -= TICK_LENGTH;
+        if (s.tint) {
+          prevTint = s.tint;
+          if (s.duration > 0) {
+            newTint = s.tint;
+          }
+        }
+        if (s.duration <= 0) {
+          f.stats[s.stat] -= s.amount;
+        }
       });
-      
-      // we stringify the tick so later mutations don't mess up earlier ticks
-      writeFileSync("logs/ticks.txt", JSON.stringify(tick), { flag: "a+" });
-      this.eventLog.push(tick);
-    }
+      f.statusEffects = f.statusEffects.filter((s) => s.duration > 0);
+      if (newTint !== prevTint) {
+        tick.push({
+          type: "tint",
+          fighter: i,
+          tint: newTint
+        });
+      }
+
+      // decrease cooldown. cooldown can go slightly below 0 to compensate for if a cooldown
+      // is not a multiple of tick length, but if already at or below 0 it stays at 0
+      f.cooldown = f.cooldown <= EPSILON ? 0 : f.cooldown - TICK_LENGTH;
+    });
+    
+    // we stringify the tick so later mutations don't mess up earlier ticks
+    writeFileSync("logs/ticks.txt", JSON.stringify(tick), { flag: "a+" });
+    this.eventLog.push(tick);
   }
 
   fightIsOver(): boolean {
@@ -537,6 +565,7 @@ class Fight {
       });
     } else if (effect.type === "statChange") {
       target.statusEffects.push(effect);
+      target.stats[effect.stat] += effect.amount;
       if (effect.tint) {
         tick.push({
           type: "tint",
