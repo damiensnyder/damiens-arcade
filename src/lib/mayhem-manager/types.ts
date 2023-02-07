@@ -170,6 +170,7 @@ export enum Trigger {
 
 export enum Target {
   Self = "self",
+  AnyEnemy = "anyEnemy",
   AttackTarget = "attackTarget",
   AllTeammates = "allTeammates",
   AllEnemies = "allEnemies",
@@ -180,21 +181,29 @@ export enum Target {
   AllFighters = "allFighters"
 }
 
+export enum ActionAnimation {
+  Aim = "aim",
+  Swing = "swing"
+}
+
 export type TriggeredEffect = Effect & {
   trigger: Trigger
   target: Target
 }
 
-export interface SpecialAction {
+export interface ActionAbility {
   target: Target
   effects: Effect[]
   cooldown: number
+  dodgeable?: boolean
+  melee?: boolean
+  missable?: boolean
+  animation?: ActionAnimation
+  knockback?: number
 }
 
 export interface Abilities {
-  meleeAttack?: MeleeAttackAbility
-  rangedAttack?: RangedAttackAbility
-  specialAction?: SpecialAction
+  action?: ActionAbility
   statChanges?: StatChangeAbility[]
   triggeredEffects?: TriggeredEffect[]
 }

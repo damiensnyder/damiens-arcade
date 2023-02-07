@@ -289,38 +289,38 @@ class Fight {
 
         // if the fighter is within melee range and their cooldown is over, they attack and then
         // run away.
-        // if the fighter has a ranged attack and their cooldown is over, they shoot the nearest enemy.
-        // if the fighter has a ranged attack and their cooldown ends in <1 second, they stand still.
-        // if the fighter has a ranged attack but can't use it in <1 second, they run away.
+        // if the fighter has a ranged ability and their cooldown is over, they shoot the nearest enemy.
+        // if the fighter has a ranged ability and their cooldown ends in <1 second, they stand still.
+        // if the fighter has a ranged ability but can't use it in <1 second, they run away.
         // if they can't reach the target by the time their cooldown ends, they run towards the
         // target and do a melee attack if within range.
         // if they can reach the target by the time their cooldown ends, they run away.
         if (closestDistance <= 2 && f.cooldown < EPSILON) {
-          this.meleeAttack(f, closest, tick);
+          this.doAction(f, tick);
           this.moveAwayFromTarget(f, closest, tick);
-        } else if (f.equipment.find(e => e.abilities.rangedAttack !== undefined) !== undefined) {
+        } else if (f.equipment.find(e => e.abilities.action && !e.abilities.action.melee)) {
           if (f.cooldown < EPSILON) {
-            this.rangedAttack(f, closest, tick);
+            this.doAction(f, tick);
           } else if (f.cooldown > 1 + EPSILON) {
             this.moveAwayFromTarget(f, closest, tick);
           }
         } else if (distanceMovableByCooldownEnd < closestDistance) {
           this.moveTowardsTarget(f, closest, tick);
           if (distance(f, closest) <= 2 && f.cooldown < EPSILON) {
-            this.meleeAttack(f, closest, tick);
+            this.doAction(f, tick);
           }
         } else {
           this.moveAwayFromTarget(f, closest, tick);
         }
 
         // decrease cooldown. cooldown can go slightly below 0 to compensate for if a cooldown
-        // is not a multiple of tick length, but if already at or below 0 it cannot go lower
+        // is not a multiple of tick length, but if already at or below 0 it stays at 0
         f.cooldown = f.cooldown <= EPSILON ? 0 : f.cooldown - TICK_LENGTH;
       });
       
       // we stringify the tick so later mutations don't mess up earlier ticks
-      this.eventLog.push(tick);
       writeFileSync("logs/ticks.txt", JSON.stringify(tick), { flag: "a+" });
+      this.eventLog.push(tick);
     }
   }
 
@@ -398,135 +398,101 @@ class Fight {
     return distanceToMove;
   }
 
-  meleeAttack(f: FighterInBattle, target: FighterInBattle, tick: MidFightEvent[]): void {
-    // choose a random melee weapon if one is equipped; otherwise punch.
-    const meleeWeapons = f.equipment.filter(e => e.abilities.meleeAttack !== undefined);
-    let baseDamage = 1;
-    if (meleeWeapons.length !== 0) {
-      const weaponChosen = this.rng.randElement(meleeWeapons);
-      baseDamage = weaponChosen.abilities.meleeAttack.damage;
-      if (f.attunements.includes(weaponChosen.name)) {
-        baseDamage *= 1.25;
+  doAction(f: FighterInBattle, tick: MidFightEvent[]): void {
+    const target = this.closestNotOnTeam(f);
+    const distanceBetween = distance(f, target);
+    
+    let equipmentUsed: Equipment;
+
+    if (distanceBetween < 2) {
+      const meleeWeapons = f.equipment.filter(e => e.abilities.action && e.abilities.action.melee);
+      if (meleeWeapons.length !== 0) {
+        equipmentUsed = this.rng.randElement(meleeWeapons);
       }
-    }
-    // if the target has 0 reflexes, they have no chance to dodge. if they have 10 reflexes,
-    // they have a 50% chance to dodge.
-    const dodged = this.rng.randReal() < target.stats.reflexes / 20;
-    // base damage is set by the weapon and then multiplied by (5 + fighter's strength). this
-    // is reduced by 0% if the target has 0 toughness, 50% if they have 10 toughness.
-    // damage is rounded up to the nearest integer.
-    let damage = Math.ceil(baseDamage *
-        (5 + f.stats.strength) *
-        (1 - target.stats.toughness / 20));
-
-    // strafe to the right if dodged, otherwise add a little knockback
-    const unitVectorX = Math.pow(target.x - f.x, 2) / Math.pow(distance(f, target), 2);
-    const unitVectorY = Math.pow(target.y - f.y, 2) / Math.pow(distance(f, target), 2);
-    if (dodged) {
-      damage = 0;
-      target.x -= unitVectorY * 0.2;
-      target.y += unitVectorX * 0.2;
-      tick.push({
-        type: "move",
-        fighter: this.fighters.findIndex(z => z === target),
-        x: Number(target.x.toFixed(2)),
-        y: Number(target.y.toFixed(2))
-      });
     } else {
-      target.hp -= damage;
-      target.x += unitVectorX * 0.5;
-      target.y += unitVectorY * 0.5;
-      tick.push({
-        type: "move",
-        fighter: this.fighters.findIndex(z => z === target),
-        x: Number(target.x.toFixed(2)),
-        y: Number(target.y.toFixed(2))
-      });
-    }
-
-    tick.push({
-      type: "meleeAttack",
-      fighter: this.fighters.findIndex(f2 => f2 === f),
-      target: this.fighters.findIndex(f2 => f2 === target),
-      dodged,
-      damage
-    });
-
-    // cooldown is 5 seconds for a fighter with 0 energy, 2.5 seconds if 10 energy
-    f.cooldown = 5 * (1 - 0.05 * f.stats.energy);
-  }
-
-  rangedAttack(f: FighterInBattle, target: FighterInBattle, tick: MidFightEvent[]): void {
-    // choose a random ranged weapon. (function should only be called if one is equipped.)
-    const rangedWeapons = f.equipment.filter(e => e.abilities.rangedAttack !== undefined);
-    let baseDamage = 1;
-    let weaponUsed: Equipment;
-    if (rangedWeapons.length !== 0) {
-      weaponUsed = this.rng.randElement(rangedWeapons);
-      baseDamage = weaponUsed.abilities.rangedAttack.damage;
-      if (f.attunements.includes(weaponUsed.name)) {
-        baseDamage *= 1.25;
+      // choose a random ranged weapon. (function should only be called if one is equipped.)
+      const rangedEquipment = f.equipment.filter(e => e.abilities.action && !e.abilities.action.melee);
+      if (rangedEquipment.length !== 0) {
+        equipmentUsed = this.rng.randElement(rangedEquipment);
       }
     }
     // if the fighter has 0 accuracy, they have a 75% chance to miss. if they have 10 accuracy,
     // they have a 25% chance to miss.
-    const missed = this.rng.randReal() > (target.stats.accuracy + 5) / 20;
-    // base damage is set by the weapon. this is reduced by 0% if the target has 0
-    // toughness, 50% if they have 10 toughness. damage is rounded up to the nearest integer.
-    let damage = Math.ceil(baseDamage * (1 - target.stats.toughness / 20));
-
+    const missed = equipmentUsed.abilities.action.missable ?
+        this.rng.randReal() < (15 - f.stats.accuracy) / 20 :
+        false;
+    const dodged = equipmentUsed.abilities.action.dodgeable ?
+        this.rng.randReal() < target.stats.reflexes / 20 :
+        false;
+    
     // add a little knockback on a hit
     const unitVectorX = Math.pow(target.x - f.x, 2) / Math.pow(distance(f, target), 2);
     const unitVectorY = Math.pow(target.y - f.y, 2) / Math.pow(distance(f, target), 2);
-    if (missed) {
-      damage = 0;
-    } else {
-      target.hp -= damage;
-      target.x += unitVectorX * 0.5;
-      target.y += unitVectorY * 0.5;
-      tick.push({
-        type: "move",
-        fighter: this.fighters.findIndex(z => z === target),
-        x: Number(target.x.toFixed(2)),
-        y: Number(target.y.toFixed(2))
-      });
+    if (!missed && !dodged) {
+      // if the equipment has knockback, apply that much knockback
+      // except it cannot send the fighter past ±45 on either axis
+      if (equipmentUsed.abilities.action.knockback) {
+        target.x += unitVectorX * equipmentUsed.abilities.action.knockback;
+        target.y += unitVectorY * equipmentUsed.abilities.action.knockback;
+        target.x = Math.max(Math.min(target.x, 45), -45);
+        target.y = Math.max(Math.min(target.y, 45), -45);
+        tick.push({
+          type: "move",
+          fighter: this.fighters.findIndex(z => z === target),
+          x: Number(target.x.toFixed(2)),
+          y: Number(target.y.toFixed(2))
+        });
+      }
 
       // trigger all the weapon's hitDealt abilities
-      (weaponUsed.abilities.triggeredEffects || []).forEach((a) => {
+      (equipmentUsed.abilities.triggeredEffects || []).forEach((a) => {
         if (a.trigger === Trigger.HitDealt) {
-          this.doEffect(a, f, target);
+          this.doEffect(
+            a,
+            f.attunements.includes(equipmentUsed.name),
+            equipmentUsed.abilities.action.melee,
+            f,
+            target
+          );
         }
       });
       // trigger all the target's equipment's hitTaken abilities
       target.equipment.forEach((e) => {
         (e.abilities.triggeredEffects || []).forEach((a) => {
           if (a.trigger === Trigger.HitTaken) {
-            this.doEffect(a, target, f);
+            this.doEffect(
+              a,
+              target.attunements.includes(equipmentUsed.name),
+              false,
+              target,
+              f
+            );
           }
         });
       });
     }
-
-    tick.push({
-      type: "rangedAttack",
-      fighter: this.fighters.findIndex(f2 => f2 === f),
-      target: this.fighters.findIndex(f2 => f2 === target),
-      missed,
-      damage,
-      projectileImg: weaponUsed.abilities.rangedAttack.projectileImg
-    });
-
     // cooldown is set by the weapon. it is reduced by 0% if 0 energy, 50% if 10 energy.
-    f.cooldown = weaponUsed.abilities.rangedAttack.cooldown * (1 - 0.05 * f.stats.energy);
+    f.cooldown = equipmentUsed.abilities.action.cooldown * (1 - 0.05 * f.stats.energy);
   }
 
-  doEffect(effect: TriggeredEffect, fighter: FighterInBattle, actionTarget?: FighterInBattle): void {
+  doEffect(
+    effect: TriggeredEffect,
+    attuned: boolean,
+    melee: boolean,
+    fighter: FighterInBattle,
+    actionTarget?: FighterInBattle
+  ): void {
     this.targetsAffected(effect.target, fighter, actionTarget).forEach((t) => {
       // TODO: need events for these
       if (effect.type === "hpChange") {
-        t.hp += effect.amount;
+        let amount = effect.amount;
+        if (attuned) amount *= 1.25;
+        t.hp += Math.round(amount);
       } else if (effect.type === "damage") {
-        t.hp -= effect.amount * (1 - t.stats.toughness / 10);
+        let damage = effect.amount * (1 - t.stats.toughness / 10);
+        if (attuned) damage *= 1.25;
+        if (melee) damage *= 1 + fighter.stats.strength / 5;
+        t.hp -= Math.round(damage);
       } else if (effect.type === "statChange") {
         t.statusEffects.push(effect);
       }
