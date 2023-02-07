@@ -552,7 +552,7 @@ class Fight {
     } else if (effect.type === "damage") {
       let damage = effect.amount * (1 - target.stats.toughness / 20);
       if (attuned) damage *= 1.25;
-      if (melee) damage *= 1 + fighter.stats.strength / 5;
+      if (melee) damage *= 0.5 + fighter.stats.strength / 5;
       target.hp -= Math.round(damage);
       tick.push({
         type: "hpChange",
