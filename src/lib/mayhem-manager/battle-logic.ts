@@ -449,40 +449,9 @@ class Fight {
             t,
             tick,
             f.attunements.includes(equipmentUsed.name),
-            equipmentUsed.abilities.action.target === Target.Melee
+            equipmentUsed.abilities.action.target === Target.Melee,
+            true
           );
-        });
-  
-        // trigger all the fighter's equipment's hitDealt abilities
-        f.equipment.forEach((e) => {
-          (e.abilities.triggeredEffects || []).forEach((a) => {
-            if (a.trigger === Trigger.HitDealt) {
-              this.doEffect(
-                a,
-                f,
-                t,
-                tick,
-                f.attunements.includes(equipmentUsed.name),
-                false
-              );
-            }
-          });
-        });
-  
-        // trigger all the target's equipment's hitTaken abilities
-        t.equipment.forEach((e) => {
-          (e.abilities.triggeredEffects || []).forEach((a) => {
-            if (a.trigger === Trigger.HitTaken) {
-              this.doEffect(
-                a,
-                t,
-                f,
-                tick,
-                t.attunements.includes(equipmentUsed.name),
-                false
-              );
-            }
-          });
         });
 
         // if the equipment has knockback, apply that much knockback
@@ -533,7 +502,8 @@ class Fight {
     target: FighterInBattle,
     tick: MidFightEvent[],
     attuned: boolean,
-    melee: boolean
+    melee: boolean,
+    wasAction: boolean
   ): void {
     if (effect.type === "hpChange") {
       let amount = effect.amount;
@@ -552,7 +522,7 @@ class Fight {
     } else if (effect.type === "damage") {
       let damage = effect.amount * (1.25 - target.stats.toughness / 20);
       if (attuned) damage *= 1.25;
-      if (melee) damage *= 0.5 + fighter.stats.strength / 5;
+      if (melee) damage *= 0.5 + fighter.stats.strength / 10;
       target.hp -= Math.round(damage);
       tick.push({
         type: "hpChange",
@@ -573,6 +543,43 @@ class Fight {
           tint: effect.tint
         });
       }
+    }
+
+    // trigger related effects if appropriate
+    if (effect.type === "damage" && wasAction) {
+      // trigger all the fighter's equipment's hitDealt abilities
+      fighter.equipment.forEach((e) => {
+        (e.abilities.triggeredEffects || []).forEach((a) => {
+          if (a.trigger === Trigger.HitDealt) {
+            this.doEffect(
+              a,
+              fighter,
+              target,
+              tick,
+              fighter.attunements.includes(e.name),
+              false,
+              false
+            );
+          }
+        });
+      });
+
+      // trigger all the target's equipment's hitTaken abilities
+      target.equipment.forEach((e) => {
+        (e.abilities.triggeredEffects || []).forEach((a) => {
+          if (a.trigger === Trigger.HitTaken) {
+            this.doEffect(
+              a,
+              target,
+              fighter,
+              tick,
+              target.attunements.includes(e.name),
+              false,
+              false
+            );
+          }
+        });
+      });
     }
   }
 

@@ -427,6 +427,25 @@
 
 
     {
+      "name": "Flower of Power",
+      "slots": ["torso"],
+      "imgUrl": "/static/equipment/flower-of-power.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/flower-of-power.png",
+      "price": 10,
+      "description": "Upon hitting an enemy, gain 5 HP.",
+      "flavor": "ahhh, how light and aerodynamic",
+      "abilities": {
+        "triggeredEffects": [
+          {
+            "trigger": "hitTaken",
+            "target": "actionTarget",
+            "type": "hpChange",
+            "amount": -5
+          }
+        ]
+      }
+    },
+    {
       "name": "Scary Mask",
       "slots": ["torso"],
       "imgUrl": "/static/equipment/scary-mask.png",
