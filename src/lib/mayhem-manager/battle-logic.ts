@@ -508,6 +508,7 @@ class Fight {
     if (effect.type === "hpChange") {
       let amount = effect.amount;
       if (attuned) amount *= 1.25;
+      amount = Math.min(amount, 100 - target.hp);
       target.hp += Math.round(amount);
       tick.push({
         type: "hpChange",
