@@ -16,7 +16,7 @@
   import Draft from "$lib/mayhem-manager/draft.svelte";
   import Training from "$lib/mayhem-manager/training.svelte";
   import PickBrFighter from "$lib/mayhem-manager/pick-br-fighter.svelte";
-  import PickFighters from "$lib/mayhem-manager/pick-fighters.svelte";
+  import Tournament from "$lib/mayhem-manager/tournament.svelte";
   import SettingsEditor from "$lib/mayhem-manager/settings-editor.svelte";
 
   const relativeUrl = $page.url.pathname;
@@ -193,7 +193,7 @@
     {:else if $watchingFight}
       <WatchFight />
     {:else}
-      <PickFighters />
+      <Tournament />
     {/if}
   </main>
 </div>

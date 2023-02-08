@@ -1,38 +1,28 @@
 <script lang="ts">
-    import { lastAction } from "$lib/stores";
-    import Bracket from "$lib/mayhem-manager/bracket.svelte";
-    import EquipmentInfo from "$lib/mayhem-manager/equipment-info.svelte";
-    import FighterInfo from "$lib/mayhem-manager/fighter-info.svelte";
-    import { bracket, nextMatch, ownTeam, ownTeamIndex } from "$lib/mayhem-manager/stores";
-    import { EquipmentSlot } from "$lib/mayhem-manager/types";
-    import { slotsToString } from "$lib/mayhem-manager/utils";
-
-  $: playingInNextGame = ($nextMatch.left.winner === $ownTeamIndex ||
-       $nextMatch.right.winner === $ownTeamIndex) &&
-      $nextMatch.winner === null;
+  import { lastAction } from "$lib/stores";
+  import EquipmentInfo from "$lib/mayhem-manager/equipment-info.svelte";
+  import FighterInfo from "$lib/mayhem-manager/fighter-info.svelte";
+  import { ownTeam } from "$lib/mayhem-manager/stores";
+  import { EquipmentSlot } from "$lib/mayhem-manager/types";
+  import { slotsToString } from "$lib/mayhem-manager/utils";
+  import FighterImage from "$lib/mayhem-manager/fighter-image.svelte";
 
   // by default, all pairs of fighter and equipment are false
-  let equipmentChoices = $ownTeamIndex === null ? [] :
-      $ownTeam.fighters.map(_ => $ownTeam.equipment.map(_ => false));
+  let equipmentChoices = $ownTeam.equipment.map(_ => -1);
 
   function ready(): void {
-    lastAction.set({
-      type: "pickFighters",
-      equipment: $ownTeam.fighters.map((_, i) =>
-          equipmentChoices[i].flatMap((x, i2) => x ? [i2] : [])),
-      strategy: $ownTeam.fighters.map(_ => ({}))
-    });
+  lastAction.set({
+    type: "pickFighters",
+    equipment: $ownTeam.fighters.map((_, i) =>
+        equipmentChoices.map((ec, j) => ec === i ? j : -1).filter(ec => ec >= 0)),
+    strategy: $ownTeam.fighters.map(_ => ({}))
+  });
   }
 
   function choicesAreValid(): string | true {
-    for (let j = 0; j < $ownTeam.equipment.length; j++) {
-      if (equipmentChoices.filter(f => f[j]).length > 1) {
-        return `Multiple fighters using the same ${$ownTeam.equipment[j].name}.`;
-      }
-    }
     for (let i = 0; i < $ownTeam.fighters.length; i++) {
-      const slotsTaken = equipmentChoices[i].flatMap((equipped, j) => {
-        return equipped ? $ownTeam.equipment[j].slots : [];
+      const slotsTaken = equipmentChoices.flatMap((ec, j) => {
+        return ec === i ? $ownTeam.equipment[j].slots : [];
       });
       if (slotsTaken.filter(s => s === EquipmentSlot.Head).length > 1) {
         return `${$ownTeam.fighters[i].name} has multiple items on their head.`
@@ -50,44 +40,43 @@
   }
 </script>
 
-{#if playingInNextGame}
-  <!-- redundant check so validity updates whenever equipmentChoices updates -->
-  {@const valid = equipmentChoices === equipmentChoices ? choicesAreValid() : true}
-  <div class="assign-equipment column" style:flex=2>
-    <h2 class="column-title">Assign equipment</h2>
-    {#each $ownTeam.fighters as fighter, i}
-      <div class="fighter">
-        <div class="show-child-on-hover">
-          <h3>{fighter.name}</h3>
-          <div class="show-on-hover">
-            <FighterInfo {fighter} />
-          </div>
+<div class="assign-equipment column" style:flex=2>
+  <h2 class="column-title">Assign equipment</h2>
+  {#each $ownTeam.fighters as fighter, i}
+    <div class="fighter">
+      <div class="show-child-on-hover">
+        <FighterImage {fighter} equipment={equipmentChoices.flatMap((ec, j) => {
+          if (ec === i) return $ownTeam.equipment[j];
+          return [];
+        })} />
+        <div class="show-on-hover">
+          <FighterInfo {fighter} />
         </div>
-        {#each $ownTeam.equipment as equipment, j}
-          <div class="show-child-on-hover horiz">
-            <span style:font-weight={
-              fighter.attunements.includes(equipment.name) ? 600 : 400
-            }>{equipment.name} ({slotsToString(equipment.slots)})</span>
-            <div class="show-on-hover">
-              <EquipmentInfo equipment={equipment} />
-            </div>
-            <input type="checkbox" bind:checked={equipmentChoices[i][j]} />
-          </div>
-        {/each}
       </div>
-    {/each}
-    {#if valid === true}
-      <button class="ready" on:click={ready} on:submit={ready}>Ready</button>
-    {:else}
-      <p class="error">Cannot submit: {valid}</p>
-    {/if}
-  </div>
-{/if}
-<div class="column" style:flex=3>
-  <h2 class="column-title">Bracket</h2>
-  <div class="bracket">
-    <Bracket {...$bracket} />
-  </div>
+    </div>
+  {/each}
+  {#each $ownTeam.equipment as equipment, i}
+    <div class="show-child-on-hover horiz">
+      <span>{equipment.name} ({slotsToString(equipment.slots)})</span>
+      <div class="show-on-hover">
+        <EquipmentInfo equipment={equipment} />
+      </div>
+      <select bind:value={equipmentChoices[i]}>
+        <option value={-1}>no one</option>
+        {#each $ownTeam.fighters as f, j}
+          <option value={j}>
+            {f.name}
+            {f.attunements.includes(equipment.name) ? " (attuned)" : ""}
+          </option>
+        {/each}
+      </select>
+    </div>
+  {/each}
+  {#if choicesAreValid() === true}
+    <button class="ready" on:click={ready} on:submit={ready}>Ready</button>
+  {:else}
+    <p class="error">Cannot submit: {choicesAreValid()}</p>
+  {/if}
 </div>
 
 <style>
@@ -106,15 +95,11 @@
     right: 1rem;
   }
 
-  input[type="checkbox"] {
-    margin: 0.15rem 0.6rem 0;
-  }
-
   .ready {
     margin-bottom: 1.25rem;
   }
 
-  .bracket {
-    overflow: scroll;
+  select {
+    min-width: auto;
   }
 </style>
