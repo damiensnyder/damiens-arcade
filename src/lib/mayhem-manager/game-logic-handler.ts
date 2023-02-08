@@ -342,9 +342,11 @@ export default class MayhemManager extends GameLogicHandlerBase {
         if (!firstIteration && pickingTeam.controller !== "bot") {
           break;
         }
-        const picks = Bot.getFAPicks(pickingTeam, this.fighters);
-        for (const pick of picks) {
-          this.pickFighter(this.draftOrder[this.spotInDraftOrder], pick);
+        if (pickingTeam.controller === "bot") {
+          const picks = Bot.getFAPicks(pickingTeam, this.fighters);
+          for (const pick of picks) {
+            this.pickFighter(this.draftOrder[this.spotInDraftOrder], pick);
+          }
         }
         this.emitEventToAll({
           type: "pass"
