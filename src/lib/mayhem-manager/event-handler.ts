@@ -1,7 +1,7 @@
 import type { Fighter, PreseasonTeam, MayhemManagerEvent, MayhemManagerViewpoint } from "$lib/mayhem-manager/types";
-import { bracket, draftOrder, fightEvents, gameStage, rawSettings, settings, teams, spotInDraftOrder, fighters, map, equipment, watchingFight, history } from "$lib/mayhem-manager/stores";
+import { bracket, draftOrder, fightEvents, gameStage, rawSettings, settings, teams, spotInDraftOrder, fighters, map, equipment, watchingFight, history, equipmentChoices, ownTeam } from "$lib/mayhem-manager/stores";
 import { get } from "svelte/store";
-import { roomName, isPublic, host } from "$lib/stores";
+import { roomName, isPublic, host, pov } from "$lib/stores";
 import type { ChangeHostEvent, ChangeRoomSettingsEvent, EventHandler } from "$lib/types";
 
 export function handleGamestate(gamestate: MayhemManagerViewpoint): void {
@@ -55,6 +55,9 @@ export const eventHandler: EventHandler<MayhemManagerEvent> = {
       old[event.team].controller = event.controller;
       return old;
     });
+    if (event.controller === get(pov)) {
+      equipmentChoices.set(get(ownTeam).equipment.map(_ => -1));
+    }
   },
   remove: function (event): void {
     teams.update((old) => {
@@ -120,6 +123,7 @@ export const eventHandler: EventHandler<MayhemManagerEvent> = {
   goToBR: function (event): void {
     gameStage.set("battle royale");
     teams.set(event.teams);
+    equipmentChoices.set(get(ownTeam).equipment.map(_ => -1));
   },
   fight: function (event): void {
     map.set(event.map);
