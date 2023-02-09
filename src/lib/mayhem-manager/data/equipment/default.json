@@ -149,8 +149,8 @@
       "slots": ["feet"],
       "imgUrl": "/static/equipment/steel-toed-boots.png",
       "zoomedImgUrl": "/static/zoomed/equipment/steel-toed-boots.png",
-      "price": 4,
-      "description": "Deals 12 damage. Cooldown 5. Speed -0.5.",
+      "price": 6,
+      "description": "Deals 12 damage. Cooldown 5s. Toughness +1. Speed -1.",
       "flavor": "",
       "abilities": {
         "action": {
@@ -167,8 +167,12 @@
         },
         "statChanges": [
           {
+            "stat": "toughness",
+            "amount": 2
+          },
+          {
             "stat": "speed",
-            "amount": -1
+            "amount": -2
           }
         ]
       }
@@ -323,7 +327,7 @@
       "slots": ["head"],
       "imgUrl": "/static/equipment/devil-horns.png",
       "zoomedImgUrl": "/static/zoomed/equipment/devil-horns.png",
-      "price": 25,
+      "price": 20,
       "description": "+3 strength. +3 accuracy. -2 reflexes. -2 toughness.",
       "flavor": "the devil takes his due",
       "abilities": {
@@ -386,11 +390,53 @@
       }
     },
     {
+      "name": "House Arrest Ankle Bracelet",
+      "slots": ["legs"],
+      "imgUrl": "/static/equipment/house-arrest-ankle-bracelet.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/house-arrest-ankle-bracelet.png",
+      "price": 13,
+      "description": "+5 accuracy. -2 speed.",
+      "flavor": "",
+      "abilities": {
+        "statChanges": [
+          {
+            "stat": "accuracy",
+            "amount": 10
+          },
+          {
+            "stat": "speed",
+            "amount": -4
+          }
+        ]
+      }
+    },
+    {
+      "name": "Roller Blades",
+      "slots": ["feet"],
+      "imgUrl": "/static/equipment/roller-blades.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/roller-blades.png",
+      "price": 7,
+      "description": "+3 speed. -1 reflexes.",
+      "flavor": "now if i could just learn to control these things...",
+      "abilities": {
+        "statChanges": [
+          {
+            "stat": "speed",
+            "amount": 6
+          },
+          {
+            "stat": "reflexes",
+            "amount": -2
+          }
+        ]
+      }
+    },
+    {
       "name": "Speedo",
       "slots": ["legs"],
       "imgUrl": "/static/equipment/speedo.png",
       "zoomedImgUrl": "/static/zoomed/equipment/speedo.png",
-      "price": 5,
+      "price": 4,
       "description": "+0.5 energy. +0.5 speed.",
       "flavor": "ahhh, how light and aerodynamic",
       "abilities": {
@@ -432,7 +478,7 @@
       "imgUrl": "/static/equipment/flower-of-power.png",
       "zoomedImgUrl": "/static/zoomed/equipment/flower-of-power.png",
       "price": 5,
-      "description": "Upon hitting an enemy, gain 3 HP.",
+      "description": "On hit dealt: gain 3 HP.",
       "flavor": "because a positive attitude is the best medicine :)",
       "abilities": {
         "triggeredEffects": [
@@ -446,12 +492,87 @@
       }
     },
     {
+      "name": "Foam Finger",
+      "slots": ["hand"],
+      "imgUrl": "/static/equipment/foam-finger.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/foam-finger.png",
+      "price": 11,
+      "description": "Give a teammate +1 to all stats for 5s. Cooldown 5s.",
+      "flavor": "go team go! rah rah rah!",
+      "abilities": {
+        "action": {
+          "target": "anyTeammate",
+          "cooldown": 10,
+          "effects": [
+            {
+              "type": "statChange",
+              "stat": "accuracy",
+              "amount": 2,
+              "duration": 5,
+              "tint": [0.9, 0.9, 0.5, 0.4]
+            },
+            {
+              "type": "statChange",
+              "stat": "energy",
+              "amount": 2,
+              "duration": 5
+            },
+            {
+              "type": "statChange",
+              "stat": "speed",
+              "amount": 2,
+              "duration": 5
+            },
+            {
+              "type": "statChange",
+              "stat": "reflexes",
+              "amount": 2,
+              "duration": 5
+            },
+            {
+              "type": "statChange",
+              "stat": "strength",
+              "amount": 2,
+              "duration": 5
+            },
+            {
+              "type": "statChange",
+              "stat": "toughness",
+              "amount": 2,
+              "duration": 5
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Halo",
+      "slots": ["head"],
+      "imgUrl": "/static/equipment/halo.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/halo.png",
+      "price": 15,
+      "description": "Heals all teammates by 5 HP. Cooldown 10s.",
+      "flavor": "",
+      "abilities": {
+        "action": {
+          "target": "allTeammates",
+          "effects": [
+            {
+              "type": "hpChange",
+              "amount": 5
+            }
+          ],
+          "cooldown": 10
+        }
+      }
+    },
+    {
       "name": "Jorts of Power",
       "slots": ["legs"],
       "imgUrl": "/static/equipment/jorts-of-power.png",
       "zoomedImgUrl": "/static/zoomed/equipment/jorts-of-power.png",
-      "price": 12,
-      "description": "Upon hitting an enemy, the enemy has no strength for the next 5s.",
+      "price": 14,
+      "description": "On hit dealt: the enemy gets -3 strength for the next 5s.",
       "flavor": "the sheer embarrassment is what gets 'em",
       "abilities": {
         "triggeredEffects": [
@@ -459,10 +580,32 @@
             "trigger": "hitDealt",
             "target": "actionTarget",
             "type": "statChange",
-            "amount": -100,
+            "amount": -3,
             "stat": "strength",
             "duration": 5,
-            "tint": [1, 0.5, 0.5, 0.5]
+            "tint": [0.7, 0.5, 1, 0.5]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Rhinoceros Beetle Horn",
+      "slots": ["head"],
+      "imgUrl": "/static/equipment/rhinoceros-beetle-horn.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/rhinoceros-beetle-horn.png",
+      "price": 10,
+      "description": "On hit taken: gain 3 strength for the next 5s.",
+      "flavor": "the rhinoceros beetle is noted for its incredible capacity for rage",
+      "abilities": {
+        "triggeredEffects": [
+          {
+            "trigger": "hitTaken",
+            "target": "self",
+            "type": "statChange",
+            "amount": 6,
+            "stat": "strength",
+            "duration": 5,
+            "tint": [1, 0, 0, 0.5]
           }
         ]
       }
@@ -473,7 +616,7 @@
       "imgUrl": "/static/equipment/scary-mask.png",
       "zoomedImgUrl": "/static/zoomed/equipment/scary-mask.png",
       "price": 10,
-      "description": "Upon taking a hit, causes the attacker to lose 5 HP.",
+      "description": "On hit taken: the attacker loses 5 HP.",
       "flavor": "BOO! that is what the mask says when someone hits you",
       "abilities": {
         "triggeredEffects": [
