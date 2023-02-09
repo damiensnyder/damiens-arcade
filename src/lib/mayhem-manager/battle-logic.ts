@@ -465,7 +465,7 @@ class Fight {
           this.rng.randReal() < (15 - f.stats.accuracy) / 20 :
           false;
       const dodged = equipmentUsed.abilities.action.dodgeable && !missed ?
-          this.rng.randReal() < t.stats.reflexes / 20 :
+          this.rng.randReal() < Math.max(t.stats.reflexes / 20, 0.25) :
           false;
       
       if (!missed && !dodged) {
