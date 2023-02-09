@@ -159,7 +159,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
   }
 
   handleAction(viewer: Viewer, action?: any): void {
-    writeFileSync("logs/" + this.room.publicRoomInfo.roomName + ".json", this.exportLeague());
+    writeFileSync("logs/lastGame.json", this.exportLeague());
 
     const indexControlledByViewer = getIndexByController(this.teams, viewer.index);
     const teamControlledByViewer = getTeamByController(this.teams, viewer.index);
@@ -416,20 +416,15 @@ export default class MayhemManager extends GameLogicHandlerBase {
       this.unsignedVeterans = this.unsignedVeterans.concat(team.needsResigning);
     });
 
-    // shuffle the draft order to start
-    // in the future this should go in reverse order of results of previous tourney
+    // draft order is reverse order of results of previous tourney
     this.draftOrder = [];
     for (let i = 0; i < this.teams.length; i++) {
       this.draftOrder.push(i);
     }
-    let currentIndex = this.draftOrder.length;
-    let randomIndex: number;
-    while (currentIndex != 0) {
-      randomIndex = this.randInt(0, currentIndex - 1);
-      currentIndex--;
-      [this.draftOrder[currentIndex], this.draftOrder[randomIndex]] =
-          [this.draftOrder[randomIndex], this.draftOrder[currentIndex]];
-    }
+    const lastBracket = this.history.length > 0 ? this.history[this.history.length - 1] : undefined;
+    this.draftOrder.sort((a, b) => {
+      return levelInBracket(lastBracket, this.teams[b].name) - levelInBracket(lastBracket, this.teams[a].name);
+    })
     this.spotInDraftOrder = 0;
 
     // generate n + 4 random fighters to draft, where n is the number of teams
@@ -975,6 +970,17 @@ function generateBracket(components: Bracket[]): Bracket {
     }
     return generateBracket(newComponents);
   }
+}
+
+function levelInBracket(bracket: Bracket, teamName: string): number {
+  if (bracket === undefined) {
+    return 1;
+  }
+  if (bracket.winner === teamName) {
+    return 0;
+  }
+  // @ts-ignore
+  return 1 + Math.min(levelInBracket(bracket.left, teamName), levelInBracket(bracket.right, teamName));
 }
 
 function preserveBracket(bracket: Bracket, teams: Team[]): Bracket {

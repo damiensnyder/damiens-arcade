@@ -8,7 +8,9 @@
     });
     if (res.ok) {
       const body: { roomCode: string; } = await res.json();
-      goto(`/${gameType}/${body.roomCode}`);
+      // goto(`/${gameType}/${body.roomCode}`);  keeps styles, which we don't want
+      window.location.href = window.location.href +
+          `${window.location.href.endsWith("/") ? "" : "/"}${gameType}/${body.roomCode}`;
     }
   }
 </script>
