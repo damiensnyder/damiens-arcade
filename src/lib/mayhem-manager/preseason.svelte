@@ -50,13 +50,17 @@
 <div class="column" style:flex=5>
   {#if $ownTeamIndex !== null}
     <h2 class="column-title">Re-sign fighters</h2>
-    {#each needsResigning as fighter, index}
-      <FighterInfo {fighter} {index} />
-    {/each}
+    <div>
+      {#each needsResigning as fighter, index}
+        <FighterInfo {fighter} {index} />
+      {/each}
+    </div>
     <h2>Repair equipment</h2>
-    {#each needsRepair as equipment, index}
-        <EquipmentInfo {equipment} {index} />
-    {/each}
+    <div>
+      {#each needsRepair as equipment, index}
+          <EquipmentInfo {equipment} {index} />
+      {/each}
+    </div>
   {:else if $teams.length < 16}
     <div class="horiz">
       <button on:click={start} on:submit={start}>Join</button>

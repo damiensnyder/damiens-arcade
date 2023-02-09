@@ -289,7 +289,7 @@ class Fight {
       if (!closest) return;  // in case your teammate downed the last enemy
 
       const closestDistance = distance(f, closest);
-      const distanceMovableByCooldownEnd = f.cooldown * (2.5 + f.stats.speed / 2) * TICK_LENGTH;
+      const distanceMovableByCooldownEnd = f.cooldown * Math.max(2.5 + f.stats.speed / 2, 0) * TICK_LENGTH;
 
       // if the fighter is within melee range and their cooldown is over, they attack and then
       // run away.
@@ -389,8 +389,8 @@ class Fight {
   // distance traveled. 
   moveTowardsTarget(f: FighterInBattle, target: FighterInBattle, tick: MidFightEvent[]): number {
     const distanceToTarget = distance(f, target);
-    const distanceToMove = Math.min((2.5 + f.stats.speed / 2) * TICK_LENGTH,
-                                    distanceToTarget - 1.5);
+    const distanceToMove = Math.max(Math.min((2.5 + f.stats.speed / 2) * TICK_LENGTH,
+                                    distanceToTarget - 1.5), 0);
     const deltaX = Math.pow(target.x - f.x, 2) / Math.pow(distanceToTarget, 2) * distanceToMove;
     const deltaY = Math.pow(target.y - f.y, 2) / Math.pow(distanceToTarget, 2) * distanceToMove;
     f.x += Math.sign(target.x - f.x) * deltaX;
@@ -406,7 +406,7 @@ class Fight {
 
   // Moves f away from target as far as possible.
   moveAwayFromTarget(f: FighterInBattle, target: FighterInBattle, tick: MidFightEvent[]): number {
-    const distanceToMove = (2.5 + f.stats.speed / 2) * TICK_LENGTH;
+    const distanceToMove = Math.max(2.5 + f.stats.speed / 2, 0) * TICK_LENGTH;
     let [deltaX, deltaY] = scaleVectorToMagnitude(f.x - target.x, f.y - target.y, distanceToMove);
 
     // if too close to the wall, change direction to be less close to the wall.
@@ -565,7 +565,9 @@ class Fight {
         text: Math.round(damage).toString()
       });
     } else if (effect.type === "statChange") {
-      target.statusEffects.push({ ...effect });
+      const status = { ...effect };
+      if (attuned) status.duration *= 1.25;
+      target.statusEffects.push(status);
       target.stats[effect.stat] += effect.amount;
       if (effect.tint) {
         tick.push({
