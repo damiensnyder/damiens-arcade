@@ -158,3 +158,28 @@ input[type=checkbox] {
   justify-content: center;
   align-items: center;
 }
+
+@media only screen and (max-width: 720px) {
+  html,
+  body,
+  #svelte {
+    font-size: 16px;
+  }
+
+  h1 {
+    font-size: 2.75rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+
+  .top-level-menu {
+    margin: 0.5rem 1rem;
+    padding: 1rem;
+  }
+}

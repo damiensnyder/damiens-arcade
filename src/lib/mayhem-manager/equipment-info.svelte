@@ -8,6 +8,7 @@
   export let equipment: Equipment;
   export let index: number = -1;
   export let callback: (index: number) => void = (_: number) => {};
+  $: imageSize = window.innerWidth > 720 ? 150 : 100;
 
   function pick(): void {
     if ($gameStage === "preseason") {
@@ -34,7 +35,7 @@
   {/if}
 </div>
 <div class="horiz image-and-description">
-  <img src={equipment.zoomedImgUrl} width="150" height="150" alt={equipment.name} />
+  <img src={equipment.zoomedImgUrl} width={imageSize} height={imageSize} alt={equipment.name} />
   <div class="description">
     <p>{equipment.description}</p>
     <p>{equipment.flavor}</p>

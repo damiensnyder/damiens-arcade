@@ -219,6 +219,12 @@
   .top-icons {
     justify-content: stretch;
     margin: 0.25rem 1rem;
+    overflow-x: scroll;
+  }
+  
+  .top-icons button {
+    white-space: nowrap;
+    margin: 0 0.5rem;
   }
 
   main {
@@ -238,12 +244,22 @@
     flex: 1;
   }
 
-  button {
-    margin: 0 0.5rem;
-  }
-
   .money {
     margin: 0 0.5rem;
     font-size: 1.2rem;
+  }
+
+  @media only screen and (max-width: 720px) {
+    main {
+      margin: 0 0.5rem 0.5rem 0.5rem;
+    }
+
+    .top-icons {
+      margin: 0.25rem 0;
+    }
+
+    .top-icons button {
+      margin: 0 0.25rem;
+    }
   }
 </style>

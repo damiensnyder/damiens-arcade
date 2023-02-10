@@ -5,6 +5,7 @@
   export let equipment: Equipment[];
   export let inBattle: boolean = false;
   export let team: number = -1;
+  $: imageSize = window.innerWidth > 720 ? "15rem" : "10rem";
 
   $: head = equipment.filter(e => e.slots.includes(EquipmentSlot.Head));
   $: torso = equipment.filter(e => e.slots.includes(EquipmentSlot.Torso));
@@ -52,8 +53,8 @@
 
 <!-- svelte-ignore a11y-missing-attribute -->
 <div class="img-container"
-    style:width={inBattle ? "100%" : "15rem"}
-    style:height={inBattle ? "100%" : "15rem"}
+    style:width={inBattle ? "100%" : imageSize}
+    style:height={inBattle ? "100%" : imageSize}
     style:margin-top={inBattle ? "0" : "-2rem"}
     style:margin-left={inBattle ? "0" : "-1rem"}>
   <img src={`/static/base/body_${fighter.gender}1.png`}

@@ -84,4 +84,10 @@
   .top-level-menu {
     width: 25%;
   }
+
+  @media only screen and (max-width: 720px) {
+    .top-level-menu {
+      width: 40%;
+    }
+  }
 </style>
