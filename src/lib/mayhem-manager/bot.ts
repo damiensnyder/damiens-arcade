@@ -7,9 +7,11 @@ const Bot = {
     fighters: number[]
     equipment: number[]
   } {
+    // take the first fighter that needs resigning and is asking for at least $35,
+    // and all equipment that need repairs that cost no more than $4.
     return {
-      fighters: team.needsResigning.length >= 1 ? [team.needsResigning.length - 1] : [],
-      equipment: team.needsRepair.length >= 2 ? [team.needsRepair.length - 2, team.needsRepair.length - 1] : []
+      fighters: team.needsResigning.map((f, i) => f.price >= 35 ? i : -1).filter(e => e > -1).slice(0, 1),
+      equipment: team.needsRepair.map((e, i) => e.price <= 4 ? i : -1).filter(e => e > -1)
     };
   },
   getDraftPick: function (_team: Team, fighters: Fighter[]): number {

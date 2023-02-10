@@ -3,7 +3,7 @@
   import { equipment, ownTeam, ownTeamIndex, teams } from "$lib/mayhem-manager/stores";
   import EquipmentInfo from "$lib/mayhem-manager/equipment-info.svelte";
   import FighterInfo from "$lib/mayhem-manager/fighter-info.svelte";
-  import { StatName, type FighterStats } from "$lib/mayhem-manager/types";
+  import { StatName, type Equipment, type Fighter, type FighterStats } from "$lib/mayhem-manager/types";
 
   let equipmentBought: number[] = [];
   // if the user does not control a team, skills should be an empty array.
@@ -43,6 +43,11 @@
     });
     teams.update(old => old);
   }
+
+  // Filters out repeat equipment and already-attuned equipment
+  function attunableEquipment(equipment: Equipment[], fighter: Fighter): Equipment[] {
+    return [...new Set(equipment)].filter(e => !fighter.attunements.includes(e.name));
+  }
 </script>
 
 {#if $ownTeamIndex !== null}
@@ -74,7 +79,7 @@
                 {/each}
               </optgroup>
               <optgroup label="Attune to an equipment">
-                {#each $ownTeam.equipment as equipment, index}
+                {#each attunableEquipment($ownTeam.equipment, fighter) as equipment, index}
                   <option value={index}>{equipment.name}</option>
                 {/each}
               </optgroup>
