@@ -262,4 +262,18 @@
       margin: 0 0.25rem;
     }
   }
+
+  @media only screen and (min-width: 720px) and (max-width: 1200px) {
+    main {
+      margin: 0 0.75rem 0.75rem 0.75rem;
+    }
+
+    .top-icons {
+      margin: 0.25rem 0.4rem;
+    }
+
+    .top-icons button {
+      margin: 0 0.25rem;
+    }
+  }
 </style>

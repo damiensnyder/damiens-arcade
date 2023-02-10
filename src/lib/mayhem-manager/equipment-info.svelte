@@ -8,7 +8,7 @@
   export let equipment: Equipment;
   export let index: number = -1;
   export let callback: (index: number) => void = (_: number) => {};
-  $: imageSize = window.innerWidth > 720 ? 150 : 100;
+  $: imageSize = window.innerWidth > 720 ? window.innerWidth > 1200 ? 150 : 125 : 100;
 
   function pick(): void {
     if ($gameStage === "preseason") {

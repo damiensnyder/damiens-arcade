@@ -42,4 +42,10 @@
       width: 40%;
     }
   }
+
+  @media only screen and (min-width: 720px) and (max-width: 1200px) {
+    .top-level-menu {
+      width: 35%;
+    }
+  }
 </style>

@@ -183,3 +183,28 @@ input[type=checkbox] {
     padding: 1rem;
   }
 }
+
+@media only screen and (min-width: 720px) and (max-width: 1200px) {
+  html,
+  body,
+  #svelte {
+    font-size: 18px;
+  }
+
+  h1 {
+    font-size: 3rem;
+  }
+
+  h2 {
+    font-size: 1.6rem;
+  }
+
+  h3 {
+    font-size: 1.3rem;
+  }
+
+  .top-level-menu {
+    margin: 0.75rem 1.5rem;
+    padding: 1rem 1.25rem;
+  }
+}

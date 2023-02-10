@@ -1,6 +1,6 @@
 <script lang="ts">
   export let rating: number;
-  $: starSize = window.innerWidth > 720 ? "20px" : "15px";
+  $: starSize = window.innerWidth > 720 ? window.innerWidth > 1200 ? "20px" : "18px" : "15px";
 </script>
 
 <div class="horiz">

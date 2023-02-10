@@ -5,7 +5,7 @@
   export let equipment: Equipment[];
   export let inBattle: boolean = false;
   export let team: number = -1;
-  $: imageSize = window.innerWidth > 720 ? "15rem" : "10rem";
+  $: imageSize = window.innerWidth > 720 ? window.innerWidth > 1200 ? "15rem" : "12rem" : "10rem";
 
   $: head = equipment.filter(e => e.slots.includes(EquipmentSlot.Head));
   $: torso = equipment.filter(e => e.slots.includes(EquipmentSlot.Torso));
