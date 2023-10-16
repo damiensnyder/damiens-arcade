@@ -431,7 +431,7 @@ class Fight {
     const distanceBetween = distance(f, this.closestEnemy(f));
     
     let equipmentUsed: Equipment;
-    if (distanceBetween < 2) {
+    if (distanceBetween <= 2) {
       const meleeWeapons = f.equipment.filter(e => e.abilities.action && e.abilities.action.target === Target.Melee);
       if (meleeWeapons.length !== 0) {
         equipmentUsed = this.rng.randElement(meleeWeapons);

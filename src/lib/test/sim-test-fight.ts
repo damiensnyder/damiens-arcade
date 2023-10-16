@@ -1,6 +1,6 @@
 import { simulateFight } from "$lib/mayhem-manager/battle-logic";
-import { readFileSync } from "fs";
-import type { Equipment, Fighter, MayhemManagerEvent } from "$lib/mayhem-manager/types";
+import { readFileSync, writeFileSync } from "fs";
+import type { Equipment, Fighter, FighterInBattle, MayhemManagerEvent } from "$lib/mayhem-manager/types";
 
 class RNG {
   rngState: [number, number, number, number]
@@ -43,13 +43,15 @@ interface TestParams {
     seed: [number, number, number, number]
 }
 
-const FILEPATH_BASE = "src/lib/mayhem-manager/data/";
+const FILEPATH_BASE = "src/lib/test/";
 
-export default function simTestFight(): number[] {
+// Simulates a fight between the fighters stored in fight-parameters.json and
+// writes the results to fight-results.json.
+export default function simTestFight(): void {
+    // get fighters
     const params: TestParams = JSON.parse(
-        readFileSync(FILEPATH_BASE + "fighters/names.json").toString());
-    const eventEmitter: (event: MayhemManagerEvent) => void = (_: MayhemManagerEvent) => {};
-    const fightersInBattle = [];
+        readFileSync(FILEPATH_BASE + "fight-parameters.json").toString());
+    const fightersInBattle: FighterInBattle[] = [];
     for (let i = 0; i < params.teams.length; i++) {
         const team = params.teams[i];
         for (let j = 0; j < team.fighters.length; j++) {
@@ -66,15 +68,33 @@ export default function simTestFight(): number[] {
             });
         }
     }
+    // get winner of the fight and store the ending HP of every fighter
+    const hp = Array(fightersInBattle.length).fill(100);
     const results = simulateFight(
-        eventEmitter,
+        (event) => {
+            if (event.type === "fight") {
+                for (const tick of event.eventLog) {
+                    for (const e of tick) {
+                        if (e.type === "hpChange") {
+                            hp[e.fighter]= e.newHp;
+                        }
+                    }
+                }
+            }
+        },
         {
             name: "",
             imgUrl: "",
             features: []
         },
-        new RNG([0, 0, 0, 0]),
-        []
+        new RNG(params.seed),
+        fightersInBattle
     );
-    return results;
+    writeFileSync(
+        FILEPATH_BASE + "fight-results.json",
+        JSON.stringify({
+            results,
+            hp
+        })
+    );
 }
