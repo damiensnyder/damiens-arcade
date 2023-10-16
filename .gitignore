@@ -14,3 +14,4 @@ ticks.txt
 .yarn/*
 /secrets
 src/lib/test/fight-results.json
+src/lib/test/fight-parameters.json
