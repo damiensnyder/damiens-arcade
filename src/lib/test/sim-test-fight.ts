@@ -1,4 +1,4 @@
-import { simulateFight } from "$lib/mayhem-manager/battle-logic";
+import { collatedSettings, simulateFight } from "$lib/mayhem-manager/battle-logic";
 import { readFileSync, writeFileSync } from "fs";
 import type { Equipment, Fighter, FighterInBattle, MayhemManagerEvent } from "$lib/mayhem-manager/types";
 
@@ -43,14 +43,25 @@ interface TestParams {
     seed: [number, number, number, number]
 }
 
+interface FightRecord {
+    teams: {
+        fighters: Fighter[],
+        equipment: Equipment[][]
+    }[],
+    ordering: number[],
+    hp: number[]
+}
+
 const FILEPATH_BASE = "src/lib/test/";
 
 // Simulates a fight between the fighters stored in fight-parameters.json and
 // writes the results to fight-results.json.
-export default function simTestFight(): void {
+export function simTestFight(params?: TestParams): FightRecord {
     // get fighters
-    const params: TestParams = JSON.parse(
-        readFileSync(FILEPATH_BASE + "fight-parameters.json").toString());
+    if (!params) {
+        params = JSON.parse(
+            readFileSync(FILEPATH_BASE + "fight-parameters.json").toString());
+    }
     const fightersInBattle: FighterInBattle[] = [];
     for (let i = 0; i < params.teams.length; i++) {
         const team = params.teams[i];
@@ -70,7 +81,7 @@ export default function simTestFight(): void {
     }
     // get winner of the fight and store the ending HP of every fighter
     const hp = Array(fightersInBattle.length).fill(100);
-    const results = simulateFight(
+    const ordering = simulateFight(
         (event) => {
             if (event.type === "fight") {
                 for (const tick of event.eventLog) {
@@ -93,8 +104,59 @@ export default function simTestFight(): void {
     writeFileSync(
         FILEPATH_BASE + "fight-results.json",
         JSON.stringify({
-            results,
+            results: ordering,
             hp
         })
+    );
+    return {
+        teams: params.teams,
+        ordering,
+        hp
+    }
+}
+
+export function simSample(): void {
+    const { equipment } = collatedSettings({
+        fighterDecks: ["default"],
+        equipmentDecks: ["default"],
+        mapDecks: ["default"],
+        customFighters: [],
+        customEquipment: [],
+        customMaps: []
+    });
+    const fights: FightRecord[] = [];
+    for (let i = 0; i < 1000; i++) {
+        const isBR = Math.random() < 0.3;
+        const powerLevel = 1 + Math.floor(Math.random() * 11);
+        const teams = [];
+        if (isBR) {
+            const numTeams = 1 + Math.floor(Math.random() * Math.random() * 15);
+            for (let j = 0; j < numTeams; j++) {
+                const numEquipment = Math.floor(Math.random() * powerLevel);
+                teams.push({
+                    fighters: [],
+                    equipment: []
+                });
+            }
+        } else {
+            for (let j = 0; j < 2; j++) {
+                const numFighters = Math.floor(Math.random() * powerLevel * 0.7);
+                const numEquipment = powerLevel - numFighters;
+                teams.push({
+                    fighters: [],
+                    equipment: []
+                });
+            }
+        }
+        fights.push(
+            simTestFight({
+                teams,
+                seed: [0, 0, 0, 0]
+            })
+        );
+    }
+    writeFileSync(
+        FILEPATH_BASE + "fight-sample.json",
+        JSON.stringify(fights)
     );
 }

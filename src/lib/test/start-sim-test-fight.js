@@ -1,3 +1,3 @@
-import simTestFight from "../../../dist/sim-test-fight.js";
+import { simSample } from "../../../dist/sim-test-fight.js";
 
-simTestFight();
+simSample();
