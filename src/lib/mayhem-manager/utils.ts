@@ -1,4 +1,4 @@
-import type { Bracket, EquipmentSlot, Fighter, PreseasonTeam, Team } from "$lib/mayhem-manager/types";
+import { EquipmentSlot, type Bracket, type Equipment, type Fighter, type PreseasonTeam, type Team } from "$lib/mayhem-manager/types";
 
 export function getIndexByController(teams: Team[], controller: number): number | null {
   if (teams === undefined) return null;
@@ -25,6 +25,22 @@ export function slotsToString(slots: EquipmentSlot[], melee: boolean = false): s
   if (joined === "") return melee ? "melee • none" : "none";
   if (joined === "hand, hand") return melee ? "melee • two-handed" : "two-handed";
   return melee ? "melee • " + joined : joined;
+}
+
+// TODO: Move all the other places I validate equipment to only validate here
+export function isValidEquipment(equipment: Equipment[]) {
+  let usedSlots: EquipmentSlot[] = [];
+  for (const e of equipment) {
+    usedSlots = usedSlots.concat(e.slots);
+    if (usedSlots.filter(s => s === EquipmentSlot.Head).length > 1 ||
+        usedSlots.filter(s => s === EquipmentSlot.Torso).length > 1 ||
+        usedSlots.filter(s => s === EquipmentSlot.Hand).length > 2 ||
+        usedSlots.filter(s => s === EquipmentSlot.Legs).length > 1 ||
+        usedSlots.filter(s => s === EquipmentSlot.Feet).length > 1) {
+      return false;
+    }
+  }
+  return true;
 }
 
 export function nextMatch(bracket: Bracket): Bracket & {
