@@ -47,7 +47,7 @@ interface TestParams {
 interface FightRecord {
   teams: {
     fighters: Fighter[],
-    equipment: Equipment[][]
+    equipment: string[][]
   }[],
   ordering: number[],
   hp: number[]
@@ -110,7 +110,10 @@ export function simTestFight(params?: TestParams): FightRecord {
     })
   );
   return {
-    teams: params.teams,
+    teams: params.teams.map(t => ({
+      fighters: t.fighters,
+      equipment: t.equipment.map(outer => outer.map(e => e.name))
+    })),
     ordering,
     hp
   }
@@ -213,7 +216,7 @@ export function simSample(n: number = 1000): void {
     fights.push(
       simTestFight({
         teams,
-        seed: [0, 0, 0, 0]
+        seed: [1, 2, 3, 4]
       })
     );
   }

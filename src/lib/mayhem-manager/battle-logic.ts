@@ -461,12 +461,11 @@ class Fight {
     targets.forEach((t) => {
       // if the fighter has 0 accuracy, they have a 75% chance to miss. if they have 10 accuracy,
       // they have a 25% chance to miss.
-      const missed = equipmentUsed.abilities.action.missable ?
-          this.rng.randReal() < (15 - f.stats.accuracy) / 20 :
-          false;
-      const dodged = equipmentUsed.abilities.action.dodgeable && !missed ?
-          this.rng.randReal() < Math.max(t.stats.reflexes / 20, 0.25) :
-          false;
+      const missed = equipmentUsed.abilities.action.missable &&
+          this.rng.randReal() < (15 - f.stats.accuracy) / 20;
+      const dodged = equipmentUsed.abilities.action.dodgeable &&
+          !missed &&
+          this.rng.randReal() < Math.max(t.stats.reflexes / 20, 0.25);
       
       if (!missed && !dodged) {
         // trigger all the weapon's effects
