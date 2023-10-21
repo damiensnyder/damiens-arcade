@@ -116,10 +116,10 @@ export function simTestFight(params?: TestParams): FightRecord {
   }
 }
 
-function randomFighter(equipment: EquipmentTemplate[]): Fighter {
+function randomFighter(equipment: EquipmentTemplate[], name: string = ""): Fighter {
   return {
-    name: "",
-    gender: "a",
+    name,
+    gender: "A",
     stats: randomFighterStats(),
     attunements: randomAttunements(equipment),
     abilities: {},
@@ -141,8 +141,6 @@ function randomEquipment(equipment: EquipmentTemplate[], numEquipment: number): 
       ...template,
       yearsOwned: 0,
       price: 0,
-      imgUrl: "",
-      zoomedImgUrl: "",
       description: "",
       flavor: ""
     });
@@ -198,7 +196,7 @@ export function simSample(n: number = 1000): void {
       for (let j = 0; j < numTeams; j++) {
         const numEquipment = Math.floor(Math.random() * powerLevel);
         teams.push({
-          fighters: [randomFighter(equipment)],
+          fighters: [randomFighter(equipment, j.toString())],
           equipment: [randomEquipment(equipment, numEquipment)]
         });
       }
@@ -207,7 +205,7 @@ export function simSample(n: number = 1000): void {
         const numFighters = Math.max(Math.floor(Math.random() * powerLevel * 0.7), 1);
         const numEquipment = (powerLevel - numFighters) / numFighters;
         teams.push({
-          fighters: [...Array(numFighters)].map(_ => randomFighter(equipment)),
+          fighters: [...Array(numFighters)].map((_, k) => randomFighter(equipment, j.toString() + " " + k.toString())),
           equipment: [...Array(numFighters)].map(_ => randomEquipment(equipment, numEquipment))
         });
       }
