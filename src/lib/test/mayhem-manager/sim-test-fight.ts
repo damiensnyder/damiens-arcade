@@ -53,7 +53,7 @@ interface FightRecord {
   hp: number[]
 }
 
-const FILEPATH_BASE = "src/lib/test/";
+const FILEPATH_BASE = "src/lib/test/mayhem-manager/";
 
 // Simulates a fight between the fighters stored in fight-parameters.json and
 // writes the results to fight-results.json.

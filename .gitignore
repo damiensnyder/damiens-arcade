@@ -13,6 +13,4 @@ node_modules
 ticks.txt
 .yarn/*
 /secrets
-src/lib/test/fight-results.json
-src/lib/test/fight-parameters.json
-src/lib/test/fight-sample.json
+src/lib/test/mayhem-manager/*.json

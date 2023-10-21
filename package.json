@@ -6,9 +6,9 @@
     "dev": "yarn build:backend && vite dev",
     "build": "yarn build:backend && vite build",
     "build:backend": "esbuild src/lib/backend/room-manager.ts --bundle --outfile=dist/room-manager.js --platform=node --format=esm && esbuild src/lib/test/set-up-test-rooms.ts --bundle --outfile=dist/set-up-test-rooms.js --platform=node --format=esm",
-    "build:mm-test": "esbuild src/lib/backend/room-manager.ts --bundle --outfile=dist/room-manager.js --platform=node --format=esm && esbuild src/lib/test/sim-test-fight.ts --bundle --outfile=dist/sim-test-fight.js --platform=node --format=esm",
+    "build:mm-test": "esbuild src/lib/backend/room-manager.ts --bundle --outfile=dist/room-manager.js --platform=node --format=esm && esbuild src/lib/test/mayhem-manager/sim-test-fight.ts --bundle --outfile=dist/sim-test-fight.js --platform=node --format=esm",
     "start": "node app.js",
-    "mm-test": "node src/lib/test/start-sim-test-fight.js",
+    "mm-test": "node src/lib/test/mayhem-manager/start-sim-test-fight.js",
     "package": "vite package",
     "preview": "vite preview",
     "lint": "tsc --noEmit"
