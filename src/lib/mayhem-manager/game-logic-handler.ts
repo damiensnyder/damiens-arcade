@@ -720,6 +720,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
         x: 0,
         y: 0,
         cooldown: 0,
+        charge: 0,
         statusEffects: []
       });
       this.ready[teamIndex] = true;
@@ -740,6 +741,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
               x: 0,
               y: 0,
               cooldown: 0,
+              charge: 0,
               statusEffects: []
             });
           }
@@ -763,6 +765,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
           x: 0,
           y: 0,
           cooldown: 0,
+          charge: 0,
           statusEffects: []
         });
       }
@@ -784,6 +787,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
                 x: 0,
                 y: 0,
                 cooldown: 0,
+                charge: 0,
                 statusEffects: []
               });
             }
@@ -814,11 +818,10 @@ export default class MayhemManager extends GameLogicHandlerBase {
       price: 0,
       abilities: {},
       stats: {
-        strength: this.randInt(0, 8),
-        accuracy: this.randInt(0, 8),
-        reflexes: this.randInt(0, 8),
-        energy: this.randInt(0, 8),
-        speed: this.randInt(0, 8),
+        strength: this.randInt(0, 7),
+        accuracy: this.randInt(0, 7),
+        energy: this.randInt(0, 6),
+        speed: this.randInt(1, 8),
         toughness: this.randInt(0, 8)
       },
       attunements: [],

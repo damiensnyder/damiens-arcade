@@ -86,7 +86,6 @@ export enum StatName {
   Accuracy = "accuracy",
   Energy = "energy",
   Speed = "speed",
-  Reflexes = "reflexes",
   Toughness = "toughness"
 }
 
@@ -102,6 +101,7 @@ export interface FighterInBattle extends Fighter {
   x: number
   y: number
   cooldown: number
+  charge: number
   statusEffects: StatChangeEffect[]
 }
 
@@ -188,6 +188,7 @@ export interface ActionAbility {
   target: Target
   effects: Effect[]
   cooldown: number
+  chargeNeeded?: number
   dodgeable?: boolean
   missable?: boolean
   animation?: ActionAnimation

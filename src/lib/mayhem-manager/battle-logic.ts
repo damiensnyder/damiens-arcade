@@ -463,9 +463,10 @@ class Fight {
       // they have a 25% chance to miss.
       const missed = equipmentUsed.abilities.action.missable &&
           this.rng.randReal() < (15 - f.stats.accuracy) / 20;
+      // the fighter being attacked has a 2% change to dodge for each point of speed they have.
       const dodged = equipmentUsed.abilities.action.dodgeable &&
           !missed &&
-          this.rng.randReal() < Math.max(t.stats.reflexes / 20, 0.25);
+          this.rng.randReal() < Math.max(t.stats.speed / 50, 0.3);
       
       if (!missed && !dodged) {
         // trigger all the weapon's effects
@@ -519,8 +520,7 @@ class Fight {
         });
       }
     });
-    // cooldown is set by the weapon. it is reduced by 0% if 0 energy, 50% if 10 energy.
-    f.cooldown = equipmentUsed.abilities.action.cooldown * (1 - 0.05 * f.stats.energy);
+    f.cooldown = equipmentUsed.abilities.action.cooldown;
   }
 
   doEffect(
