@@ -1,5 +1,9 @@
 import json
 import numpy as np
+import os
+
+
+print(os.listdir())
 
 
 with open("src/lib/test/mayhem-manager/fight-sample.json") as f:
@@ -11,7 +15,7 @@ for fight in results:
         for fighter in team['fighters']:
             for e in fighter['attunements']:
                 equipment.add(e)
-all_stats = ["strength", "accuracy", "energy", "speed", "reflexes", "toughness"] + sorted(list(equipment))
+all_stats = ["strength", "accuracy", "energy", "speed", "toughness"] + sorted(list(equipment))
 
 
 # Score each team based on how well they performed in that fight.
