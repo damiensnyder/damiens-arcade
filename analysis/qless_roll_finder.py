@@ -3,34 +3,30 @@ import csv
 import random
 
 
+
+with open("analysis/ratings.csv") as f:
+    reader = csv.reader(f, delimiter=",", quotechar="\"")
+    realness = {}
+    for row in reader:
+        realness[row[0]] = int(row[1])
+
+with open("analysis/ratings.csv", "w") as f:
+    f.writelines([f"{word},{realness[word]}\n" for word in realness])
+
 with open("analysis/definitions.csv") as f:
     reader = csv.reader(f, delimiter=",", quotechar="\"")
     definitions = {}
     for row in reader:
-        definitions[row[1].lower()] = row[1]
-
-with open("analysis/realness.json") as f:
-    realness = json.load(f)
-    for word in realness:
-        if realness[word] < 3:
-            realness[word] -= 1
-        if word not in definitions:
-            del(realness[word])
-    for word in definitions:
-        if word not in realness:
-            realness[word] = 5
-
-with open("analysis/ratings.csv") as f:
-    reader = csv.reader(f, delimiter=",", quotechar="\"")
-    rated = {}
-
+        if len(row[0]) > 2:
+            definitions[row[0].lower()] = row[1]
+            if row[0].lower() not in realness:
+                realness[row[0].lower()] = 5
 
 with open("analysis/grids.json") as f:
     good = json.load(f)
 
-
-# last_letters = None
-# last_fail = (5, -1)
+with open("analysis/rolls.txt") as f:
+    current_rolls = [r for r in f.readlines() if len(r) == 12]
 
 
 def is_possible(word, letters):
@@ -65,42 +61,7 @@ def prioritize(letters, threshold=5):
 
 def can_intersect(test_index, with_index, test_word, with_word):
     return test_word[test_index] == with_word[with_index]
-
-
-"""
-def try_grid(grid, letters, words):
-    j = 0
-    for line in grid:
-        if "word" not in line:
-            break
-        j += 1
-    if "word" in line:
-        return grid
-    candidates = [w for w in words if len(w) == line['length']]
-    constraints = [l for l in line['intersects'] if l[0] < j]
-    letters_present = "".join([grid[l[0]]['word'][l[2]] for l in constraints])
-    for l in constraints:
-        candidates = [w for w in candidates if can_intersect(l[1], l[2], w, grid[l[0]]['word'])]
-    for w in candidates:
-        new_grid = [g for g in grid]
-        new_grid[j] = {
-            **new_grid[j],
-            'word': w
-        }
-        new_letters = letters + letters_present
-        legal = True
-        for l in w:
-            if l not in new_letters:
-                legal = False
-                break
-            new_letters = "".join(new_letters.split(l, 1))
-        if legal:
-            result = try_grid(new_grid, new_letters, words)
-            if result is not None:
-                return result
-    return None
-"""
-    
+  
 
 def generate_roll():
     return "".join(
@@ -136,43 +97,6 @@ def prettify(solution):
             else:
                 grid[w['start'][0] + i][w['start'][1]] = l
     return "\n".join(["".join(l) for l in grid]).rstrip()
-
-
-"""
-def solve(letters, start_threshold=5, end_threshold=1, randomize=False, check_first=len(good), do_all=False):
-    letters = letters.lower()
-    if letters != globals()['last_letters']:
-        globals()['last_letters'] = letters
-        globals()['last_fail'] = (5, -1)
-    real_threshold = min(start_threshold, last_fail[0])
-    words = prioritize(letters, real_threshold)
-    ordering = [i for i in range(len(good))]
-    if randomize:
-        random.shuffle(ordering)
-    if check_first < len(good):
-        ordering = ordering[:check_first]
-    for i in ordering:
-        grid = good[i]
-        if i > last_fail[1]:
-            globals()['tries'] = 0
-            solution = try_grid(grid, letters, words)
-            if solution is not None:
-                if not do_all:
-                    return solution
-            globals()['last_fail'] = (real_threshold, i)
-    for threshold in range(real_threshold - 1, end_threshold - 1, -1):
-        print(f"Threshold: {threshold}")
-        words = prioritize(letters, threshold)
-        for i in ordering:
-            grid = good[i]
-            globals()['tries'] = 0
-            solution = try_grid(grid, letters, words)
-            if solution is not None:
-                if not do_all:
-                    return solution
-            globals()['last_fail'] = (threshold, i)
-    return None
-"""
 
 
 def all_from_grid(grid, letters, words):
@@ -219,16 +143,27 @@ def all_solutions(letters, threshold=1, stop_after=10):
     return solutions, grids_tried
 
 rolls = []
-relevant_words = set()
+words_used = set()
 
 while len(rolls) < 10:
-    roll = generate_roll()
+    if len(current_rolls) > 0:
+        roll = current_rolls.pop()
+    else:
+        roll = generate_roll()
     solutions5, grids_tried5 = all_solutions(roll, 5)
+    for s in solutions5:
+        for line in s:
+            words_used.add(line['word'])
     if len(solutions5) > 0:
-        solutions1, grids_tried1 = all_solutions(roll, 1)
-        for w in get_possible(roll):
-            relevant_words.add(w)
-        rolls.append((roll, len(solutions1), grids_tried1, len(solutions5), grids_tried5))
+        rolls.append((roll, len(solutions5), grids_tried5))
 
-rolls = sorted(rolls, key=lambda x: x[4], reverse=True)
-print(sorted(relevant_words))
+rolls = sorted(rolls, key=lambda x: x[2], reverse=True)
+print(rolls)
+
+with open("analysis/rolls.txt", "w") as f:
+    f.writelines([r[0] for r in rolls])
+
+with open("analysis/new_words.csv", "w") as f:
+    for word in words_used:
+        if realness[word] == 5:
+            f.write(f"{word},,\"{definitions[word]}\"\n")
