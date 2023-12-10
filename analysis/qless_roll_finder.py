@@ -10,9 +10,6 @@ with open("analysis/ratings.csv") as f:
     for row in reader:
         realness[row[0]] = int(row[1])
 
-with open("analysis/ratings.csv", "w") as f:
-    f.writelines([f"{word},{realness[word]}\n" for word in realness])
-
 with open("analysis/definitions.csv") as f:
     reader = csv.reader(f, delimiter=",", quotechar="\"")
     definitions = {}
@@ -26,7 +23,7 @@ with open("analysis/grids.json") as f:
     good = json.load(f)
 
 with open("analysis/rolls.txt") as f:
-    current_rolls = [r for r in f.readlines() if len(r) == 12]
+    current_rolls = [r.strip() for r in f.readlines() if len(r.strip()) == 12]
 
 
 def is_possible(word, letters):
@@ -130,7 +127,7 @@ def all_from_grid(grid, letters, words):
             results += all_from_grid(new_grid, new_letters, words)
     return results
 
-def all_solutions(letters, threshold=1, stop_after=10):
+def all_solutions(letters, threshold=5, stop_after=10):
     letters = letters.lower()
     words = prioritize(letters, threshold)
     grids_tried = 0
@@ -145,7 +142,7 @@ def all_solutions(letters, threshold=1, stop_after=10):
 rolls = []
 words_used = set()
 
-while len(rolls) < 10:
+while len(rolls) < 20:
     if len(current_rolls) > 0:
         roll = current_rolls.pop()
     else:
@@ -161,9 +158,9 @@ rolls = sorted(rolls, key=lambda x: x[2], reverse=True)
 print(rolls)
 
 with open("analysis/rolls.txt", "w") as f:
-    f.writelines([r[0] for r in rolls])
+    f.writelines([r[0] + "\n" for r in rolls])
 
 with open("analysis/new_words.csv", "w") as f:
-    for word in words_used:
+    for word in sorted(words_used):
         if realness[word] == 5:
             f.write(f"{word},,\"{definitions[word]}\"\n")
