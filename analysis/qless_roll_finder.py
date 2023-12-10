@@ -161,6 +161,6 @@ with open("analysis/rolls.txt", "w") as f:
     f.writelines([r[0] + "\n" for r in rolls])
 
 with open("analysis/new_words.csv", "w") as f:
-    for word in sorted(words_used):
+    for word in sorted(words_used, key=lambda x: len(x)):
         if realness[word] == 5:
             f.write(f"{word},,\"{definitions[word]}\"\n")
