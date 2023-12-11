@@ -15,23 +15,21 @@
 <h1>Daily Q-less</h1>
 
 <div class="grid-outer">
-  <!-- <div class="grid-middle"> -->
-    <div class="grid-inner">
-      {#each grid as row, x}
-        {#each row as cell, y}
-          <div class={grid[x][y] === "" ? "cell" : "cell filled"} style:grid-area={`${x + 1} / ${y + 1}`}>
-            {cell}
-          </div>
-        {/each}
+  <div class="grid-inner">
+    {#each grid as row, x}
+      {#each row as cell, y}
+        <div class={grid[x][y] === "" ? "cell" : "cell filled"} style:grid-area={`${x + 1} / ${y + 1}`}>
+          {cell}
+        </div>
       {/each}
-    </div>
-  <!-- </div> -->
+    {/each}
+  </div>
 </div>
 
 <style>
   .grid-outer {
-    width: 70%;
-    height: 60vh;
+    max-width: 70%;
+    max-height: 60vh;
     margin: 2rem;
     display: flex;
     justify-content: safe center;
@@ -42,28 +40,23 @@
     background-color: var(--bg-3);
   }
 
-  /* .grid-middle {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  } */
-
   .grid-inner {
     display: grid;
-    gap: 0.8rem;
-    grid-template-rows: repeat(13, 4rem);
-    grid-template-columns: repeat(12, 4rem);
-    text-transform: capitalize;
+    gap: 15px;
+    grid-template-rows: repeat(13, 60px);
+    grid-template-columns: repeat(12, 60px);
     /* margin: auto; */
-    padding: 0.6rem;
-    font-size: 1.5rem;
+    padding: 10px;
+    font-size: 30px;
     font-weight: 700;
     cursor: grab;
+    text-transform: capitalize;
+    user-select: none;
   }
 
   .cell {
-    width: 4rem;
-    height: 4rem;
+    width: 60px;
+    height: 60px;
     background-color: var(--bg-2);
     display: flex;
     justify-content: center;
