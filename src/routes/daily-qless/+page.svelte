@@ -27,12 +27,14 @@
   }
 
   function handleDragEnd(e: DragEvent): void {
-    grid[over.x][over.y] = grid[dragging.x][dragging.y];
-    grid[dragging.x][dragging.y] = "";
-    dragging = { x: -1, y: -1 };
-    over = { x: -1, y: -1 };
-    shownGrid = grid.map(row => row.slice());
-    checkForWin();
+    if (over.x !== dragging.x || over.y !== dragging.y) {
+      grid[over.x][over.y] = grid[dragging.x][dragging.y];
+      grid[dragging.x][dragging.y] = "";
+      dragging = { x: -1, y: -1 };
+      over = { x: -1, y: -1 };
+      shownGrid = grid.map(row => row.slice());
+      checkForWin();
+    }
   }
   
   function checkForWin(): void {
@@ -67,7 +69,7 @@
 
 <style>
   .grid-outer {
-    max-width: 70%;
+    max-width: 70vw;
     max-height: 60vh;
     margin: 2rem;
     display: flex;
