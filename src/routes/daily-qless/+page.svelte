@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import "../../styles/global.css";
   import "../../styles/techno.css";
 
@@ -15,6 +16,11 @@
 
   let dragging: { x: number, y: number } = { x: -1, y: -1 };
   let over: { x: number, y: number } = { x: -1, y: -1 };
+
+  onMount(() => {
+    getAllWords();
+    checkForWin();
+  });
 
   function handleDragStart(e: DragEvent): void {
     dragging = this;
@@ -163,8 +169,6 @@
 </svelte:head>
 
 <h1>Daily Q-less</h1>
-
-{@debug words}
 
 <div class="grid-outer">
   <div class="grid-inner"
