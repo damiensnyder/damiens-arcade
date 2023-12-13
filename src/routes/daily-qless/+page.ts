@@ -1,0 +1,8 @@
+import type { PageData } from './$types.js';
+
+export function load(): PageData {
+	return {
+		roll: "abbcdfhnoopw",
+        legalWords: ["bah", "bawd", "bod", "cahow", "caph", "caw", "chad", "chaw", "cobb", "dah", "dap", "daw", "dow", "fado", "foh", "fop", "hao", "hap", "haw", "hob", "hod", "hon", "howf", "hwan", "nah", "naw", "nob", "noh", "opah", "poh", "pooh", "pow", "wha", "whap", "wop", "cop", "boob", "don", "down", "fad", "cow", "pad", "how", "bow", "pod", "fan", "cod", "fob", "hop", "food", "cab", "now", "cad", "bop", "can", "cob", "bad", "ban", "cap", "dab", "had", "hand", "hoof", "nab", "nap", "pan", "pawn", "wad", "wan", "nach", "band", "nacho", "won", "wap", "paw", "pand", "pwn", "powan", "bacon", "capon", "banc", "woah", "dan", "con", "fand", "chow", "nod", "doc", "fab", "bandh", "doab", "awn", "bao", "ach", "ado", "and", "boa", "cha", "oaf", "oba", "oda", "bob", "boo", "capo", "coda", "coho", "confab", "cowhand", "doco", "doo", "fap", "faw", "hobo", "nabob", "nohow", "ooh", "paco", "poco", "whoop", "banco", "boba", "chop", "codon", "dhow", "fonda", "bobac", "choon", "dona", "fano", "fawn", "phoca", "apo", "chado", "hobnob", "opa", "poach", "abb", "apod", "bona", "chap", "choof", "dawn", "doob", "dopa", "fond", "honda", "noob", "oho", "wand", "adobo", "ancho", "obo", "oop", "poo", "bond", "coo", "oof", "coop", "boon", "poof", "coon", "poon", "pooch", "hood", "poa", "ono", "pho", "who", "woo", "wood", "pond", "woof", "hoa", "oca", "own", "chao", "hoop", "odah", "phon", "pood", "whoa", "woad", "achoo", "baboo", "condo", "doona", "napoo", "wahoo", "whoof", "baboon", "bhoona", "dahoon", "haboob", "poncho", "poobah", "poonac", "wandoo"]
+	};
+}

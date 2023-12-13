@@ -61,3 +61,24 @@ bbfghilnoort
 bceghimnorsw
 acegimmnnptw
 [('acfghorttyyz', 10, 600), ('abfgkmnoopty', 10, 600), ('bccdeghirrux', 10, 574), ('cdhimooprrtx', 10, 125), ('ceghiklottwx', 12, 29), ('bcefghiknptu', 50, 15), ('cdeehhiklpwy', 11, 15), ('ceflmmnoorwz', 15, 15), ('acddghilnorv', 12, 10), ('befinprrrtuy', 79, 7), ('acelnnnpprty', 10, 7), ('abdfhinrttty', 48, 7), ('acfhillppsux', 10, 7), ('abfgilorrstt', 13, 6), ('abillnoprttw', 17, 5), ('addeghhmnrss', 15, 4), ('eglmnnorstty', 14, 4), ('bbfghilnoort', 12, 4), ('bceghimnorsw', 10, 2), ('acegimmnnptw', 10, 2)]
+cdefhiimmrrz
+bcghikmortuz
+abfghilmmntx
+accikllrrtuv
+acghhimmnruw
+bcelllnorstv
+acekmnrrttvy
+cfhhmoprstuy
+abbcnooprrsv
+abcfillmorrt
+dehhkmnoorrs
+ceghkmnrrsuy
+dfgimnnopptu
+acdikllprrtu
+cdfmmoorrsuw
+ccdhimopstuw
+acfgimorrstx
+achllopstxyy
+abbchknorrsy
+aadghlnnprtw
+[('cdefhiimmrrz', 5, 6223), ('bcghikmortuz', 10, 596), ('abfghilmmntx', 11, 30), ('accikllrrtuv', 13, 26), ('acghhimmnruw', 13, 16), ('bcelllnorstv', 28, 15), ('acekmnrrttvy', 12, 11), ('cfhhmoprstuy', 14, 10), ('abbcnooprrsv', 17, 10), ('abcfillmorrt', 35, 10), ('dehhkmnoorrs', 15, 10), ('ceghkmnrrsuy', 12, 10), ('dfgimnnopptu', 33, 10), ('acdikllprrtu', 11, 9), ('cdfmmoorrsuw', 14, 7), ('ccdhimopstuw', 14, 7), ('acfgimorrstx', 17, 7), ('achllopstxyy', 10, 7), ('abbchknorrsy', 39, 7), ('aadghlnnprtw', 10, 6)]
