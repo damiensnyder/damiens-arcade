@@ -248,9 +248,9 @@ export interface EquipmentTemplate {
   imgUrl: string
   zoomedImgUrl: string
   price: number
-  description?: string
-  flavor?: string
-  abilities: any[]
+  description: string
+  flavor: string
+  abilities: Abilities
 }
 
 export interface MapDeck {

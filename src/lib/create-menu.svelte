@@ -25,6 +25,10 @@
   <form on:submit|preventDefault={() => createRoom(GameType.MayhemManager)}>
     <input type="submit" value="Mayhem Manager">
   </form>
+
+  <form on:submit|preventDefault={() => goto("/daily-qless")}>
+    <input type="submit" value="Daily Q-less">
+  </form>
 </div>
 
 <style>

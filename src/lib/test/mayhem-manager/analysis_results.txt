@@ -1,0 +1,70 @@
+DUEL STAT                   INFLUENCE   MEAN
+base                               0%   1.00
+number of fighters               -10%   1.89
+strength                           4%   9.39
+accuracy                           0%   9.47
+energy                             3%   9.43
+speed                              0%   9.51
+reflexes                           0%   9.44
+toughness                          2%   9.38
+Battle Axe                        30%   0.05
+Bow                               33%   0.05
+Censored Bar                     -11%   0.07
+Chainsaw Headband                 12%   0.06
+Claws for Alarm                   -7%   0.08
+Devil Horns                        6%   0.06
+Diamond Sword                     17%   0.07
+Eyepatch                          -5%   0.06
+Flamingo Floaty                   -6%   0.07
+Flower of Power                   17%   0.07
+Foam Finger                      -32%   0.08
+Halo                             -30%   0.06
+Headbutter's Delight              -0%   0.06
+House Arrest Ankle Bracelet       -5%   0.07
+Jorts of Power                     1%   0.07
+Laser Blaster                     26%   0.08
+Rhinoceros Beetle Horn            21%   0.06
+Roller Blades                     -8%   0.11
+Scary Mask                        20%   0.12
+Shiv                              -3%   0.08
+Speedo                            -6%   0.08
+Sports Jersey                     12%   0.11
+Steel Toed Boots                  -1%   0.11
+The Ratio-inator                  -2%   0.07
+Wand of Flames                    42%   0.08
+Zap Helmet                        20%   0.06
+
+BR STAT                     INFLUENCE   MEAN
+base                             -91%   1.00
+strength                           3%   4.95
+accuracy                           0%   5.02
+energy                             2%   4.96
+speed                              2%   4.95
+reflexes                           1%   4.95
+toughness                          6%   5.04
+Battle Axe                        43%   0.05
+Bow                               49%   0.05
+Censored Bar                       2%   0.07
+Chainsaw Headband                  5%   0.06
+Claws for Alarm                   -3%   0.08
+Devil Horns                      -19%   0.06
+Diamond Sword                     30%   0.07
+Eyepatch                          -4%   0.06
+Flamingo Floaty                   -4%   0.08
+Flower of Power                   35%   0.07
+Foam Finger                       31%   0.08
+Halo                              24%   0.06
+Headbutter's Delight               3%   0.06
+House Arrest Ankle Bracelet       -8%   0.07
+Jorts of Power                    14%   0.07
+Laser Blaster                     41%   0.08
+Rhinoceros Beetle Horn            18%   0.06
+Roller Blades                     -6%   0.12
+Scary Mask                        10%   0.12
+Shiv                              -1%   0.08
+Speedo                           -12%   0.08
+Sports Jersey                      7%   0.11
+Steel Toed Boots                   9%   0.11
+The Ratio-inator                   7%   0.07
+Wand of Flames                    49%   0.08
+Zap Helmet                        26%   0.06

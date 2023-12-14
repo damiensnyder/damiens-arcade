@@ -145,11 +145,8 @@
         <Application width={frameWidth} height={frameHeight} antialias={true}>
           <Ticker on:tick={doTick} speed={(playbackSpeed || 0) / 1200} />
           <Container x={frameWidth / 2} y={frameHeight / 2} pivot={0.5} scale={cameraScale}>
-            <Graphics x={-cameraX} y={-cameraY} pivot={0.5} draw={(graphics) => {
-              graphics.clear();
-              graphics.beginFill(0x555555);
-              graphics.drawRect(0, 0, 100, 100);
-            }} />
+            <Sprite texture={PIXI.Texture.from("/static/arena.png")}
+                x={-cameraX - 25} y={-cameraY - 25} pivot={0.5} scale={0.1} />
             {#each fighters as f, i}
               {#if f.hp > 0}
                 <Container x={f.x - cameraX} y={f.y - cameraY} pivot={0.5}

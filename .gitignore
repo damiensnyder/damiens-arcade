@@ -13,3 +13,4 @@ node_modules
 ticks.txt
 .yarn/*
 /secrets
+src/lib/test/mayhem-manager/*.json
