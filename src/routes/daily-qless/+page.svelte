@@ -2,11 +2,17 @@
   import { onMount } from "svelte";
   import "../../styles/global.css";
   import "../../styles/techno.css";
+    import { goto } from "$app/navigation";
 
   export let data: {
     legalWords: string[],
     roll: string
   };
+
+  let startTime: number;
+  let solveTime: number;
+  let showWin: boolean = false;
+  let showInstructions: boolean = false;
   
   let grid: string[][] = [...Array(11)].map(_ => Array(12).fill(""));
   grid[0].splice(4, 4, ...data.roll.substring(0, 4).split(""));
@@ -20,6 +26,7 @@
   onMount(() => {
     getAllWords();
     checkForWin();
+    startTime = new Date().getTime();
   });
 
   function handleDragStart(e: DragEvent): void {
@@ -53,6 +60,7 @@
   let words: WordInGrid[] = [];
   let isLegal: boolean[][] = [...Array(11)].map(_ => Array(12).fill(false));
 
+  // gets all words (not necessarily valid) in your grid
   function getAllWords(): void {
     const newWords = [];
     for (let x = 0; x < 11; x++) {
@@ -106,6 +114,7 @@
     words = newWords;
   }
   
+  // checks if you won, also if your letters are in legal positions
   function checkForWin(): void {
     let illegalWordFound = false;
     const newIsLegal = [...Array(11)].map(_ => Array(12).fill(false));
@@ -121,10 +130,12 @@
           }
         }
       } else {
+        console.log(word);
         illegalWordFound = true;
       }
     }
     isLegal = newIsLegal;
+    if (illegalWordFound) return;
 
     let firstX = 0;
     let firstY = 0;
@@ -136,7 +147,7 @@
       }
     }
 
-    let explored = []
+    let explored = [];
     let frontier = [[firstX, firstY]];
     let cycles = 0;
     while (frontier.length > 0) {
@@ -145,7 +156,7 @@
         for (let newCoord of [[coord[0] + 1, coord[1]], [coord[0] - 1, coord[1]], [coord[0], coord[1] + 1], [coord[0], coord[1] - 1]]) {
           if (newCoord[0] >= 0 && newCoord[0] < 11 && newCoord[1] >= 0 && newCoord[1] <= 12 &&
               grid[newCoord[0]][newCoord[1]] !== "" &&
-              explored.concat(frontier).every((coord2) => newCoord[0] !== coord2[0] || newCoord[1] != coord2[1])) {
+              explored.concat(frontier).concat(newFrontier).every((coord2) => newCoord[0] !== coord2[0] || newCoord[1] != coord2[1])) {
             newFrontier.push(newCoord);
           }
         }
@@ -156,10 +167,11 @@
       frontier = newFrontier;
     }
 
-    console.log(words);
+    console.log(explored);
 
     if (explored.length === 12) {
-      // win
+      solveTime = (new Date().getTime() - startTime) / 1000;
+      showWin = true;
     }
   }
 </script>
@@ -186,6 +198,56 @@
         </div>
       {/each}
     {/each}
+  </div>
+</div>
+
+<button on:click={() => { showInstructions = true; }}
+    on:submit={() => { showInstructions = true; }}
+    disabled={showInstructions || showWin}>
+  How to play
+</button>
+
+<div class="dialog-outer"
+    style:visibility={showInstructions ? "visible" : "hidden"}>
+  <div class="dialog">
+    <h2>How to Play</h2>
+
+    <ul>
+      <li>Drag the letters around the grid to make a crossword</li>
+      <li>All words must be 3 letters or longer</li>
+      <li>No abbreviations or proper nouns</li>
+    </ul>
+
+    <button on:click={() => { showInstructions = false; }}
+        on:submit={() => { showInstructions = false; }}>
+      Got it
+    </button>
+  </div>
+</div>
+
+<div class="dialog-outer"
+    style:visibility={showWin ? "visible" : "hidden"}>
+  <div class="dialog">
+    <h2>You won!</h2>
+
+    {#if solveTime < 300}
+      <p>And it only took you {Math.floor(solveTime / 60)}:{Math.round(solveTime % 60) < 10 ? "0" : ""}{Math.round(solveTime % 60)}.</p>
+    {/if}
+
+    <p>Want to play again? Wait until tomorrow
+      or <a href="https://q-lessgame.com/" target="_blank" rel="noopener noreferrer">buy the real game</a>
+    .</p>
+
+    <div class="horiz">
+      <button on:click={() => { goto("/"); }}
+          on:submit={() => { goto("/"); }}>
+        Back to Homepage
+      </button>
+      <button on:click={() => { showWin = false; }}
+          on:submit={() => { showWin = false; }}>
+        Keep Solving
+      </button>
+    </div>
   </div>
 </div>
 
@@ -231,5 +293,43 @@
 
   .legal {
     color: var(--accent-1);
+  }
+
+  .dialog-outer {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+
+  .dialog {
+    padding: 3rem;
+    font-size: 1rem;;
+    background-color: var(--bg-3);
+    opacity: 90%;
+    border: 2px solid var(--text-2);
+    border-radius: 2rem;
+    z-index: 2;
+  }
+
+  ul,
+  p {
+    margin: 1rem;
+    font-size: 1.2rem;
+  }
+
+  li {
+    margin: 0.5rem;
+  }
+
+  button {
+    font-size: 1.2rem;
+    margin: 0.5rem;
   }
 </style>
