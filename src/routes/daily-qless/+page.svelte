@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import "../../styles/global.css";
   import "../../styles/techno.css";
-    import { goto } from "$app/navigation";
+  import { goto } from "$app/navigation";
 
   export let data: {
     legalWords: string[],
@@ -20,8 +20,17 @@
   grid[2].splice(4, 4, ...data.roll.substring(8, 12).split(""));
   let shownGrid: string[][] = grid.map(row => row.slice());
 
-  let dragging: { x: number, y: number } = { x: -1, y: -1 };
-  let over: { x: number, y: number } = { x: -1, y: -1 };
+  interface Coordinate {
+    x: number
+    y: number
+  }
+
+  let outerEl: HTMLDivElement;
+  let innerEl: HTMLDivElement;
+  let dragging: Coordinate = { x: -1, y: -1 };
+  let over: Coordinate = { x: -1, y: -1 };
+  let touching: boolean = false;
+  let draggingCoords: Coordinate = { x: -1, y: -1 };
 
   onMount(() => {
     getAllWords();
@@ -54,6 +63,77 @@
       shownGrid = grid.map(row => row.slice());
       getAllWords();
       checkForWin();
+    }
+  }
+
+  function handleTouchStart(e: TouchEvent): void {
+    if (grid[this.x][this.y] !== "") {
+      e.preventDefault();
+      dragging = this;
+      touching = true;
+      shownGrid[dragging.x][dragging.y] = "";
+      draggingCoords = {
+        x: e.targetTouches[0].pageX,
+        y: e.targetTouches[0].pageY
+      };
+    }
+  }
+
+  function handleTouchMove(e: TouchEvent): void {
+    draggingCoords = {
+      x: e.targetTouches[0].pageX,
+      y: e.targetTouches[0].pageY
+    };
+  }
+
+  // check if rect contains coords, allowing 5px of leeway
+  function rectContains(rect: DOMRect, coords: Coordinate): boolean {
+    return rect.x - 5 <= coords.x
+        && rect.y - 5 <= coords.y
+        && rect.x + rect.width + 5 >= coords.x
+        && rect.y + rect.height + 5 >= coords.y;
+  }
+
+  function handleTouchEnd(e: TouchEvent): void {
+    touching = false;
+
+    // ignore drag unless we find a legal cell it ended in
+    over = dragging;
+    // only check coords within outer grid
+    if (rectContains(outerEl.getBoundingClientRect(), draggingCoords)) {
+      // check which child the drag ends in
+      for (let i = 0; i < innerEl.children.length; i++) {
+        // only check non-touch cells
+        if (innerEl.children[i].classList.contains("cell") &&
+            !innerEl.children[i].classList.contains("touch")) {
+          const boundingRect = innerEl.children[i].getBoundingClientRect();
+          // if touch ended in cell, infer which cell it was from style. which is horrible, but what isn't
+          // then break because we know it can only be one cell
+          if (rectContains(boundingRect, draggingCoords)) {
+            over = {
+              // @ts-ignore
+              x: innerEl.children[i].style['grid-row-start'] - 1,
+              // @ts-ignore
+              y: innerEl.children[i].style['grid-column-start'] - 1
+            };
+            break;
+          }
+        }
+      }
+    }
+    // reset to pre-drag state if the cell dragged over isn't empty
+    if (grid[over.x][over.y] === "") {
+      grid[over.x][over.y] = grid[dragging.x][dragging.y];
+      grid[dragging.x][dragging.y] = "";
+      dragging = { x: -1, y: -1 };
+      over = { x: -1, y: -1 };
+      shownGrid = grid.map(row => row.slice());
+      getAllWords();
+      checkForWin();
+    } else {
+      dragging = { x: -1, y: -1 };
+      over = { x: -1, y: -1 };
+      shownGrid = grid.map(row => row.slice());
     }
   }
 
@@ -130,7 +210,6 @@
           }
         }
       } else {
-        console.log(word);
         illegalWordFound = true;
       }
     }
@@ -167,8 +246,6 @@
       frontier = newFrontier;
     }
 
-    console.log(explored);
-
     if (explored.length === 12) {
       solveTime = (new Date().getTime() - startTime) / 1000;
       showWin = true;
@@ -182,8 +259,10 @@
 
 <h1>Daily Q-less</h1>
 
-<div class="grid-outer">
+<div class="grid-outer"
+    bind:this={outerEl}>
   <div class="grid-inner"
+      bind:this={innerEl}
       on:dragover|preventDefault={() => {}}>
     {#each shownGrid as row, x}
       {#each row as cell, y}
@@ -193,11 +272,21 @@
             on:dragstart={handleDragStart.bind({ x, y })}
             on:dragenter={handleDragOver.bind({ x, y })}
             on:dragend={handleDragEnd}
-            on:dragover|preventDefault={() => {}}>
+            on:dragover|preventDefault={() => {}}
+            on:touchstart={handleTouchStart.bind({ x, y })}
+            on:touchmove={handleTouchMove}
+            on:touchend|preventDefault={handleTouchEnd}>
           {cell}
         </div>
       {/each}
     {/each}
+
+    {#if touching}
+      <div class="cell filled touch"
+          style:transform={`translate(${draggingCoords.x - 20}px, ${draggingCoords.y - 20}px)`}>
+        {grid[dragging.x][dragging.y]}
+      </div>
+    {/if}
   </div>
 </div>
 
@@ -207,49 +296,51 @@
   How to play
 </button>
 
-<div class="dialog-outer"
-    style:visibility={showInstructions ? "visible" : "hidden"}>
-  <div class="dialog">
-    <h2>How to Play</h2>
+{#if showInstructions}
+  <div class="dialog-outer">
+    <div class="dialog">
+      <h2>How to Play</h2>
 
-    <ul>
-      <li>Drag the letters around the grid to make a crossword</li>
-      <li>All words must be 3 letters or longer</li>
-      <li>No abbreviations or proper nouns</li>
-    </ul>
+      <ul>
+        <li>Drag the letters around the grid to make a crossword</li>
+        <li>All words must be 3 letters or longer</li>
+        <li>No abbreviations or proper nouns</li>
+      </ul>
 
-    <button on:click={() => { showInstructions = false; }}
-        on:submit={() => { showInstructions = false; }}>
-      Got it
-    </button>
-  </div>
-</div>
-
-<div class="dialog-outer"
-    style:visibility={showWin ? "visible" : "hidden"}>
-  <div class="dialog">
-    <h2>You won!</h2>
-
-    {#if solveTime < 300}
-      <p>And it only took you {Math.floor(solveTime / 60)}:{Math.round(solveTime % 60) < 10 ? "0" : ""}{Math.round(solveTime % 60)}.</p>
-    {/if}
-
-    <p>Want to play again? Wait until tomorrow
-      or <a href="https://q-lessgame.com/" target="_blank" rel="noopener noreferrer">buy the real game</a>
-    .</p>
-
-    <div class="horiz">
-      <button on:click={() => { goto("/"); }}
-          on:submit={() => { goto("/"); }}>
-        Back to Homepage
-      </button>
-      <button on:click={() => { showWin = false; }}
-          on:submit={() => { showWin = false; }}>
-        Keep Solving
+      <button on:click={() => { showInstructions = false; }}
+          on:submit={() => { showInstructions = false; }}>
+        Got it
       </button>
     </div>
   </div>
-</div>
+{/if}
+
+{#if showWin}
+  <div class="dialog-outer">
+    <div class="dialog">
+      <h2>You won!</h2>
+
+      {#if solveTime < 300}
+        <p>And it only took you {Math.floor(solveTime / 60)}:{Math.round(solveTime % 60) < 10 ? "0" : ""}{Math.round(solveTime % 60)}.</p>
+      {/if}
+
+      <p>Want to play again? Wait until tomorrow
+        or <a href="https://q-lessgame.com/" target="_blank" rel="noopener noreferrer">buy the real game</a>
+      .</p>
+
+      <div class="horiz">
+        <button on:click={() => { goto("/"); }}
+            on:submit={() => { goto("/"); }}>
+          Back to Homepage
+        </button>
+        <button on:click={() => { showWin = false; }}
+            on:submit={() => { showWin = false; }}>
+          Keep Solving
+        </button>
+      </div>
+    </div>
+  </div>
+{/if}
 
 <style>
   .grid-outer {
@@ -289,6 +380,13 @@
 
   .filled {
     background-color: var(--bg-5);
+  }
+
+  .touch {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1;
   }
 
   .legal {
