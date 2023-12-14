@@ -36,6 +36,7 @@
     getAllWords();
     checkForWin();
     startTime = new Date().getTime();
+    innerEl.children[7].scrollIntoView();
   });
 
   function handleDragStart(e: DragEvent): void {
@@ -293,7 +294,7 @@
 <button on:click={() => { showInstructions = true; }}
     on:submit={() => { showInstructions = true; }}
     disabled={showInstructions || showWin}>
-  How to play
+  How to Play
 </button>
 
 {#if showInstructions}
@@ -364,7 +365,6 @@
     padding: 0.6rem;
     font-size: 1.5rem;
     font-weight: 700;
-    cursor: grab;
     text-transform: capitalize;
     user-select: none;
   }
@@ -380,6 +380,7 @@
 
   .filled {
     background-color: var(--bg-5);
+    cursor: grab;
   }
 
   .touch {
