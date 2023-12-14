@@ -267,11 +267,11 @@
 
   .grid-inner {
     display: grid;
-    gap: 15px;
-    grid-template-rows: repeat(11, 60px);
-    grid-template-columns: repeat(12, 60px);
-    padding: 12px;
-    font-size: 30px;
+    gap: 0.75rem;
+    grid-template-rows: repeat(11, 3rem);
+    grid-template-columns: repeat(12, 3rem);
+    padding: 0.6rem;
+    font-size: 1.5rem;
     font-weight: 700;
     cursor: grab;
     text-transform: capitalize;
@@ -279,8 +279,8 @@
   }
 
   .cell {
-    width: 60px;
-    height: 60px;
+    width: 3rem;
+    height: 3rem;
     background-color: var(--bg-2);
     display: flex;
     justify-content: center;
@@ -310,7 +310,7 @@
 
   .dialog {
     padding: 3rem;
-    font-size: 1rem;;
+    font-size: 1rem;
     background-color: var(--bg-3);
     opacity: 90%;
     border: 2px solid var(--text-2);
@@ -331,5 +331,47 @@
   button {
     font-size: 1.2rem;
     margin: 0.5rem;
+  }
+
+  @media only screen and (max-width: 720px) {
+    .grid-outer {
+      max-width: 95vw;
+      max-height: 75vh;
+      margin: 0 0 0.75rem 0;
+    }
+
+    h1 {
+      margin: 1.5rem 0 1rem 0;
+    }
+
+    .dialog {
+      padding: 1rem 0.25rem;
+    }
+
+    ul,
+    p {
+      margin: 0.75rem;
+    }
+  }
+
+  @media only screen and (min-width: 720px) and (max-width: 1200px) {
+    .grid-outer {
+      max-width: 85vw;
+      max-height: 70vh;
+      margin: 1rem;
+    }
+
+    h1 {
+      margin: 2rem 0 0.75rem 0;
+    }
+
+    .dialog {
+      padding: 1.25rem 0.5rem;
+    }
+
+    ul,
+    p {
+      margin: 1rem;
+    }
   }
 </style>
