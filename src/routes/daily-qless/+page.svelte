@@ -258,7 +258,17 @@
   <title>Damien's Arcade | Daily Q-less</title>
 </svelte:head>
 
-<h1>Daily Q-less</h1>
+<div class="horiz mobile-only header">
+  <h1>Daily Q-less</h1>
+  <button style:margin={"0.5rem -1rem 0 1rem"}
+      on:click={() => { showInstructions = true; }}
+      on:submit={() => { showInstructions = true; }}
+      disabled={showInstructions || showWin}>
+    How to play
+  </button>
+</div>
+
+<h1 class="desktop-only">Daily Q-less</h1>
 
 <div class="grid-outer"
     bind:this={outerEl}>
@@ -291,7 +301,8 @@
   </div>
 </div>
 
-<button on:click={() => { showInstructions = true; }}
+<button class="desktop-only"
+    on:click={() => { showInstructions = true; }}
     on:submit={() => { showInstructions = true; }}
     disabled={showInstructions || showWin}>
   How to Play
@@ -321,7 +332,7 @@
     <div class="dialog">
       <h2>You won!</h2>
 
-      {#if solveTime < 300}
+      {#if solveTime < 600}
         <p>And it only took you {Math.floor(solveTime / 60)}:{Math.round(solveTime % 60) < 10 ? "0" : ""}{Math.round(solveTime % 60)}.</p>
       {/if}
 
@@ -349,7 +360,7 @@
     max-height: 60vh;
     margin: 2rem;
     display: flex;
-    justify-content: safe center;
+    justify-content: flex-start;
     align-items: safe center;
     overflow-x: scroll;
     overflow-y: scroll;
@@ -358,6 +369,7 @@
   }
 
   .grid-inner {
+    margin: auto; /* because safe center doesn't work on safari */
     display: grid;
     gap: 0.75rem;
     grid-template-rows: repeat(11, 3rem);
@@ -432,6 +444,18 @@
     margin: 0.5rem;
   }
 
+  .mobile-only {
+    visibility: hidden;
+    position: unset;
+    display: none;
+  }
+
+  .header {
+    width: 100%;
+    justify-content: space-evenly;
+    align-items: center;
+  }
+
   @media only screen and (max-width: 720px) {
     .grid-outer {
       max-width: 95vw;
@@ -451,12 +475,24 @@
     p {
       margin: 0.75rem;
     }
+
+    .desktop-only {
+      visibility: hidden;
+      position: unset;
+      display: none;
+    }
+
+    .mobile-only {
+      visibility: visible;
+      position: relative;
+      display: flex;
+    }
   }
 
   @media only screen and (min-width: 720px) and (max-width: 1200px) {
     .grid-outer {
       max-width: 85vw;
-      max-height: 70vh;
+      max-height: 80vh;
       margin: 1rem;
     }
 
