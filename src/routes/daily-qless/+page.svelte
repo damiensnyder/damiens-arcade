@@ -4,26 +4,44 @@
   import "../../styles/techno.css";
   import { goto } from "$app/navigation";
 
-  export let data: {
-    legalWords: string[],
-    roll: string
-  };
+  export let data: QlessProps;
+
+  let roll: string;
+  let legalWords: string[];
+  if (new Date().getDate() === data.date1) {
+    roll = data.roll1;
+    legalWords = data.legalWords1;
+  } else if (new Date().getDate() === data.date2) {
+    roll = data.roll2;
+    legalWords = data.legalWords2;
+  } else {
+    roll = data.roll3;
+    legalWords = data.legalWords3;
+  }
+  let grid: string[][] = [...Array(11)].map(_ => Array(12).fill(""));
+  grid[0].splice(4, 4, ...roll.substring(0, 4).split(""));
+  grid[1].splice(4, 4, ...roll.substring(4, 8).split(""));
+  grid[2].splice(4, 4, ...roll.substring(8, 12).split(""));
+  let shownGrid: string[][] = grid.map(row => row.slice());
 
   let startTime: number;
   let solveTime: number;
   let showWin: boolean = false;
   let showInstructions: boolean = false;
-  
-  let grid: string[][] = [...Array(11)].map(_ => Array(12).fill(""));
-  grid[0].splice(4, 4, ...data.roll.substring(0, 4).split(""));
-  grid[1].splice(4, 4, ...data.roll.substring(4, 8).split(""));
-  grid[2].splice(4, 4, ...data.roll.substring(8, 12).split(""));
-  let shownGrid: string[][] = grid.map(row => row.slice());
 
-  interface Coordinate {
-    x: number
-    y: number
-  }
+  // fetch("https://arcade.damiensnyder.com/daily-qless/roll/" + new Date().getDate()).then((res) => {
+  //   if (res.ok) {
+  //     res.json().then((body: RollData) => {
+  //       roll = body.roll;
+  //       legalWords = body.legalWords;
+  //       grid[0].splice(4, 4, ...roll.substring(0, 4).split(""));
+  //       grid[1].splice(4, 4, ...roll.substring(4, 8).split(""));
+  //       grid[2].splice(4, 4, ...roll.substring(8, 12).split(""));
+  //       shownGrid = grid.map(row => row.slice());
+  //       startTime = new Date().getTime();
+  //     });
+  //   }
+  // });
 
   let outerEl: HTMLDivElement;
   let innerEl: HTMLDivElement;
@@ -35,7 +53,6 @@
   onMount(() => {
     getAllWords();
     checkForWin();
-    startTime = new Date().getTime();
     innerEl.children[7].scrollIntoView();
   });
 
@@ -200,7 +217,7 @@
     let illegalWordFound = false;
     const newIsLegal = [...Array(11)].map(_ => Array(12).fill(false));
     for (const word of words) {
-      if (data.legalWords.includes(word.word)) {
+      if (legalWords.includes(word.word)) {
         if (word.down) {
           for (let x = 0; x < word.word.length; x++) {
             newIsLegal[x + word.starts[0]][word.starts[1]] = true;
