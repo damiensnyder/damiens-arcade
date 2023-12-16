@@ -3,6 +3,7 @@
   import "../../styles/global.css";
   import "../../styles/techno.css";
   import { goto } from "$app/navigation";
+  import { gameIsWon, getAllWords, getBadges, gridIsLegal } from "$lib/daily-qless/utils";
 
   export let data: QlessProps;
 
@@ -37,7 +38,7 @@
   let draggingCoords: Coordinate = { x: -1, y: -1 };
 
   onMount(() => {
-    getAllWords();
+    words = getAllWords(grid);
     checkForWin();
     innerEl.children[7].scrollIntoView();
     startTime = new Date().getTime();
@@ -66,7 +67,7 @@
       dragging = { x: -1, y: -1 };
       over = { x: -1, y: -1 };
       shownGrid = grid.map(row => row.slice());
-      getAllWords();
+      words = getAllWords(grid);
       checkForWin();
     }
   }
@@ -133,7 +134,7 @@
       dragging = { x: -1, y: -1 };
       over = { x: -1, y: -1 };
       shownGrid = grid.map(row => row.slice());
-      getAllWords();
+      words = getAllWords(grid);
       checkForWin();
     } else {
       dragging = { x: -1, y: -1 };
@@ -144,116 +145,15 @@
 
   let words: WordInGrid[] = [];
   let isLegal: boolean[][] = [...Array(11)].map(_ => Array(12).fill(false));
+  let badges: Badge[];
 
-  // gets all words (not necessarily valid) in your grid
-  function getAllWords(): void {
-    const newWords = [];
-    for (let x = 0; x < 11; x++) {
-      let currentWord = "";
-      for (let y = 0; y < 12; y++) {
-        if (grid[x][y] !== "") {
-          currentWord += grid[x][y];
-        } else {
-          if (currentWord.length > 1) {
-            newWords.push({
-              word: currentWord,
-              starts: [x, y - currentWord.length],
-              down: false
-            });
-          }
-          currentWord = "";
-        }
-      }
-      if (currentWord.length > 1) {
-        newWords.push({
-          word: currentWord,
-          starts: [x, 12 - currentWord.length],
-          down: false
-        });
-      }
-    }
-    for (let y = 0; y < 12; y++) {
-      let currentWord = "";
-      for (let x = 0; x < 11; x++) {
-        if (grid[x][y] !== "") {
-          currentWord += grid[x][y];
-        } else {
-          if (currentWord.length > 1) {
-            newWords.push({
-              word: currentWord,
-              starts: [x - currentWord.length, y],
-              down: true
-            });
-          }
-          currentWord = "";
-        }
-      }
-      if (currentWord.length > 1) {
-        newWords.push({
-          word: currentWord,
-          starts: [11 - currentWord.length, y],
-          down: true
-        });
-      }
-    }
-    words = newWords;
-  }
-  
-  // checks if you won, also if your letters are in legal positions
   function checkForWin(): void {
-    let illegalWordFound = false;
-    const newIsLegal = [...Array(11)].map(_ => Array(12).fill(false));
-    for (const word of words) {
-      if (legalWords.includes(word.word)) {
-        if (word.down) {
-          for (let x = 0; x < word.word.length; x++) {
-            newIsLegal[x + word.starts[0]][word.starts[1]] = true;
-          }
-        } else {
-          for (let y = 0; y < word.word.length; y++) {
-            newIsLegal[word.starts[0]][y + word.starts[1]] = true;
-          }
-        }
-      } else {
-        illegalWordFound = true;
-      }
-    }
-    isLegal = newIsLegal;
-    if (illegalWordFound) return;
-
-    let firstX = 0;
-    let firstY = 0;
-    while (grid[firstX][firstY] === "") {
-      firstY++;
-      if (firstY == 12) {
-        firstY = 0;
-        firstX++;
-      }
-    }
-
-    let explored = [];
-    let frontier = [[firstX, firstY]];
-    let cycles = 0;
-    while (frontier.length > 0) {
-      const newFrontier = [];
-      for (let coord of frontier) {
-        for (let newCoord of [[coord[0] + 1, coord[1]], [coord[0] - 1, coord[1]], [coord[0], coord[1] + 1], [coord[0], coord[1] - 1]]) {
-          if (newCoord[0] >= 0 && newCoord[0] < 11 && newCoord[1] >= 0 && newCoord[1] <= 12 &&
-              grid[newCoord[0]][newCoord[1]] !== "" &&
-              explored.concat(frontier).concat(newFrontier).every((coord2) => newCoord[0] !== coord2[0] || newCoord[1] != coord2[1])) {
-            newFrontier.push(newCoord);
-          }
-        }
-      }
-      cycles++;
-      if (cycles > 12) break;
-      explored = explored.concat(frontier);
-      frontier = newFrontier;
-    }
-
-    if (explored.length === 12) {
+    const legality = gridIsLegal(legalWords, words);
+    isLegal = legality.gridLegality;
+    if (!legality.illegalWordFound && gameIsWon(grid)) {
       solveTime = (new Date().getTime() - startTime) / 1000;
       showWin = true;
+      badges = getBadges(grid, words, solveTime);
     }
   }
 </script>
@@ -341,6 +241,20 @@
         <h1 style:margin={"0.75rem"}>
           {Math.floor(solveTime / 60)}:{Math.round(solveTime % 60) < 10 ? "0" : ""}{Math.round(solveTime % 60)}
         </h1>
+      {/if}
+
+      {#if badges}
+        <div class="badges-outer">
+          {#each badges as badge}
+            <div class="horiz">
+              <div class="badge-icon">{badge.icon}</div>
+              <div>
+                <h3 class="badge-name">{badge.name}</h3>
+                <p class="badge-description">{badge.description}</p>
+              </div>
+            </div>
+          {/each}
+        </div>
       {/if}
 
       <p>Want to play again? Wait until tomorrow or <a href="https://q-lessgame.com/" target="_blank" rel="noopener noreferrer">buy the real game</a>.</p>
@@ -459,6 +373,26 @@
     width: 100%;
     justify-content: space-evenly;
     align-items: center;
+  }
+
+  .badges-outer {
+    align-items: stretch;
+  }
+
+  .badge-icon {
+    font-size: 2.5rem;
+    margin: 0 0.75rem 0.25rem 1rem;
+  }
+
+  .badge-name {
+    align-self: flex-start;
+    margin-left: 1rem;
+    margin-bottom: 0;
+  }
+
+  .badge-description {
+    align-self: flex-start;
+    margin-top: 0.75rem;
   }
 
   @media only screen and (max-width: 720px) {

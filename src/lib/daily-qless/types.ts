@@ -24,3 +24,9 @@ interface QlessProps {
   roll3: string
   legalWords3: string[]
 }
+
+interface Badge {
+  name: string
+  icon: string
+  description: string
+}
