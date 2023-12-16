@@ -156,6 +156,8 @@ export function getBadges(grid: string[][], words: WordInGrid[], solveTime: numb
           icon: "👨‍👩‍👧‍👦",
           description: "Grid contains a 2x2 square of letters."
         });
+        x = 10;
+        break;
       }
     }
   }
