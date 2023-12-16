@@ -156,6 +156,31 @@
       badges = getBadges(grid, words, solveTime);
     }
   }
+
+  async function share(): Promise<void> {
+    let solveString = "Solved!";
+    let badgeString = "";
+    if (solveTime <= 600) {
+      solveString = "Solved in " + `${Math.floor(solveTime / 60)}:${Math.round(solveTime % 60) < 10 ? "0" : ""}${Math.round(solveTime % 60)}`;
+    }
+    if (badges.length > 0) {
+      badgeString = "\nBadges: " + badges.map(b => b.name + " " + b.icon).join(", ");
+    }
+    const shareData = {
+      url: "https://arcade.damiensnyder.com/daily-qless",
+      title: "Daily Q-less solution",
+      text: `Daily Q-less for ${new Date(startTime).toLocaleString().split(",")[0]}\n${solveString}${badgeString}`
+    };
+    try {
+      if (navigator.canShare) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(shareData.text + "\nPlay at " + shareData.url);
+      }
+    } catch (e) {
+      // darn
+    }
+  }
 </script>
   
 <svelte:head>
@@ -164,9 +189,9 @@
 
 <div class="horiz mobile-only header">
   <h1>Daily Q-less</h1>
-  <button style:margin={"0.5rem -1rem 0 1rem"}
-      on:click={() => { showInstructions = true; }}
+  <button on:click={() => { showInstructions = true; }}
       on:submit={() => { showInstructions = true; }}
+      style:margin={"0.5rem -1rem 0 1rem"}
       disabled={showInstructions || showWin}>
     How to play
   </button>
@@ -221,6 +246,7 @@
         <li>Drag the letters around the grid to make a crossword</li>
         <li>All words must be 3 letters or longer</li>
         <li>No abbreviations or proper nouns</li>
+        <li>If a word is legal the letters will light up</li>
       </ul>
 
       <button on:click={() => { showInstructions = false; }}
@@ -262,11 +288,15 @@
       <div class="horiz">
         <button on:click={() => { goto("/"); }}
             on:submit={() => { goto("/"); }}>
-          Back to Homepage
+          Go to Homepage
+        </button>
+        <button on:click={share}
+            on:submit={share}>
+          Share
         </button>
         <button on:click={() => { showWin = false; }}
             on:submit={() => { showWin = false; }}>
-          Keep Solving
+          Close
         </button>
       </div>
     </div>
