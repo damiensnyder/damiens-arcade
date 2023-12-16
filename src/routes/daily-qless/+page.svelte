@@ -29,20 +29,6 @@
   let showWin: boolean = false;
   let showInstructions: boolean = false;
 
-  // fetch("https://arcade.damiensnyder.com/daily-qless/roll/" + new Date().getDate()).then((res) => {
-  //   if (res.ok) {
-  //     res.json().then((body: RollData) => {
-  //       roll = body.roll;
-  //       legalWords = body.legalWords;
-  //       grid[0].splice(4, 4, ...roll.substring(0, 4).split(""));
-  //       grid[1].splice(4, 4, ...roll.substring(4, 8).split(""));
-  //       grid[2].splice(4, 4, ...roll.substring(8, 12).split(""));
-  //       shownGrid = grid.map(row => row.slice());
-  //       startTime = new Date().getTime();
-  //     });
-  //   }
-  // });
-
   let outerEl: HTMLDivElement;
   let innerEl: HTMLDivElement;
   let dragging: Coordinate = { x: -1, y: -1 };
@@ -54,6 +40,7 @@
     getAllWords();
     checkForWin();
     innerEl.children[7].scrollIntoView();
+    startTime = new Date().getTime();
   });
 
   function handleDragStart(e: DragEvent): void {
@@ -350,12 +337,13 @@
       <h2>You won!</h2>
 
       {#if solveTime < 600}
-        <p>And it only took you {Math.floor(solveTime / 60)}:{Math.round(solveTime % 60) < 10 ? "0" : ""}{Math.round(solveTime % 60)}.</p>
+        <p>And it only took you</p>
+        <h1 style:margin={"0.75rem"}>
+          {Math.floor(solveTime / 60)}:{Math.round(solveTime % 60) < 10 ? "0" : ""}{Math.round(solveTime % 60)}
+        </h1>
       {/if}
 
-      <p>Want to play again? Wait until tomorrow
-        or <a href="https://q-lessgame.com/" target="_blank" rel="noopener noreferrer">buy the real game</a>
-      .</p>
+      <p>Want to play again? Wait until tomorrow or <a href="https://q-lessgame.com/" target="_blank" rel="noopener noreferrer">buy the real game</a>.</p>
 
       <div class="horiz">
         <button on:click={() => { goto("/"); }}
@@ -440,7 +428,7 @@
     padding: 3rem;
     font-size: 1rem;
     background-color: var(--bg-3);
-    opacity: 90%;
+    opacity: 95%;
     border: 2px solid var(--text-2);
     border-radius: 2rem;
     z-index: 2;

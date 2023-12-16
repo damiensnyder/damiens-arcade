@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from "fs";
+import { readFileSync } from "fs";
 
 const ROLLS_PATH = "src/lib/daily-qless/rolls.json";
 
@@ -16,10 +16,10 @@ export function load(): QlessProps {
     let roll2 = rolls[tomorrow.toISOString().substring(0, 10).replaceAll("-", "")];
     let roll3 = rolls[yesterday.toISOString().substring(0, 10).replaceAll("-", "")];
     return {
-      date1: today.getDate(),
+      date1: today.getUTCDate(),
       roll1: roll1.roll,
       legalWords1: roll1.legalWords,
-      date2: tomorrow.getDate(),
+      date2: tomorrow.getUTCDate(),
       roll2: roll1.roll,
       legalWords2: roll2.legalWords,
       roll3: roll3.roll,
