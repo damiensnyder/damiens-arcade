@@ -175,7 +175,7 @@
       if (navigator.canShare) {
         await navigator.share(shareData);
       } else {
-        await navigator.clipboard.writeText(shareData.text + "\nPlay at " + shareData.url);
+        await navigator.clipboard.writeText(shareData.text);
       }
     } catch (e) {
       // darn
