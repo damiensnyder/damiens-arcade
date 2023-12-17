@@ -438,13 +438,26 @@ export interface MFHpChangeEvent {
   newHp: number
 }
 
+export interface MFChargeStartEvent {
+  type: "chargeStart"
+  fighter: number
+}
+
+export interface MFChargeEvent {
+  type: "charge"
+  fighter: number
+  newChange: number
+}
+
 export type MidFightEvent = MFSpawnEvent |
     MFMoveEvent |
     MFAnimationEvent |
     MFProjectileEvent |
     MFTextEvent |
     MFTintEvent |
-    MFHpChangeEvent;
+    MFHpChangeEvent |
+    MFChargeStartEvent |
+    MFChargeEvent;
 
 
 

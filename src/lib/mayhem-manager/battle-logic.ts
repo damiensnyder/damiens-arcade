@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { readFileSync, readdirSync, writeFileSync } from "fs";
-import { EquipmentSlot, type Equipment, type FighterInBattle, type FighterNames, type FighterTemplate, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, StatName, Target, Trigger, type TriggeredEffect, type Effect, type EquipmentTemplate } from "$lib/mayhem-manager/types";
+import { EquipmentSlot, type Equipment, type FighterInBattle, type FighterNames, type FighterTemplate, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, StatName, Target, Trigger, type TriggeredEffect, type Effect, type EquipmentTemplate, ActionAnimation } from "$lib/mayhem-manager/types";
 import type { RNG } from "$lib/types";
 
 const FISTS: Equipment = {
@@ -24,7 +24,58 @@ const FISTS: Equipment = {
   flavor: ""
 }
 
-const ability = z.any();
+
+
+const hpChangeEffect = z.object({
+  type: z.literal("hpChange"),
+  amount: z.number().int()
+});
+
+const damageEffect = z.object({
+  type: z.literal("damage"),
+  amount: z.number()
+});
+
+const statChangeEffect = z.object({
+  type: z.literal("statChange"),
+  stat: z.nativeEnum(StatName),
+  amount: z.number().int(),
+  duration: z.number(),
+  tint: z.array(z.number()).length(4).optional()
+});
+
+const effect = z.union([hpChangeEffect, damageEffect, statChangeEffect]);
+
+const actionAbility = z.object({
+  target: z.nativeEnum(Target),
+  effects: z.array(effect),
+  cooldown: z.number().min(0),
+  chargeNeeded: z.number().int().min(0).optional(),
+  dodgeable: z.boolean().optional(),
+  missable: z.boolean().optional(),
+  animation: z.nativeEnum(ActionAnimation).optional(),
+  projectileImg: z.string().optional(),
+  knockback: z.number().optional()
+});
+
+const statChangeAbility = z.object({
+  stat: z.nativeEnum(StatName),
+  amount: z.number()
+});
+
+const triggeredEffect = z.intersection(
+  effect,
+  z.object({
+    trigger: z.nativeEnum(Trigger),
+    target: z.nativeEnum(Target)
+  })
+);
+
+const abilities = z.object({
+  action: actionAbility.optional(),
+  statChanges: z.array(statChangeAbility).optional(),
+  triggeredEffects: z.array(triggeredEffect).optional()
+});
 
 const DECK_FILEPATH_BASE = "src/lib/mayhem-manager/data/";
 export const TICK_LENGTH = 0.2;  // length of a tick in seconds
@@ -39,7 +90,7 @@ const defaultEquipment: { equipment: EquipmentTemplate[] } =
 
 const fighterTemplateSchema = z.object({
   imgUrl: z.string().max(300),
-  abilities: z.array(ability),
+  abilities: abilities,
   price: z.number().min(0).max(100).int(),
   description: z.string().max(300),
   flavor: z.string().max(300)
@@ -49,7 +100,7 @@ const equipmentTemplateSchema = z.object({
   name: z.string().min(1).max(100),
   imgUrl: z.string().max(300),
   slots: z.array(z.nativeEnum(EquipmentSlot)),
-  abilities: z.array(ability),
+  abilities: z.array(abilities),
   price: z.number().min(0).max(100).int(),
   description: z.string().max(300),
   flavor: z.string().max(300)
