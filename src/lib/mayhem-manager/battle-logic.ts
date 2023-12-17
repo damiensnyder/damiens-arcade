@@ -55,14 +55,6 @@ const equipmentTemplateSchema = z.object({
   flavor: z.string().max(300)
 });
 
-const mapFeatureSchema = z.any();
-
-const mapSchema = z.object({
-  name: z.string().min(1).max(100),
-  imgUrl: z.string().min(1).max(300),
-  features: z.array(mapFeatureSchema)
-});
-
 const settingsSchema = z.object({
   useDefaultFighters: z.boolean(),
   useDefaultEquipment: z.boolean(),

@@ -5,6 +5,8 @@
 - add charge system to game
 - improve fighter AI
 - improve manager AI
+- add import/export
+- add proper ability validation
 
 ## Medium-term
 ### Site-wide
