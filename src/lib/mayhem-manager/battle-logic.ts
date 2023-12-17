@@ -1,4 +1,4 @@
-import { array, number, object, string } from "yup";
+import { z } from "zod";
 import { readFileSync, readdirSync, writeFileSync } from "fs";
 import { EquipmentSlot, type Equipment, type EquipmentDeck, type FighterDeck, type FighterInBattle, type FighterNames, type FighterTemplate, type Map, type MapDeck, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, StatName, Target, Trigger, type TriggeredEffect, type Effect } from "$lib/mayhem-manager/types";
 import type { RNG } from "$lib/types";
@@ -24,7 +24,7 @@ const FISTS: Equipment = {
   flavor: ""
 }
 
-const ability = object();
+const ability = z.any();
 
 const DECK_FILEPATH_BASE = "src/lib/mayhem-manager/data/";
 export const TICK_LENGTH = 0.2;  // length of a tick in seconds
@@ -48,48 +48,48 @@ readdirSync(DECK_FILEPATH_BASE + "maps").forEach((fileName) => {
       JSON.parse(readFileSync(DECK_FILEPATH_BASE + "maps/" + fileName).toString());
 });
 
-const fighterTemplateSchema = object({
-  imgUrl: string().max(300),
-  abilities: array(ability).required(),
-  price: number().min(0).max(100).integer().required(),
-  description: string().max(300),
-  flavor: string().max(300)
+const fighterTemplateSchema = z.object({
+  imgUrl: z.string().max(300),
+  abilities: z.array(ability),
+  price: z.number().min(0).max(100).int(),
+  description: z.string().max(300),
+  flavor: z.string().max(300)
 });
 
-const equipmentTemplateSchema = object({
-  name: string().required().min(1).max(100),
-  imgUrl: string().max(300).required(),
-  slots: array(string().oneOf(Object.values(EquipmentSlot))).required(),
-  abilities: array(ability).required(),
-  price: number().min(0).max(100).integer().required(),
-  description: string().max(300),
-  flavor: string().max(300)
+const equipmentTemplateSchema = z.object({
+  name: z.string().min(1).max(100),
+  imgUrl: z.string().max(300),
+  slots: z.array(z.nativeEnum(EquipmentSlot)),
+  abilities: z.array(ability),
+  price: z.number().min(0).max(100).int(),
+  description: z.string().max(300),
+  flavor: z.string().max(300)
 });
 
-const mapFeatureSchema = object();
+const mapFeatureSchema = z.any();
 
-const mapSchema = object({
-  name: string().required().min(1).max(100),
-  imgUrl: string().required().min(1).max(300),
-  features: array(mapFeatureSchema).required()
+const mapSchema = z.object({
+  name: z.string().min(1).max(100),
+  imgUrl: z.string().min(1).max(300),
+  features: z.array(mapFeatureSchema)
 });
 
-const settingsSchema = object({
-  fighterDecks: array(string().min(0).max(100)).required(),
-  equipmentDecks: array(string().min(0).max(100)).required(),
-  mapDecks: array(string().min(0).max(100)).required(),
-  customFighters: array(fighterTemplateSchema).required(),
-  customEquipment: array(equipmentTemplateSchema).required(),
-  customMaps: array(mapSchema).required()
+const settingsSchema = z.object({
+  fighterDecks: z.array(z.string().min(1).max(100)),
+  equipmentDecks: z.array(z.string().min(1).max(100)),
+  mapDecks: z.array(z.string().min(1).max(100)),
+  customFighters: z.array(fighterTemplateSchema),
+  customEquipment: z.array(equipmentTemplateSchema),
+  customMaps: z.array(mapSchema)
 });
 
-const changeGameSettingsSchema = object({
-  type: string().required().equals(["changeGameSettings"]),
-  settings: settingsSchema.required()
+const changeGameSettingsSchema = z.object({
+  type: z.literal("changeGameSettings"),
+  settings: settingsSchema
 });
 
 export function settingsAreValid(settings: unknown): boolean {
-  return changeGameSettingsSchema.isValidSync(settings);
+  return changeGameSettingsSchema.safeParse(settings).success;
 }
 
 // Merge all the decks of settings into a single deck

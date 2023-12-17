@@ -5,6 +5,7 @@
 		"module": "es2022",
 		"lib": ["es2022", "DOM"],
 		"target": "es2022",
+		"ignoreDeprecations": "5.0",
 		"isolatedModules": true,
 		"resolveJsonModule": true,
 		"sourceMap": true,
@@ -19,5 +20,6 @@
 			"$lib/*": ["src/lib/*"]
 		}
 	},
-	"include": ["src/**/*.d.ts", "src/**/*.js", "src/**/*.ts", "src/**/*.svelte", "app.ts"]
+	"include": ["src/**/*.d.ts", "src/**/*.js", "src/**/*.ts", "src/**/*.svelte", "app.ts"],
+	"exclude": ["src/lib/test/mayhem-manager/start-sim-test-fight.js"]
 }
