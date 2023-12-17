@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { readFileSync, readdirSync, writeFileSync } from "fs";
-import { EquipmentSlot, type Equipment, type EquipmentDeck, type FighterDeck, type FighterInBattle, type FighterNames, type FighterTemplate, type Map, type MapDeck, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, StatName, Target, Trigger, type TriggeredEffect, type Effect } from "$lib/mayhem-manager/types";
+import { EquipmentSlot, type Equipment, type FighterInBattle, type FighterNames, type FighterTemplate, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, StatName, Target, Trigger, type TriggeredEffect, type Effect, type EquipmentTemplate } from "$lib/mayhem-manager/types";
 import type { RNG } from "$lib/types";
 
 const FISTS: Equipment = {
@@ -30,23 +30,12 @@ const DECK_FILEPATH_BASE = "src/lib/mayhem-manager/data/";
 export const TICK_LENGTH = 0.2;  // length of a tick in seconds
 const EPSILON = 0.00001;  // to account for rounding errors
 
-const fighterNames: FighterNames =
-    JSON.parse(readFileSync(DECK_FILEPATH_BASE + "fighters/names.json").toString());
-const fighterDecks: Record<string, FighterDeck> = {};
-readdirSync(DECK_FILEPATH_BASE + "fighters").forEach((fileName) => {
-  fighterDecks[fileName.split(".")[0]] =
-      JSON.parse(readFileSync(DECK_FILEPATH_BASE + "fighters/" + fileName).toString()).abilities;
-});
-const equipmentDecks: Record<string, EquipmentDeck> = {};
-readdirSync(DECK_FILEPATH_BASE + "equipment").forEach((fileName) => {
-  equipmentDecks[fileName.split(".")[0]] =
-      JSON.parse(readFileSync(DECK_FILEPATH_BASE + "equipment/" + fileName).toString());
-});
-const mapDecks: Record<string, MapDeck> = {};
-readdirSync(DECK_FILEPATH_BASE + "maps").forEach((fileName) => {
-  mapDecks[fileName.split(".")[0]] =
-      JSON.parse(readFileSync(DECK_FILEPATH_BASE + "maps/" + fileName).toString());
-});
+export const fighterNames: FighterNames =
+    JSON.parse(readFileSync(DECK_FILEPATH_BASE + "names.json").toString());
+const defaultFighters: { fighters: FighterTemplate[] } =
+    JSON.parse(readFileSync(DECK_FILEPATH_BASE + "fighters.json").toString());
+const defaultEquipment: { equipment: EquipmentTemplate[] } =
+    JSON.parse(readFileSync(DECK_FILEPATH_BASE + "equipment.json").toString());
 
 const fighterTemplateSchema = z.object({
   imgUrl: z.string().max(300),
@@ -75,12 +64,10 @@ const mapSchema = z.object({
 });
 
 const settingsSchema = z.object({
-  fighterDecks: z.array(z.string().min(1).max(100)),
-  equipmentDecks: z.array(z.string().min(1).max(100)),
-  mapDecks: z.array(z.string().min(1).max(100)),
+  useDefaultFighters: z.boolean(),
+  useDefaultEquipment: z.boolean(),
   customFighters: z.array(fighterTemplateSchema),
   customEquipment: z.array(equipmentTemplateSchema),
-  customMaps: z.array(mapSchema)
 });
 
 const changeGameSettingsSchema = z.object({
@@ -94,52 +81,12 @@ export function settingsAreValid(settings: unknown): boolean {
 
 // Merge all the decks of settings into a single deck
 export function collatedSettings(settings: Settings): {
-  fighters: FighterDeck,
-  equipment: EquipmentDeck,
-  maps: MapDeck
+  fighters: FighterTemplate[],
+  equipment: EquipmentTemplate[],
 } {
-  // create empty decks
-  const fighterDeck: FighterDeck = {
-    abilities: settings.customFighters,
-    ...fighterNames
-  }
-  const equipmentDeck: EquipmentDeck = {
-    equipment: settings.customEquipment
-  }
-  const mapDeck: MapDeck = {
-    maps: settings.customMaps
-  }
-
-  for (const deck of settings.fighterDecks.map(deckName => fighterDecks[deckName])
-      .filter(deck => deck !== undefined)) {
-    fighterDeck.abilities = fighterDeck.abilities.concat(deck.abilities);
-  }
-  for (const deck of settings.equipmentDecks.map(deckName => equipmentDecks[deckName])
-      .filter(deck => deck !== undefined)) {
-    equipmentDeck.equipment = equipmentDeck.equipment.concat(deck.equipment);
-  }
-  for (const deck of settings.mapDecks.map(deckName => mapDecks[deckName])
-      .filter(deck => deck !== undefined)) {
-    mapDeck.maps = mapDeck.maps.concat(deck.maps);
-  }
-
-  // Add defaults to empty decks
-  for (const key in fighterDeck) {
-    if (fighterDeck[key].length === 0) {
-      fighterDeck[key] = fighterDecks["default"][key];
-    }
-  }
-  if (equipmentDeck.equipment.length === 0) {
-    equipmentDeck.equipment = equipmentDecks["default"].equipment;
-  }
-  if (mapDeck.maps.length === 0) {
-    mapDeck.maps = mapDecks["default"].maps;
-  }
-
   return {
-    fighters: fighterDeck,
-    equipment: equipmentDeck,
-    maps: mapDeck
+    fighters: settings.customFighters.concat(defaultFighters.fighters),
+    equipment: settings.customEquipment.concat(defaultEquipment.equipment)
   }
 }
 
@@ -191,33 +138,28 @@ export function isValidEquipmentTournament(team: Team, equipment: number[][]): b
 // Simulate the fight and return the order of teams in it, going from winner to first out
 export function simulateFight(
   eventEmitter: (event: MayhemManagerEvent) => void,
-  map: Map,
   rng: RNG,
   fighters: FighterInBattle[]
 ): number[] {
-  const fight = new Fight(map, rng, fighters);
+  const fight = new Fight(rng, fighters);
   fight.simulate();
   eventEmitter({
     type: "fight",
-    map,
     eventLog: fight.eventLog
   });
   return fight.placementOrder;
 }
 
 class Fight {
-  private map: Map
   private rng: RNG
   private fighters: FighterInBattle[]
   eventLog: MidFightEvent[][]
   placementOrder: number[]
 
   constructor(
-    map: Map,
     rng: RNG,
     fighters: FighterInBattle[]
   ) {
-    this.map = map;
     this.rng = rng;
     // clone each fighter and their stats and abilities objects so we can mutate them temporarily
     this.fighters = fighters.map((f) => {

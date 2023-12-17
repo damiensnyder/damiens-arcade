@@ -46,14 +46,12 @@ interface TrainingViewpoint extends ViewpointBase {
 interface BRViewpoint extends ViewpointBase {
   gameStage: "battle royale"
   fightersInBattle?: FighterInBattle[]
-  map?: number
 }
 
 interface TournamentViewpoint extends ViewpointBase {
   gameStage: "tournament"
   bracket: Bracket
   fightersInBattle?: FighterInBattle[]
-  map?: number
 }
 
 export interface Team {
@@ -204,21 +202,9 @@ export interface Abilities {
 
 
 
-export interface Map {
-  name: string
-  imgUrl: string
-  features: any[]
-}
-
-export interface Strategy {}
-
 export interface Settings {
-  fighterDecks: string[]
-  equipmentDecks: string[]
-  mapDecks: string[]
   customFighters: FighterTemplate[]
   customEquipment: EquipmentTemplate[]
-  customMaps: Map[]
 }
 
 export interface FighterNames {
@@ -227,20 +213,12 @@ export interface FighterNames {
   lastNames: string[]
 }
 
-export interface FighterDeck extends FighterNames {
-  abilities: FighterTemplate[]
-}
-
 export interface FighterTemplate {
   imgUrl?: string
   description?: string
   flavor?: string
   price: number
   abilities: Abilities
-}
-
-export interface EquipmentDeck {
-  equipment: EquipmentTemplate[]
 }
 
 export interface EquipmentTemplate {
@@ -252,10 +230,6 @@ export interface EquipmentTemplate {
   description: string
   flavor: string
   abilities: Abilities
-}
-
-export interface MapDeck {
-  maps: Map[]
 }
 
 
@@ -310,13 +284,11 @@ interface PickBRFighterAction {
   type: "pickBRFighter"
   fighter: number
   equipment: number[]
-  strategy: Strategy
 }
 
 interface PickFightersAction {
   type: "pickFighters"
   equipment: number[]
-  strategy: Strategy[]
 }
 
 interface ResignAction {
@@ -418,7 +390,6 @@ interface GoToBREvent {
 
 interface FightEvent {
   type: "fight"
-  map: Map
   eventLog: MidFightEvent[][]
 }
 

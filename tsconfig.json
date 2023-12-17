@@ -5,7 +5,6 @@
 		"module": "es2022",
 		"lib": ["es2022", "DOM"],
 		"target": "es2022",
-		"ignoreDeprecations": "5.0",
 		"isolatedModules": true,
 		"resolveJsonModule": true,
 		"sourceMap": true,

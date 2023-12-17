@@ -2,11 +2,11 @@ import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import { writeFileSync } from "fs";
 import type GameRoom from "$lib/backend/game-room";
-import type { MayhemManagerGameStage, MayhemManagerViewpoint, ViewpointBase, Team, Settings, Fighter, Bracket, FighterInBattle, Equipment, PreseasonTeam, Map, MapDeck, EquipmentDeck, FighterDeck } from "$lib/mayhem-manager/types";
+import type { MayhemManagerGameStage, MayhemManagerViewpoint, ViewpointBase, Team, Settings, Fighter, Bracket, FighterInBattle, Equipment, PreseasonTeam, EquipmentTemplate, FighterTemplate } from "$lib/mayhem-manager/types";
 import { StatName } from "$lib/mayhem-manager/types";
 import { z } from "zod";
 import { fighterValue, getIndexByController, getTeamByController, nextMatch } from "$lib/mayhem-manager/utils";
-import { settingsAreValid, collatedSettings, isValidEquipmentTournament, isValidEquipmentBR, simulateFight, TICK_LENGTH } from "$lib/mayhem-manager/battle-logic";
+import { settingsAreValid, collatedSettings, isValidEquipmentTournament, isValidEquipmentBR, simulateFight, TICK_LENGTH, fighterNames } from "$lib/mayhem-manager/battle-logic";
 import Bot from "$lib/mayhem-manager/bot";
 
 const TEAM_NAME_STARTS = [
@@ -119,9 +119,8 @@ const repairSchema = z.object({
 export default class MayhemManager extends GameLogicHandlerBase {
   settings: Settings
   decks?: {
-    fighters: FighterDeck,
-    equipment: EquipmentDeck,
-    maps: MapDeck
+    fighters: FighterTemplate[],
+    equipment: EquipmentTemplate[]
   }
   declare gameStage: MayhemManagerGameStage
   teams?: (Team | PreseasonTeam)[]
@@ -141,12 +140,8 @@ export default class MayhemManager extends GameLogicHandlerBase {
   constructor(room: GameRoom) {
     super(room);
     this.settings = {
-      fighterDecks: ["default"],
-      equipmentDecks: ["default"],
-      mapDecks: ["default"],
       customFighters: [],
-      customEquipment: [],
-      customMaps: []
+      customEquipment: []
     };
     this.gameStage = "preseason";
     this.teams = [];
@@ -539,7 +534,6 @@ export default class MayhemManager extends GameLogicHandlerBase {
   simulateBattleRoyale(): void {
     const seeding = simulateFight(
       this.emitEventToAll.bind(this),
-      this.randElement(this.decks.maps.maps),
       {
         randInt: this.randInt.bind(this),
         randReal: this.randReal.bind(this),
@@ -557,7 +551,6 @@ export default class MayhemManager extends GameLogicHandlerBase {
   simulateFight(): void {
     this.nextMatch.winner = simulateFight(
       this.emitEventToAll.bind(this),
-      this.randElement(this.decks.maps.maps),
       {
         randInt: this.randInt.bind(this),
         randReal: this.randReal.bind(this),
@@ -800,16 +793,14 @@ export default class MayhemManager extends GameLogicHandlerBase {
     let firstName;
     // if androgynous, pick a first name from either bank. otherwise pick from the matching bank
     if (gender === "A") {
-      firstName = this.randElement(this.decks.fighters["firstNames" +
+      firstName = this.randElement(fighterNames["firstNames" +
           ["M", "F"][this.randInt(0, 1)]]);
     } else {
-      firstName = this.randElement(this.decks.fighters["firstNames" + gender]);
+      firstName = this.randElement(fighterNames["firstNames" + gender]);
     }
 
-    // in the future, first/last names and abilities should not cross over between decks.
-    // but thats such a minor deal. i do not care.
     const fighter: Fighter = {
-      name: firstName + " " + this.randElement(this.decks.fighters.lastNames),
+      name: firstName + " " + this.randElement(fighterNames.lastNames),
       gender,
       price: 0,
       abilities: {},
@@ -826,11 +817,10 @@ export default class MayhemManager extends GameLogicHandlerBase {
       flavor: ""
     }
     // 60% of the time, give them an ability. set to 0 right now
-    if (this.randReal() < 0 /* 0.6 */) {
-      const specialTemplate = this.randElement(this.decks.fighters.abilities);
+    if (this.randReal() < 0.5 && this.decks.fighters.length > 0) {
       return {
         ...fighter,
-        ...specialTemplate
+        ...this.randElement(this.decks.fighters)
       }
     }
     this.doAgeBasedDevelopment(fighter);
@@ -844,7 +834,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
       description: "",
       flavor: "",
       yearsOwned: 0,
-      ...this.randElement(this.decks.equipment.equipment),
+      ...this.randElement(this.decks.equipment),
     };
   }
 
@@ -892,16 +882,14 @@ export default class MayhemManager extends GameLogicHandlerBase {
       return {
         ...this.basicViewpointInfo(viewer),
         gameStage: this.gameStage,
-        fightersInBattle: this.fightersInBattle,
-        map: this.map
+        fightersInBattle: this.fightersInBattle
       }
     } else if (this.gameStage === "tournament") {
       return {
         ...this.basicViewpointInfo(viewer),
         gameStage: this.gameStage,
         bracket: this.bracket,
-        fightersInBattle: this.fightersInBattle,
-        map: this.map
+        fightersInBattle: this.fightersInBattle
       }
     }
   }

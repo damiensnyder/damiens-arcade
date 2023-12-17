@@ -1,11 +1,6 @@
 ## Immediate goal: alpha release of Mayhem Manager
 - fix UI bugs
 - make UI look nicer
-- make team names not repeat
-- fix art assets
-- get rid of the start menu
-- make equipment and fighter abilities do literally anything
-- add more fighter names
 - add more fighter base art
 
 ## Medium-term
@@ -19,8 +14,6 @@
 ### Mayhem Manager
 - add team logos
 - flesh out equipment and fighter abilities much further
-- either add distinct maps to the game or completely remove them
-- either add strategies to the game or completely remove them
 
 ## Low-priority
 ### Site-wide
