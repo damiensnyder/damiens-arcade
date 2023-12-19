@@ -156,7 +156,6 @@ export function getBadges(grid: string[][], words: WordInGrid[], solveTime: numb
           icon: "👨‍👩‍👧‍👦",
           description: "Grid contains a 2x2 square of letters."
         });
-        x = 10;
         break;
       }
     }
@@ -172,7 +171,7 @@ export function getBadges(grid: string[][], words: WordInGrid[], solveTime: numb
     badges.push({
       name: "Like Sardines",
       icon: "🐟",
-      description: "Grid 6 or more words."
+      description: "Grid has 6 or more words."
     });
   }
   for (const word of words) {
@@ -197,7 +196,11 @@ export function getBadges(grid: string[][], words: WordInGrid[], solveTime: numb
         { x: coord.x + 1, y: coord.y },
         { x: coord.x - 1, y: coord.y },
         { x: coord.x, y: coord.y + 1 },
-        { x: coord.x, y: coord.y - 1 }
+        { x: coord.x, y: coord.y - 1 },
+        { x: coord.x + 1, y: coord.y + 1 },
+        { x: coord.x - 1, y: coord.y + 1 },
+        { x: coord.x + 1, y: coord.y - 1 },
+        { x: coord.x - 1, y: coord.y - 1 }
       ]) {
         if (newCoord.x >= 0 && newCoord.x < 11 && newCoord.y >= 0 && newCoord.y <= 12 &&
             grid[newCoord.x][newCoord.y] === "" &&
@@ -213,7 +216,7 @@ export function getBadges(grid: string[][], words: WordInGrid[], solveTime: numb
     badges.push({
       name: "Donut",
       icon: "🍩",
-      description: "Solution contains a rectangle with a whole in the middle."
+      description: "Grid contains a rectangle with a hole in the middle."
     });
   }
   let top = 10;
@@ -257,7 +260,7 @@ export function getBadges(grid: string[][], words: WordInGrid[], solveTime: numb
     badges.push({
       name: "Perfect Balance",
       icon: "☯️",
-      description: "Solution is symmetrical."
+      description: "Grid is symmetrical."
     });
   }
   return badges;
