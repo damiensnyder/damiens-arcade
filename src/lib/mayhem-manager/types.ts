@@ -198,6 +198,8 @@ export interface Abilities {
   action?: ActionAbility
   statChanges?: StatChangeAbility[]
   triggeredEffects?: TriggeredEffect[]
+  danger: number
+  dangerStat?: StatName.Strength | StatName.Accuracy
 }
 
 

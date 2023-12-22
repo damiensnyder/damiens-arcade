@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { readFileSync, readdirSync, writeFileSync } from "fs";
-import { EquipmentSlot, type Equipment, type FighterInBattle, type FighterNames, type FighterTemplate, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, StatName, Target, Trigger, type TriggeredEffect, type Effect, type EquipmentTemplate, ActionAnimation } from "$lib/mayhem-manager/types";
+import { EquipmentSlot, type Equipment, type FighterInBattle, type FighterNames, type FighterTemplate, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, StatName, Target, Trigger, type TriggeredEffect, type Effect, type EquipmentTemplate, ActionAnimation, type Abilities } from "$lib/mayhem-manager/types";
 import type { RNG } from "$lib/types";
 
 const FISTS: Equipment = {
@@ -16,7 +16,9 @@ const FISTS: Equipment = {
         amount: 5
       }],
       cooldown: 5
-    }
+    },
+    danger: 1,  // same as dps, seems like a good baseline
+    dangerStat: StatName.Strength
   },
   yearsOwned: 0,
   price: 0,
@@ -50,6 +52,7 @@ const actionAbility = z.object({
   target: z.nativeEnum(Target),
   effects: z.array(effect),
   cooldown: z.number().min(0),
+  danger: z.number(),
   chargeNeeded: z.number().int().min(0).optional(),
   dodgeable: z.boolean().optional(),
   missable: z.boolean().optional(),
@@ -412,6 +415,16 @@ class Fight {
     return distanceToMove;
   }
 
+  charge(f: FighterInBattle, tick: MidFightEvent[]): void {
+    f.charge += 1;
+    f.cooldown = Math.max(1.5, 9 - 0.6 * f.stats.energy);
+    tick.push({
+      type: "charge",
+      fighter: this.fighters.indexOf(f),
+      newChange: f.charge
+    });
+  }
+
   doAction(f: FighterInBattle, tick: MidFightEvent[]): void {
     const distanceBetween = distance(f, this.closestEnemy(f));
     
@@ -639,4 +652,37 @@ function scaleVectorToMagnitude(x: number, y: number, magnitude: number): [numbe
     Math.pow(x, 2) / Math.pow(currentMagnitudeSquared, 2) * Math.sign(x) * magnitude,
     Math.pow(y, 2) / Math.pow(currentMagnitudeSquared, 2) * Math.sign(y) * magnitude
   ];
+}
+
+function engageability(f: FighterInBattle): number {
+  const effectiveHp = f.hp * (0.75 + f.stats.toughness / 20) / (1 - f.stats.speed / 50);
+
+  let bestActionDanger = 0;
+  let passiveDanger = 0;
+  for (const e of (f.equipment as { abilities: Abilities }[]).concat(f)) {
+    if (e.abilities.action) {
+      bestActionDanger = Math.max(bestActionDanger, danger(f, e.abilities));
+    } else {
+      passiveDanger += danger(f, e.abilities);
+    }
+  }
+
+  return (50 + 10 * (bestActionDanger + passiveDanger)) / (50 + effectiveHp);
+}
+
+function danger(f: FighterInBattle, a: Abilities): number {
+  let d = a.danger;
+  // if therer is a relevant stat (strength or accuracy), adjust by it
+  if (a.dangerStat) {
+    d *= 0.5 + 10 * f.stats[a.dangerStat];
+  }
+  // if it needs to charge, multiply based on how soon it will be charged, relevant to a fighter
+  // with 0 charge and 0 energy
+  if (a.action && a.action.chargeNeeded) {
+    d *= 1 -
+        (a.action.chargeNeeded - f.charge) *  // charges still needed
+        (9 - 0.6 * f.abilities.action.chargeNeeded) /   // time per charge
+        (9 * f.abilities.action.chargeNeeded);          // time needed if 0 charge and 0 energy
+  }
+  return d;
 }
