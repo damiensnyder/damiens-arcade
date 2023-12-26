@@ -275,36 +275,36 @@ class Fight {
       if (f.hp <= 0) return;  // do nothing if fighter is down
       const closest = this.closestEnemy(f);
       if (!closest) return;  // in case your teammate downed the last enemy
+      // time it would take to get within melee range of closest
+      const timeToClosest = Math.max(distance(f, closest) - 2, 0) / Math.max(2.5 + f.stats.speed / 2, 0.5);
+      const engaged = distance(f, closest) <= 5;
 
-      const closestDistance = distance(f, closest);
-      const distanceMovableByCooldownEnd = f.cooldown * Math.max(2.5 + f.stats.speed / 2, 0) * TICK_LENGTH;
-
-      // if the fighter is within melee range and their cooldown is over, they attack and then
-      // run away.
-      // if the fighter has a ranged ability and their cooldown is over, they shoot the nearest enemy.
-      // if the fighter has a ranged ability and their cooldown ends in <1 second, they stand still.
-      // if the fighter has a ranged ability but can't use it in <1 second, they run away.
-      // if they can't reach the target by the time their cooldown ends, they run towards the
-      // target and do a melee attack if within range.
-      // if they can reach the target by the time their cooldown ends, they run away.
-      if (closestDistance <= 2 && f.cooldown < EPSILON) {
-        this.doAction(f, tick);
-        this.moveAwayFromTarget(f, closest, tick);
-      } else if (
-        f.equipment.find(e => e.abilities.action && e.abilities.action.target !== Target.Melee)
-      ) {
-        if (f.cooldown < EPSILON) {
-          this.doAction(f, tick);
-        } else if (f.cooldown > 1 + EPSILON) {
-          this.moveAwayFromTarget(f, closest, tick);
+      let bestAction: Abilities;
+      let bestActionDanger = 0;
+      for (const e of (f.equipment as { abilities: Abilities }[]).concat(f)) {
+        if (e.abilities.action) {
+          let actionDanger = danger(f, e.abilities);
+          if (e.abilities.action.target === Target.Melee) {
+            actionDanger += 5 - timeToClosest;
+          }
+          if (actionDanger > bestActionDanger) {
+            bestActionDanger = actionDanger
+            bestAction = e.abilities;
+          }
         }
-      } else if (distanceMovableByCooldownEnd < closestDistance) {
-        this.moveTowardsTarget(f, closest, tick);
-        if (distance(f, closest) <= 2 && f.cooldown < EPSILON) {
-          this.doAction(f, tick);
+      }
+      
+      if (bestAction.action.target === Target.Melee) {
+        // find the most engageable enemy fighter, taking into account distance
+        const e = engageability(f);
+        let bestTarget: FighterInBattle;
+        let bestEngageability = -100000000;
+        for (const f2 of this.fighters) {
+          if (f2.team !== f.team) {
+            const timeToEnemy = Math.max(distance(f, f2) - 2, 0) / Math.max(2.5 + f.stats.speed / 2, 0.5);
+            const e2 = engageability(f2);
+          }
         }
-      } else {
-        this.moveAwayFromTarget(f, closest, tick);
       }
 
       // tick down status effects, and end them if they're done
