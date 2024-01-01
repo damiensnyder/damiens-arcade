@@ -5,6 +5,7 @@ import random
 
 definitions = {}
 realness = {}
+ANY_LETTERS = True
 
 with open("analysis/ratings.csv") as f:
     reader = csv.reader(f, delimiter=",", quotechar="\"")
@@ -74,6 +75,14 @@ def can_intersect(test_index, with_index, test_word, with_word):
   
 
 def generate_roll():
+    if ANY_LETTERS:
+        return "".join(
+            sorted(
+                [random.choice([face for face in die]) for die in
+                    ["abcdefghijklmnopqrstuvwxyz"] * 12
+                ]
+            )
+        )
     return "".join(
         sorted(
             [random.choice([face for face in die]) for die in
