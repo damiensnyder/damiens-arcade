@@ -7,21 +7,37 @@ import random
 FIRST_DAY = datetime.date(2023, 12, 15)
 
 
+definitions = {}
+realness = {}
+
 with open("analysis/candidates.json") as f:
     candidates = json.load(f)
 
 with open("analysis/ratings.csv") as f:
     reader = csv.reader(f, delimiter=",", quotechar="\"")
-    realness = {}
     for row in reader:
         realness[row[0]] = int(row[1])
 
-with open("analysis/definitions.csv") as f:
-    reader = csv.reader(f, delimiter=",", quotechar="\"")
-    definitions = {}
-    for row in reader:
-        if (len(row[0]) > 2) and (row[0].lower() not in realness):
-            realness[row[0].lower()] = 5
+with open("analysis/wordlist1.txt") as f:
+    for line in f.readlines():
+        if "\t" in line:
+            [word, definition] = line.split("\t", 1)
+            word = word.lower()
+            definition = definition.strip()
+            if 3 <= len(word) <= 12:
+                if word not in realness:
+                    realness[word] = 5
+
+with open("analysis/wordlist2.txt") as f:
+    for line in f.readlines():
+        if " " in line:
+            [word, definition] = line.split(" ", 1)
+            word = word.lower()
+            definition = definition.strip()
+            definitions[word] = definition
+            if 3 <= len(word) <= 12:
+                if word not in realness:
+                    realness[word] = 5
 
 
 def is_possible(word, letters):
