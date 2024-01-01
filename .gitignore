@@ -16,3 +16,5 @@ ticks.txt
 src/lib/test/mayhem-manager/*.json
 analysis/wordlist1.txt
 analysis/wordlist2.txt
+analysis/rolls.txt
+analysis/new_words.csv
