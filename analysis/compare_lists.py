@@ -25,9 +25,9 @@ with open("analysis/wordlist2.txt") as f:
             if 3 <= len(word) <= 12:
                 l2.add(word)
 
-l2_only = sorted(list([w for w in l2 if w not in l1]))
+l2_only = sorted(list([w for w in l2 if (w not in l1)]))
 
-l1_only = sorted(list([w for w in l1 if w not in l2]))
+l1_only = sorted(list([w for w in l1 if (w not in l2) and (l1[w] == 5)]))
 
 print(len(l2))
 print(len(l1))
