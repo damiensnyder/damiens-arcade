@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { readFileSync, readdirSync, writeFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import { EquipmentSlot, type Equipment, type FighterInBattle, type FighterNames, type FighterTemplate, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, StatName, Target, Trigger, type TriggeredEffect, type Effect, type EquipmentTemplate, ActionAnimation, type Abilities } from "$lib/mayhem-manager/types";
 import type { RNG } from "$lib/types";
 
@@ -273,11 +273,12 @@ class Fight {
     const tick: MidFightEvent[] = [];
     this.fighters.forEach((f, i) => {
       if (f.hp <= 0) return;  // do nothing if fighter is down
-      const closest = this.closestEnemy(f);
-      if (!closest) return;  // in case your teammate downed the last enemy
+      const closestEnemy = this.closestEnemy(f);
+      if (!closestEnemy) return;  // in case your teammate downed the last enemy
       // time it would take to get within melee range of closest
-      const timeToClosest = Math.max(distance(f, closest) - 2, 0) / Math.max(2.5 + f.stats.speed / 2, 0.5);
-      const engaged = distance(f, closest) <= 5;
+      const timeToClosest = Math.max(distance(f, closestEnemy) - 2, 0) / Math.max(2.5 + f.stats.speed / 2, 0.5);
+      const engaged = distance(f, closestEnemy) <= 5;
+      const ownEngageability = engageability(f);
 
       let bestAction: Abilities;
       let bestActionDanger = 0;
@@ -294,16 +295,47 @@ class Fight {
         }
       }
       
-      if (bestAction.action.target === Target.Melee) {
+      // if charges needed to use the action, then charge
+      if (bestAction.action.chargeNeeded &&
+          bestAction.action.chargeNeeded > f.charge) {
+        if (engaged && engageability(this.closestEnemy(f)) > 1.5 * ownEngageability) {
+          this.moveAwayFromTarget(f, this.closestEnemy(f), tick);
+        } else {
+          this.charge(f, tick);
+        }
+      } else if (bestAction.action.target === Target.Melee) {
         // find the most engageable enemy fighter, taking into account distance
-        const e = engageability(f);
         let bestTarget: FighterInBattle;
         let bestEngageability = -100000000;
-        for (const f2 of this.fighters) {
-          if (f2.team !== f.team) {
-            const timeToEnemy = Math.max(distance(f, f2) - 2, 0) / Math.max(2.5 + f.stats.speed / 2, 0.5);
-            const e2 = engageability(f2);
+        let bestTimeToEnemy = 0;
+        for (const f2 of this.enemies(f)) {
+          const timeToEnemy = Math.max(distance(f, f2) - 2, 0) / Math.max(2.5 + f.stats.speed / 2, 0.5);
+          let e2 = engageability(f2);
+          if (timeToEnemy <= 5) {
+            e2 += 0.25;
+          } else {
+            e2 -= 0.05 * timeToEnemy;
           }
+          if (e2 >= bestEngageability) {
+            bestTarget = f2;
+            bestEngageability = e2;
+            bestTimeToEnemy = timeToEnemy;
+          }
+        }
+        if (bestTimeToEnemy > f.cooldown - 1) {
+          this.moveAwayFromTarget(f, bestTarget, tick);
+        } else {
+          this.moveTowardsTarget(f, bestTarget, tick);
+          if (f.cooldown <= EPSILON && distance(f, bestTarget) <= 2) {
+            let attuned = (bestAction as unknown as Equipment).name && f.attunements.includes((bestAction as unknown as Equipment).name);
+            this.doAction(f, bestAction, attuned, tick);
+          }
+        }
+      } else {
+        this.moveAwayFromTarget(f, closestEnemy, tick);
+        if (f.cooldown <= EPSILON) {
+          let attuned = (bestAction as unknown as Equipment).name && f.attunements.includes((bestAction as unknown as Equipment).name);
+          this.doAction(f, bestAction, attuned, tick);
         }
       }
 
@@ -425,68 +457,47 @@ class Fight {
     });
   }
 
-  doAction(f: FighterInBattle, tick: MidFightEvent[]): void {
-    const distanceBetween = distance(f, this.closestEnemy(f));
-    
-    let equipmentUsed: Equipment;
-    if (distanceBetween <= 2) {
-      const meleeWeapons = f.equipment.filter(e => e.abilities.action && e.abilities.action.target === Target.Melee);
-      if (meleeWeapons.length !== 0) {
-        equipmentUsed = this.rng.randElement(meleeWeapons);
-      } else {
-        equipmentUsed = FISTS;
-      }
-    } else {
-      // choose a random ranged weapon. (branch should only be reached if one is equipped.)
-      const rangedEquipment = f.equipment.filter(e => e.abilities.action && e.abilities.action.target !== Target.Melee);
-      if (rangedEquipment.length !== 0) {
-        equipmentUsed = this.rng.randElement(rangedEquipment);
-      } else {
-        console.log("ERROR: Attempted to use an ability with no abilities available.")
-        return;
-      }
-    }
-
-    if (equipmentUsed.abilities.action.animation) {
+  doAction(f: FighterInBattle, a: Abilities, attuned: boolean, tick: MidFightEvent[]): void {
+    if (a.action.animation) {
       tick.push({
         type: "animation",
         fighter: this.fighters.findIndex(f2 => f2 === f),
-        animation: equipmentUsed.abilities.action.animation
+        animation: a.action.animation
       });
     }
     
-    const targets = this.targetsAffected(equipmentUsed.abilities.action.target, f);
+    const targets = this.targetsAffected(a.action.target, f);
     targets.forEach((t) => {
       // if the fighter has 0 accuracy, they have a 75% chance to miss. if they have 10 accuracy,
       // they have a 25% chance to miss.
-      const missed = equipmentUsed.abilities.action.missable &&
+      const missed = a.action.missable &&
           this.rng.randReal() < (15 - f.stats.accuracy) / 20;
       // the fighter being attacked has a 2% change to dodge for each point of speed they have.
-      const dodged = equipmentUsed.abilities.action.dodgeable &&
+      const dodged = a.action.dodgeable &&
           !missed &&
           this.rng.randReal() < Math.max(t.stats.speed / 50, 0.3);
       
       if (!missed && !dodged) {
         // trigger all the weapon's effects
-        equipmentUsed.abilities.action.effects.forEach((a) => {
+        a.action.effects.forEach((effect) => {
           this.doEffect(
-            a,
+            effect,
             f,
             t,
             tick,
-            f.attunements.includes(equipmentUsed.name),
-            equipmentUsed.abilities.action.target === Target.Melee,
+            attuned,
+            a.action.target === Target.Melee,
             true
           );
         });
 
         // if the equipment has knockback, apply that much knockback
         // except it cannot send the fighter out of [5, 95] on either axis
-        if (equipmentUsed.abilities.action.knockback) {
+        if (a.action.knockback) {
           const unitVectorX = Math.pow(t.x - f.x, 2) / Math.pow(distance(f, t), 2);
           const unitVectorY = Math.pow(t.y - f.y, 2) / Math.pow(distance(f, t), 2);
-          t.x += unitVectorX * equipmentUsed.abilities.action.knockback;
-          t.y += unitVectorY * equipmentUsed.abilities.action.knockback;
+          t.x += unitVectorX * a.action.knockback;
+          t.y += unitVectorY * a.action.knockback;
           t.x = Math.max(Math.min(t.x, 95), 5);
           t.y = Math.max(Math.min(t.y, 95), 5);
           tick.push({
@@ -509,16 +520,16 @@ class Fight {
           text: "Dodged"
         });
       }
-      if (equipmentUsed.abilities.action.projectileImg) {
+      if (a.action.projectileImg) {
         tick.push({
           type: "projectile",
           fighter: this.fighters.findIndex(f2 => f2 === f),
           target: this.fighters.findIndex(t2 => t2 === t),
-          projectileImg: equipmentUsed.abilities.action.projectileImg
+          projectileImg: a.action.projectileImg
         });
       }
     });
-    f.cooldown = equipmentUsed.abilities.action.cooldown;
+    f.cooldown = a.action.cooldown;
   }
 
   doEffect(
@@ -621,23 +632,56 @@ class Fight {
     if (target === Target.Self) {
       return [fighter];
     } else if (target === Target.Melee || target === Target.NearestEnemy) {
-      const enemies = this.fighters.filter(f => f.team !== fighter.team && f.hp > 0);
-      return enemies.length === 0 ? [] : [this.closestEnemy(fighter)];
+      return this.enemies(fighter).length === 0 ? [] : [this.closestEnemy(fighter)];
     } else if (target === Target.AllEnemies) {
-      return this.fighters.filter(f => f.team !== fighter.team && f.hp > 0);
+      return this.enemies(fighter);
     } else if (target === Target.AllTeammates) {
-      return this.fighters.filter(f => f.team === fighter.team && f.hp > 0);
-    } else if (target === Target.RandomEnemy || target === Target.AnyEnemy) {
-      const enemies = this.fighters.filter(f => f.team !== fighter.team && f.hp > 0);
-      return enemies.length === 0 ? [] : [this.rng.randElement(enemies)];
-    } else if (target === Target.RandomTeammate || target === Target.AnyTeammate) {
-      const teammates = this.fighters.filter(f => f.team === fighter.team && f.hp > 0);
-      return teammates.length === 0 ? [] : [this.rng.randElement(teammates)];
+      return this.teammates(fighter);
+    } else if (target === Target.RandomEnemy) {
+      return this.enemies(fighter).length === 0 ? [] : [this.rng.randElement(this.enemies(fighter))];
+    } else if (target === Target.AnyEnemy) {
+      if (this.enemies(fighter).length) {
+        return [];
+      }
+      let bestTarget: FighterInBattle;
+      let bestEngageability = -100000000;
+      for (const f2 of this.enemies(fighter)) {
+        let e2 = engageability(f2);
+        if (e2 >= bestEngageability) {
+          bestTarget = f2;
+          bestEngageability = e2;
+        }
+      }
+      return [bestTarget];
+    } else if (target === Target.RandomTeammate) {
+      return this.teammates(fighter).length === 0 ? [] : [this.rng.randElement(this.teammates(fighter))];
+    } else if (target === Target.AnyTeammate) {
+      if (this.teammates(fighter).length) {
+        return [];
+      }
+      let bestTarget: FighterInBattle;
+      let bestBuffability = -100000000;
+      for (const f2 of this.teammates(fighter)) {
+        let e2 = buffability(f2);
+        if (e2 >= bestBuffability) {
+          bestTarget = f2;
+          bestBuffability = e2;
+        }
+      }
+      return [bestTarget];
     } else if (target === Target.ActionTarget) {
       return [actionTarget];
     } else {
       return [];
     }
+  }
+
+  teammates(fighter: FighterInBattle) {
+    return this.fighters.filter(f => f.team === fighter.team && f.hp > 0);
+  }
+
+  enemies(fighter: FighterInBattle) {
+    return this.fighters.filter(f => f.team !== fighter.team && f.hp > 0);
   }
 }
 
@@ -668,6 +712,22 @@ function engageability(f: FighterInBattle): number {
   }
 
   return (50 + 10 * (bestActionDanger + passiveDanger)) / (50 + effectiveHp);
+}
+
+function buffability(f: FighterInBattle): number {
+  const effectiveHp = f.hp * (0.75 + f.stats.toughness / 20) / (1 - f.stats.speed / 50);
+
+  let bestActionDanger = 0;
+  let passiveDanger = 0;
+  for (const e of (f.equipment as { abilities: Abilities }[]).concat(f)) {
+    if (e.abilities.action) {
+      bestActionDanger = Math.max(bestActionDanger, danger(f, e.abilities));
+    } else {
+      passiveDanger += danger(f, e.abilities);
+    }
+  }
+
+  return (50 + 10 * (bestActionDanger + passiveDanger)) * (50 + effectiveHp);
 }
 
 function danger(f: FighterInBattle, a: Abilities): number {

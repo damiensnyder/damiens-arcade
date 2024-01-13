@@ -134,6 +134,7 @@ export enum Trigger {
 export enum Target {
   Self = "self",
   Melee = "melee",
+  MostEngageable = "mostEngageable",
   AnyEnemy = "anyEnemy",
   AnyTeammate = "anyTeammate",
   ActionTarget = "actionTarget",
