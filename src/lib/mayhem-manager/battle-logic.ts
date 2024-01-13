@@ -234,9 +234,7 @@ class Fight {
 
   // Returns the closest fighter not on fighter f's team
   closestEnemy(f: FighterInBattle): FighterInBattle {
-    return this.fighters
-        .filter(f2 => f2.team !== f.team && f2.hp > 0)
-        .sort((a, b) => distance(a, f) - distance(b, f))[0];
+    return this.enemies(f).sort((a, b) => distance(a, f) - distance(b, f))[0];
   }
 
   // Simulates the fight
@@ -274,7 +272,7 @@ class Fight {
     this.fighters.forEach((f, i) => {
       if (f.hp <= 0) return;  // do nothing if fighter is down
       const closestEnemy = this.closestEnemy(f);
-      if (!closestEnemy) return;  // in case your teammate downed the last enemy
+      if (!closestEnemy) return;  // in case your teammate downed the last enemy this tick
       // time it would take to get within melee range of closest
       const timeToClosest = Math.max(distance(f, closestEnemy) - 2, 0) / Math.max(2.5 + f.stats.speed / 2, 0.5);
       const engaged = distance(f, closestEnemy) <= 5;
@@ -282,7 +280,7 @@ class Fight {
 
       let bestAction: Abilities;
       let bestActionDanger = 0;
-      for (const e of (f.equipment as { abilities: Abilities }[]).concat(f)) {
+      for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
         if (e.abilities.action) {
           let actionDanger = danger(f, e.abilities);
           if (e.abilities.action.target === Target.Melee) {
@@ -298,15 +296,15 @@ class Fight {
       // if charges needed to use the action, then charge
       if (bestAction.action.chargeNeeded &&
           bestAction.action.chargeNeeded > f.charge) {
-        if (engaged && engageability(this.closestEnemy(f)) > 1.5 * ownEngageability) {
-          this.moveAwayFromTarget(f, this.closestEnemy(f), tick);
+        if (engaged && engageability(closestEnemy) > 1.5 * ownEngageability) {
+          this.moveAwayFromTarget(f, closestEnemy, tick);
         } else {
           this.charge(f, tick);
         }
       } else if (bestAction.action.target === Target.Melee) {
         // find the most engageable enemy fighter, taking into account distance
         let bestTarget: FighterInBattle;
-        let bestEngageability = -100000000;
+        let bestEngageability = null;
         let bestTimeToEnemy = 0;
         for (const f2 of this.enemies(f)) {
           const timeToEnemy = Math.max(distance(f, f2) - 2, 0) / Math.max(2.5 + f.stats.speed / 2, 0.5);
@@ -316,13 +314,13 @@ class Fight {
           } else {
             e2 -= 0.05 * timeToEnemy;
           }
-          if (e2 >= bestEngageability) {
+          if (bestEngageability === null || e2 >= bestEngageability) {
             bestTarget = f2;
             bestEngageability = e2;
             bestTimeToEnemy = timeToEnemy;
           }
         }
-        if (bestTimeToEnemy > f.cooldown - 1) {
+        if (bestTimeToEnemy < f.cooldown - 1) {
           this.moveAwayFromTarget(f, bestTarget, tick);
         } else {
           this.moveTowardsTarget(f, bestTarget, tick);
@@ -411,10 +409,9 @@ class Fight {
     const distanceToTarget = distance(f, target);
     const distanceToMove = Math.max(Math.min((2.5 + f.stats.speed / 2) * TICK_LENGTH,
                                     distanceToTarget - 1.5), 0);
-    const deltaX = Math.pow(target.x - f.x, 2) / Math.pow(distanceToTarget, 2) * distanceToMove;
-    const deltaY = Math.pow(target.y - f.y, 2) / Math.pow(distanceToTarget, 2) * distanceToMove;
-    f.x += Math.sign(target.x - f.x) * deltaX;
-    f.y += Math.sign(target.y - f.y) * deltaY;
+    const [deltaX, deltaY] = scaleVectorToMagnitude(target.x - f.x, target.y - f.y, distanceToMove);
+    f.x += deltaX;
+    f.y += deltaY;
     tick.push({
       type: "move",
       fighter: this.fighters.findIndex(f2 => f2 === f),
@@ -444,6 +441,10 @@ class Fight {
       x: Number(f.x.toFixed(2)),  // round to save data
       y: Number(f.y.toFixed(2))
     });
+    console.log(distanceToMove);
+    console.log(f.stats.speed);
+    console.log(TICK_LENGTH);
+    console.log(1 / 0);
     return distanceToMove;
   }
 
@@ -691,10 +692,10 @@ function distance(f1: FighterInBattle, f2: FighterInBattle): number {
 }
 
 function scaleVectorToMagnitude(x: number, y: number, magnitude: number): [number, number] {
-  const currentMagnitudeSquared = Math.pow(x, 2) + Math.pow(y, 2);
+  const currentMagnitude = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
   return [
-    Math.pow(x, 2) / Math.pow(currentMagnitudeSquared, 2) * Math.sign(x) * magnitude,
-    Math.pow(y, 2) / Math.pow(currentMagnitudeSquared, 2) * Math.sign(y) * magnitude
+    x / currentMagnitude * magnitude,
+    y / currentMagnitude * magnitude
   ];
 }
 
@@ -703,7 +704,7 @@ function engageability(f: FighterInBattle): number {
 
   let bestActionDanger = 0;
   let passiveDanger = 0;
-  for (const e of (f.equipment as { abilities: Abilities }[]).concat(f)) {
+  for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
     if (e.abilities.action) {
       bestActionDanger = Math.max(bestActionDanger, danger(f, e.abilities));
     } else {
@@ -719,7 +720,7 @@ function buffability(f: FighterInBattle): number {
 
   let bestActionDanger = 0;
   let passiveDanger = 0;
-  for (const e of (f.equipment as { abilities: Abilities }[]).concat(f)) {
+  for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
     if (e.abilities.action) {
       bestActionDanger = Math.max(bestActionDanger, danger(f, e.abilities));
     } else {
