@@ -3,9 +3,6 @@ import numpy as np
 import os
 
 
-print(os.listdir())
-
-
 with open("src/lib/test/mayhem-manager/fight-sample.json") as f:
     results = json.load(f)
 

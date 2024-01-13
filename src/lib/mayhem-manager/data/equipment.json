@@ -20,7 +20,9 @@
           "cooldown": 8,
           "dodgeable": true,
           "knockback": 0.7
-        }
+        },
+        "danger": 4,
+        "dangerStat": "strength"
       }
     },
     {
@@ -43,7 +45,9 @@
           "cooldown": 3,
           "dodgeable": true,
           "knockback": 0.5
-        }
+        },
+        "danger": 3,
+        "dangerStat": "strength"
       }
     },
     {
@@ -72,7 +76,9 @@
             "stat": "accuracy",
             "amount": -4
           }
-        ]
+        ],
+        "danger": 2,
+        "dangerStat": "strength"
       }
     },
     {
@@ -95,7 +101,9 @@
           "cooldown": 5,
           "dodgeable": true,
           "knockback": 0.5
-        }
+        },
+        "danger": 4,
+        "dangerStat": "strength"
       }
     },
     {
@@ -118,7 +126,9 @@
           "cooldown": 5,
           "dodgeable": true,
           "knockback": 0.5
-        }
+        },
+        "danger": 2,
+        "dangerStat": "strength"
       }
     },
     {
@@ -141,7 +151,9 @@
           "cooldown": 3,
           "dodgeable": true,
           "knockback": 0.5
-        }
+        },
+        "danger": 2,
+        "dangerStat": "strength"
       }
     },
     {
@@ -174,7 +186,9 @@
             "stat": "speed",
             "amount": -2
           }
-        ]
+        ],
+        "danger": 2,
+        "dangerStat": "strength"
       }
     },
     {
@@ -197,7 +211,9 @@
           "cooldown": 5,
           "dodgeable": true,
           "knockback": 0.5
-        }
+        },
+        "danger": 2,
+        "dangerStat": "strength"
       }
     },
 
@@ -225,7 +241,9 @@
           "animation": "aim",
           "projectileImg": "/static/projectiles/arrow.png",
           "knockback": 0.3
-        }
+        },
+        "danger": 2,
+        "dangerStat": "accuracy"
       }
     },
     {
@@ -250,7 +268,9 @@
           "animation": "aim",
           "projectileImg": "/static/projectiles/laser.png",
           "knockback": 0.3
-        }
+        },
+        "danger": 2,
+        "dangerStat": "accuracy"
       }
     },
     {
@@ -275,7 +295,9 @@
           "animation": "aim",
           "projectileImg": "/static/projectiles/fireball.png",
           "knockback": 0.7
-        }
+        },
+        "danger": 3,
+        "dangerStat": "accuracy"
       }
     },
     {
@@ -299,7 +321,9 @@
           "animation": "aim",
           "projectileImg": "/static/projectiles/laser.png",
           "knockback": 0.3
-        }
+        },
+        "danger": 2,
+        "dangerStat": "accuracy"
       }
     },
 
@@ -323,7 +347,8 @@
             "stat": "toughness",
             "amount": 4
           }
-        ]
+        ],
+        "danger": 0
       }
     },
     {
@@ -356,7 +381,8 @@
             "stat": "toughness",
             "amount": -4
           }
-        ]
+        ],
+        "danger": 0
       }
     },
     {
@@ -377,7 +403,8 @@
             "stat": "speed",
             "amount": -2
           }
-        ]
+        ],
+        "danger": 0
       }
     },
     {
@@ -394,7 +421,8 @@
             "stat": "toughness",
             "amount": 2
           }
-        ]
+        ],
+        "danger": 0
       }
     },
     {
@@ -415,7 +443,8 @@
             "stat": "speed",
             "amount": -4
           }
-        ]
+        ],
+        "danger": 0
       }
     },
     {
@@ -432,7 +461,8 @@
             "stat": "speed",
             "amount": 6
           }
-        ]
+        ],
+        "danger": 0
       }
     },
     {
@@ -453,7 +483,8 @@
             "stat": "speed",
             "amount": 1
           }
-        ]
+        ],
+        "danger": 0
       }
     },
     {
@@ -470,7 +501,8 @@
             "stat": "energy",
             "amount": 4
           }
-        ]
+        ],
+        "danger": 0
       }
     },
 
@@ -492,7 +524,8 @@
             "type": "hpChange",
             "amount": 3
           }
-        ]
+        ],
+        "danger": 1
       }
     },
     {
@@ -540,7 +573,8 @@
               "duration": 5
             }
           ]
-        }
+        },
+        "danger": 2
       }
     },
     {
@@ -561,7 +595,8 @@
             }
           ],
           "cooldown": 10
-        }
+        },
+        "danger": 2
       }
     },
     {
@@ -583,7 +618,8 @@
             "duration": 5,
             "tint": [0.7, 0.5, 1, 0.5]
           }
-        ]
+        ],
+        "danger": 1
       }
     },
     {
@@ -605,7 +641,8 @@
             "duration": 5,
             "tint": [1, 0, 0, 0.5]
           }
-        ]
+        ],
+        "danger": 0
       }
     },
     {
@@ -624,7 +661,8 @@
             "type": "hpChange",
             "amount": -5
           }
-        ]
+        ],
+        "danger": 0
       }
     }
   ]

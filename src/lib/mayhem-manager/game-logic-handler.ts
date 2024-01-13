@@ -805,7 +805,9 @@ export default class MayhemManager extends GameLogicHandlerBase {
       name: firstName + " " + this.randElement(fighterNames.lastNames),
       gender,
       price: 0,
-      abilities: {},
+      abilities: {
+        danger: 0
+      },
       stats: {
         strength: this.randInt(0, 7),
         accuracy: this.randInt(0, 7),
