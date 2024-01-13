@@ -14,3 +14,8 @@ ticks.txt
 .yarn/*
 /secrets
 src/lib/test/mayhem-manager/*.json
+analysis/wordlist1.txt
+analysis/wordlist2.txt
+analysis/rolls.txt
+analysis/new_words.csv
+analysis/rolls.json
