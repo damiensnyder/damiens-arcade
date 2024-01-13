@@ -2,11 +2,11 @@ import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import { writeFileSync } from "fs";
 import type GameRoom from "$lib/backend/game-room";
-import type { MayhemManagerGameStage, MayhemManagerViewpoint, ViewpointBase, Team, Settings, Fighter, Bracket, FighterInBattle, Equipment, PreseasonTeam, Map, MapDeck, EquipmentDeck, FighterDeck } from "$lib/mayhem-manager/types";
+import type { MayhemManagerGameStage, MayhemManagerViewpoint, ViewpointBase, Team, Settings, Fighter, Bracket, FighterInBattle, Equipment, PreseasonTeam, EquipmentTemplate, FighterTemplate } from "$lib/mayhem-manager/types";
 import { StatName } from "$lib/mayhem-manager/types";
-import { array, mixed, number, object, string } from "yup";
+import { z } from "zod";
 import { fighterValue, getIndexByController, getTeamByController, nextMatch } from "$lib/mayhem-manager/utils";
-import { settingsAreValid, collatedSettings, isValidEquipmentTournament, isValidEquipmentBR, simulateFight, TICK_LENGTH } from "$lib/mayhem-manager/battle-logic";
+import { settingsAreValid, collatedSettings, isValidEquipmentTournament, isValidEquipmentBR, simulateFight, TICK_LENGTH, fighterNames } from "$lib/mayhem-manager/battle-logic";
 import Bot from "$lib/mayhem-manager/bot";
 
 const TEAM_NAME_STARTS = [
@@ -54,78 +54,75 @@ const TEAM_NAME_ENDS = [
   "Wombats"
 ];
 
-const joinSchema = object({
-  type: string().required().equals(["join"])
+const joinSchema = z.object({
+  type: z.literal("join")
 });
 
-const leaveSchema = object({
-  type: string().required().equals(["leave"])
+const leaveSchema = z.object({
+  type: z.literal("leave")
 });
 
-const replaceSchema = object({
-  type: string().required().equals(["replace"]),
-  team: number().integer().required().min(0)
+const replaceSchema = z.object({
+  type: z.literal("replace"),
+  team: z.number().min(0)
 });
 
-const removeSchema = object({
-  type: string().required().equals(["remove"]),
-  team: number().integer().required().min(0)
+const removeSchema = z.object({
+  type: z.literal("remove"),
+  team: z.number().min(0)
 });
 
-const addBotSchema = object({
-  type: string().required().equals(["addBot"])
+const addBotSchema = z.object({
+  type: z.literal("addBot")
 });
 
-const advanceSchema = object({
-  type: string().required().equals(["advance"])
+const advanceSchema = z.object({
+  type: z.literal("advance")
 });
 
-const pickSchema = object({
-  type: string().required().equals(["pick"]),
-  index: number().integer().min(0)
+const pickSchema = z.object({
+  type: z.literal("pitck"),
+  index: z.number().min(0)
 });
 
-const passSchema = object({
-  type: string().required().equals(["pass"])
+const passSchema = z.object({
+  type: z.literal("pass")
 });
 
-const practiceSchema = object({
-  type: string().required().equals(["practice"]),
-  equipment: array(number().min(0)).required(),
-  skills: array(mixed())
+const practiceSchema = z.object({
+  type: z.literal("practice"),
+  equipment: z.array(z.number().min(0)),
+  skills: z.array(z.any())
 });
 
-const strategySchema = object({});
-
-const pickBRFighterSchema = object({
-  type: string().required().equals(["pickBRFighter"]),
-  fighter: number().integer().min(0).required(),
-  equipment: array(number().integer().min(0)).required(),
-  strategy: strategySchema
+const pickBRFighterSchema = z.object({
+  type: z.literal("pickBRFighter"),
+  fighter: z.number().int().min(0),
+  equipment: z.array(z.number().int().min(0))
 });
 
-const pickFightersSchema = object({
-  type: string().required().equals(["pickFighters"]),
-  equipment: array(array(number().integer().min(0))).required(),
-  strategy: array(strategySchema)
+const pickFightersSchema = z.object({
+  type: z.literal("pickFighters"),
+  equipment: z.array(z.array(z.number().int().min(0)))
 });
 
-const resignSchema = object({
-  type: string().required().equals(["resign"]),
-  fighter: number().integer().min(0)
+const resignSchema = z.object({
+  type: z.literal("resign"),
+  fighter: z.number().int().min(0)
 });
 
-const repairSchema = object({
-  type: string().required().equals(["repair"]),
-  equipment: number().integer().min(0)
+const repairSchema = z.object({
+  type: z.literal("repair"),
+  equipment: z.number().int().min(0)
 });
+
+
 
 export default class MayhemManager extends GameLogicHandlerBase {
   settings: Settings
   decks?: {
-    fighters: FighterDeck,
-    equipment: EquipmentDeck,
-    maps: MapDeck
+    fighters: FighterTemplate[],
+    equipment: EquipmentTemplate[]
   }
   declare gameStage: MayhemManagerGameStage
   teams?: (Team | PreseasonTeam)[]
@@ -145,12 +142,8 @@ export default class MayhemManager extends GameLogicHandlerBase {
   constructor(room: GameRoom) {
     super(room);
     this.settings = {
-      fighterDecks: ["default"],
-      equipmentDecks: ["default"],
-      mapDecks: ["default"],
       customFighters: [],
-      customEquipment: [],
-      customMaps: []
+      customEquipment: []
     };
     this.gameStage = "preseason";
     this.teams = [];
@@ -181,14 +174,14 @@ export default class MayhemManager extends GameLogicHandlerBase {
       });
 
       // JOIN
-    } else if (joinSchema.isValidSync(action) &&
+    } else if (joinSchema.safeParse(action).success &&
         this.gameStage === "preseason" &&
         teamControlledByViewer === null &&
         this.teams.length < 16) {
       this.addTeam(viewer.index);
 
       // LEAVE
-    } else if (leaveSchema.isValidSync(action) &&
+    } else if (leaveSchema.safeParse(action).success &&
         teamControlledByViewer !== null) {
       teamControlledByViewer.controller = "bot";
       this.emitEventToAll({
@@ -197,7 +190,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
       });
 
       // REPLACE
-    } else if (replaceSchema.isValidSync(action) &&
+    } else if (replaceSchema.safeParse(action).success &&
         teamControlledByViewer === null &&
         action.team < this.teams.length &&
         this.teams[action.team].controller === "bot") {
@@ -216,7 +209,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
       }
 
       // REMOVE
-    } else if (removeSchema.isValidSync(action) &&
+    } else if (removeSchema.safeParse(action).success &&
         this.gameStage === "preseason" &&
         isHost &&
         action.team < this.teams.length) {
@@ -227,18 +220,18 @@ export default class MayhemManager extends GameLogicHandlerBase {
       });
 
       // ADD BOT
-    } else if (addBotSchema.isValidSync(action) &&
+    } else if (addBotSchema.safeParse(action).success &&
         this.gameStage === "preseason" &&
         isHost) {
       this.addTeam("bot");
 
       // ADVANCE
-    } else if (advanceSchema.isValidSync(action) &&
+    } else if (advanceSchema.safeParse(action).success &&
         isHost) {
       this.advance();
       
       // PICK (draft)
-    } else if (pickSchema.isValidSync(action) &&
+    } else if (pickSchema.safeParse(action).success &&
         indexControlledByViewer !== null &&
         this.gameStage === "draft") {
       this.pickFighter(indexControlledByViewer, action.index);
@@ -248,13 +241,13 @@ export default class MayhemManager extends GameLogicHandlerBase {
       }
 
       // PICK (free agency)
-    } else if (pickSchema.isValidSync(action) &&
+    } else if (pickSchema.safeParse(action).success &&
         indexControlledByViewer !== null &&
         this.gameStage === "free agency") {
       this.pickFighter(indexControlledByViewer, action.index);
 
       // PASS
-    } else if (passSchema.isValidSync(action) &&
+    } else if (passSchema.safeParse(action).success &&
         indexControlledByViewer !== null &&
         this.gameStage === "free agency") {
       this.emitEventToAll(action);
@@ -265,7 +258,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
       }
 
       // PRACTICE
-    } else if (practiceSchema.isValidSync(action) &&
+    } else if (practiceSchema.safeParse(action).success &&
         this.gameStage === "training" &&
         indexControlledByViewer !== null &&
         !this.ready[indexControlledByViewer] &&
@@ -287,25 +280,25 @@ export default class MayhemManager extends GameLogicHandlerBase {
       }
 
       // PICK BR FIGHTER
-    } else if (pickBRFighterSchema.isValidSync(action) &&
+    } else if (pickBRFighterSchema.safeParse(action).success &&
         this.gameStage === "battle royale" &&
         indexControlledByViewer !== null) {
       this.submitBRPick(indexControlledByViewer, action.fighter, action.equipment);
 
       // PICK FIGHTERS
-    } else if (pickFightersSchema.isValidSync(action) &&
+    } else if (pickFightersSchema.safeParse(action).success &&
         this.gameStage === "tournament" &&
         indexControlledByViewer !== null) {
       this.submitFightPicks(indexControlledByViewer, action.equipment);
 
       // RESIGN
-    } else if (resignSchema.isValidSync(action) &&
+    } else if (resignSchema.safeParse(action).success &&
         this.gameStage === "preseason" &&
         indexControlledByViewer !== null) {
       this.resignFighter(indexControlledByViewer, action.fighter);
 
       // REPAIR
-    } else if (repairSchema.isValidSync(action) &&
+    } else if (repairSchema.safeParse(action).success &&
         this.gameStage === "preseason" &&
         indexControlledByViewer !== null) {
       this.repairEquipment(indexControlledByViewer, action.equipment);
@@ -543,7 +536,6 @@ export default class MayhemManager extends GameLogicHandlerBase {
   simulateBattleRoyale(): void {
     const seeding = simulateFight(
       this.emitEventToAll.bind(this),
-      this.randElement(this.decks.maps.maps),
       {
         randInt: this.randInt.bind(this),
         randReal: this.randReal.bind(this),
@@ -561,7 +553,6 @@ export default class MayhemManager extends GameLogicHandlerBase {
   simulateFight(): void {
     this.nextMatch.winner = simulateFight(
       this.emitEventToAll.bind(this),
-      this.randElement(this.decks.maps.maps),
       {
         randInt: this.randInt.bind(this),
         randReal: this.randReal.bind(this),
@@ -720,6 +711,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
         x: 0,
         y: 0,
         cooldown: 0,
+        charge: 0,
         statusEffects: []
       });
       this.ready[teamIndex] = true;
@@ -740,6 +732,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
               x: 0,
               y: 0,
               cooldown: 0,
+              charge: 0,
               statusEffects: []
             });
           }
@@ -763,6 +756,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
           x: 0,
           y: 0,
           cooldown: 0,
+          charge: 0,
           statusEffects: []
         });
       }
@@ -784,6 +778,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
                 x: 0,
                 y: 0,
                 cooldown: 0,
+                charge: 0,
                 statusEffects: []
               });
             }
@@ -800,25 +795,22 @@ export default class MayhemManager extends GameLogicHandlerBase {
     let firstName;
     // if androgynous, pick a first name from either bank. otherwise pick from the matching bank
     if (gender === "A") {
-      firstName = this.randElement(this.decks.fighters["firstNames" +
+      firstName = this.randElement(fighterNames["firstNames" +
           ["M", "F"][this.randInt(0, 1)]]);
     } else {
-      firstName = this.randElement(this.decks.fighters["firstNames" + gender]);
+      firstName = this.randElement(fighterNames["firstNames" + gender]);
     }
 
-    // in the future, first/last names and abilities should not cross over between decks.
-    // but thats such a minor deal. i do not care.
     const fighter: Fighter = {
-      name: firstName + " " + this.randElement(this.decks.fighters.lastNames),
+      name: firstName + " " + this.randElement(fighterNames.lastNames),
       gender,
       price: 0,
       abilities: {},
       stats: {
-        strength: this.randInt(0, 8),
-        accuracy: this.randInt(0, 8),
-        reflexes: this.randInt(0, 8),
-        energy: this.randInt(0, 8),
-        speed: this.randInt(0, 8),
+        strength: this.randInt(0, 7),
+        accuracy: this.randInt(0, 7),
+        energy: this.randInt(0, 6),
+        speed: this.randInt(1, 8),
         toughness: this.randInt(0, 8)
       },
       attunements: [],
@@ -827,11 +819,10 @@ export default class MayhemManager extends GameLogicHandlerBase {
       flavor: ""
     }
     // 60% of the time, give them an ability. set to 0 right now
-    if (this.randReal() < 0 /* 0.6 */) {
-      const specialTemplate = this.randElement(this.decks.fighters.abilities);
+    if (this.randReal() < 0.5 && this.decks.fighters.length > 0) {
       return {
         ...fighter,
-        ...specialTemplate
+        ...this.randElement(this.decks.fighters)
       }
     }
     this.doAgeBasedDevelopment(fighter);
@@ -845,7 +836,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
       description: "",
       flavor: "",
       yearsOwned: 0,
-      ...this.randElement(this.decks.equipment.equipment),
+      ...this.randElement(this.decks.equipment),
     };
   }
 
@@ -893,16 +884,14 @@ export default class MayhemManager extends GameLogicHandlerBase {
       return {
         ...this.basicViewpointInfo(viewer),
         gameStage: this.gameStage,
-        fightersInBattle: this.fightersInBattle,
-        map: this.map
+        fightersInBattle: this.fightersInBattle
       }
     } else if (this.gameStage === "tournament") {
       return {
         ...this.basicViewpointInfo(viewer),
         gameStage: this.gameStage,
         bracket: this.bracket,
-        fightersInBattle: this.fightersInBattle,
-        map: this.map
+        fightersInBattle: this.fightersInBattle
       }
     }
   }

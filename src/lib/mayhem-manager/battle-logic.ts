@@ -1,6 +1,6 @@
-import { array, number, object, string } from "yup";
+import { z } from "zod";
 import { readFileSync, readdirSync, writeFileSync } from "fs";
-import { EquipmentSlot, type Equipment, type EquipmentDeck, type FighterDeck, type FighterInBattle, type FighterNames, type FighterTemplate, type Map, type MapDeck, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, StatName, Target, Trigger, type TriggeredEffect, type Effect } from "$lib/mayhem-manager/types";
+import { EquipmentSlot, type Equipment, type FighterInBattle, type FighterNames, type FighterTemplate, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, StatName, Target, Trigger, type TriggeredEffect, type Effect, type EquipmentTemplate, ActionAnimation, type Abilities } from "$lib/mayhem-manager/types";
 import type { RNG } from "$lib/types";
 
 const FISTS: Equipment = {
@@ -16,7 +16,9 @@ const FISTS: Equipment = {
         amount: 5
       }],
       cooldown: 5
-    }
+    },
+    danger: 1,  // same as dps, seems like a good baseline
+    dangerStat: StatName.Strength
   },
   yearsOwned: 0,
   price: 0,
@@ -24,122 +26,113 @@ const FISTS: Equipment = {
   flavor: ""
 }
 
-const ability = object();
+
+
+const hpChangeEffect = z.object({
+  type: z.literal("hpChange"),
+  amount: z.number().int()
+});
+
+const damageEffect = z.object({
+  type: z.literal("damage"),
+  amount: z.number()
+});
+
+const statChangeEffect = z.object({
+  type: z.literal("statChange"),
+  stat: z.nativeEnum(StatName),
+  amount: z.number().int(),
+  duration: z.number(),
+  tint: z.array(z.number()).length(4).optional()
+});
+
+const effect = z.union([hpChangeEffect, damageEffect, statChangeEffect]);
+
+const actionAbility = z.object({
+  target: z.nativeEnum(Target),
+  effects: z.array(effect),
+  cooldown: z.number().min(0),
+  danger: z.number(),
+  chargeNeeded: z.number().int().min(0).optional(),
+  dodgeable: z.boolean().optional(),
+  missable: z.boolean().optional(),
+  animation: z.nativeEnum(ActionAnimation).optional(),
+  projectileImg: z.string().optional(),
+  knockback: z.number().optional()
+});
+
+const statChangeAbility = z.object({
+  stat: z.nativeEnum(StatName),
+  amount: z.number()
+});
+
+const triggeredEffect = z.intersection(
+  effect,
+  z.object({
+    trigger: z.nativeEnum(Trigger),
+    target: z.nativeEnum(Target)
+  })
+);
+
+const abilities = z.object({
+  action: actionAbility.optional(),
+  statChanges: z.array(statChangeAbility).optional(),
+  triggeredEffects: z.array(triggeredEffect).optional()
+});
 
 const DECK_FILEPATH_BASE = "src/lib/mayhem-manager/data/";
 export const TICK_LENGTH = 0.2;  // length of a tick in seconds
 const EPSILON = 0.00001;  // to account for rounding errors
 
-const fighterNames: FighterNames =
-    JSON.parse(readFileSync(DECK_FILEPATH_BASE + "fighters/names.json").toString());
-const fighterDecks: Record<string, FighterDeck> = {};
-readdirSync(DECK_FILEPATH_BASE + "fighters").forEach((fileName) => {
-  fighterDecks[fileName.split(".")[0]] =
-      JSON.parse(readFileSync(DECK_FILEPATH_BASE + "fighters/" + fileName).toString()).abilities;
-});
-const equipmentDecks: Record<string, EquipmentDeck> = {};
-readdirSync(DECK_FILEPATH_BASE + "equipment").forEach((fileName) => {
-  equipmentDecks[fileName.split(".")[0]] =
-      JSON.parse(readFileSync(DECK_FILEPATH_BASE + "equipment/" + fileName).toString());
-});
-const mapDecks: Record<string, MapDeck> = {};
-readdirSync(DECK_FILEPATH_BASE + "maps").forEach((fileName) => {
-  mapDecks[fileName.split(".")[0]] =
-      JSON.parse(readFileSync(DECK_FILEPATH_BASE + "maps/" + fileName).toString());
+export const fighterNames: FighterNames =
+    JSON.parse(readFileSync(DECK_FILEPATH_BASE + "names.json").toString());
+const defaultFighters: { fighters: FighterTemplate[] } =
+    JSON.parse(readFileSync(DECK_FILEPATH_BASE + "fighters.json").toString());
+const defaultEquipment: { equipment: EquipmentTemplate[] } =
+    JSON.parse(readFileSync(DECK_FILEPATH_BASE + "equipment.json").toString());
+
+const fighterTemplateSchema = z.object({
+  imgUrl: z.string().max(300),
+  abilities: abilities,
+  price: z.number().min(0).max(100).int(),
+  description: z.string().max(300),
+  flavor: z.string().max(300)
 });
 
-const fighterTemplateSchema = object({
-  imgUrl: string().max(300),
-  abilities: array(ability).required(),
-  price: number().min(0).max(100).integer().required(),
-  description: string().max(300),
-  flavor: string().max(300)
+const equipmentTemplateSchema = z.object({
+  name: z.string().min(1).max(100),
+  imgUrl: z.string().max(300),
+  slots: z.array(z.nativeEnum(EquipmentSlot)),
+  abilities: z.array(abilities),
+  price: z.number().min(0).max(100).int(),
+  description: z.string().max(300),
+  flavor: z.string().max(300)
 });
 
-const equipmentTemplateSchema = object({
-  name: string().required().min(1).max(100),
-  imgUrl: string().max(300).required(),
-  slots: array(string().oneOf(Object.values(EquipmentSlot))).required(),
-  abilities: array(ability).required(),
-  price: number().min(0).max(100).integer().required(),
-  description: string().max(300),
-  flavor: string().max(300)
+const settingsSchema = z.object({
+  useDefaultFighters: z.boolean(),
+  useDefaultEquipment: z.boolean(),
+  customFighters: z.array(fighterTemplateSchema),
+  customEquipment: z.array(equipmentTemplateSchema),
 });
 
-const mapFeatureSchema = object();
-
-const mapSchema = object({
-  name: string().required().min(1).max(100),
-  imgUrl: string().required().min(1).max(300),
-  features: array(mapFeatureSchema).required()
-});
-
-const settingsSchema = object({
-  fighterDecks: array(string().min(0).max(100)).required(),
-  equipmentDecks: array(string().min(0).max(100)).required(),
-  mapDecks: array(string().min(0).max(100)).required(),
-  customFighters: array(fighterTemplateSchema).required(),
-  customEquipment: array(equipmentTemplateSchema).required(),
-  customMaps: array(mapSchema).required()
-});
-
-const changeGameSettingsSchema = object({
-  type: string().required().equals(["changeGameSettings"]),
-  settings: settingsSchema.required()
+const changeGameSettingsSchema = z.object({
+  type: z.literal("changeGameSettings"),
+  settings: settingsSchema
 });
 
 export function settingsAreValid(settings: unknown): boolean {
-  return changeGameSettingsSchema.isValidSync(settings);
+  return changeGameSettingsSchema.safeParse(settings).success;
 }
 
 // Merge all the decks of settings into a single deck
 export function collatedSettings(settings: Settings): {
-  fighters: FighterDeck,
-  equipment: EquipmentDeck,
-  maps: MapDeck
+  fighters: FighterTemplate[],
+  equipment: EquipmentTemplate[],
 } {
-  // create empty decks
-  const fighterDeck: FighterDeck = {
-    abilities: settings.customFighters,
-    ...fighterNames
-  }
-  const equipmentDeck: EquipmentDeck = {
-    equipment: settings.customEquipment
-  }
-  const mapDeck: MapDeck = {
-    maps: settings.customMaps
-  }
-
-  for (const deck of settings.fighterDecks.map(deckName => fighterDecks[deckName])
-      .filter(deck => deck !== undefined)) {
-    fighterDeck.abilities = fighterDeck.abilities.concat(deck.abilities);
-  }
-  for (const deck of settings.equipmentDecks.map(deckName => equipmentDecks[deckName])
-      .filter(deck => deck !== undefined)) {
-    equipmentDeck.equipment = equipmentDeck.equipment.concat(deck.equipment);
-  }
-  for (const deck of settings.mapDecks.map(deckName => mapDecks[deckName])
-      .filter(deck => deck !== undefined)) {
-    mapDeck.maps = mapDeck.maps.concat(deck.maps);
-  }
-
-  // Add defaults to empty decks
-  for (const key in fighterDeck) {
-    if (fighterDeck[key].length === 0) {
-      fighterDeck[key] = fighterDecks["default"][key];
-    }
-  }
-  if (equipmentDeck.equipment.length === 0) {
-    equipmentDeck.equipment = equipmentDecks["default"].equipment;
-  }
-  if (mapDeck.maps.length === 0) {
-    mapDeck.maps = mapDecks["default"].maps;
-  }
-
   return {
-    fighters: fighterDeck,
-    equipment: equipmentDeck,
-    maps: mapDeck
+    fighters: settings.customFighters.concat(defaultFighters.fighters),
+    equipment: settings.customEquipment.concat(defaultEquipment.equipment)
   }
 }
 
@@ -191,33 +184,28 @@ export function isValidEquipmentTournament(team: Team, equipment: number[][]): b
 // Simulate the fight and return the order of teams in it, going from winner to first out
 export function simulateFight(
   eventEmitter: (event: MayhemManagerEvent) => void,
-  map: Map,
   rng: RNG,
   fighters: FighterInBattle[]
 ): number[] {
-  const fight = new Fight(map, rng, fighters);
+  const fight = new Fight(rng, fighters);
   fight.simulate();
   eventEmitter({
     type: "fight",
-    map,
     eventLog: fight.eventLog
   });
   return fight.placementOrder;
 }
 
 class Fight {
-  private map: Map
   private rng: RNG
   private fighters: FighterInBattle[]
   eventLog: MidFightEvent[][]
   placementOrder: number[]
 
   constructor(
-    map: Map,
     rng: RNG,
     fighters: FighterInBattle[]
   ) {
-    this.map = map;
     this.rng = rng;
     // clone each fighter and their stats and abilities objects so we can mutate them temporarily
     this.fighters = fighters.map((f) => {
@@ -287,36 +275,36 @@ class Fight {
       if (f.hp <= 0) return;  // do nothing if fighter is down
       const closest = this.closestEnemy(f);
       if (!closest) return;  // in case your teammate downed the last enemy
+      // time it would take to get within melee range of closest
+      const timeToClosest = Math.max(distance(f, closest) - 2, 0) / Math.max(2.5 + f.stats.speed / 2, 0.5);
+      const engaged = distance(f, closest) <= 5;
 
-      const closestDistance = distance(f, closest);
-      const distanceMovableByCooldownEnd = f.cooldown * Math.max(2.5 + f.stats.speed / 2, 0) * TICK_LENGTH;
-
-      // if the fighter is within melee range and their cooldown is over, they attack and then
-      // run away.
-      // if the fighter has a ranged ability and their cooldown is over, they shoot the nearest enemy.
-      // if the fighter has a ranged ability and their cooldown ends in <1 second, they stand still.
-      // if the fighter has a ranged ability but can't use it in <1 second, they run away.
-      // if they can't reach the target by the time their cooldown ends, they run towards the
-      // target and do a melee attack if within range.
-      // if they can reach the target by the time their cooldown ends, they run away.
-      if (closestDistance <= 2 && f.cooldown < EPSILON) {
-        this.doAction(f, tick);
-        this.moveAwayFromTarget(f, closest, tick);
-      } else if (
-        f.equipment.find(e => e.abilities.action && e.abilities.action.target !== Target.Melee)
-      ) {
-        if (f.cooldown < EPSILON) {
-          this.doAction(f, tick);
-        } else if (f.cooldown > 1 + EPSILON) {
-          this.moveAwayFromTarget(f, closest, tick);
+      let bestAction: Abilities;
+      let bestActionDanger = 0;
+      for (const e of (f.equipment as { abilities: Abilities }[]).concat(f)) {
+        if (e.abilities.action) {
+          let actionDanger = danger(f, e.abilities);
+          if (e.abilities.action.target === Target.Melee) {
+            actionDanger += 5 - timeToClosest;
+          }
+          if (actionDanger > bestActionDanger) {
+            bestActionDanger = actionDanger
+            bestAction = e.abilities;
+          }
         }
-      } else if (distanceMovableByCooldownEnd < closestDistance) {
-        this.moveTowardsTarget(f, closest, tick);
-        if (distance(f, closest) <= 2 && f.cooldown < EPSILON) {
-          this.doAction(f, tick);
+      }
+      
+      if (bestAction.action.target === Target.Melee) {
+        // find the most engageable enemy fighter, taking into account distance
+        const e = engageability(f);
+        let bestTarget: FighterInBattle;
+        let bestEngageability = -100000000;
+        for (const f2 of this.fighters) {
+          if (f2.team !== f.team) {
+            const timeToEnemy = Math.max(distance(f, f2) - 2, 0) / Math.max(2.5 + f.stats.speed / 2, 0.5);
+            const e2 = engageability(f2);
+          }
         }
-      } else {
-        this.moveAwayFromTarget(f, closest, tick);
       }
 
       // tick down status effects, and end them if they're done
@@ -427,6 +415,16 @@ class Fight {
     return distanceToMove;
   }
 
+  charge(f: FighterInBattle, tick: MidFightEvent[]): void {
+    f.charge += 1;
+    f.cooldown = Math.max(1.5, 9 - 0.6 * f.stats.energy);
+    tick.push({
+      type: "charge",
+      fighter: this.fighters.indexOf(f),
+      newChange: f.charge
+    });
+  }
+
   doAction(f: FighterInBattle, tick: MidFightEvent[]): void {
     const distanceBetween = distance(f, this.closestEnemy(f));
     
@@ -463,9 +461,10 @@ class Fight {
       // they have a 25% chance to miss.
       const missed = equipmentUsed.abilities.action.missable &&
           this.rng.randReal() < (15 - f.stats.accuracy) / 20;
+      // the fighter being attacked has a 2% change to dodge for each point of speed they have.
       const dodged = equipmentUsed.abilities.action.dodgeable &&
           !missed &&
-          this.rng.randReal() < Math.max(t.stats.reflexes / 20, 0.25);
+          this.rng.randReal() < Math.max(t.stats.speed / 50, 0.3);
       
       if (!missed && !dodged) {
         // trigger all the weapon's effects
@@ -519,8 +518,7 @@ class Fight {
         });
       }
     });
-    // cooldown is set by the weapon. it is reduced by 0% if 0 energy, 50% if 10 energy.
-    f.cooldown = equipmentUsed.abilities.action.cooldown * (1 - 0.05 * f.stats.energy);
+    f.cooldown = equipmentUsed.abilities.action.cooldown;
   }
 
   doEffect(
@@ -654,4 +652,37 @@ function scaleVectorToMagnitude(x: number, y: number, magnitude: number): [numbe
     Math.pow(x, 2) / Math.pow(currentMagnitudeSquared, 2) * Math.sign(x) * magnitude,
     Math.pow(y, 2) / Math.pow(currentMagnitudeSquared, 2) * Math.sign(y) * magnitude
   ];
+}
+
+function engageability(f: FighterInBattle): number {
+  const effectiveHp = f.hp * (0.75 + f.stats.toughness / 20) / (1 - f.stats.speed / 50);
+
+  let bestActionDanger = 0;
+  let passiveDanger = 0;
+  for (const e of (f.equipment as { abilities: Abilities }[]).concat(f)) {
+    if (e.abilities.action) {
+      bestActionDanger = Math.max(bestActionDanger, danger(f, e.abilities));
+    } else {
+      passiveDanger += danger(f, e.abilities);
+    }
+  }
+
+  return (50 + 10 * (bestActionDanger + passiveDanger)) / (50 + effectiveHp);
+}
+
+function danger(f: FighterInBattle, a: Abilities): number {
+  let d = a.danger;
+  // if therer is a relevant stat (strength or accuracy), adjust by it
+  if (a.dangerStat) {
+    d *= 0.5 + 10 * f.stats[a.dangerStat];
+  }
+  // if it needs to charge, multiply based on how soon it will be charged, relevant to a fighter
+  // with 0 charge and 0 energy
+  if (a.action && a.action.chargeNeeded) {
+    d *= 1 -
+        (a.action.chargeNeeded - f.charge) *  // charges still needed
+        (9 - 0.6 * f.abilities.action.chargeNeeded) /   // time per charge
+        (9 * f.abilities.action.chargeNeeded);          // time needed if 0 charge and 0 energy
+  }
+  return d;
 }

@@ -76,6 +76,7 @@ export function simTestFight(params?: TestParams): FightRecord {
         x: 0,
         y: 0,
         cooldown: 0,
+        charge: 0,
         statusEffects: []
       });
     }
@@ -162,7 +163,6 @@ function randomFighterStats(): FighterStats {
     accuracy: Math.floor(Math.random() * 11),
     energy: Math.floor(Math.random() * 11),
     speed: Math.floor(Math.random() * 11),
-    reflexes: Math.floor(Math.random() * 11),
     toughness: Math.floor(Math.random() * 11)
   };
 }

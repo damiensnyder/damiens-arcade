@@ -4,51 +4,54 @@ import type GameRoom from "$lib/backend/game-room";
 import { Side, TurnPart, type Winner } from "$lib/auction-tic-tac-toe/types";
 import type { AuctionTTTGameStage, AuctionTTTViewpoint, Player, Settings } from "$lib/auction-tic-tac-toe/types";
 import { getPlayerByController, getSideByController, oppositeSideOf, winningSide } from "$lib/auction-tic-tac-toe/utils";
-import { array, boolean, number, object, string } from "yup";
+import { z } from "zod";
 
-const changeGameSettingsSchema = object({
-  type: string().required().equals(["changeGameSettings"]),
-  settings: object({
-    startingMoney: number().required().integer().min(0),
-    startingPlayer: string().required().oneOf(Object.values(Side)),
-    useTiebreaker: boolean().required()
+const changeGameSettingsSchema = z.object({
+  type: z.literal("changeGameSettings"),
+  settings: z.object({
+    startingMoney: z.number().int().min(0),
+    startingPlayer: z.nativeEnum(Side),
+    useTiebreaker: z.boolean()
   })
 });
 
-const joinSchema = object({
-  type: string().required().equals(["join"]),
-  side: string().required().oneOf([Side.X, Side.O])
+const joinSchema = z.object({
+  type: z.literal("join"),
+  side: z.union([
+    z.literal(Side.X),
+    z.literal(Side.O)
+  ])
 });
 
-const leaveSchema = object({
-  type: string().required().equals(["leave"])
+const leaveSchema = z.object({
+  type: z.literal("leave")
 });
 
-const startGameSchema = object({
-  type: string().required().equals(["start"])
+const startGameSchema = z.object({
+  type: z.literal("start")
 });
 
-const nominateSchema = object({
-  type: string().required().equals(["nominate"]),
-  square: array().required().length(2).of(number().min(0).max(2)),
-  startingBid: number().required().min(0)
+const nominateSchema = z.object({
+  type: z.literal("nominate"),
+  square: z.array(z.number().min(0).max(2)).length(2),
+  startingBid: z.number().min(0)
 });
 
-const bidSchema = object({
-  type: string().required().equals(["bid"]),
-  amount: number().required().min(0)
+const bidSchema = z.object({
+  type: z.literal("bid"),
+  amount: z.number().min(0)
 });
 
-const passSchema = object({
-  type: string().required().equals(["pass"])
+const passSchema = z.object({
+  type: z.literal("pass")
 });
 
-const rematchSchema = object({
-  type: string().required().equals(["rematch"])
+const rematchSchema = z.object({
+  type: z.literal("rematch")
 });
 
-const backToSettingsSchema = object({
-  type: string().required().equals(["backToSettings"])
+const backToSettingsSchema = z.object({
+  type: z.literal("backToSettings")
 });
 
 export default class AuctionTicTacToe extends GameLogicHandlerBase {
@@ -88,7 +91,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
     const isHost = this.room.host === viewer.index;
 
     // JOIN
-    if (joinSchema.isValidSync(action) &&
+    if (joinSchema.safeParse(action).success &&
         sideControlledByViewer === Side.None &&
         this.players[action.side].controller === undefined) {
       this.players[action.side].controller = viewer.index;
@@ -99,7 +102,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       });
 
       // LEAVE
-    } else if (leaveSchema.isValidSync(action) &&
+    } else if (leaveSchema.safeParse(action).success &&
         this.gameStage === "pregame" &&
         playerControlledByViewer !== null) {
       delete playerControlledByViewer.controller;
@@ -107,7 +110,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
         type: "leave",
         side: sideControlledByViewer
       });
-    } else if (changeGameSettingsSchema.isValidSync(action) &&
+    } else if (changeGameSettingsSchema.safeParse(action).success &&
         this.room.host === viewer.index) {
       this.settings = action.settings as Settings;
       this.emitEventToAll({
@@ -116,7 +119,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       });
 
       // START
-    } else if (startGameSchema.isValidSync(action) &&
+    } else if (startGameSchema.safeParse(action).success &&
         this.gameStage === "pregame" &&
         isHost &&
         this.players.X.controller !== undefined &&
@@ -128,7 +131,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       });
 
       // NOMINATE
-    } else if (nominateSchema.isValidSync(action) &&
+    } else if (nominateSchema.safeParse(action).success &&
         this.gameStage === "midgame" &&
         this.squares[action.square[0]][action.square[1]] === Side.None &&
         sideControlledByViewer === this.whoseTurnToNominate &&
@@ -153,7 +156,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       }
 
       // BID
-    } else if (bidSchema.isValidSync(action) &&
+    } else if (bidSchema.safeParse(action).success &&
         this.gameStage === "midgame" &&
         sideControlledByViewer === this.whoseTurnToBid &&
         action.amount <= playerControlledByViewer.money &&
@@ -172,7 +175,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       }
 
       // PASS
-    } else if (passSchema.isValidSync(action) &&
+    } else if (passSchema.safeParse(action).success &&
         this.gameStage === "midgame" &&
         sideControlledByViewer === this.whoseTurnToBid) {
       this.emitEventToAll({ type: "pass" });
@@ -180,7 +183,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       this.giveSquareToHighestBidder();
 
       // REMATCH
-    } else if (rematchSchema.isValidSync(action) &&
+    } else if (rematchSchema.safeParse(action).success &&
         this.gameStage === "postgame" &&
         this.players.X.controller !== undefined &&
         this.players.O.controller !== undefined &&
@@ -192,7 +195,7 @@ export default class AuctionTicTacToe extends GameLogicHandlerBase {
       });
     
       // BACK TO SETTINGS
-    } else if (backToSettingsSchema.isValidSync(action) &&
+    } else if (backToSettingsSchema.safeParse(action).success &&
         this.gameStage === "postgame" &&
         this.room.host === viewer.index) {
       this.gameStage = "pregame";

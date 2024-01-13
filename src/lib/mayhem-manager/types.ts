@@ -46,14 +46,12 @@ interface TrainingViewpoint extends ViewpointBase {
 interface BRViewpoint extends ViewpointBase {
   gameStage: "battle royale"
   fightersInBattle?: FighterInBattle[]
-  map?: number
 }
 
 interface TournamentViewpoint extends ViewpointBase {
   gameStage: "tournament"
   bracket: Bracket
   fightersInBattle?: FighterInBattle[]
-  map?: number
 }
 
 export interface Team {
@@ -86,7 +84,6 @@ export enum StatName {
   Accuracy = "accuracy",
   Energy = "energy",
   Speed = "speed",
-  Reflexes = "reflexes",
   Toughness = "toughness"
 }
 
@@ -102,6 +99,7 @@ export interface FighterInBattle extends Fighter {
   x: number
   y: number
   cooldown: number
+  charge: number
   statusEffects: StatChangeEffect[]
 }
 
@@ -188,6 +186,7 @@ export interface ActionAbility {
   target: Target
   effects: Effect[]
   cooldown: number
+  chargeNeeded?: number
   dodgeable?: boolean
   missable?: boolean
   animation?: ActionAnimation
@@ -199,25 +198,15 @@ export interface Abilities {
   action?: ActionAbility
   statChanges?: StatChangeAbility[]
   triggeredEffects?: TriggeredEffect[]
+  danger: number
+  dangerStat?: StatName.Strength | StatName.Accuracy
 }
 
 
-
-export interface Map {
-  name: string
-  imgUrl: string
-  features: any[]
-}
-
-export interface Strategy {}
 
 export interface Settings {
-  fighterDecks: string[]
-  equipmentDecks: string[]
-  mapDecks: string[]
   customFighters: FighterTemplate[]
   customEquipment: EquipmentTemplate[]
-  customMaps: Map[]
 }
 
 export interface FighterNames {
@@ -226,20 +215,12 @@ export interface FighterNames {
   lastNames: string[]
 }
 
-export interface FighterDeck extends FighterNames {
-  abilities: FighterTemplate[]
-}
-
 export interface FighterTemplate {
   imgUrl?: string
   description?: string
   flavor?: string
   price: number
   abilities: Abilities
-}
-
-export interface EquipmentDeck {
-  equipment: EquipmentTemplate[]
 }
 
 export interface EquipmentTemplate {
@@ -251,10 +232,6 @@ export interface EquipmentTemplate {
   description: string
   flavor: string
   abilities: Abilities
-}
-
-export interface MapDeck {
-  maps: Map[]
 }
 
 
@@ -309,13 +286,11 @@ interface PickBRFighterAction {
   type: "pickBRFighter"
   fighter: number
   equipment: number[]
-  strategy: Strategy
 }
 
 interface PickFightersAction {
   type: "pickFighters"
   equipment: number[]
-  strategy: Strategy[]
 }
 
 interface ResignAction {
@@ -417,7 +392,6 @@ interface GoToBREvent {
 
 interface FightEvent {
   type: "fight"
-  map: Map
   eventLog: MidFightEvent[][]
 }
 
@@ -466,13 +440,26 @@ export interface MFHpChangeEvent {
   newHp: number
 }
 
+export interface MFChargeStartEvent {
+  type: "chargeStart"
+  fighter: number
+}
+
+export interface MFChargeEvent {
+  type: "charge"
+  fighter: number
+  newChange: number
+}
+
 export type MidFightEvent = MFSpawnEvent |
     MFMoveEvent |
     MFAnimationEvent |
     MFProjectileEvent |
     MFTextEvent |
     MFTintEvent |
-    MFHpChangeEvent;
+    MFHpChangeEvent |
+    MFChargeStartEvent |
+    MFChargeEvent;
 
 
 

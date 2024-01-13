@@ -3,15 +3,18 @@ import type GameLogicHandler from "./game-logic-handler-base";
 import AuctionTicTacToe from "../auction-tic-tac-toe/game-logic-handler";
 import { GameType, PacketType } from "../types";
 import type { PacketInfo, PublicRoomInfo, TeardownCallback, Viewer } from "../types";
-import { boolean, object, string } from "yup";
+import { z } from "zod";
 import MayhemManager from "../mayhem-manager/game-logic-handler";
 
 const TEARDOWN_TIME: number = 60 * 60 * 1000; // one hour
 
-const changeSettingsSchema = object({
-  type: string().equals(["changeRoomSettings"]),
-  roomName: string().required(),
-  isPublic: boolean().required()
+const changeSettingsSchema = z.object({
+  type: z.literal("changeRoomSettings"),
+  roomName: z.string()
+      .trim()
+      .min(1, "Room name must be at least one character long.")
+      .max(50, "Room name cannot be longer than 50 characters."),
+  isPublic: z.boolean()
 });
 
 export default class GameRoom {
@@ -154,7 +157,7 @@ export default class GameRoom {
 
   shouldChangeSettings(viewer: Viewer, data?: any): boolean {
     return viewer.index === this.host &&
-        changeSettingsSchema.isValidSync(data);
+        changeSettingsSchema.safeParse(data).success;
   }
 
   changeSettings(newSettings: { roomName: string, isPublic: boolean }): void {

@@ -19,5 +19,6 @@
 			"$lib/*": ["src/lib/*"]
 		}
 	},
-	"include": ["src/**/*.d.ts", "src/**/*.js", "src/**/*.ts", "src/**/*.svelte", "app.ts"]
+	"include": ["src/**/*.d.ts", "src/**/*.js", "src/**/*.ts", "src/**/*.svelte", "app.ts"],
+	"exclude": ["src/lib/test/mayhem-manager/start-sim-test-fight.js"]
 }
