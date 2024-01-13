@@ -24,7 +24,9 @@ const FISTS: Equipment = {
   price: 0,
   description: "",
   flavor: ""
-}
+};
+const CROWDING_DISTANCE = 3;  // at less than this distance, fighters repel
+const MELEE_RANGE = 4;  // at less than this distance, fighters repel
 
 
 
@@ -279,14 +281,14 @@ class Fight {
       const ownEngageability = engageability(f);
 
       let bestAction: Abilities;
-      let bestActionDanger = 0;
+      let bestActionDanger = null;
       for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
         if (e.abilities.action) {
           let actionDanger = danger(f, e.abilities);
           if (e.abilities.action.target === Target.Melee) {
             actionDanger += 5 - timeToClosest;
           }
-          if (actionDanger > bestActionDanger) {
+          if (bestActionDanger === null || actionDanger > bestActionDanger) {
             bestActionDanger = actionDanger
             bestAction = e.abilities;
           }
@@ -320,11 +322,11 @@ class Fight {
             bestTimeToEnemy = timeToEnemy;
           }
         }
-        if (bestTimeToEnemy < f.cooldown - 1) {
-          this.moveAwayFromTarget(f, bestTarget, tick);
+        if (bestTimeToEnemy < f.cooldown - 0.5) {
+          this.moveAwayFromTarget(f, closestEnemy, tick);
         } else {
           this.moveTowardsTarget(f, bestTarget, tick);
-          if (f.cooldown <= EPSILON && distance(f, bestTarget) <= 2) {
+          if (f.cooldown <= EPSILON && distance(f, bestTarget) <= MELEE_RANGE) {
             let attuned = (bestAction as unknown as Equipment).name && f.attunements.includes((bestAction as unknown as Equipment).name);
             this.doAction(f, bestAction, attuned, tick);
           }
@@ -408,10 +410,23 @@ class Fight {
   moveTowardsTarget(f: FighterInBattle, target: FighterInBattle, tick: MidFightEvent[]): number {
     const distanceToTarget = distance(f, target);
     const distanceToMove = Math.max(Math.min((2.5 + f.stats.speed / 2) * TICK_LENGTH,
-                                    distanceToTarget - 1.5), 0);
-    const [deltaX, deltaY] = scaleVectorToMagnitude(target.x - f.x, target.y - f.y, distanceToMove);
+                                    distanceToTarget - CROWDING_DISTANCE), 0);
+    let [deltaX, deltaY] = scaleVectorToMagnitude(target.x - f.x, target.y - f.y, distanceToMove);
+
+    // if too close to the wall, change direction to be less close to the wall.
+    if (f.x + deltaX < CROWDING_DISTANCE) {
+      deltaX = Math.abs(deltaX);
+    } else if (f.x + deltaX > 100 - CROWDING_DISTANCE) {
+      deltaX = -Math.abs(deltaX);
+    }
+    if (f.y + deltaY < CROWDING_DISTANCE) {
+      deltaY = Math.abs(deltaY);
+    } else if (f.y + deltaY > 100 - CROWDING_DISTANCE) {
+      deltaY = -Math.abs(deltaY);
+    }
     f.x += deltaX;
     f.y += deltaY;
+    this.uncrowd(f);
     tick.push({
       type: "move",
       fighter: this.fighters.findIndex(f2 => f2 === f),
@@ -427,25 +442,38 @@ class Fight {
     let [deltaX, deltaY] = scaleVectorToMagnitude(f.x - target.x, f.y - target.y, distanceToMove);
 
     // if too close to the wall, change direction to be less close to the wall.
-    if (f.x + deltaX < 5 || f.x + deltaX > 95) {
-      deltaX *= -1;
+    if (f.x + deltaX < CROWDING_DISTANCE) {
+      deltaX = Math.abs(deltaX);
+    } else if (f.x + deltaX > 100 - CROWDING_DISTANCE) {
+      deltaX = -Math.abs(deltaX);
     }
-    if (f.y + deltaY < 5 || f.y + deltaY > 95) {
-      deltaY *= -1;
+    if (f.y + deltaY < CROWDING_DISTANCE) {
+      deltaY = Math.abs(deltaY);
+    } else if (f.y + deltaY > 100 - CROWDING_DISTANCE) {
+      deltaY = -Math.abs(deltaY);
     }
     f.x += deltaX;
     f.y += deltaY;
+    this.uncrowd(f);
     tick.push({
       type: "move",
       fighter: this.fighters.findIndex(f2 => f2 === f),
       x: Number(f.x.toFixed(2)),  // round to save data
       y: Number(f.y.toFixed(2))
     });
-    console.log(distanceToMove);
-    console.log(f.stats.speed);
-    console.log(TICK_LENGTH);
-    console.log(1 / 0);
     return distanceToMove;
+  }
+
+  uncrowd(f: FighterInBattle): void {
+    const tooClose = this.fighters.filter(f2 => f2.hp > 0 && distance(f, f2) <= CROWDING_DISTANCE);
+    for (const f2 of tooClose) {
+      // we double the x difference because we care more about crowding in the x direction
+      const [deltaX, deltaY] = scaleVectorToMagnitude(2 * (f.x - f2.x), f.y - f2.y, CROWDING_DISTANCE - distance(f, f2));
+      f.x += deltaX;
+      f.y += deltaY;
+      f.x = Math.min(Math.max(f.x, CROWDING_DISTANCE), 100 - CROWDING_DISTANCE);
+      f.y = Math.min(Math.max(f.y, CROWDING_DISTANCE), 100 - CROWDING_DISTANCE);
+    }
   }
 
   charge(f: FighterInBattle, tick: MidFightEvent[]): void {
@@ -692,7 +720,7 @@ function distance(f1: FighterInBattle, f2: FighterInBattle): number {
 }
 
 function scaleVectorToMagnitude(x: number, y: number, magnitude: number): [number, number] {
-  const currentMagnitude = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+  const currentMagnitude = Math.max(Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)), EPSILON);
   return [
     x / currentMagnitude * magnitude,
     y / currentMagnitude * magnitude
