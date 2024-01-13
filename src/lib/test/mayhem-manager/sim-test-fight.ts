@@ -95,11 +95,6 @@ export function simTestFight(params?: TestParams): FightRecord {
         }
       }
     },
-    {
-      name: "",
-      imgUrl: "",
-      features: []
-    },
     new RNG(params.seed),
     fightersInBattle
   );
@@ -126,7 +121,7 @@ function randomFighter(equipment: EquipmentTemplate[], name: string = ""): Fight
     gender: "A",
     stats: randomFighterStats(),
     attunements: randomAttunements(equipment),
-    abilities: {},
+    abilities: { danger: 0 },
     experience: 0,
     price: 0,
     description: "",
@@ -179,13 +174,9 @@ function randomAttunements(equipment: EquipmentTemplate[]): string[] {
 
 export function simSample(n: number = 1000): void {
   const equipment = collatedSettings({
-    fighterDecks: ["default"],
-    equipmentDecks: ["default"],
-    mapDecks: ["default"],
-    customFighters: [],
-    customEquipment: [],
-    customMaps: []
-  }).equipment.equipment;
+    customFighters: [], 
+    customEquipment: []
+  }).equipment;
   const fights: FightRecord[] = [];
   for (let i = 0; i < n; i++) {
     const isBR = Math.random() < 0.3;
