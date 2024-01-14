@@ -163,13 +163,17 @@ const Bot = {
 function situationQuality(team: Team, gameStage: MayhemManagerGameStage): number {
   let moneyValue = 0.5;  // 1 power in picks + 1 power in BR = $3
   if (gameStage === "free agency") {
-    moneyValue *= 0.7;
+    moneyValue *= 0.8;
   } else if (gameStage === "training") {
     moneyValue *= 0.4;
   }
   // console.log(bestPicks(team));
   // add power, money, and a little bonus for just having more fighters / equipment
-  return bestPicks(team).power + 0.5 * bestPicksBR(team).power + moneyValue * team.money;
+  let stuffBonus = team.equipment.length;
+  for (const f of team.fighters) {
+    stuffBonus += 0.1 * Math.max(1, 20 - f.experience);
+  }
+  return bestPicks(team).power + 0.5 * bestPicksBR(team).power + moneyValue * team.money + stuffBonus;
 }
 
 // Find best possible picks optimizing for sum of power
@@ -299,7 +303,7 @@ function fighterPower(f: FighterInBattle): number {
     }
   }
 
-  return (2.5 + 5 * (bestActionDanger + passiveDanger)) * (0.5 + 0.01 * effectiveHp);
+  return (0.5 + 5 * (bestActionDanger + passiveDanger)) * (0.5 + 0.01 * effectiveHp);
 }
 
 export default Bot;
