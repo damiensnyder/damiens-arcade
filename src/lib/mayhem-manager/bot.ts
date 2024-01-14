@@ -174,6 +174,7 @@ function bestPicks(team: Team): {
   const teamInBattle: FighterInBattle[] = team.fighters.map((f) => {
     return {
       ...f,
+      stats: { ...f.stats },
       team: 0,
       hp: 100,
       equipment: [],
@@ -208,9 +209,12 @@ function bestPicks(team: Team): {
       for (const sc of e.abilities.statChanges || []) {
         f.stats[sc.stat] -= sc.amount;
       }
+      console.log("Fighter:", f.name, "| Equipment:", e.name, "| Old power:", power[j], "| New power:", newPower);
     });
     if (bestFighter !== undefined) {
-      picks[bestFighter].push[i];
+      // console.log("Equipment:", e.name, "| Fighter:", teamInBattle[bestFighter].name);
+      picks[bestFighter].push(i);
+      // console.log(picks);
       teamInBattle[bestFighter].equipment.push(e);
       power[bestFighter] += bestImprovement;
       for (const sc of e.abilities.statChanges || []) {
@@ -219,7 +223,6 @@ function bestPicks(team: Team): {
     }
   });
 
-  console.log(power);
   return {
     picks,
     power: power.reduce((a, b) => a + b, 0)
@@ -237,6 +240,7 @@ function bestPicksBR(team: Team): {
   const teamInBattle: FighterInBattle[] = team.fighters.map((f) => {
     return {
       ...f,
+      stats: { ...f.stats },
       team: 0,
       hp: 100,
       equipment: [],
