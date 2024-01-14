@@ -19,7 +19,8 @@
           ],
           "cooldown": 8,
           "dodgeable": true,
-          "knockback": 0.7
+          "knockback": 0.7,
+          "animation": "swing"
         },
         "danger": 4,
         "dangerStat": "strength"
@@ -44,7 +45,8 @@
           ],
           "cooldown": 3,
           "dodgeable": true,
-          "knockback": 0.5
+          "knockback": 0.5,
+          "animation": "swing"
         },
         "danger": 3,
         "dangerStat": "strength"
@@ -69,7 +71,8 @@
           ],
           "cooldown": 5,
           "dodgeable": true,
-          "knockback": 0.5
+          "knockback": 0.5,
+          "animation": "swing"
         },
         "statChanges": [
           {  
@@ -126,7 +129,8 @@
           ],
           "cooldown": 5,
           "dodgeable": true,
-          "knockback": 0.5
+          "knockback": 0.5,
+          "animation": "swing"
         },
         "danger": 2,
         "dangerStat": "strength"
@@ -151,7 +155,8 @@
           ],
           "cooldown": 3,
           "dodgeable": true,
-          "knockback": 0.5
+          "knockback": 0.5,
+          "animation": "swing"
         },
         "danger": 2,
         "dangerStat": "strength"
@@ -176,7 +181,8 @@
           ],
           "cooldown": 5,
           "dodgeable": true,
-          "knockback": 0.5
+          "knockback": 0.5,
+          "animation": "swing"
         },
         "statChanges": [
           {
@@ -211,7 +217,8 @@
           ],
           "cooldown": 5,
           "dodgeable": true,
-          "knockback": 0.5
+          "knockback": 0.5,
+          "animation": "swing"
         },
         "danger": 2,
         "dangerStat": "strength"
