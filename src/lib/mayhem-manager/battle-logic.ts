@@ -530,12 +530,11 @@ class Fight {
         // if the equipment has knockback, apply that much knockback
         // except it cannot send the fighter out of [5, 95] on either axis
         if (a.action.knockback) {
-          const unitVectorX = Math.pow(t.x - f.x, 2) / Math.pow(distance(f, t), 2);
-          const unitVectorY = Math.pow(t.y - f.y, 2) / Math.pow(distance(f, t), 2);
-          t.x += unitVectorX * a.action.knockback;
-          t.y += unitVectorY * a.action.knockback;
-          t.x = Math.max(Math.min(t.x, 95), 5);
-          t.y = Math.max(Math.min(t.y, 95), 5);
+          const [unitVectorX, unitVectorY] = scaleVectorToMagnitude(t.x - f.x, t.y - f.y, 1);
+          t.x += unitVectorX * a.action.knockback + 0.5 * (Math.random() - 0.5);
+          t.y += unitVectorY * a.action.knockback + 0.5 * (Math.random() - 0.5);
+          t.x = Math.max(Math.min(t.x, 100 - CROWDING_DISTANCE), CROWDING_DISTANCE);
+          t.y = Math.max(Math.min(t.y, 100 - 2 * CROWDING_DISTANCE), CROWDING_DISTANCE);
           tick.push({
             type: "move",
             fighter: this.fighters.findIndex(z => z === t),
