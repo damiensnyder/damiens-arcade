@@ -6,7 +6,7 @@ import type { MayhemManagerGameStage, MayhemManagerViewpoint, ViewpointBase, Tea
 import { StatName } from "$lib/mayhem-manager/types";
 import { z } from "zod";
 import { fighterValue, getIndexByController, getTeamByController, nextMatch } from "$lib/mayhem-manager/utils";
-import { settingsAreValid, collatedSettings, isValidEquipmentTournament, isValidEquipmentBR, simulateFight, TICK_LENGTH, fighterNames } from "$lib/mayhem-manager/battle-logic";
+import { settingsAreValid, collatedSettings, isValidEquipmentTournament, isValidEquipmentFighter, simulateFight, TICK_LENGTH, fighterNames } from "$lib/mayhem-manager/battle-logic";
 import Bot from "$lib/mayhem-manager/bot";
 
 const TEAM_NAME_STARTS = [
@@ -380,7 +380,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
         for (let i = 0; i < this.teams.length; i++) {
           if (!this.ready[i]) {
             const fightPicks = Bot.getFightPicks(this.teams[i]);
-            this.submitFightPicks(i, fightPicks.equipment, false);
+            this.submitFightPicks(i, fightPicks, false);
           }
         }
         this.simulateFight();
@@ -701,12 +701,11 @@ export default class MayhemManager extends GameLogicHandlerBase {
   submitBRPick(teamIndex: number, fighter: number, equipment: number[], doUnreadyBots: boolean = true) {
     if (!this.ready[teamIndex] &&
         fighter < this.teams[teamIndex].fighters.length &&
-        isValidEquipmentBR(this.teams[teamIndex], equipment)) {
+        isValidEquipmentFighter(this.teams[teamIndex], equipment)) {
       this.fightersInBattle.push({
         ...this.teams[teamIndex].fighters[fighter],
         team: teamIndex,
         hp: 100,
-        maxHP: 100,
         equipment: equipment.map((e) => this.teams[teamIndex].equipment[e]),
         x: 0,
         y: 0,
@@ -727,7 +726,6 @@ export default class MayhemManager extends GameLogicHandlerBase {
               ...this.teams[i].fighters[picks.fighter],
               team: i,
               hp: 100,
-              maxHP: 100,
               equipment: picks.equipment.map((e) => this.teams[i].equipment[e]),
               x: 0,
               y: 0,
@@ -751,7 +749,6 @@ export default class MayhemManager extends GameLogicHandlerBase {
           ...this.teams[teamIndex].fighters[i],
           team: teamIndex,
           hp: 100,
-          maxHP: 100,
           equipment: equipment[i].map((e) => this.teams[teamIndex].equipment[e]),
           x: 0,
           y: 0,
@@ -773,8 +770,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
                 ...this.teams[i].fighters[j],
                 team: i,
                 hp: 100,
-                maxHP: 100,
-                equipment: picks.equipment[j].map((e) => this.teams[i].equipment[e]),
+                equipment: picks[j].map((e) => this.teams[i].equipment[e]),
                 x: 0,
                 y: 0,
                 cooldown: 0,

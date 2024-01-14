@@ -94,7 +94,6 @@ export type FighterStats = {
 export interface FighterInBattle extends Fighter {
   team: number
   hp: number
-  maxHP: number
   equipment: Equipment[]
   x: number
   y: number

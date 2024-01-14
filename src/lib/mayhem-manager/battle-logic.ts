@@ -138,7 +138,7 @@ export function collatedSettings(settings: Settings): {
   }
 }
 
-export function isValidEquipmentBR(team: Team, equipment: number[]): boolean {
+export function isValidEquipmentFighter(team: Team, equipment: number[]): boolean {
   const usedEquipmentIds: number[] = [];
   let usedSlots: EquipmentSlot[] = [];
   for (const e of equipment) {
@@ -754,7 +754,7 @@ function engageability(f: FighterInBattle): number {
   return (50 + 10 * ((bestActionDanger || 0) + passiveDanger)) / (50 + effectiveHp);
 }
 
-function buffability(f: FighterInBattle): number {
+export function buffability(f: FighterInBattle): number {
   const effectiveHp = f.hp * (0.75 + f.stats.toughness / 20) / (1 - f.stats.speed / 50);
 
   let bestActionDanger = 0;

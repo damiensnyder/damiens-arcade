@@ -71,7 +71,6 @@ export function simTestFight(params?: TestParams): FightRecord {
         ...team.fighters[j],
         team: i,
         hp: 100,
-        maxHP: 100,
         equipment: team.equipment[j],
         x: 0,
         y: 0,
