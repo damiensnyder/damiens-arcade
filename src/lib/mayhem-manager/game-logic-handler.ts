@@ -81,7 +81,7 @@ const advanceSchema = z.object({
 });
 
 const pickSchema = z.object({
-  type: z.literal("pitck"),
+  type: z.literal("pick"),
   index: z.number().min(0)
 });
 
