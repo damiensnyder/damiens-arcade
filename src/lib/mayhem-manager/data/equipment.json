@@ -100,7 +100,8 @@
           ],
           "cooldown": 5,
           "dodgeable": true,
-          "knockback": 0.5
+          "knockback": 0.5,
+          "animation": "swing"
         },
         "danger": 4,
         "dangerStat": "strength"

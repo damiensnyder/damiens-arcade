@@ -414,6 +414,7 @@ export interface MFAnimationEvent {
   type: "animation"
   fighter: number
   animation: ActionAnimation
+  flipped: boolean
 }
 
 export interface MFProjectileEvent {

@@ -274,12 +274,12 @@ class Fight {
     this.fighters.forEach((f, i) => {
       if (f.hp <= 0) return;  // do nothing if fighter is down
       const closestEnemy = this.closestEnemy(f);
-      if (!closestEnemy) return;  // in case your teammate downed the last enemy this tick
+      if (!closestEnemy) return;  // do nothing if a teammate just downed the last enemy this tick
       // time it would take to get within melee range of closest
       const timeToClosest = Math.max(distance(f, closestEnemy) - 2, 0) / Math.max(2.5 + f.stats.speed / 2, 0.5);
       const engaged = distance(f, closestEnemy) <= 5;
       const ownEngageability = engageability(f);
-      // console.log("Own engageability: ", ownEngageability);
+      // console.log("Name:", f.name, "| Own engageability:", ownEngageability.toFixed(3));
 
       let bestAction: Abilities;
       let bestActionDanger: number;
@@ -313,11 +313,7 @@ class Fight {
         for (const f2 of this.enemies(f)) {
           const timeToEnemy = Math.max(distance(f, f2) - 2, 0) / Math.max(2.5 + f.stats.speed / 2, 0.5);
           let e2 = engageability(f2);
-          if (timeToEnemy <= 5) {
-            e2 += 0.25;
-          } else {
-            e2 -= 0.05 * timeToEnemy;
-          }
+          e2 -= 0.025 * Math.max(0, timeToEnemy - f.cooldown);
           if (bestEngageability === undefined || e2 >= bestEngageability) {
             bestTarget = f2;
             bestEngageability = e2;
@@ -335,10 +331,11 @@ class Fight {
           }
         }
       } else {
-        this.moveAwayFromTarget(f, closestEnemy, tick);
         if (f.cooldown <= EPSILON) {
           let attuned = (bestAction as unknown as Equipment).name && f.attunements.includes((bestAction as unknown as Equipment).name);
           this.doAction(f, bestAction, attuned, tick);
+        } else if (distance(f, closestEnemy) < 20) {
+          this.moveAwayFromTarget(f, closestEnemy, tick);
         }
       }
 
@@ -491,15 +488,21 @@ class Fight {
   }
 
   doAction(f: FighterInBattle, a: Abilities, attuned: boolean, tick: MidFightEvent[]): void {
+    const targets = this.targetsAffected(a.action.target, f);
+
     if (a.action.animation) {
+      let flipped = false;
+      if (targets.length >= 1) {
+        flipped = targets[0].x > f.x;
+      }
       tick.push({
         type: "animation",
         fighter: this.fighters.findIndex(f2 => f2 === f),
-        animation: a.action.animation
+        animation: a.action.animation,
+        flipped
       });
     }
     
-    const targets = this.targetsAffected(a.action.target, f);
     targets.forEach((t) => {
       // if the fighter has 0 accuracy, they have a 75% chance to miss. if they have 10 accuracy,
       // they have a 25% chance to miss.
@@ -738,15 +741,15 @@ function engageability(f: FighterInBattle): number {
   let passiveDanger = 0;
   for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
     if (e.abilities.action) {
-      if (bestActionDanger === undefined) {
-        bestActionDanger = danger(f, e.abilities);
-      } else {
-        bestActionDanger = Math.max(bestActionDanger, danger(f, e.abilities));
+      const actionDanger = danger(f, e.abilities)
+      if (bestActionDanger === undefined || actionDanger > bestActionDanger) {
+        bestActionDanger = actionDanger;
       }
     } else {
       passiveDanger += danger(f, e.abilities);
     }
   }
+  // console.log("Name:", f.name, "| Danger:", (bestActionDanger || 0) + passiveDanger, "| Effective HP:", effectiveHp);
 
   return (50 + 10 * ((bestActionDanger || 0) + passiveDanger)) / (50 + effectiveHp);
 }

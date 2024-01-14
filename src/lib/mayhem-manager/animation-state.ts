@@ -1,5 +1,5 @@
 
-import type { FighterInBattle, MFAnimationEvent, MFMoveEvent, MFTextEvent, MFSpawnEvent, MidFightEvent, MFTintEvent, MFProjectileEvent, MFHpChangeEvent } from "$lib/mayhem-manager/types";
+import type { FighterInBattle, MFAnimationEvent, MFMoveEvent, MFTextEvent, MFSpawnEvent, MidFightEvent, MFProjectileEvent, MFHpChangeEvent } from "$lib/mayhem-manager/types";
 import { ColorMatrixFilter } from "pixi.js";
 import { watchingFight } from "./stores";
 
@@ -147,7 +147,6 @@ export default class AnimationState {
           event = event as MFProjectileEvent;
           const f = this.fighters[event.fighter];
           const t = this.nextFighters[event.target];
-          this.nextFlipped[event.fighter] = f.x > t.x;
           this.particles.push({
             type: "image",
             x: f.x,
@@ -192,6 +191,7 @@ export default class AnimationState {
       const tick2Away = this.eventLog[this.tick + 2];
       tick2Away.filter(e => e.type === "animation").forEach((e) => {
         e = e as MFAnimationEvent;
+        this.nextFlipped[e.fighter] = e.flipped;
         if (e.animation === "swing") {
           this.nextRotation[e.fighter] = RotationState.BackswingStart;
         } else if (e.animation === "aim") {
@@ -225,7 +225,7 @@ export default class AnimationState {
   getFlipped(delta: number): number[] {
     return this.flipped.map((f1, i) => {
       const f2 = this.nextFlipped[i];
-      return (f2 ? 1 : -1) * delta + (f1 ? 1 : -1) * (1 - delta);
+      return (f2 ? -1 : 1) * delta + (f1 ? -1 : 1) * (1 - delta);
     });
   }
 
