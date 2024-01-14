@@ -750,7 +750,7 @@ function engageability(f: FighterInBattle): number {
   }
   // console.log("Name:", f.name, "| Danger:", (bestActionDanger || 0) + passiveDanger, "| Effective HP:", effectiveHp);
 
-  return (50 + 10 * ((bestActionDanger || 0) + passiveDanger)) / (50 + effectiveHp);
+  return (50 + 20 * ((bestActionDanger || 0) + passiveDanger)) / (50 + effectiveHp);
 }
 
 export function buffability(f: FighterInBattle): number {

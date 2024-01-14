@@ -435,7 +435,7 @@
     },
     {
       "name": "House Arrest Ankle Bracelet",
-      "slots": ["legs"],
+      "slots": ["feet"],
       "imgUrl": "/static/equipment/house-arrest-ankle-bracelet.png",
       "zoomedImgUrl": "/static/zoomed/equipment/house-arrest-ankle-bracelet.png",
       "price": 13,
