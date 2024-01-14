@@ -1,6 +1,6 @@
 import { StatName } from "$lib/mayhem-manager/types";
-import type { Equipment, Fighter, FighterInBattle, PreseasonTeam, Team } from "$lib/mayhem-manager/types";
-import { buffability, isValidEquipmentFighter, isValidEquipmentTournament } from "./battle-logic";
+import type { Abilities, Equipment, Fighter, FighterInBattle, MayhemManagerGameStage, PreseasonTeam, Team } from "$lib/mayhem-manager/types";
+import { FISTS, danger, isValidEquipmentFighter } from "./battle-logic";
 
 const Bot = {
   getPreseasonPicks: function (team: PreseasonTeam): {
@@ -11,13 +11,13 @@ const Bot = {
     // could be better optimized (too greedy as of now) but whatever
     let bestResigns = [];
     let bestRepairs = [];
-    let bestQuality = situationQuality(team);
+    let bestQuality = situationQuality(team, "preseason");
 
     team.needsRepair.forEach((e, i) => {
       if (e.price > team.money) return;
       team.equipment.push(e);
       team.money -= e.price;
-      const newQuality = situationQuality(team);
+      const newQuality = situationQuality(team, "preseason");
       if (newQuality >= bestQuality) {
         bestRepairs.push(i);
         bestQuality = newQuality;
@@ -30,7 +30,7 @@ const Bot = {
       if (f.price > team.money) return;
       team.fighters.push(f);
       team.money -= f.price;
-      const newQuality = situationQuality(team);
+      const newQuality = situationQuality(team, "preseason");
       if (newQuality >= bestQuality) {
         bestResigns.push(i);
         bestQuality = newQuality;
@@ -63,7 +63,7 @@ const Bot = {
 
     fighters.forEach((f, i) => {
       team.fighters.push(f);
-      const newQuality = situationQuality(team);
+      const newQuality = situationQuality(team, "draft");
       if (bestFighter === undefined || newQuality >= bestQuality) {
         bestFighter = i;
         bestQuality = newQuality;
@@ -77,13 +77,13 @@ const Bot = {
     // pick each affordable fighter that improves the team's quality
     // could be better optimized (too greedy as of now) but whatever
     let bestFighters = [];
-    let bestQuality = situationQuality(team);
+    let bestQuality = situationQuality(team, "free agency");
 
     fighters.forEach((f, i) => {
       if (f.price > team.money) return;
       team.fighters.push(f);
       team.money -= f.price;
-      const newQuality = situationQuality(team);
+      const newQuality = situationQuality(team, "free agency");
       if (newQuality >= bestQuality) {
         bestFighters.push(i);
         bestQuality = newQuality;
@@ -109,13 +109,13 @@ const Bot = {
     // pick each affordable equipment that improves the team's quality
     // could be better optimized (too greedy as of now) but whatever
     let bestEquipment = [];
-    let bestQuality = situationQuality(team);
+    let bestQuality = situationQuality(team, "training");
 
     equipment.forEach((e, i) => {
       if (e.price > team.money) return;
       team.equipment.push(e);
       team.money -= e.price;
-      const newQuality = situationQuality(team);
+      const newQuality = situationQuality(team, "training");
       if (newQuality >= bestQuality) {
         bestEquipment.push(i);
         bestQuality = newQuality;
@@ -160,11 +160,19 @@ const Bot = {
 };
 
 // very simple, should be improved
-function situationQuality(team: Team): number {
-  return bestPicks(team).power + bestPicksBR(team).power + 0.5 * team.money;
+function situationQuality(team: Team, gameStage: MayhemManagerGameStage): number {
+  let moneyValue = 0.5;  // 1 power in picks + 1 power in BR = $3
+  if (gameStage === "free agency") {
+    moneyValue *= 0.7;
+  } else if (gameStage === "training") {
+    moneyValue *= 0.4;
+  }
+  // console.log(bestPicks(team));
+  // add power, money, and a little bonus for just having more fighters / equipment
+  return bestPicks(team).power + 0.5 * bestPicksBR(team).power + moneyValue * team.money;
 }
 
-// Find best possible picks optimizing for sum of power / "buffability"
+// Find best possible picks optimizing for sum of power
 function bestPicks(team: Team): {
   picks: number[][],
   power: number
@@ -186,7 +194,7 @@ function bestPicks(team: Team): {
     };
   });
   const picks: number[][] = teamInBattle.map(_ => []);
-  const power: number[] = teamInBattle.map(f => buffability(f));
+  const power: number[] = teamInBattle.map(f => fighterPower(f));
 
   // for each piece of equipment, assign it to the fighter who improves most (assuming at least one can wear it)
   equipment.forEach((e, i) => {
@@ -195,12 +203,12 @@ function bestPicks(team: Team): {
     teamInBattle.forEach((f, j) => {
       // skip if fighter cannot wear this equipment while already wearing their other equipment
       if (!isValidEquipmentFighter(team, picks[j].concat(i))) return;
-      // try it on and check how much the fighter's power / "buffability" improves
+      // try it on and check how much the fighter's power improves
       f.equipment.push(e);
       for (const sc of e.abilities.statChanges || []) {
         f.stats[sc.stat] += sc.amount;
       }
-      const newPower = buffability(f);
+      const newPower = fighterPower(f);
       if (bestImprovement === undefined || newPower - power[j] >= bestImprovement) {
         bestFighter = j;
         bestImprovement = newPower - power[j];
@@ -209,7 +217,7 @@ function bestPicks(team: Team): {
       for (const sc of e.abilities.statChanges || []) {
         f.stats[sc.stat] -= sc.amount;
       }
-      console.log("Fighter:", f.name, "| Equipment:", e.name, "| Old power:", power[j], "| New power:", newPower);
+      // console.log("Fighter:", f.name, "| Equipment:", e.name, "| Old power:", power[j], "| New power:", newPower);
     });
     if (bestFighter !== undefined) {
       // console.log("Equipment:", e.name, "| Fighter:", teamInBattle[bestFighter].name);
@@ -229,7 +237,7 @@ function bestPicks(team: Team): {
   };
 }
 
-// Find best possible picks optimizing for sum of power / "buffability"
+// Find best possible picks optimizing for sum of power
 function bestPicksBR(team: Team): {
   fighter: number,
   equipment: number[],
@@ -252,20 +260,20 @@ function bestPicksBR(team: Team): {
     };
   });
   const picks: number[][] = teamInBattle.map(_ => []);
-  const power: number[] = teamInBattle.map(f => buffability(f));
+  const power: number[] = teamInBattle.map(f => fighterPower(f));
 
   // for each piece of equipment, assign it to the fighter who improves most (assuming at least one can wear it)
   equipment.forEach((e, i) => {
     teamInBattle.forEach((f, j) => {
       // skip if fighter cannot wear this equipment while already wearing their other equipment
       if (!isValidEquipmentFighter(team, picks[j].concat(i))) return;
-      // try it on and check how much the fighter's power / "buffability" improves
+      // try it on and check how much the fighter's power improves
       f.equipment.push(e);
       picks[j].push(i);
       for (const sc of e.abilities.statChanges || []) {
         f.stats[sc.stat] += sc.amount;
       }
-      power[j] = buffability(f);
+      power[j] = fighterPower(f);
       // unlike bestPicks(), do not remove the equipment
     });
   });
@@ -276,6 +284,22 @@ function bestPicksBR(team: Team): {
     equipment: picks[bestFighter],
     power: power.reduce((a, b) => a + b, 0)
   };
+}
+
+function fighterPower(f: FighterInBattle): number {
+  const effectiveHp = f.hp * (0.75 + f.stats.toughness / 20) / (1 - f.stats.speed / 50);
+
+  let bestActionDanger = 0;
+  let passiveDanger = 0;
+  for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
+    if (e.abilities.action) {
+      bestActionDanger = Math.max(bestActionDanger, danger(f, e.abilities));
+    } else {
+      passiveDanger += danger(f, e.abilities);
+    }
+  }
+
+  return (2.5 + 5 * (bestActionDanger + passiveDanger)) * (0.5 + 0.01 * effectiveHp);
 }
 
 export default Bot;

@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync } from "fs";
 import { EquipmentSlot, type Equipment, type FighterInBattle, type FighterNames, type FighterTemplate, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, StatName, Target, Trigger, type TriggeredEffect, type Effect, type EquipmentTemplate, ActionAnimation, type Abilities } from "$lib/mayhem-manager/types";
 import type { RNG } from "$lib/types";
 
-const FISTS: Equipment = {
+export const FISTS: Equipment = {
   name: "fists",
   imgUrl: "",
   zoomedImgUrl: "",
@@ -308,15 +308,15 @@ class Fight {
       } else if (bestAction.action.target === Target.Melee) {
         // find the most engageable enemy fighter, taking into account distance
         let bestTarget: FighterInBattle;
-        let bestEngageability: number;
+        let bestTargetability: number;
         let bestTimeToEnemy = 0;
         for (const f2 of this.enemies(f)) {
           const timeToEnemy = Math.max(distance(f, f2) - 2, 0) / Math.max(2.5 + f.stats.speed / 2, 0.5);
-          let e2 = engageability(f2);
+          let e2 = this.targetability(f2);
           e2 -= 0.025 * Math.max(0, timeToEnemy - f.cooldown);
-          if (bestEngageability === undefined || e2 >= bestEngageability) {
+          if (bestTargetability === undefined || e2 >= bestTargetability) {
             bestTarget = f2;
-            bestEngageability = e2;
+            bestTargetability = e2;
             bestTimeToEnemy = timeToEnemy;
           }
         }
@@ -681,7 +681,7 @@ class Fight {
       let bestTarget: FighterInBattle;
       let bestEngageability = -100000000;
       for (const f2 of this.enemies(fighter)) {
-        let e2 = engageability(f2);
+        let e2 = this.targetability(f2);
         if (e2 >= bestEngageability) {
           bestTarget = f2;
           bestEngageability = e2;
@@ -709,6 +709,12 @@ class Fight {
     } else {
       return [];
     }
+  }
+
+  // in battle royales, prioritize danger; in duels, prioritize danger + low HP
+  targetability(fighter: FighterInBattle): number {
+    const numberOfTeams = this.fighters.reduce((a, b) => Math.max(a, b.team), 0);
+    return numberOfTeams > 2 ? engageabilityBR(fighter) : engageability(fighter);
   }
 
   teammates(fighter: FighterInBattle) {
@@ -753,7 +759,7 @@ function engageability(f: FighterInBattle): number {
   return (50 + 20 * ((bestActionDanger || 0) + passiveDanger)) / (50 + effectiveHp);
 }
 
-export function buffability(f: FighterInBattle): number {
+function buffability(f: FighterInBattle): number {
   const effectiveHp = f.hp * (0.75 + f.stats.toughness / 20) / (1 - f.stats.speed / 50);
 
   let bestActionDanger = 0;
@@ -766,10 +772,27 @@ export function buffability(f: FighterInBattle): number {
     }
   }
 
-  return (50 + 10 * (bestActionDanger + passiveDanger)) * (50 + effectiveHp);
+  return (50 + 20 * (bestActionDanger + passiveDanger)) * (50 + effectiveHp);
 }
 
-function danger(f: FighterInBattle, a: Abilities): number {
+// Slightly prefer higher effective HP when prioritizing targets in battle royale
+export function engageabilityBR(f: FighterInBattle): number {
+  const effectiveHp = f.hp * (0.75 + f.stats.toughness / 20) / (1 - f.stats.speed / 50);
+
+  let bestActionDanger = 0;
+  let passiveDanger = 0;
+  for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
+    if (e.abilities.action) {
+      bestActionDanger = Math.max(bestActionDanger, danger(f, e.abilities));
+    } else {
+      passiveDanger += danger(f, e.abilities);
+    }
+  }
+
+  return (50 + 20 * (bestActionDanger + passiveDanger)) / (125 - 0.5 * effectiveHp);
+}
+
+export function danger(f: FighterInBattle, a: Abilities): number {
   let d = a.danger;
   // if therer is a relevant stat (strength or accuracy), adjust by it
   if (a.dangerStat) {
