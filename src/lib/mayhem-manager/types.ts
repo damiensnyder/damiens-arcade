@@ -243,6 +243,7 @@ interface ChangeGameSettingsAction {
 
 interface JoinAction {
   type: "join"
+  name: string
 }
 
 interface LeaveAction {

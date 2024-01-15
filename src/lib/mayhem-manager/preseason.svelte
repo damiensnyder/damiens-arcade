@@ -8,9 +8,12 @@
   $: needsResigning = $ownTeam !== null ? ($ownTeam as PreseasonTeam).needsResigning : [];
   $: needsRepair = $ownTeam !== null ? ($ownTeam as PreseasonTeam).needsRepair : [];
 
+  let teamName = "";
+
   function start() {
     lastAction.set({
-      type: "join"
+      type: "join",
+      name: teamName
     });
   }
 
@@ -58,12 +61,23 @@
     <h2>Repair equipment</h2>
     <div>
       {#each needsRepair as equipment, index}
-          <EquipmentInfo {equipment} {index} />
+        <EquipmentInfo {equipment} {index} />
       {/each}
     </div>
   {:else if $teams.length < 16}
     <div class="horiz">
-      <button on:click={start} on:submit={start}>Join</button>
+      <form>
+        <label>Team name
+          <input type="text"
+              bind:value={teamName}
+              maxLength={20} />
+        </label>
+        <button on:click={start}
+            on:submit={start}
+            disabled={teamName.trim().length === 0 || $teams.some(t => t.name === teamName)}>
+          Join
+        </button>
+      </form>
     </div>
   {/if}
 </div>
@@ -104,6 +118,11 @@
 </div>
 
 <style>
+  form {
+    padding: 1rem;
+    align-items: center;
+  }
+
   .players-list > .host-controls {
     align-self: center;
     margin-top: 1rem;

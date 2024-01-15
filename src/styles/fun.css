@@ -49,6 +49,12 @@ button:active {
   color: var(--text-1);
 }
 
+button:disabled,
+button:disabled:active {
+  color: var(--text-2);
+  background-color: var(--bg-2);
+}
+
 h2 {
   font-weight: 600;
   color: var(text-2);

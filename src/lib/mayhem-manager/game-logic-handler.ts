@@ -55,7 +55,8 @@ const TEAM_NAME_ENDS = [
 ];
 
 const joinSchema = z.object({
-  type: z.literal("join")
+  type: z.literal("join"),
+  name: z.string().trim().max(20)
 });
 
 const leaveSchema = z.object({
@@ -177,8 +178,9 @@ export default class MayhemManager extends GameLogicHandlerBase {
     } else if (joinSchema.safeParse(action).success &&
         this.gameStage === "preseason" &&
         teamControlledByViewer === null &&
-        this.teams.length < 16) {
-      this.addTeam(viewer.index);
+        this.teams.length < 16 &&
+        !this.teams.some(t => t.name === action.name)) {
+      this.addTeam(viewer.index, action.name);
 
       // LEAVE
     } else if (leaveSchema.safeParse(action).success &&
@@ -222,8 +224,9 @@ export default class MayhemManager extends GameLogicHandlerBase {
       // ADD BOT
     } else if (addBotSchema.safeParse(action).success &&
         this.gameStage === "preseason" &&
+        this.teams.length < 16 &&
         isHost) {
-      this.addTeam("bot");
+      this.addTeam("bot", generateTeamName(this.teams, this.randElement.bind(this)));
 
       // ADVANCE
     } else if (advanceSchema.safeParse(action).success &&
@@ -620,32 +623,21 @@ export default class MayhemManager extends GameLogicHandlerBase {
     });
   }
 
-  addTeam(viewerIndex: number | "bot"): void {
-    if (this.teams.length < 16) {
-      // generate a random name where neither part is already in use
-      let nameStart = this.randElement(TEAM_NAME_STARTS);
-      let nameEnd = this.randElement(TEAM_NAME_ENDS);
-      while (this.teams.find(t => t.name.startsWith(nameStart)) !== undefined) {
-        nameStart = this.randElement(TEAM_NAME_STARTS);
-      }
-      while (this.teams.find(t => t.name.endsWith(nameEnd)) !== undefined) {
-        nameEnd = this.randElement(TEAM_NAME_ENDS);
-      }
-      this.teams.push({
-        controller: viewerIndex,
-        name: nameStart + " " + nameEnd,
-        money: 100,
-        fighters: [],
-        equipment: [],
-        needsResigning: [],
-        needsRepair: []
-      });
-      this.emitEventToAll({
-        type: "join",
-        controller: viewerIndex,
-        name: nameStart + " " + nameEnd
-      });
-    }
+  addTeam(viewerIndex: number | "bot", name: string): void {
+    this.teams.push({
+      controller: viewerIndex,
+      name: name,
+      money: 100,
+      fighters: [],
+      equipment: [],
+      needsResigning: [],
+      needsRepair: []
+    });
+    this.emitEventToAll({
+      type: "join",
+      controller: viewerIndex,
+      name
+    });
   }
 
   pickFighter(teamIndex: number, fighterIndex: number): void {
@@ -984,4 +976,17 @@ function preserveBracket(bracket: Bracket, teams: Team[]): Bracket {
   return {
     winner: teams[bracket.winner].name
   };
+}
+
+function generateTeamName(teams: Team[], randElement: <T>(array: T[]) => T): string {
+  // generate a random name where neither part is already in use
+  let nameStart = randElement(TEAM_NAME_STARTS);
+  let nameEnd = randElement(TEAM_NAME_ENDS);
+  while (teams.find(t => t.name.startsWith(nameStart)) !== undefined) {
+    nameStart = randElement(TEAM_NAME_STARTS);
+  }
+  while (teams.find(t => t.name.endsWith(nameEnd)) !== undefined) {
+    nameEnd = randElement(TEAM_NAME_ENDS);
+  }
+  return nameStart + " " + nameEnd;
 }
