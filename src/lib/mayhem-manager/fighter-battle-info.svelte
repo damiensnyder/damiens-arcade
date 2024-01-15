@@ -36,7 +36,6 @@
 
 <style>
   .outer-container {
-    flex: 1;
     align-self: stretch;
     margin-top: 0.5rem;
     background-color: var(--bg-4);

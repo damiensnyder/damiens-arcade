@@ -67,6 +67,7 @@
   {:else if $teams.length < 16}
     <div class="horiz">
       <form>
+        <h2>Join the game</h2>
         <label>Team name
           <input type="text"
               bind:value={teamName}
@@ -109,7 +110,7 @@
     <div class="horiz host-controls">
       {#if $teams.length < 16}
         <button class="right-align-inner"
-            on:click={addBot} on:submit={addBot}>Add Bot</button>
+            on:click={addBot} on:submit={addBot}>Add a bot</button>
       {/if}
       <button class="right-align-inner"
           on:click={advance} on:submit={advance}>Go to draft</button>
@@ -119,8 +120,12 @@
 
 <style>
   form {
-    padding: 1rem;
+    padding: 0.5rem;
     align-items: center;
+  }
+
+  label {
+    margin-top: 1.25rem;
   }
 
   .players-list > .host-controls {
