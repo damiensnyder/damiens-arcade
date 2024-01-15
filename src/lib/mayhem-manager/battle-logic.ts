@@ -775,7 +775,8 @@ function buffability(f: FighterInBattle): number {
   return (50 + 20 * (bestActionDanger + passiveDanger)) * (50 + effectiveHp);
 }
 
-// Slightly prefer higher effective HP when prioritizing targets in battle royale
+// Prefer higher effective HP when prioritizing targets in battle royale
+// Also make engageabliity way less important in general
 export function engageabilityBR(f: FighterInBattle): number {
   const effectiveHp = f.hp * (0.75 + f.stats.toughness / 20) / (1 - f.stats.speed / 50);
 
@@ -789,7 +790,7 @@ export function engageabilityBR(f: FighterInBattle): number {
     }
   }
 
-  return (50 + 20 * (bestActionDanger + passiveDanger)) / (125 - 0.5 * effectiveHp);
+  return (10 + 4 * (bestActionDanger + passiveDanger)) / (150 - effectiveHp);
 }
 
 export function danger(f: FighterInBattle, a: Abilities): number {

@@ -601,7 +601,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
       team.needsRepair = team.equipment.filter((equipment) => {
         equipment.yearsOwned++;
         if ((equipment.yearsOwned % 2) === 1) {
-          equipment.price = 2 * equipment.yearsOwned;
+          equipment.price = 5 * equipment.yearsOwned + this.randInt(-3, 3);
           return true;
         }
         return false;
