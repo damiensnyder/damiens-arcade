@@ -10,9 +10,8 @@
   export let index: number = -1;
   export let equipment: Equipment[] = [];
 
-  $: canPick = index > -1 &&
-      ($gameStage === "preseason" || $draftOrder[$spotInDraftOrder] === $ownTeamIndex) &&
-      $ownTeam.money >= fighter.price
+  $: isTurnToPick = index > -1 &&
+      ($gameStage === "preseason" || $draftOrder[$spotInDraftOrder] === $ownTeamIndex);
 
   function pick(): void {
     if ($gameStage === "preseason") {
@@ -33,8 +32,8 @@
   <h3>{fighter.name}</h3>
   <div class="horiz">
     <span class="age">age {20 + fighter.experience}</span>
-    {#if canPick}
-      <button on:click={pick} on:submit={pick}>Pick{#if fighter.price > 0}
+    {#if isTurnToPick}
+      <button on:click={pick} on:submit={pick} disabled={$ownTeam.money < fighter.price}>Pick{#if fighter.price > 0}
       : ${fighter.price}
       {/if}</button>
     {/if}

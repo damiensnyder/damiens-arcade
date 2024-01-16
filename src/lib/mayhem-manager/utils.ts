@@ -78,5 +78,5 @@ export function fighterValue(fighter: Fighter): number {
     // compress stat ranges so super high or low ones don't affect price a ton
     price += fighter.stats[stat];
   }
-  return price;
+  return Math.max(price, 10);
 }
