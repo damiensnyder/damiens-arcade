@@ -1,5 +1,5 @@
 import type { Fighter, PreseasonTeam, MayhemManagerEvent, MayhemManagerViewpoint } from "$lib/mayhem-manager/types";
-import { bracket, draftOrder, fightEvents, gameStage, rawSettings, settings, teams, spotInDraftOrder, fighters, map, equipment, watchingFight, history, equipmentChoices, ownTeam } from "$lib/mayhem-manager/stores";
+import { bracket, draftOrder, fightEvents, gameStage, rawSettings, settings, teams, spotInDraftOrder, fighters, equipment, watchingFight, history, equipmentChoices, ownTeam, ownTeamIndex } from "$lib/mayhem-manager/stores";
 import { get } from "svelte/store";
 import { roomName, isPublic, host, pov } from "$lib/stores";
 import type { ChangeHostEvent, ChangeRoomSettingsEvent, EventHandler } from "$lib/types";
@@ -68,9 +68,10 @@ export const eventHandler: EventHandler<MayhemManagerEvent> = {
   resign: function (event): void {
     teams.update((old) => {
       const team = old[event.team] as PreseasonTeam;
-      const fighterResigned = team.needsResigning.splice(event.fighter)[0];
+      const fighterResigned = team.needsResigning.splice(event.fighter, 1)[0];
       team.fighters.push(fighterResigned);
       team.money -= fighterResigned.price;
+      fighterResigned.price = 0;
       return old;
     });
   },
@@ -123,17 +124,17 @@ export const eventHandler: EventHandler<MayhemManagerEvent> = {
   goToBR: function (event): void {
     gameStage.set("battle royale");
     teams.set(event.teams);
-    equipmentChoices.set(get(ownTeam).equipment.map(_ => -1));
+    if (get(ownTeamIndex) !== null) {
+      equipmentChoices.set(get(ownTeam).equipment.map(_ => -1));
+    }
   },
   fight: function (event): void {
-    map.set(event.map);
     fightEvents.set(event.eventLog);
     watchingFight.set(true);
   },
   bracket: function (event): void {
     gameStage.set("tournament");
     bracket.set(event.bracket);
-    map.set(null);
   },
   goToPreseason: function (event): void {
     watchingFight.set(false);

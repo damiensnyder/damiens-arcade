@@ -398,11 +398,12 @@ export default class MayhemManager extends GameLogicHandlerBase {
     this.teams.forEach((team: PreseasonTeam, i) => {
       if (team.controller === "bot") {
         const picks = Bot.getPreseasonPicks(team);
-        picks.fighters.forEach((f) => {
-          this.resignFighter(i, f);
+        picks.fighters.forEach((f, j) => {
+          // subtract j because each fighter resigned shifts later fighters to the left
+          this.resignFighter(i, f - j);
         });
-        picks.equipment.forEach((e) => {
-          this.repairEquipment(i, e);
+        picks.equipment.forEach((e, j) => {
+          this.repairEquipment(i, e - j);
         });
       }
     })
@@ -663,9 +664,9 @@ export default class MayhemManager extends GameLogicHandlerBase {
     if (fighterIndex < team.needsResigning.length &&
         team.money >= team.needsResigning[fighterIndex].price) {
       const fighterResigned = team.needsResigning.splice(fighterIndex, 1)[0];
+      team.fighters.push(fighterResigned);
       team.money -= fighterResigned.price;
       fighterResigned.price = 0;
-      team.fighters.push(fighterResigned);
       this.emitEventToAll({
         type: "resign",
         team: teamIndex,

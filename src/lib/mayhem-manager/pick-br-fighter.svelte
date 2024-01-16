@@ -17,8 +17,7 @@
     lastAction.set({
       type: "pickBRFighter",
       fighter: selectedFighter,
-      equipment: selectedEquipment.flatMap((x, i) => x ? [i] : []),
-      strategy: {}
+      equipment: selectedEquipment.flatMap((x, i) => x ? [i] : [])
     });
   }
 </script>

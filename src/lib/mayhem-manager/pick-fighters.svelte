@@ -11,8 +11,7 @@
     lastAction.set({
       type: "pickFighters",
       equipment: $ownTeam.fighters.map((_, i) =>
-          $equipmentChoices.map((ec, j) => ec === i ? j : -1).filter(ec => ec >= 0)),
-      strategy: $ownTeam.fighters.map(_ => ({}))
+          $equipmentChoices.map((ec, j) => ec === i ? j : -1).filter(ec => ec >= 0))
     });
   }
 
