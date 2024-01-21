@@ -2,7 +2,7 @@ import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import { writeFileSync } from "fs";
 import type GameRoom from "$lib/backend/game-room";
-import type { MayhemManagerGameStage, MayhemManagerViewpoint, ViewpointBase, Team, Settings, Fighter, Bracket, FighterInBattle, Equipment, PreseasonTeam, EquipmentTemplate, FighterTemplate } from "$lib/mayhem-manager/types";
+import type { MayhemManagerGameStage, MayhemManagerViewpoint, ViewpointBase, Team, Settings, Fighter, Bracket, FighterInBattle, Equipment, PreseasonTeam, EquipmentTemplate, FighterTemplate, MayhemManagerExport } from "$lib/mayhem-manager/types";
 import { StatName } from "$lib/mayhem-manager/types";
 import { z } from "zod";
 import { fighterValue, getIndexByController, getTeamByController, nextMatch } from "$lib/mayhem-manager/utils";
@@ -117,6 +117,10 @@ const repairSchema = z.object({
   equipment: z.number().int().min(0)
 });
 
+const importSchema = z.object({
+  type: z.literal("import"),
+});
+
 
 
 export default class MayhemManager extends GameLogicHandlerBase {
@@ -153,7 +157,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
   }
 
   handleAction(viewer: Viewer, action?: any): void {
-    writeFileSync("logs/lastGame.json", this.exportLeague());
+    // writeFileSync("logs/lastGame.json", JSON.stringify(this.exportLeague()));
 
     const indexControlledByViewer = getIndexByController(this.teams, viewer.index);
     const teamControlledByViewer = getTeamByController(this.teams, viewer.index);
@@ -856,12 +860,17 @@ export default class MayhemManager extends GameLogicHandlerBase {
   }
 
   viewpointOf(viewer: Viewer): MayhemManagerViewpoint {
-    if (this.gameStage === "preseason" ||
-        this.gameStage === "training") {
+    if (this.gameStage === "preseason") {
+      return {
+        ...this.basicViewpointInfo(viewer),
+        gameStage: this.gameStage,
+        teams: this.teams as PreseasonTeam[]
+      };
+    } else if (this.gameStage === "training") {
       return {
         ...this.basicViewpointInfo(viewer),
         gameStage: this.gameStage
-      }
+      };
     } else if (this.gameStage === "draft" ||
         this.gameStage === "free agency") {
       return {
@@ -870,52 +879,97 @@ export default class MayhemManager extends GameLogicHandlerBase {
         draftOrder: this.draftOrder,
         spotInDraftOrder: this.spotInDraftOrder,
         fighters: this.fighters
-      }
+      };
     } else if (this.gameStage === "battle royale") {
       return {
         ...this.basicViewpointInfo(viewer),
         gameStage: this.gameStage,
         fightersInBattle: this.fightersInBattle
-      }
+      };
     } else if (this.gameStage === "tournament") {
       return {
         ...this.basicViewpointInfo(viewer),
         gameStage: this.gameStage,
         bracket: this.bracket,
         fightersInBattle: this.fightersInBattle
-      }
+      };
     }
   }
 
-  importLeague(from: string): void {
-    const league: any = JSON.parse(from);
+  importLeague(league: MayhemManagerExport): void {
     this.teams = league.teams;
-    this.draftOrder = league.draftOrder;
-    this.spotInDraftOrder = league.spotInDraftOrder;
-    this.fighters = league.fighters;
-    this.unsignedVeterans = league.unsignedVeterans,
-    this.equipmentAvailable = league.equipmentAvailable,
-    this.bracket = league.bracket,
-    this.nextMatch = league.nextMatch,
+    if (league.gameStage === "draft") {
+      this.draftOrder = league.draftOrder;
+      this.spotInDraftOrder = league.spotInDraftOrder;
+      this.fighters = league.fighters;
+      this.unsignedVeterans = league.unsignedVeterans;
+    } else if (league.gameStage === "free agency") {
+      this.draftOrder = league.draftOrder;
+      this.spotInDraftOrder = league.spotInDraftOrder;
+      this.fighters = league.fighters;
+    } else if (league.gameStage === "training") {
+      this.equipmentAvailable = league.equipmentAvailable;
+    } else if (league.gameStage === "battle royale") {
+      this.ready = this.teams.map((_) => false);
+    } else if (league.gameStage === "tournament") {
+      this.bracket = league.bracket;
+      this.nextMatch = league.nextMatch;
+    }
     this.history = league.history
-    this.ready = this.teams.map((_) => false);
     this.trainingChoices = this.teams.map((_) => { return { equipment: [], skills: [] } });
     this.fightersInBattle = [];
     this.emitGamestateToAll();
   }
 
-  exportLeague(): string {
-    return JSON.stringify({
+  exportLeague(): MayhemManagerExport {
+    let exportBase = {
+      gameStage: this.gameStage,
       teams: this.teams,
-      draftOrder: this.draftOrder,
-      spotInDraftOrder: this.spotInDraftOrder,
-      fighters: this.fighters,
-      unsignedVeterans: this.unsignedVeterans,
-      equipmentAvailable: this.equipmentAvailable,
-      bracket: this.bracket,
-      nextMatch: this.nextMatch,
-      history: this.history
-    });
+      history: this.history,
+      settings: this.settings
+    }
+    if (this.gameStage === "preseason") {
+      return {
+        ...exportBase,
+        gameStage: "preseason",
+        teams: this.teams as PreseasonTeam[]
+      }
+    } else if (this.gameStage === "draft") {
+      return {
+        ...exportBase,
+        gameStage: "draft",
+        draftOrder: this.draftOrder,
+        spotInDraftOrder: this.spotInDraftOrder,
+        fighters: this.fighters,
+        unsignedVeterans: this.unsignedVeterans,
+      }
+    } else if (this.gameStage === "free agency") {
+      return {
+        ...exportBase,
+        gameStage: "free agency",
+        draftOrder: this.draftOrder,
+        spotInDraftOrder: this.spotInDraftOrder,
+        fighters: this.fighters
+      }
+    } else if (this.gameStage === "training") {
+      return {
+        ...exportBase,
+        gameStage: "training",
+        equipmentAvailable: this.equipmentAvailable
+      }
+    } else if (this.gameStage === "battle royale") {
+      return {
+        ...exportBase,
+        gameStage: "battle royale"
+      }
+    } else if (this.gameStage === "tournament") {
+      return {
+        ...exportBase,
+        gameStage: "tournament",
+        bracket: this.bracket,
+        nextMatch: this.nextMatch
+      }
+    }
   }
 }
 

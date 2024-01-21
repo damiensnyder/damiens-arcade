@@ -23,6 +23,7 @@ export interface ViewpointBase extends BasicViewpointInfo {
 
 interface PreseasonViewpoint extends ViewpointBase {
   gameStage: "preseason"
+  teams: PreseasonTeam[]
 }
 
 interface DraftViewpoint extends ViewpointBase {
@@ -53,6 +54,62 @@ interface TournamentViewpoint extends ViewpointBase {
   bracket: Bracket
   fightersInBattle?: FighterInBattle[]
 }
+
+
+
+export type /* it so is! */ MayhemManagerExport = (PreseasonExport |
+    DraftExport |
+    FAExport |
+    TrainingExport |
+    BRExport |
+    TournamentExport);
+
+interface ExportBase {
+  gameStage: MayhemManagerGameStage
+  settings: Settings
+  history: Bracket[]
+  teams: Team[]
+}
+
+interface PreseasonExport extends ExportBase {
+  gameStage: "preseason"
+  teams: PreseasonTeam[]
+}
+
+interface DraftExport extends ExportBase {
+  gameStage: "draft"
+  draftOrder: number[]
+  spotInDraftOrder: number
+  fighters: Fighter[]
+  unsignedVeterans: Fighter[]
+}
+
+interface FAExport extends ExportBase {
+  gameStage: "free agency"
+  draftOrder: number[]
+  spotInDraftOrder: number
+  fighters: Fighter[]
+}
+
+interface TrainingExport extends ExportBase {
+  gameStage: "training"
+  equipmentAvailable: Equipment[][]
+}
+
+interface BRExport extends ExportBase {
+  gameStage: "battle royale"
+}
+
+interface TournamentExport extends ExportBase {
+  gameStage: "tournament"
+  bracket: Bracket
+  nextMatch?: Bracket & {
+    left: Bracket
+    right: Bracket
+  }
+}
+
+
 
 export interface Team {
   controller: number | "bot"
@@ -304,6 +361,11 @@ interface RepairAction {
   equipment: number
 }
 
+interface ImportAction {
+  type: "import"
+  league: MayhemManagerViewpoint
+}
+
 export type MayhemManagerAction = ChangeRoomSettingsAction |
     ChangeGameSettingsAction |
     JoinAction |
@@ -318,7 +380,8 @@ export type MayhemManagerAction = ChangeRoomSettingsAction |
     PickBRFighterAction |
     PickFightersAction |
     RepairAction |
-    ResignAction;
+    ResignAction |
+    ImportAction;
 
 
 
