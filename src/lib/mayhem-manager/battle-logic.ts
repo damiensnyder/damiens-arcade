@@ -17,8 +17,10 @@ export const FISTS: Equipment = {
       }],
       cooldown: 5
     },
-    danger: 1,  // same as dps, seems like a good baseline
-    dangerStat: StatName.Strength
+    aiHints: {
+      actionDanger: 1,
+      actionStat: StatName.Strength
+    }
   },
   yearsOwned: 0,
   price: 0,
@@ -285,12 +287,12 @@ class Fight {
       let bestActionDanger: number;
       for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
         if (e.abilities.action) {
-          let actionDanger = danger(f, e.abilities);
+          let currentActionDanger = actionDanger(f, e.abilities);
           if (e.abilities.action.target === Target.Melee) {
-            actionDanger += 5 - timeToClosest;
+            currentActionDanger += 5 - timeToClosest;
           }
-          if (bestActionDanger === undefined || actionDanger > bestActionDanger) {
-            bestActionDanger = actionDanger
+          if (bestActionDanger === undefined || currentActionDanger > bestActionDanger) {
+            bestActionDanger = currentActionDanger
             bestAction = e.abilities;
           }
           // console.log("Fighter:", f.name, "| Action: ", (e as unknown as Equipment).name, "| Danger:", actionDanger);
@@ -745,34 +747,12 @@ function engageability(f: FighterInBattle): number {
   let bestActionDanger;
   let passiveDanger = 0;
   for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
-    if (e.abilities.action) {
-      const actionDanger = danger(f, e.abilities)
-      if (bestActionDanger === undefined || actionDanger > bestActionDanger) {
-        bestActionDanger = actionDanger;
-      }
-    } else {
-      passiveDanger += danger(f, e.abilities);
-    }
+    bestActionDanger = Math.max(bestActionDanger, actionDanger(f, e.abilities));
+    passiveDanger += e.abilities.aiHints.passiveDanger ?? 0;
   }
   // console.log("Name:", f.name, "| Danger:", (bestActionDanger || 0) + passiveDanger, "| Effective HP:", effectiveHp);
 
   return (50 + 20 * ((bestActionDanger || 0) + passiveDanger)) / (50 + effectiveHp);
-}
-
-function buffability(f: FighterInBattle): number {
-  const effectiveHp = f.hp * (0.75 + f.stats.toughness / 20) / (1 - f.stats.speed / 50);
-
-  let bestActionDanger = 0;
-  let passiveDanger = 0;
-  for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
-    if (e.abilities.action) {
-      bestActionDanger = Math.max(bestActionDanger, danger(f, e.abilities));
-    } else {
-      passiveDanger += danger(f, e.abilities);
-    }
-  }
-
-  return (50 + 20 * (bestActionDanger + passiveDanger)) * (50 + effectiveHp);
 }
 
 // Prefer higher effective HP when prioritizing targets in battle royale
@@ -783,21 +763,36 @@ export function engageabilityBR(f: FighterInBattle): number {
   let bestActionDanger = 0;
   let passiveDanger = 0;
   for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
-    if (e.abilities.action) {
-      bestActionDanger = Math.max(bestActionDanger, danger(f, e.abilities));
-    } else {
-      passiveDanger += danger(f, e.abilities);
-    }
+    bestActionDanger = Math.max(bestActionDanger, actionDanger(f, e.abilities));
+    passiveDanger += actionDanger(f, e.abilities);
   }
 
-  return (1 + 0.5 * (bestActionDanger + passiveDanger)) / (150 - effectiveHp);
+  return (10 + 4 * (bestActionDanger + passiveDanger)) / (150 - effectiveHp);
 }
 
-export function danger(f: FighterInBattle, a: Abilities): number {
-  let d = a.danger;
+function buffability(f: FighterInBattle): number {
+  const effectiveHp = f.hp * (0.75 + f.stats.toughness / 20) / (1 - f.stats.speed / 50);
+
+  let bestActionDanger = 0;
+  let passiveValue = 0;
+  for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
+    bestActionDanger = Math.max(bestActionDanger, actionDanger(f, e.abilities));
+    passiveValue += (e.abilities.aiHints.passiveDanger ?? 0) +
+                    (e.abilities.aiHints.passiveValue ?? 0);
+  }
+
+<<<<<<< Updated upstream
+  return (1 + 0.5 * (bestActionDanger + passiveDanger)) / (150 - effectiveHp);
+=======
+  return (50 + 20 * (bestActionDanger + passiveValue)) * (50 + effectiveHp);
+>>>>>>> Stashed changes
+}
+
+export function actionDanger(f: FighterInBattle, a: Abilities): number {
+  let d = a.aiHints.actionDanger ?? 0;
   // if therer is a relevant stat (strength or accuracy), adjust by it
-  if (a.dangerStat) {
-    d *= 0.5 + 0.1 * f.stats[a.dangerStat];
+  if (a.aiHints.actionStat) {
+    d *= 0.5 + 0.1 * f.stats[a.aiHints.actionStat];
   }
   // if it needs to charge, multiply based on how soon it will be charged, relevant to a fighter
   // with 0 charge and 0 energy

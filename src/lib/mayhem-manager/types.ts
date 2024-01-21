@@ -257,8 +257,12 @@ export interface Abilities {
   action?: ActionAbility
   statChanges?: StatChangeAbility[]
   triggeredEffects?: TriggeredEffect[]
-  danger: number
-  dangerStat?: StatName.Strength | StatName.Accuracy
+  aiHints: {
+    actionDanger?: number
+    actionStat?: StatName.Strength | StatName.Accuracy
+    passiveDanger?: number
+    passiveValue?: number  // doesn't make the fighter a more imminent threat but is valuable
+  }
 }
 
 

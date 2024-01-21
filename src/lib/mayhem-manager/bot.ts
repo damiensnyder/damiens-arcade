@@ -1,6 +1,6 @@
 import { StatName } from "$lib/mayhem-manager/types";
 import type { Abilities, Equipment, Fighter, FighterInBattle, MayhemManagerGameStage, PreseasonTeam, Team } from "$lib/mayhem-manager/types";
-import { FISTS, danger, isValidEquipmentFighter } from "./battle-logic";
+import { FISTS, actionDanger, isValidEquipmentFighter } from "./battle-logic";
 
 const Bot = {
   getPreseasonPicks: function (team: PreseasonTeam): {
@@ -182,7 +182,9 @@ function bestPicks(team: Team): {
   power: number
 } {
   // try on most dangerous / powerful equipment first (should be based on base price but that is not persistent)
-  const equipment = team.equipment.slice().sort((a, b) => b.abilities.danger - a.abilities.danger);
+  const equipment = team.equipment.slice().sort((a, b) => {
+    return (b.abilities.aiHints.actionDanger ?? 0) - (a.abilities.aiHints.actionDanger ?? 0);
+  });
   const teamInBattle: FighterInBattle[] = team.fighters.map((f) => {
     return {
       ...f,
@@ -248,7 +250,9 @@ function bestPicksBR(team: Team): {
   power: number
 } {
   // try on most dangerous / powerful equipment first (should be based on base price but that is not persistent)
-  const equipment = team.equipment.slice().sort((a, b) => b.abilities.danger - a.abilities.danger);
+  const equipment = team.equipment.slice().sort((a, b) => {
+    return (b.abilities.aiHints.actionDanger ?? 0) - (a.abilities.aiHints.actionDanger ?? 0);
+  });
   const teamInBattle: FighterInBattle[] = team.fighters.map((f) => {
     return {
       ...f,
@@ -294,16 +298,14 @@ function fighterPower(f: FighterInBattle): number {
   const effectiveHp = f.hp * (0.75 + f.stats.toughness / 20) / (1 - f.stats.speed / 50);
 
   let bestActionDanger = 0;
-  let passiveDanger = 0;
+  let passiveValue = 0;
   for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
-    if (e.abilities.action) {
-      bestActionDanger = Math.max(bestActionDanger, danger(f, e.abilities));
-    } else {
-      passiveDanger += danger(f, e.abilities);
-    }
+    bestActionDanger = Math.max(bestActionDanger, actionDanger(f, e.abilities));
+    passiveValue += (e.abilities.aiHints.passiveDanger ?? 0) +
+                    (e.abilities.aiHints.passiveValue ?? 0);
   }
 
-  return (0.5 + 5 * (bestActionDanger + passiveDanger)) * (0.5 + 0.01 * effectiveHp);
+  return (0.5 + 5 * (bestActionDanger + passiveValue)) * (0.5 + 0.01 * effectiveHp);
 }
 
 export default Bot;
