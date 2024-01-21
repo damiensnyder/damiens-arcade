@@ -496,6 +496,11 @@ export default class MayhemManager extends GameLogicHandlerBase {
   }
 
   advanceToBattleRoyale(): void {
+    for (const team of this.teams) {
+      for (const fighter of team.fighters) {
+        fighter.oldStats = { ...fighter.stats };
+      }
+    }
     this.trainingChoices.forEach((choice, i) => {
       const team = this.teams[i]
       const e = this.equipmentAvailable[i];
@@ -530,6 +535,11 @@ export default class MayhemManager extends GameLogicHandlerBase {
     });
     this.fightersInBattle = [];
     this.ready.fill(false);
+    for (const team of this.teams) {
+      for (const fighter of team.fighters) {
+        delete fighter.oldStats;
+      }
+    }
   }
 
   doAgeBasedDevelopment(f: Fighter) {

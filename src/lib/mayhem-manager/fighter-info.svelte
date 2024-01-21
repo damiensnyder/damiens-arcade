@@ -1,6 +1,6 @@
 <script lang="ts">
   import { lastAction } from "$lib/stores";
-  import type { Equipment, Fighter, PreseasonTeam } from "$lib/mayhem-manager/types";
+  import type { Equipment, Fighter, FighterStats, PreseasonTeam } from "$lib/mayhem-manager/types";
   import { StatName } from "$lib/mayhem-manager/types";
   import StarRating from "$lib/mayhem-manager/star-rating.svelte";
   import { draftOrder, gameStage, ownTeam, ownTeamIndex, spotInDraftOrder, teams } from "$lib/mayhem-manager/stores";
@@ -12,6 +12,14 @@
 
   $: isTurnToPick = index > -1 &&
       ($gameStage === "preseason" || $draftOrder[$spotInDraftOrder] === $ownTeamIndex);
+  
+  // const NO_STATS: FighterStats = {
+  //   strength: -1,
+  //   accuracy: -1,
+  //   energy: -1,
+  //   speed: -1,
+  //   toughness: -1
+  // }
 
   function pick(): void {
     if ($gameStage === "preseason") {
@@ -45,7 +53,7 @@
     <div class="stats">
       {#each Object.entries(StatName) as statEntry}
         <div class="horiz stat-name">
-          {statEntry[0]}&nbsp;<StarRating rating={fighter.stats[statEntry[1]]} />
+          {statEntry[0]}&nbsp;<StarRating rating={fighter.stats[statEntry[1]]} oldRating={(fighter.oldStats || fighter.stats)[statEntry[1]]} />
         </div>
       {/each}
     </div>

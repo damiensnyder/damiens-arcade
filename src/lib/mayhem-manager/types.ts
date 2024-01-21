@@ -128,6 +128,7 @@ export interface Fighter {
   name: string
   gender: string
   stats: FighterStats
+  oldStats?: FighterStats
   attunements: string[]
   abilities: Abilities
   experience: number
