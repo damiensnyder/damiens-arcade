@@ -701,7 +701,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
     delete this.map;
     
     // add the last season's bracket to the league's history
-    this.history.unshift(preserveBracket(this.bracket, this.teams));
+    this.history.push(preserveBracket(this.bracket, this.teams));
 
     this.gameStage = "preseason";
     this.emitEventToAll({
