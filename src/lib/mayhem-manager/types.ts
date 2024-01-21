@@ -520,7 +520,7 @@ export interface MFChargeStartEvent {
 export interface MFChargeEvent {
   type: "charge"
   fighter: number
-  newChange: number
+  newCharge: number
 }
 
 export type MidFightEvent = MFSpawnEvent |

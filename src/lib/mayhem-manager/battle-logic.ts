@@ -483,7 +483,7 @@ class Fight {
     tick.push({
       type: "charge",
       fighter: this.fighters.indexOf(f),
-      newChange: f.charge
+      newCharge: f.charge
     });
   }
 

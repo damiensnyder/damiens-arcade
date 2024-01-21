@@ -16,6 +16,7 @@
   let fighters: FighterInBattle[] = [];
   let rotation: number[] = [];
   let flipped: number[] = [];
+  let charge: number[] = [];
   let particles: Particle[] = [];
   let tint: PIXI.ColorMatrixFilter[] = [];
   let playbackSpeed: number = 100;  // ticks are 0.2 s long
@@ -52,6 +53,7 @@
   function renderFrame(): void {
     fighters = animationState.getFighters(tickDelta);
     rotation = animationState.getRotation(tickDelta);
+    charge = animationState.getCharge(tickDelta);
     flipped = animationState.getFlipped(tickDelta);
     particles = animationState.getParticles(tickDelta);
     tint = animationState.getTint(tickDelta);
@@ -152,7 +154,7 @@
                 <Container x={f.x - cameraX} y={f.y - cameraY} pivot={0.5}
                     scale={[15 / 384 * flipped[i], 15 / 384]} angle={rotation[i]} filters={[tint[i]]}>
                 <!-- using height / width does not work on the first run and i have no idea why -->
-                  <FighterBattleSprite fighter={f} equipment={f.equipment} />
+                  <FighterBattleSprite fighter={f} equipment={f.equipment} charge={charge[i]} />
                 </Container>
               {/if}
             {/each}

@@ -6,6 +6,7 @@
 
   export let fighter: FighterInBattle;
   export let equipment: Equipment[];
+  export let charge: number;
 
   $: head = equipment.filter(e => e.slots.includes(EquipmentSlot.Head));
   $: torso = equipment.filter(e => e.slots.includes(EquipmentSlot.Torso));
@@ -106,4 +107,8 @@
 {:else}
   <Sprite texture={PIXI.Texture.from(`/static/base/feet_${fighter.gender}1.png`)}
       x={0} y={0} anchor={0.5} zIndex={5} filters={[shoesColorFilter]} />
+{/if}
+
+{#if charge > 0}
+  <Sprite texture={PIXI.Texture.from("/static/charge.png")} x={0} y={0} anchor={0.5} zIndex={8} alpha={charge} />
 {/if}

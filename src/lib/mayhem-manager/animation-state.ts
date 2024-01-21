@@ -43,12 +43,14 @@ export default class AnimationState {
   fighters: FighterInBattle[];
   rotation: RotationState[];
   flipped: boolean[];
+  charge: number[];
   hitFlash: number[];
   particles: Particle[];
   tint: [number, number, number, number][];
   nextFighters: FighterInBattle[];
   nextRotation: RotationState[];
   nextFlipped: boolean[];
+  nextCharge: number[];
   nextHitFlash: number[];
   nextParticles: Particle[];
   nextTint: [number, number, number, number][];
@@ -61,12 +63,14 @@ export default class AnimationState {
     this.fighters = [];
     this.rotation = [];
     this.flipped = [];
+    this.charge = [];
     this.hitFlash = [];
     this.particles = [];
     this.tint = [];
     this.nextFighters = [];
     this.nextRotation = [];
     this.nextFlipped = [];
+    this.nextCharge = [];
     this.nextHitFlash = [];
     this.nextParticles = [];
     this.nextTint = [];
@@ -78,6 +82,7 @@ export default class AnimationState {
     this.fighters = this.nextFighters.slice();
     this.rotation = this.nextRotation.slice();
     this.flipped = this.nextFlipped.slice();
+    this.charge = this.nextCharge.slice();
     this.hitFlash = this.nextHitFlash.slice();
     this.particles = this.nextParticles.slice();
     this.tint = this.nextTint.slice();
@@ -93,6 +98,7 @@ export default class AnimationState {
     }
     const nextTick = this.eventLog[this.tick];
     this.nextHitFlash = this.nextHitFlash.map(h => Math.max(h - 0.75, 0));
+    this.nextCharge = this.nextCharge.map(c => Math.max(c - 0.25, 0));
 
     if (this.tick < this.eventLog.length - 1) {
       for (let event of nextTick) {
@@ -101,11 +107,13 @@ export default class AnimationState {
           this.fighters.push(event.fighter);
           this.rotation.push(RotationState.Stationary1);
           this.flipped.push(false);
+          this.charge.push(0);
           this.hitFlash.push(0);
           this.tint.push([0, 0, 0, 0]);
           this.nextFighters.push(event.fighter);
           this.nextRotation.push(RotationState.Stationary1);
           this.nextFlipped.push(false);
+          this.nextCharge.push(0);
           this.nextHitFlash.push(0);
           this.nextTint.push([0, 0, 0, 0]);
         } else if (event.type === "move") {
@@ -167,6 +175,15 @@ export default class AnimationState {
           }
         } else if (event.type === "tint") {
           this.nextTint[event.fighter] = event.tint;
+        } else if (event.type === "charge") {
+          this.nextCharge[event.fighter] = 1;
+          this.nextParticles.push({
+            type: "text",
+            text: `${event.newCharge} charges`,
+            x: this.nextFighters[event.fighter].x,
+            y: this.nextFighters[event.fighter].y - 7,  // moved up to be just over the fighter's head
+            opacity: 1
+          });
         }
       }
     }
@@ -218,6 +235,14 @@ export default class AnimationState {
     return this.rotation.map((r1, i) => {
       const r2 = this.nextRotation[i];
       return r2 * delta + r1 * (1 - delta);
+    });
+  }
+
+  // Flippedness with correct interpolation
+  getCharge(delta: number): number[] {
+    return this.charge.map((c1, i) => {
+      const c2 = this.nextCharge[i];
+      return c2 * delta + c1 * (1 - delta);
     });
   }
 
