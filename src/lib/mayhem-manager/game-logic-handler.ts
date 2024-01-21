@@ -55,6 +55,7 @@ const TEAM_NAME_ENDS = [
   "Melonheads",
   "Wombats"
 ];
+const BOT_DELAY = 2000;
 
 const joinSchema = z.object({
   type: z.literal("join"),
@@ -353,7 +354,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
           if (this.spotInDraftOrder === this.draftOrder.length) {
             this.advanceToFreeAgency();
           } else {
-            this.pickTimeout = setTimeout(this.doBotDraftPick.bind(this), 3000);
+            this.pickTimeout = setTimeout(this.doBotDraftPick.bind(this), BOT_DELAY);
           }
         }
       }
@@ -376,7 +377,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
           if (this.spotInDraftOrder === this.draftOrder.length) {
             this.advanceToTraining();
           } else {
-            this.pickTimeout = setTimeout(this.doBotFAPick.bind(this), 3000);
+            this.pickTimeout = setTimeout(this.doBotFAPick.bind(this), BOT_DELAY);
           }
         }
       }
@@ -466,7 +467,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
     });
 
     clearTimeout(this.pickTimeout);
-    this.pickTimeout = setTimeout(this.doBotDraftPick.bind(this), 3000);
+    this.pickTimeout = setTimeout(this.doBotDraftPick.bind(this), BOT_DELAY);
   }
 
   doBotDraftPick(): void {
@@ -479,9 +480,9 @@ export default class MayhemManager extends GameLogicHandlerBase {
     const pick = Bot.getDraftPick(pickingTeam, this.fighters);
     this.pickFighter(this.draftOrder[this.spotInDraftOrder], pick);
     if (this.spotInDraftOrder === this.draftOrder.length) {
-      this.pickTimeout = setTimeout(this.advanceToFreeAgency.bind(this), 3000);
+      this.pickTimeout = setTimeout(this.advanceToFreeAgency.bind(this), BOT_DELAY);
     } else {
-      this.pickTimeout = setTimeout(this.doBotDraftPick.bind(this), 3000);
+      this.pickTimeout = setTimeout(this.doBotDraftPick.bind(this), BOT_DELAY);
     }
   }
 
@@ -506,7 +507,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
     }
 
     this.emitEventToAll({ type: "goToFA", fighters: this.fighters });
-    this.pickTimeout = setTimeout(this.doBotFAPick.bind(this), 3000);
+    this.pickTimeout = setTimeout(this.doBotFAPick.bind(this), BOT_DELAY);
   }
 
   doBotFAPick(): void {
@@ -525,9 +526,9 @@ export default class MayhemManager extends GameLogicHandlerBase {
     });
     this.spotInDraftOrder++;
     if (this.spotInDraftOrder === this.draftOrder.length) {
-      this.pickTimeout = setTimeout(this.advanceToTraining.bind(this), 3000);
+      this.pickTimeout = setTimeout(this.advanceToTraining.bind(this), BOT_DELAY);
     } else {
-      this.pickTimeout = setTimeout(this.doBotFAPick.bind(this), 3000);
+      this.pickTimeout = setTimeout(this.doBotFAPick.bind(this), BOT_DELAY);
     }
   }
 

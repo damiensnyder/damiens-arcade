@@ -98,7 +98,7 @@ export default class AnimationState {
     }
     const nextTick = this.eventLog[this.tick];
     this.nextHitFlash = this.nextHitFlash.map(h => Math.max(h - 0.75, 0));
-    this.nextCharge = this.nextCharge.map(c => Math.max(c - 0.25, 0));
+    this.nextCharge = this.nextCharge.map(c => Math.max(c - 0.2, 0));
 
     if (this.tick < this.eventLog.length - 1) {
       for (let event of nextTick) {
