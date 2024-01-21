@@ -3,7 +3,7 @@
   import type { Equipment, Fighter, FighterStats, PreseasonTeam } from "$lib/mayhem-manager/types";
   import { StatName } from "$lib/mayhem-manager/types";
   import StarRating from "$lib/mayhem-manager/star-rating.svelte";
-  import { draftOrder, gameStage, ownTeam, ownTeamIndex, spotInDraftOrder, teams } from "$lib/mayhem-manager/stores";
+  import { draftOrder, gameStage, ownTeam, ownTeamIndex, spotInDraftOrder } from "$lib/mayhem-manager/stores";
   import FighterImage from "$lib/mayhem-manager/fighter-image.svelte";
 
   export let fighter: Fighter;
@@ -53,7 +53,7 @@
     <div class="stats">
       {#each Object.entries(StatName) as statEntry}
         <div class="horiz stat-name">
-          {statEntry[0]}&nbsp;<StarRating rating={fighter.stats[statEntry[1]]} oldRating={(fighter.oldStats || fighter.stats)[statEntry[1]]} />
+          {statEntry[0]}&nbsp;<StarRating rating={fighter.stats[statEntry[1]]} oldRating={(fighter.oldStats ?? fighter.stats)[statEntry[1]]} />
         </div>
       {/each}
     </div>

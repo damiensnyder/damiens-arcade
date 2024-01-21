@@ -9,6 +9,8 @@ import { fighterValue, getIndexByController, getTeamByController, nextMatch } fr
 import { settingsAreValid, collatedSettings, isValidEquipmentTournament, isValidEquipmentFighter, simulateFight, TICK_LENGTH, fighterNames } from "$lib/mayhem-manager/battle-logic";
 import Bot from "$lib/mayhem-manager/bot";
 
+
+
 const TEAM_NAME_STARTS = [
   "Fabulous",
   "Marvelous",
@@ -143,6 +145,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
   bracket?: Bracket
   nextMatch?: Bracket & { left: Bracket, right: Bracket }
   history: Bracket[]
+  pickTimeout?: NodeJS.Timeout
 
   constructor(room: GameRoom) {
     super(room);
@@ -313,49 +316,55 @@ export default class MayhemManager extends GameLogicHandlerBase {
   }
 
   advance(): void {
+    clearTimeout(this.pickTimeout);
     // advance does a different thing depending on what stage you are in
     if (this.gameStage === "preseason" &&
         this.teams.length >= 1) {
       this.advanceToDraft();
     } else if (this.gameStage === "draft") {
-      let firstIteration = true;
-      while (this.spotInDraftOrder < this.teams.length) {
-        const pickingTeam = this.teams[this.draftOrder[this.spotInDraftOrder]];
-        // stop auto-drafting if the next team up is not bot-controlled
-        // but if it's the first iteration we assume the advancement is desired
-        if (!firstIteration && pickingTeam.controller !== "bot") {
-          break;
-        }
-        const pick = Bot.getDraftPick(pickingTeam, this.fighters);
-        this.pickFighter(this.draftOrder[this.spotInDraftOrder], pick);
-        firstIteration = false;
-      }
       if (this.spotInDraftOrder === this.draftOrder.length) {
+        // we're done, go straight to FA (no timeout)
         this.advanceToFreeAgency();
-      }
-    } else if (this.gameStage === "free agency") {
-      let firstIteration = true;
-      while (this.spotInDraftOrder < this.teams.length) {
+      } else {
         const pickingTeam = this.teams[this.draftOrder[this.spotInDraftOrder]];
-        // stop auto-drafting if the next team up is not bot-controlled
-        // but if it's the first iteration we assume the advancement is desired
-        if (!firstIteration && pickingTeam.controller !== "bot") {
-          break;
-        }
         if (pickingTeam.controller === "bot") {
-          const picks = Bot.getFAPicks(pickingTeam, this.fighters);
-          for (const pick of picks) {
-            this.pickFighter(this.draftOrder[this.spotInDraftOrder], pick);
+          // if bot's turn when pressed, do bots automatically
+          this.doBotDraftPick();
+        } else {
+          // if human's turn when pressed, have bot pick for them, then do all the bots after them automatically
+          // or advance to FA if no one else left
+          const pick = Bot.getDraftPick(pickingTeam, this.fighters);
+          this.pickFighter(this.draftOrder[this.spotInDraftOrder], pick);
+          // don't advance in draft order b/c that already happens when picking fighter in draft
+          if (this.spotInDraftOrder === this.draftOrder.length) {
+            this.advanceToFreeAgency();
+          } else {
+            this.pickTimeout = setTimeout(this.doBotDraftPick.bind(this), 3000);
           }
         }
-        this.emitEventToAll({
-          type: "pass"
-        });
-        firstIteration = false;
-        this.spotInDraftOrder++;
       }
+    } else if (this.gameStage === "free agency") {
       if (this.spotInDraftOrder === this.draftOrder.length) {
+        // we're done, go straight to training (no timeout)
         this.advanceToTraining();
+      } else {
+        const pickingTeam = this.teams[this.draftOrder[this.spotInDraftOrder]];
+        if (pickingTeam.controller === "bot") {
+          // if bot's turn when pressed, do bots automatically
+          this.doBotFAPick();
+        } else {
+          // if human's turn when pressed, make them pass, then do all the bots after them automatically
+          // or advance to training if no one else left
+          this.emitEventToAll({
+            type: "pass"
+          });
+          this.spotInDraftOrder++;
+          if (this.spotInDraftOrder === this.draftOrder.length) {
+            this.advanceToTraining();
+          } else {
+            this.pickTimeout = setTimeout(this.doBotFAPick.bind(this), 3000);
+          }
+        }
       }
     } else if (this.gameStage === "training") {
       for (let i = 0; i < this.teams.length; i++) {
@@ -440,9 +449,33 @@ export default class MayhemManager extends GameLogicHandlerBase {
       draftOrder: this.draftOrder,
       fighters: this.fighters
     });
+
+    clearTimeout(this.pickTimeout);
+    this.pickTimeout = setTimeout(this.doBotDraftPick.bind(this), 3000);
+  }
+
+  doBotDraftPick(): void {
+    clearTimeout(this.pickTimeout);
+
+    // if (this.gameStage !== "draft" || this.spotInDraftOrder >= this.draftOrder.length) return;
+    // if you advance too fast w/o the above line, the next line crashes, despite clearTimeout
+    const pickingTeam = this.teams[this.draftOrder[this.spotInDraftOrder]];
+    if (!pickingTeam) {
+      console.debug(this.exportLeague());
+    }
+    if (pickingTeam.controller !== "bot") return;
+    const pick = Bot.getDraftPick(pickingTeam, this.fighters);
+    this.pickFighter(this.draftOrder[this.spotInDraftOrder], pick);
+    if (this.spotInDraftOrder === this.draftOrder.length) {
+      this.pickTimeout = setTimeout(this.advanceToFreeAgency.bind(this), 3000);
+    } else {
+      this.pickTimeout = setTimeout(this.doBotDraftPick.bind(this), 3000);
+    }
   }
 
   advanceToFreeAgency(): void {
+    clearTimeout(this.pickTimeout);
+
     this.gameStage = "free agency";
     this.draftOrder.reverse(); // free agency has reverse pick order from the draft
     this.spotInDraftOrder = 0;
@@ -461,9 +494,34 @@ export default class MayhemManager extends GameLogicHandlerBase {
     }
 
     this.emitEventToAll({ type: "goToFA", fighters: this.fighters });
+    this.pickTimeout = setTimeout(this.doBotFAPick.bind(this), 3000);
+  }
+
+  doBotFAPick(): void {
+    clearTimeout(this.pickTimeout);
+
+    // if (this.gameStage !== "free agency" || this.spotInDraftOrder >= this.draftOrder.length) return;
+    // if you advance too fast w/o the above line, the next line crashes, despite clearTimeout
+    const pickingTeam = this.teams[this.draftOrder[this.spotInDraftOrder]];
+    if (pickingTeam.controller !== "bot") return;
+    const picks = Bot.getFAPicks(pickingTeam, this.fighters);
+    for (const pick of picks) {
+      this.pickFighter(this.draftOrder[this.spotInDraftOrder], pick);
+    }
+    this.emitEventToAll({
+      type: "pass"
+    });
+    this.spotInDraftOrder++;
+    if (this.spotInDraftOrder === this.draftOrder.length) {
+      this.pickTimeout = setTimeout(this.advanceToTraining.bind(this), 3000);
+    } else {
+      this.pickTimeout = setTimeout(this.doBotFAPick.bind(this), 3000);
+    }
   }
 
   advanceToTraining(): void {
+    clearTimeout(this.pickTimeout);
+
     this.gameStage = "training";
     delete this.fighters;
     delete this.draftOrder;
@@ -545,8 +603,10 @@ export default class MayhemManager extends GameLogicHandlerBase {
   doAgeBasedDevelopment(f: Fighter) {
     for (const stat in f.stats) {
       if (this.randReal() < 0.5) {
-        f.stats[stat] += Math.round(this.randReal() + this.randReal() - 0.5 - f.experience / 8);
-        f.stats[stat] = Math.min(Math.max(f.stats[stat], 0), 10);
+        let change = stat === StatName.Strength || stat === StatName.Accuracy ? 0.2 :
+                     stat === StatName.Energy ? 0 : -0.2;
+        change += Math.round(this.randReal() + this.randReal() - 0.5 - f.experience / 8);
+        f.stats[stat] = Math.min(Math.max(f.stats[stat] + change, 0), 10);
       }
     }
   }
