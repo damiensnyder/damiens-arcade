@@ -107,14 +107,14 @@ export default class AnimationState {
           this.fighters.push(event.fighter);
           this.rotation.push(RotationState.Stationary1);
           this.flipped.push(false);
-          this.charge.push(0);
-          this.hitFlash.push(0);
+          this.charge.push(1);
+          this.hitFlash.push(1);
           this.tint.push([0, 0, 0, 0]);
           this.nextFighters.push(event.fighter);
           this.nextRotation.push(RotationState.Stationary1);
           this.nextFlipped.push(false);
-          this.nextCharge.push(0);
-          this.nextHitFlash.push(0);
+          this.nextCharge.push(1);
+          this.nextHitFlash.push(1);
           this.nextTint.push([0, 0, 0, 0]);
         } else if (event.type === "move") {
           event = event as MFMoveEvent;

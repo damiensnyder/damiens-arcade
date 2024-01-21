@@ -243,14 +243,16 @@ class Fight {
 
   // Simulates the fight
   simulate(): void {
-    const initialTick: MidFightEvent[] = [];
+    // clear tick log file
+    writeFileSync("logs/ticks.txt", "");
 
     // place the fighters evenly spaced in a circle of radius 25 centered at (0, 0)
     this.fighters.forEach((f, i) => {
+      const spawnTick: MidFightEvent[] = [];
       f.x = 50 + -25 * Math.cos(2 * Math.PI * i / this.fighters.length);
       f.y = 50 + 25 * Math.sin(2 * Math.PI * i / this.fighters.length);
 
-      initialTick.push({
+      spawnTick.push({
         type: "spawn",
         fighter: {  // f will be mutated during the fight so we need a current snapshot
           ...f,
@@ -261,10 +263,14 @@ class Fight {
           statusEffects: []
         }
       });
+      // pause 1 second between spawning fighters
+      this.eventLog.push(spawnTick);
+      writeFileSync("logs/ticks.txt", JSON.stringify(spawnTick) + "[][][][]", { flag: "a+" });
+      for (let i = 0; i < 4; i++) {
+        this.eventLog.push([]);
+      }
     });
 
-    this.eventLog.push(initialTick);
-    writeFileSync("logs/ticks.txt", JSON.stringify(initialTick));
 
     while (!this.fightIsOver()) {
       this.doTick();
