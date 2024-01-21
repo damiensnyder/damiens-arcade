@@ -781,11 +781,7 @@ function buffability(f: FighterInBattle): number {
                     (e.abilities.aiHints.passiveValue ?? 0);
   }
 
-<<<<<<< Updated upstream
-  return (1 + 0.5 * (bestActionDanger + passiveDanger)) / (150 - effectiveHp);
-=======
-  return (50 + 20 * (bestActionDanger + passiveValue)) * (50 + effectiveHp);
->>>>>>> Stashed changes
+  return (1 + 0.5 * (bestActionDanger + passiveValue)) / (150 - effectiveHp);
 }
 
 export function actionDanger(f: FighterInBattle, a: Abilities): number {
