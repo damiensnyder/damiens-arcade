@@ -475,9 +475,6 @@ export default class MayhemManager extends GameLogicHandlerBase {
     // if (this.gameStage !== "draft" || this.spotInDraftOrder >= this.draftOrder.length) return;
     // if you advance too fast w/o the above line, the next line crashes, despite clearTimeout
     const pickingTeam = this.teams[this.draftOrder[this.spotInDraftOrder]];
-    if (!pickingTeam) {
-      console.debug(this.exportLeague());
-    }
     if (pickingTeam.controller !== "bot") return;
     const pick = Bot.getDraftPick(pickingTeam, this.fighters);
     this.pickFighter(this.draftOrder[this.spotInDraftOrder], pick);
@@ -583,7 +580,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
             team.money >= e[equipmentIndex].price) {
           const equipmentPicked = e.splice(equipmentIndex, 1)[0];
           team.equipment.push(equipmentPicked);
-          team.money -= equipmentPicked.price;
+          team.money = Math.round(team.money - equipmentPicked.price);
           equipmentPicked.price = 0;
         }
       });
@@ -697,7 +694,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
         return false;
       });
       team.equipment = team.equipment.filter((equipment) => (equipment.yearsOwned % 2) !== 1);
-      team.money = Math.ceil(team.money / 2) + 100;
+      team.money = Math.ceil(team.money / 2 + 100);
       team.ready = false;
     });
     delete this.fightersInBattle;
@@ -737,7 +734,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
         this.teams[teamIndex].money >= this.fighters[fighterIndex].price) {
       const fighterPicked = this.fighters.splice(fighterIndex, 1)[0];
       this.teams[teamIndex].fighters.push(fighterPicked);
-      this.teams[teamIndex].money -= fighterPicked.price;
+      this.teams[teamIndex].money = Math.round(this.teams[teamIndex].money - fighterPicked.price);
       fighterPicked.experience = this.gameStage === "draft" ? 0 : 2;
       this.emitEventToAll({
         type: "pick",
@@ -755,7 +752,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
         team.money >= team.needsResigning[fighterIndex].price) {
       const fighterResigned = team.needsResigning.splice(fighterIndex, 1)[0];
       team.fighters.push(fighterResigned);
-      team.money -= fighterResigned.price;
+      team.money = Math.round(team.money - fighterResigned.price);
       fighterResigned.price = 0;
       this.emitEventToAll({
         type: "resign",
@@ -770,7 +767,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
     if (equipmentIndex < team.needsRepair.length &&
         team.money >= team.needsRepair[equipmentIndex].price) {
       const equipmentRepaired = team.needsRepair.splice(equipmentIndex, 1)[0];
-      team.money -= equipmentRepaired.price;
+      team.money = Math.round(team.money - equipmentRepaired.price);
       equipmentRepaired.price = 0;
       team.equipment.push(equipmentRepaired);
       this.emitEventToAll({
