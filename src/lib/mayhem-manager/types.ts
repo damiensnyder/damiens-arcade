@@ -122,6 +122,7 @@ export interface Team {
 export interface PreseasonTeam extends Team {
   needsResigning: Fighter[]
   needsRepair: Equipment[]
+  ready: boolean
 }
 
 export interface Fighter {
@@ -318,6 +319,10 @@ interface RemoveAction {
   team: number
 }
 
+interface ReadyAction {
+  type: "ready"
+}
+
 interface AddBotAction {
   type: "addBot"
 }
@@ -373,6 +378,7 @@ export type MayhemManagerAction = ChangeRoomSettingsAction |
     LeaveAction |
     ReplaceAction |
     RemoveAction |
+    ReadyAction |
     AddBotAction |
     AdvanceAction |
     PickAction |

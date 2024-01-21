@@ -43,9 +43,9 @@
     });
   }
 
-  function advance() {
+  function ready() {
     lastAction.set({
-      type: "advance"
+      type: "ready"
     });
   }
 </script>
@@ -106,16 +106,16 @@
       </div>
     </div>
   {/each}
-  {#if $host === $pov}
-    <div class="horiz host-controls">
-      {#if $teams.length < 16}
-        <button class="right-align-inner"
-            on:click={addBot} on:submit={addBot}>Add a bot</button>
-      {/if}
+  <div class="horiz controls">
+    {#if $host === $pov && $teams.length < 16}
       <button class="right-align-inner"
-          on:click={advance} on:submit={advance}>Go to draft</button>
-    </div>
-  {/if}
+          on:click={addBot} on:submit={addBot}>Add a bot</button>
+    {/if}
+    {#if $ownTeamIndex !== null}
+      <button class="right-align-inner"
+          on:click={ready} on:submit={ready}>Ready</button>
+    {/if}
+  </div>
 </div>
 
 <style>
@@ -128,7 +128,7 @@
     margin-top: 1.25rem;
   }
 
-  .players-list > .host-controls {
+  .players-list > .controls {
     align-self: center;
     margin-top: 1rem;
   }

@@ -39,6 +39,7 @@ export const eventHandler: EventHandler<MayhemManagerEvent> = {
         equipment: [],
         needsResigning: [],
         needsRepair: [],
+        ready: false,
         ...event
       });
       return old;

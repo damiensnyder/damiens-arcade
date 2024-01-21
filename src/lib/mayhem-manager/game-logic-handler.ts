@@ -75,6 +75,10 @@ const removeSchema = z.object({
   team: z.number().min(0)
 });
 
+const readySchema = z.object({
+  type: z.literal("ready")
+});
+
 const addBotSchema = z.object({
   type: z.literal("addBot")
 });
@@ -119,9 +123,9 @@ const repairSchema = z.object({
   equipment: z.number().int().min(0)
 });
 
-const importSchema = z.object({
-  type: z.literal("import"),
-});
+// const importSchema = z.object({
+//   type: z.literal("import"),
+// });
 
 
 
@@ -227,6 +231,16 @@ export default class MayhemManager extends GameLogicHandlerBase {
         type: "remove",
         team: action.team
       });
+
+      // READY
+    } else if (readySchema.safeParse(action).success &&
+        this.gameStage === "preseason" &&
+        indexControlledByViewer !== null) {
+      // mark player as ready, and if all non-bot players are ready (assuming 2+ teams), go to draft
+      (teamControlledByViewer as PreseasonTeam).ready = true;
+      if (this.teams.every((team: PreseasonTeam) => team.ready || team.controller === "bot") && this.teams.length >= 2) {
+        this.advanceToDraft();
+      }
 
       // ADD BOT
     } else if (addBotSchema.safeParse(action).success &&
@@ -419,6 +433,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
           this.repairEquipment(i, e - j);
         });
       }
+      delete team.ready;
     })
 
     this.unsignedVeterans = [];
@@ -683,6 +698,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
       });
       team.equipment = team.equipment.filter((equipment) => (equipment.yearsOwned % 2) !== 1);
       team.money = Math.ceil(team.money / 2) + 100;
+      team.ready = false;
     });
     delete this.fightersInBattle;
     delete this.map;
