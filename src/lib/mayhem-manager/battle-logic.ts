@@ -790,7 +790,7 @@ export function engageabilityBR(f: FighterInBattle): number {
     }
   }
 
-  return (10 + 4 * (bestActionDanger + passiveDanger)) / (150 - effectiveHp);
+  return (1 + 0.5 * (bestActionDanger + passiveDanger)) / (150 - effectiveHp);
 }
 
 export function danger(f: FighterInBattle, a: Abilities): number {
