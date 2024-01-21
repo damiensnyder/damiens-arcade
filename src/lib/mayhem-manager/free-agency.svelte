@@ -29,10 +29,10 @@
   <h2 class="column-title">Pick Order</h2>
   {#each $draftOrder as index, spotInOrder}
     <div class="horiz">
-      <span class="team-name" style:color={spotInOrder === $spotInDraftOrder ?
-                                           "var(--accent-5)" :
-                                           (index === $ownTeamIndex ?
-                                            "var(--accent-4)" :
+      <span class="team-name" style:color={index === $ownTeamIndex ?
+                                           "var(--accent-4)" :
+                                           (spotInOrder === $spotInDraftOrder ?
+                                            "var(--accent-5)" :
                                             "var(--text-1)")}>
         {spotInOrder + 1}. {$teams[index].name}
         {#if spotInOrder === $spotInDraftOrder}
