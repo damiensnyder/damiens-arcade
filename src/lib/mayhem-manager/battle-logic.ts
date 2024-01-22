@@ -3,6 +3,8 @@ import { readFileSync, writeFileSync } from "fs";
 import { EquipmentSlot, type Equipment, type FighterInBattle, type FighterNames, type FighterTemplate, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, StatName, Target, Trigger, type TriggeredEffect, type Effect, type EquipmentTemplate, ActionAnimation, type Abilities } from "$lib/mayhem-manager/types";
 import type { RNG } from "$lib/types";
 
+const DEBUG = false;
+
 export const FISTS: Equipment = {
   name: "fists",
   imgUrl: "",
@@ -252,7 +254,7 @@ class Fight {
   // Simulates the fight
   simulate(): void {
     // clear tick log file
-    writeFileSync("logs/ticks.txt", "");
+    if (DEBUG) writeFileSync("logs/ticks.txt", "");
 
     // place the fighters evenly spaced in a circle of radius 25 centered at (0, 0)
     this.fighters.forEach((f, i) => {
@@ -273,12 +275,12 @@ class Fight {
       });
       // pause 1 second between spawning fighters
       this.eventLog.push(spawnTick);
-      writeFileSync("logs/ticks.txt", JSON.stringify(spawnTick) + "[][][]", { flag: "a+" });
+      if (DEBUG) writeFileSync("logs/ticks.txt", JSON.stringify(spawnTick) + "[][][]", { flag: "a+" });
       for (let i = 0; i < 3; i++) {
         this.eventLog.push([]);
       }
     });
-    writeFileSync("logs/ticks.txt", "[][][]", { flag: "a+" });
+    if (DEBUG) writeFileSync("logs/ticks.txt", "[][][]", { flag: "a+" });
     for (let i = 0; i < 3; i++) {
       this.eventLog.push([]);
     }
@@ -389,7 +391,7 @@ class Fight {
     });
     
     // we stringify the tick so later mutations don't mess up earlier ticks
-    writeFileSync("logs/ticks.txt", JSON.stringify(tick), { flag: "a+" });
+    if (DEBUG) writeFileSync("logs/ticks.txt", JSON.stringify(tick), { flag: "a+" });
     this.eventLog.push(tick);
   }
 
