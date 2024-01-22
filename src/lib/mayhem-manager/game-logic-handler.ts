@@ -679,7 +679,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
       // solely dependent on years owned
       team.needsResigning = team.fighters.filter((fighter) => {
         fighter.experience++;
-        if ((fighter.experience % 3) === 2) {
+        if ((fighter.experience % 2) === 1) {
           fighter.price = fighterValue(fighter) + this.randInt(-5, 5);
           return true;
         }
@@ -688,7 +688,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
       team.fighters = team.fighters.filter((fighter) => (fighter.experience % 3 !== 2));
       team.needsRepair = team.equipment.filter((equipment) => {
         equipment.yearsOwned++;
-        if ((equipment.yearsOwned % 2) === 1) {
+        if ((equipment.yearsOwned % 2) === 0) {
           equipment.price = 5 * equipment.yearsOwned + this.randInt(-3, 3);
           return true;
         }

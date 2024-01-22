@@ -58,7 +58,7 @@ const actionAbility = z.object({
   target: z.nativeEnum(Target),
   effects: z.array(effect),
   cooldown: z.number().min(0),
-  chargeNeeded: z.number().int().min(0).optional(),
+  chargeNeeded: z.number().int().min(1).optional(),
   dodgeable: z.boolean().optional(),
   missable: z.boolean().optional(),
   animation: z.nativeEnum(ActionAnimation).optional(),
@@ -701,7 +701,7 @@ class Fight {
         return [];
       }
       let bestTarget: FighterInBattle;
-      let bestTargetability = -100000000;
+      let bestTargetability = -Infinity;
       for (const f2 of this.enemies(fighter)) {
         let e2 = this.targetability(f2);
         if (e2 >= bestTargetability) {
@@ -717,14 +717,17 @@ class Fight {
         return [];
       }
       let bestTarget: FighterInBattle;
-      let bestBuffability = -100000000;
+      let bestBuffability = -Infinity;
       for (const f2 of this.teammates(fighter)) {
         let e2 = buffability(f2);
         if (e2 >= bestBuffability) {
           bestTarget = f2;
           bestBuffability = e2;
+        } else {
+          console.log(f2, e2);
         }
       }
+      if (bestTarget === undefined) console.log(this.teammates(fighter));
       return [bestTarget];
     } else if (target === Target.ActionTarget) {
       return [actionTarget];
@@ -764,7 +767,7 @@ function scaleVectorToMagnitude(x: number, y: number, magnitude: number): [numbe
 function engageability(f: FighterInBattle): number {
   const effectiveHp = f.hp * (0.75 + f.stats.toughness / 20) / (1 - f.stats.speed / 50);
 
-  let bestActionDanger: number = -1000000000;
+  let bestActionDanger = -Infinity;
   let passiveDanger = 0;
   for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
     bestActionDanger = Math.max(bestActionDanger, actionDanger(f, e.abilities));
@@ -775,7 +778,8 @@ function engageability(f: FighterInBattle): number {
   }
   // console.log("Name:", f.name, "| Danger:", (bestActionDanger || 0) + passiveDanger, "| Effective HP:", effectiveHp);
 
-  return (50 + 20 * ((bestActionDanger ?? 0) + passiveDanger)) / (50 + effectiveHp);
+  if (bestActionDanger < -100) console.debug(f, bestActionDanger);
+  return (50 + 20 * (bestActionDanger + passiveDanger)) / (50 + effectiveHp);
 }
 
 // Prefer higher effective HP when prioritizing targets in battle royale
@@ -783,7 +787,7 @@ function engageability(f: FighterInBattle): number {
 export function engageabilityBR(f: FighterInBattle): number {
   const effectiveHp = f.hp * (0.75 + f.stats.toughness / 20) / (1 - f.stats.speed / 50);
 
-  let bestActionDanger = 0;
+  let bestActionDanger = -Infinity;
   let passiveDanger = 0;
   for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
     bestActionDanger = Math.max(bestActionDanger, actionDanger(f, e.abilities));
@@ -796,15 +800,15 @@ export function engageabilityBR(f: FighterInBattle): number {
 function buffability(f: FighterInBattle): number {
   const effectiveHp = f.hp * (0.75 + f.stats.toughness / 20) / (1 - f.stats.speed / 50);
 
-  let bestActionDanger = 0;
+  let bestActionValue = -Infinity;
   let passiveValue = 0;
   for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
-    bestActionDanger = Math.max(bestActionDanger, actionDanger(f, e.abilities));
+    bestActionValue = Math.max(bestActionValue, actionDanger(f, e.abilities));
     passiveValue += (e.abilities.aiHints?.passiveDanger ?? 0) +
                     (e.abilities.aiHints?.passiveValue ?? 0);
   }
 
-  return (1 + 0.5 * (bestActionDanger + passiveValue)) / (150 - effectiveHp);
+  return (1 + 0.5 * (bestActionValue + passiveValue)) / (150 - effectiveHp);
 }
 
 export function actionDanger(f: FighterInBattle, a: Abilities): number {
@@ -826,7 +830,7 @@ export function actionDanger(f: FighterInBattle, a: Abilities): number {
     d *= 1 -
         (a.action.chargeNeeded - f.charge) *  // charges still needed
         (9 - 0.6 * f.stats.energy) /          // time per charge
-        (9 * f.stats.energy);                 // time needed if 0 charge and 0 energy
+        (9 * a.action.chargeNeeded);          // time needed if 0 charge and 0 energy
   }
   return d;
 }
