@@ -178,7 +178,7 @@ export default class AnimationState {
           this.nextCharge[event.fighter] = 1;
           this.nextParticles.push({
             type: "text",
-            text: `${event.newCharge} charges`,
+            text: `${event.newCharge} ${event.newCharge === 1 ? "charge" : "charges"}`,
             x: this.nextFighters[event.fighter].x,
             y: this.nextFighters[event.fighter].y - 7,  // moved up to be just over the fighter's head
             opacity: 1

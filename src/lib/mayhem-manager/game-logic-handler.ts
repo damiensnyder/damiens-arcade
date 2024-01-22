@@ -618,7 +618,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
       if (this.randReal() < 0.5) {
         let change = stat === StatName.Strength || stat === StatName.Accuracy ? 0.2 :
                      stat === StatName.Energy ? 0 : -0.2;
-        change += Math.round(this.randReal() + this.randReal() - 0.5 - f.experience / 8);
+        change = Math.round(change + this.randReal() + this.randReal() - 0.5 - f.experience / 8);
         f.stats[stat] = Math.min(Math.max(f.stats[stat] + change, 0), 10);
       }
     }
@@ -685,7 +685,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
         }
         return false;
       });
-      team.fighters = team.fighters.filter((fighter) => (fighter.experience % 3 !== 2));
+      team.fighters = team.fighters.filter((fighter) => (fighter.experience % 2 !== 1));
       team.needsRepair = team.equipment.filter((equipment) => {
         equipment.yearsOwned++;
         if ((equipment.yearsOwned % 2) === 0) {
@@ -694,7 +694,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
         }
         return false;
       });
-      team.equipment = team.equipment.filter((equipment) => (equipment.yearsOwned % 2) !== 1);
+      team.equipment = team.equipment.filter((equipment) => (equipment.yearsOwned % 2) !== 0);
       team.money = Math.ceil(team.money / 2 + 100);
       team.ready = false;
     });
@@ -736,7 +736,6 @@ export default class MayhemManager extends GameLogicHandlerBase {
       const fighterPicked = this.fighters.splice(fighterIndex, 1)[0];
       this.teams[teamIndex].fighters.push(fighterPicked);
       this.teams[teamIndex].money = Math.round(this.teams[teamIndex].money - fighterPicked.price);
-      fighterPicked.experience = this.gameStage === "draft" ? 0 : 2;
       this.emitEventToAll({
         type: "pick",
         fighter: fighterIndex
