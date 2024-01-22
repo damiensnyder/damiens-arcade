@@ -5,8 +5,8 @@
       "slots": ["hand", "hand"],
       "imgUrl": "/static/equipment/battle-axe.png",
       "zoomedImgUrl": "/static/zoomed/equipment/battle-axe.png",
-      "price": 20,
-      "description": "Deals 30 damage. Cooldown 8s.",
+      "price": 32,
+      "description": "Melee. Deals 55 damage. Cooldown 8s.",
       "flavor": "learn this one secret trick lumberjacks DON'T want you to know",
       "abilities": {
         "action": {
@@ -14,7 +14,7 @@
           "effects": [
             {
               "type": "damage",
-              "amount": 30
+              "amount": 55
             }
           ],
           "cooldown": 8,
@@ -22,8 +22,10 @@
           "knockback": 0.7,
           "animation": "swing"
         },
-        "danger": 4,
-        "dangerStat": "strength"
+        "aiHints": {
+          "actionDanger": 7,
+          "actionStat": "strength"
+        }
       }
     },
     {
@@ -31,25 +33,28 @@
       "slots": ["head"],
       "imgUrl": "/static/equipment/chainsaw-headband.png",
       "zoomedImgUrl": "/static/zoomed/equipment/chainsaw-headband.png",
-      "price": 10,
-      "description": "Deals 10 damage. Cooldown 3s.",
-      "flavor": "",
+      "price": 20,
+      "description": "Melee. Deals 25 damage. Cooldown 3s. Requires 1 charge.",
+      "flavor": "it's battery powered",
       "abilities": {
         "action": {
           "target": "melee",
           "effects": [
             {
               "type": "damage",
-              "amount": 10
+              "amount": 25
             }
           ],
+          "chargeNeeded": 1,
           "cooldown": 3,
           "dodgeable": true,
           "knockback": 0.5,
           "animation": "swing"
         },
-        "danger": 3,
-        "dangerStat": "strength"
+        "aiHints": {
+          "actionDanger": 8,
+          "actionStat": "strength"
+        }
       }
     },
     {
@@ -57,8 +62,8 @@
       "slots": ["hand"],
       "imgUrl": "/static/equipment/claws-for-alarm.png",
       "zoomedImgUrl": "/static/zoomed/equipment/claws-for-alarm.png",
-      "price": 5,
-      "description": "Deals 10 damage. Cooldown 5s. Accuracy -2.",
+      "price": 22,
+      "description": "Melee. Deals 25 damage. Cooldown 5s. Accuracy -4.",
       "flavor": "who needs to aim when you can PINCH",
       "abilities": {
         "action": {
@@ -66,7 +71,7 @@
           "effects": [
             {
               "type": "damage",
-              "amount": 10
+              "amount": 25
             }
           ],
           "cooldown": 5,
@@ -77,11 +82,13 @@
         "statChanges": [
           {  
             "stat": "accuracy",
-            "amount": -4
+            "amount": -8
           }
         ],
-        "danger": 2,
-        "dangerStat": "strength"
+        "aiHints": {
+          "actionDanger": 5,
+          "actionStat": "strength"
+        }
       }
     },
     {
@@ -89,8 +96,64 @@
       "slots": ["hand"],
       "imgUrl": "/static/equipment/diamond-sword.png",
       "zoomedImgUrl": "/static/zoomed/equipment/diamond-sword.png",
-      "price": 20,
-      "description": "Deals 20 damage. Cooldown 5s.",
+      "price": 40,
+      "description": "Deals 45 damage. Cooldown 5s.",
+      "flavor": "",
+      "abilities": {
+        "action": {
+          "target": "melee",
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 45
+            }
+          ],
+          "cooldown": 5,
+          "dodgeable": true,
+          "knockback": 0.5,
+          "animation": "swing"
+        },
+        "aiHints": {
+          "actionDanger": 9,
+          "actionStat": "strength"
+        }
+      }
+    },
+    {
+      "name": "Shiv",
+      "slots": ["hand"],
+      "imgUrl": "/static/equipment/shiv.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/shiv.png",
+      "price": 15,
+      "description": "Deals 8 damage. Cooldown 2s.",
+      "flavor": "",
+      "abilities": {
+        "action": {
+          "target": "melee",
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 8
+            }
+          ],
+          "cooldown": 2,
+          "dodgeable": true,
+          "knockback": 0.5,
+          "animation": "swing"
+        },
+        "aiHints": {
+          "actionDanger": 4,
+          "actionStat": "strength"
+        }
+      }
+    },
+    {
+      "name": "Steel Toed Boots",
+      "slots": ["feet"],
+      "imgUrl": "/static/equipment/steel-toed-boots.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/steel-toed-boots.png",
+      "price": 17,
+      "description": "Deals 20 damage. Cooldown 6s. Toughness +1. Speed -1.",
       "flavor": "",
       "abilities": {
         "action": {
@@ -101,85 +164,7 @@
               "amount": 20
             }
           ],
-          "cooldown": 5,
-          "dodgeable": true,
-          "knockback": 0.5,
-          "animation": "swing"
-        },
-        "danger": 4,
-        "dangerStat": "strength"
-      }
-    },
-    {
-      "name": "Headbutter's Delight",
-      "slots": ["head"],
-      "imgUrl": "/static/equipment/headbutters-delight.png",
-      "zoomedImgUrl": "/static/zoomed/equipment/headbutters-delight.png",
-      "price": 8,
-      "description": "Deals 12 damage. Cooldown 5s.",
-      "flavor": "for when two fists just isn't enough",
-      "abilities": {
-        "action": {
-          "target": "melee",
-          "effects": [
-            {
-              "type": "damage",
-              "amount": 12
-            }
-          ],
-          "cooldown": 5,
-          "dodgeable": true,
-          "knockback": 0.5,
-          "animation": "swing"
-        },
-        "danger": 2,
-        "dangerStat": "strength"
-      }
-    },
-    {
-      "name": "Shiv",
-      "slots": ["hand"],
-      "imgUrl": "/static/equipment/shiv.png",
-      "zoomedImgUrl": "/static/zoomed/equipment/shiv.png",
-      "price": 3,
-      "description": "Deals 6 damage. Cooldown 3s.",
-      "flavor": "",
-      "abilities": {
-        "action": {
-          "target": "melee",
-          "effects": [
-            {
-              "type": "damage",
-              "amount": 6
-            }
-          ],
-          "cooldown": 3,
-          "dodgeable": true,
-          "knockback": 0.5,
-          "animation": "swing"
-        },
-        "danger": 2,
-        "dangerStat": "strength"
-      }
-    },
-    {
-      "name": "Steel Toed Boots",
-      "slots": ["feet"],
-      "imgUrl": "/static/equipment/steel-toed-boots.png",
-      "zoomedImgUrl": "/static/zoomed/equipment/steel-toed-boots.png",
-      "price": 6,
-      "description": "Deals 12 damage. Cooldown 5s. Toughness +1. Speed -1.",
-      "flavor": "",
-      "abilities": {
-        "action": {
-          "target": "melee",
-          "effects": [
-            {
-              "type": "damage",
-              "amount": 12
-            }
-          ],
-          "cooldown": 5,
+          "cooldown": 6,
           "dodgeable": true,
           "knockback": 0.5,
           "animation": "swing"
@@ -194,34 +179,10 @@
             "amount": -2
           }
         ],
-        "danger": 2,
-        "dangerStat": "strength"
-      }
-    },
-    {
-      "name": "The Ratio-inator",
-      "slots": ["hand"],
-      "imgUrl": "/static/equipment/the-ratio-inator.png",
-      "zoomedImgUrl": "/static/zoomed/equipment/the-ratio-inator.png",
-      "price": 5,
-      "description": "Deals 10 damage. Cooldown 5.",
-      "flavor": "hold this.",
-      "abilities": {
-        "action": {
-          "target": "melee",
-          "effects": [
-            {
-              "type": "damage",
-              "amount": 10
-            }
-          ],
-          "cooldown": 5,
-          "dodgeable": true,
-          "knockback": 0.5,
-          "animation": "swing"
-        },
-        "danger": 2,
-        "dangerStat": "strength"
+        "aiHints": {
+          "actionDanger": 3,
+          "actionStat": "strength"
+        }
       }
     },
 
@@ -232,8 +193,8 @@
       "slots": ["hand", "hand"],
       "imgUrl": "/static/equipment/bow.png",
       "zoomedImgUrl": "/static/zoomed/equipment/bow.png",
-      "price": 8,
-      "description": "Deals 15 damage. Cooldown 5s.",
+      "price": 16,
+      "description": "Deals 45 damage. Cooldown 7s.",
       "flavor": "",
       "abilities": {
         "action": {
@@ -241,17 +202,19 @@
           "effects": [
             {
               "type": "damage",
-              "amount": 15
+              "amount": 45
             }
           ],
-          "cooldown": 5,
+          "cooldown": 7,
           "missable": true,
           "animation": "aim",
           "projectileImg": "/static/projectiles/arrow.png",
           "knockback": 0.3
         },
-        "danger": 2,
-        "dangerStat": "accuracy"
+        "aiHints": {
+          "actionDanger": 3,
+          "actionStat": "accuracy"
+        }
       }
     },
     {
@@ -259,35 +222,8 @@
       "slots": ["hand"],
       "imgUrl": "/static/equipment/laser-blaster.png",
       "zoomedImgUrl": "/static/zoomed/equipment/laser-blaster.png",
-      "price": 14,
-      "description": "Deals 12 damage. Cooldown 3s.",
-      "flavor": "",
-      "abilities": {
-        "action": {
-          "target": "anyEnemy",
-          "effects": [
-            {
-              "type": "damage",
-              "amount": 12
-            }
-          ],
-          "cooldown": 3,
-          "missable": true,
-          "animation": "aim",
-          "projectileImg": "/static/projectiles/laser.png",
-          "knockback": 0.3
-        },
-        "danger": 2,
-        "dangerStat": "accuracy"
-      }
-    },
-    {
-      "name": "Wand of Flames",
-      "slots": ["hand"],
-      "imgUrl": "/static/equipment/wand-of-flames.png",
-      "zoomedImgUrl": "/static/zoomed/equipment/wand-of-flames.png",
-      "price": 12,
-      "description": "Deals 30 damage. Cooldown 7s.",
+      "price": 28,
+      "description": "Deals 30 damage. Cooldown 3s.",
       "flavor": "",
       "abilities": {
         "action": {
@@ -298,14 +234,46 @@
               "amount": 30
             }
           ],
-          "cooldown": 7,
+          "cooldown": 3,
+          "missable": true,
+          "animation": "aim",
+          "projectileImg": "/static/projectiles/laser.png",
+          "knockback": 0.3
+        },
+        "aiHints": {
+          "actionDanger": 6,
+          "actionStat": "accuracy"
+        }
+      }
+    },
+    {
+      "name": "Wand of Flames",
+      "slots": ["hand"],
+      "imgUrl": "/static/equipment/wand-of-flames.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/wand-of-flames.png",
+      "price": 12,
+      "description": "Deals 70 damage. Cooldown 6s. Requires 1 charge.",
+      "flavor": "",
+      "abilities": {
+        "action": {
+          "target": "anyEnemy",
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 70
+            }
+          ],
+          "chargeNeeded": 1,
+          "cooldown": 6,
           "missable": true,
           "animation": "aim",
           "projectileImg": "/static/projectiles/fireball.png",
           "knockback": 0.7
         },
-        "danger": 3,
-        "dangerStat": "accuracy"
+        "aiHints": {
+          "actionDanger": 6,
+          "actionStat": "accuracy"
+        }
       }
     },
     {
@@ -313,8 +281,8 @@
       "slots": ["head"],
       "imgUrl": "/static/equipment/zap-helmet.png",
       "zoomedImgUrl": "/static/zoomed/equipment/zap-helmet.png",
-      "price": 3,
-      "description": "Deals 10 damage. Cooldown 5s. Cannot miss.",
+      "price": 25,
+      "description": "Deals 25 damage. Cooldown 4s. Cannot miss.",
       "flavor": "i did it with my mind",
       "abilities": {
         "action": {
@@ -322,7 +290,7 @@
           "effects": [
             {
               "type": "damage",
-              "amount": 10
+              "amount": 25
             }
           ],
           "cooldown": 5,
@@ -330,8 +298,10 @@
           "projectileImg": "/static/projectiles/laser.png",
           "knockback": 0.3
         },
-        "danger": 2,
-        "dangerStat": "accuracy"
+        "aiHints": {
+          "actionDanger": 6,
+          "actionStat": "accuracy"
+        }
       }
     },
 
@@ -343,20 +313,15 @@
       "imgUrl": "/static/equipment/censored-bar.png",
       "zoomedImgUrl": "/static/zoomed/equipment/censored-bar.png",
       "price": 10,
-      "description": "+2 speed. +2 toughness",
+      "description": "+2 toughness",
       "flavor": "this attack has been banned by the Motion Picture Association of America",
       "abilities": {
         "statChanges": [
           {
-            "stat": "speed",
-            "amount": 4
-          },
-          {
             "stat": "toughness",
             "amount": 4
           }
-        ],
-        "danger": 0
+        ]
       }
     },
     {
@@ -364,8 +329,8 @@
       "slots": ["head"],
       "imgUrl": "/static/equipment/devil-horns.png",
       "zoomedImgUrl": "/static/zoomed/equipment/devil-horns.png",
-      "price": 20,
-      "description": "+3 strength. +3 accuracy. +3 energy. -2 speed. -2 toughness.",
+      "price": 18,
+      "description": "+3 strength. +3 accuracy. +3 energy. +3 speed. -2 toughness.",
       "flavor": "the devil takes his due",
       "abilities": {
         "statChanges": [
@@ -383,14 +348,13 @@
           },
           {
             "stat": "speed",
-            "amount": -4
+            "amount": 6
           },
           {
             "stat": "toughness",
             "amount": -4
           }
-        ],
-        "danger": 0
+        ]
       }
     },
     {
@@ -398,39 +362,24 @@
       "slots": ["head"],
       "imgUrl": "/static/equipment/eyepatch.png",
       "zoomedImgUrl": "/static/zoomed/equipment/eyepatch.png",
-      "price": 7,
-      "description": "+2.5 accuracy. -1 speed.",
-      "flavor": "depth perception is sooo cliché",
+      "price": 9,
+      "description": "+2 strength. +2 energy. -3 accuracy",
+      "flavor": "it's all about focus",
       "abilities": {
         "statChanges": [
           {
-            "stat": "accuracy",
-            "amount": 5
+            "stat": "strength",
+            "amount": 4
           },
           {
-            "stat": "speed",
-            "amount": -2
-          }
-        ],
-        "danger": 0
-      }
-    },
-    {
-      "name": "Flamingo Floaty",
-      "slots": ["legs"],
-      "imgUrl": "/static/equipment/flamingo-floaty.png",
-      "zoomedImgUrl": "/static/zoomed/equipment/flamingo-floaty.png",
-      "price": 6,
-      "description": "+1 toughness.",
-      "flavor": "Flamingo Phil is always looking out for you",
-      "abilities": {
-        "statChanges": [
+            "stat": "energy",
+            "amount": 4
+          },
           {
-            "stat": "toughness",
-            "amount": 2
+            "stat": "accuracy",
+            "amount": -6
           }
-        ],
-        "danger": 0
+        ]
       }
     },
     {
@@ -438,21 +387,20 @@
       "slots": ["feet"],
       "imgUrl": "/static/equipment/house-arrest-ankle-bracelet.png",
       "zoomedImgUrl": "/static/zoomed/equipment/house-arrest-ankle-bracelet.png",
-      "price": 13,
-      "description": "+5 accuracy. -2 speed.",
-      "flavor": "",
+      "price": 12,
+      "description": "+4 strength. -3 speed.",
+      "flavor": "you wanna know why they keep me here?",
       "abilities": {
         "statChanges": [
           {
-            "stat": "accuracy",
-            "amount": 10
+            "stat": "strength",
+            "amount": 8
           },
           {
             "stat": "speed",
-            "amount": -4
+            "amount": -6
           }
-        ],
-        "danger": 0
+        ]
       }
     },
     {
@@ -469,8 +417,7 @@
             "stat": "speed",
             "amount": 6
           }
-        ],
-        "danger": 0
+        ]
       }
     },
     {
@@ -479,74 +426,35 @@
       "imgUrl": "/static/equipment/speedo.png",
       "zoomedImgUrl": "/static/zoomed/equipment/speedo.png",
       "price": 4,
-      "description": "+1 energy. +0.5 speed.",
+      "description": "+1 energy. +1 speed.",
       "flavor": "ahhh, how light and aerodynamic",
       "abilities": {
         "statChanges": [
           {
             "stat": "energy",
-            "amount": 1
+            "amount": 2
           },
           {
             "stat": "speed",
-            "amount": 1
+            "amount": 2
           }
-        ],
-        "danger": 0
-      }
-    },
-    {
-      "name": "Sports Jersey",
-      "slots": ["torso"],
-      "imgUrl": "/static/equipment/sports-jersey.png",
-      "zoomedImgUrl": "/static/zoomed/equipment/sports-jersey.png",
-      "price": 11,
-      "description": "+2 energy.",
-      "flavor": "did you see the big game last night?",
-      "abilities": {
-        "statChanges": [
-          {
-            "stat": "energy",
-            "amount": 4
-          }
-        ],
-        "danger": 0
+        ]
       }
     },
 
 
 
-    {
-      "name": "Flower of Power",
-      "slots": ["hand"],
-      "imgUrl": "/static/equipment/flower-of-power.png",
-      "zoomedImgUrl": "/static/zoomed/equipment/flower-of-power.png",
-      "price": 5,
-      "description": "On hit dealt: gain 3 HP.",
-      "flavor": "because a positive attitude is the best medicine :)",
-      "abilities": {
-        "triggeredEffects": [
-          {
-            "trigger": "hitDealt",
-            "target": "self",
-            "type": "hpChange",
-            "amount": 3
-          }
-        ],
-        "danger": 1
-      }
-    },
     {
       "name": "Foam Finger",
       "slots": ["hand"],
       "imgUrl": "/static/equipment/foam-finger.png",
       "zoomedImgUrl": "/static/zoomed/equipment/foam-finger.png",
-      "price": 11,
-      "description": "Give a teammate +1 to all stats for 5s. Cooldown 5s.",
+      "price": 20,
+      "description": "Give all teammates +1 to all stats for 5s. Cooldown 5s.",
       "flavor": "go team go! rah rah rah!",
       "abilities": {
         "action": {
-          "target": "anyTeammate",
+          "target": "allTeammates",
           "cooldown": 10,
           "effects": [
             {
@@ -582,7 +490,10 @@
             }
           ]
         },
-        "danger": 2
+        "aiHints": {
+          "actionDanger": 2,
+          "teammateMultiplier": true
+        }
       }
     },
     {
@@ -590,8 +501,8 @@
       "slots": ["head"],
       "imgUrl": "/static/equipment/halo.png",
       "zoomedImgUrl": "/static/zoomed/equipment/halo.png",
-      "price": 15,
-      "description": "Heals all teammates by 5 HP. Cooldown 10s.",
+      "price": 10,
+      "description": "Heals all teammates by 5 HP. Cooldown 3s. Requires 1 charge.",
       "flavor": "",
       "abilities": {
         "action": {
@@ -602,32 +513,13 @@
               "amount": 5
             }
           ],
+          "chargeNeeded": 1,
           "cooldown": 10
         },
-        "danger": 2
-      }
-    },
-    {
-      "name": "Jorts of Power",
-      "slots": ["legs"],
-      "imgUrl": "/static/equipment/jorts-of-power.png",
-      "zoomedImgUrl": "/static/zoomed/equipment/jorts-of-power.png",
-      "price": 14,
-      "description": "On hit dealt: the enemy gets -3 strength for the next 5s.",
-      "flavor": "the sheer embarrassment is what gets 'em",
-      "abilities": {
-        "triggeredEffects": [
-          {
-            "trigger": "hitDealt",
-            "target": "actionTarget",
-            "type": "statChange",
-            "amount": -3,
-            "stat": "strength",
-            "duration": 5,
-            "tint": [0.7, 0.5, 1, 0.5]
-          }
-        ],
-        "danger": 1
+        "aiHints": {
+          "actionDanger": 2,
+          "teammateMultiplier": true
+        }
       }
     },
     {
@@ -650,27 +542,9 @@
             "tint": [1, 0, 0, 0.5]
           }
         ],
-        "danger": 0
-      }
-    },
-    {
-      "name": "Scary Mask",
-      "slots": ["torso"],
-      "imgUrl": "/static/equipment/scary-mask.png",
-      "zoomedImgUrl": "/static/zoomed/equipment/scary-mask.png",
-      "price": 10,
-      "description": "On hit taken: the attacker loses 5 HP.",
-      "flavor": "BOO! that is what the mask says when someone hits you",
-      "abilities": {
-        "triggeredEffects": [
-          {
-            "trigger": "hitTaken",
-            "target": "actionTarget",
-            "type": "hpChange",
-            "amount": -5
-          }
-        ],
-        "danger": 0
+        "aiHints": {
+          "passiveDanger": 2
+        }
       }
     }
   ]

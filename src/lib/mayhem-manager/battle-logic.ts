@@ -56,7 +56,6 @@ const actionAbility = z.object({
   target: z.nativeEnum(Target),
   effects: z.array(effect),
   cooldown: z.number().min(0),
-  danger: z.number(),
   chargeNeeded: z.number().int().min(0).optional(),
   dodgeable: z.boolean().optional(),
   missable: z.boolean().optional(),
@@ -78,10 +77,19 @@ const triggeredEffect = z.intersection(
   })
 );
 
+const aiHints = z.object({
+  actionDanger: z.number().optional(),
+  actionStat: z.nativeEnum(StatName).optional(),
+  passiveDanger: z.number().optional(),
+  passiveValue: z.number().optional(),
+  teammateMultiplier: z.boolean().optional()
+});
+
 const abilities = z.object({
   action: actionAbility.optional(),
   statChanges: z.array(statChangeAbility).optional(),
-  triggeredEffects: z.array(triggeredEffect).optional()
+  triggeredEffects: z.array(triggeredEffect).optional(),
+  aiHints: aiHints.optional()
 });
 
 const DECK_FILEPATH_BASE = "src/lib/mayhem-manager/data/";
@@ -265,11 +273,15 @@ class Fight {
       });
       // pause 1 second between spawning fighters
       this.eventLog.push(spawnTick);
-      writeFileSync("logs/ticks.txt", JSON.stringify(spawnTick) + "[][][][]", { flag: "a+" });
-      for (let i = 0; i < 4; i++) {
+      writeFileSync("logs/ticks.txt", JSON.stringify(spawnTick) + "[][][]", { flag: "a+" });
+      for (let i = 0; i < 3; i++) {
         this.eventLog.push([]);
       }
     });
+    writeFileSync("logs/ticks.txt", "[][][]", { flag: "a+" });
+    for (let i = 0; i < 3; i++) {
+      this.eventLog.push([]);
+    }
 
 
     while (!this.fightIsOver()) {
@@ -754,7 +766,7 @@ function engageability(f: FighterInBattle): number {
   let passiveDanger = 0;
   for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
     bestActionDanger = Math.max(bestActionDanger, actionDanger(f, e.abilities));
-    passiveDanger += e.abilities.aiHints.passiveDanger ?? 0;
+    passiveDanger += e.abilities.aiHints?.passiveDanger ?? 0;
   }
   // console.log("Name:", f.name, "| Danger:", (bestActionDanger || 0) + passiveDanger, "| Effective HP:", effectiveHp);
 
@@ -783,18 +795,18 @@ function buffability(f: FighterInBattle): number {
   let passiveValue = 0;
   for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
     bestActionDanger = Math.max(bestActionDanger, actionDanger(f, e.abilities));
-    passiveValue += (e.abilities.aiHints.passiveDanger ?? 0) +
-                    (e.abilities.aiHints.passiveValue ?? 0);
+    passiveValue += (e.abilities.aiHints?.passiveDanger ?? 0) +
+                    (e.abilities.aiHints?.passiveValue ?? 0);
   }
 
   return (1 + 0.5 * (bestActionDanger + passiveValue)) / (150 - effectiveHp);
 }
 
 export function actionDanger(f: FighterInBattle, a: Abilities): number {
-  let d = a.aiHints.actionDanger ?? 0;
+  let d = a.aiHints?.actionDanger ?? 0;
   // if therer is a relevant stat (strength or accuracy), adjust by it
-  if (a.aiHints.actionStat) {
-    d *= 0.5 + 0.1 * f.stats[a.aiHints.actionStat];
+  if (a.aiHints?.actionStat) {
+    d *= 0.5 + 0.1 * f.stats[a.aiHints?.actionStat];
   }
   // if it needs to charge, multiply based on how soon it will be charged, relevant to a fighter
   // with 0 charge and 0 energy

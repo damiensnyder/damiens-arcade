@@ -183,7 +183,7 @@ function bestPicks(team: Team): {
 } {
   // try on most dangerous / powerful equipment first (should be based on base price but that is not persistent)
   const equipment = team.equipment.slice().sort((a, b) => {
-    return (b.abilities.aiHints.actionDanger ?? 0) - (a.abilities.aiHints.actionDanger ?? 0);
+    return (b.abilities.aiHints?.actionDanger ?? 0) - (a.abilities.aiHints?.actionDanger ?? 0);
   });
   const teamInBattle: FighterInBattle[] = team.fighters.map((f) => {
     return {
@@ -251,7 +251,7 @@ function bestPicksBR(team: Team): {
 } {
   // try on most dangerous / powerful equipment first (should be based on base price but that is not persistent)
   const equipment = team.equipment.slice().sort((a, b) => {
-    return (b.abilities.aiHints.actionDanger ?? 0) - (a.abilities.aiHints.actionDanger ?? 0);
+    return (b.abilities.aiHints?.actionDanger ?? 0) - (a.abilities.aiHints?.actionDanger ?? 0);
   });
   const teamInBattle: FighterInBattle[] = team.fighters.map((f) => {
     return {
@@ -301,8 +301,8 @@ function fighterPower(f: FighterInBattle): number {
   let passiveValue = 0;
   for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
     bestActionDanger = Math.max(bestActionDanger, actionDanger(f, e.abilities));
-    passiveValue += (e.abilities.aiHints.passiveDanger ?? 0) +
-                    (e.abilities.aiHints.passiveValue ?? 0);
+    passiveValue += (e.abilities.aiHints?.passiveDanger ?? 0) +
+                    (e.abilities.aiHints?.passiveValue ?? 0);
   }
 
   return (0.5 + 5 * (bestActionDanger + passiveValue)) * (0.5 + 0.01 * effectiveHp);

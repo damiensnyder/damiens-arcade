@@ -262,6 +262,7 @@ export interface Abilities {
     actionStat?: StatName.Strength | StatName.Accuracy
     passiveDanger?: number
     passiveValue?: number  // doesn't make the fighter a more imminent threat but is valuable
+    teammateMultiplier?: boolean
   }
 }
 
