@@ -533,7 +533,7 @@ class Fight {
       // the fighter being attacked has a 2% change to dodge for each point of speed they have.
       const dodged = a.action.dodgeable &&
           !missed &&
-          this.rng.randReal() < Math.max(t.stats.speed / 50, 0.3);
+          this.rng.randReal() < Math.min(t.stats.speed / 50, 0.3);
       
       if (!missed && !dodged) {
         // trigger all the weapon's effects
