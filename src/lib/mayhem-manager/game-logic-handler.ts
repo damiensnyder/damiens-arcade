@@ -980,7 +980,9 @@ export default class MayhemManager extends GameLogicHandlerBase {
 
   importLeague(league: MayhemManagerExport): void {
     this.teams = league.teams;
-    if (league.gameStage === "draft") {
+    if (league.gameStage === "preseason") {
+      this.ready = this.teams.map((_) => false);
+    } else if (league.gameStage === "draft") {
       this.draftOrder = league.draftOrder;
       this.spotInDraftOrder = league.spotInDraftOrder;
       this.fighters = league.fighters;
