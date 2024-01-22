@@ -200,7 +200,7 @@ function bestPicks(team: Team): {
     };
   });
   const picks: number[][] = teamInBattle.map(_ => []);
-  const power: number[] = teamInBattle.map(f => fighterPower(f));
+  const power: number[] = teamInBattle.map(f => fighterPower(f, team.fighters.length));
 
   // for each piece of equipment, assign it to the fighter who improves most (assuming at least one can wear it)
   equipment.forEach((e, i) => {
@@ -214,7 +214,7 @@ function bestPicks(team: Team): {
       for (const sc of e.abilities.statChanges || []) {
         f.stats[sc.stat] += sc.amount;
       }
-      const newPower = fighterPower(f);
+      const newPower = fighterPower(f, team.fighters.length);
       if (bestImprovement === undefined || newPower - power[j] >= bestImprovement) {
         bestFighter = j;
         bestImprovement = newPower - power[j];
@@ -268,7 +268,7 @@ function bestPicksBR(team: Team): {
     };
   });
   const picks: number[][] = teamInBattle.map(_ => []);
-  const power: number[] = teamInBattle.map(f => fighterPower(f));
+  const power: number[] = teamInBattle.map(f => fighterPower(f, team.fighters.length));
 
   // for each piece of equipment, assign it to the fighter who improves most (assuming at least one can wear it)
   equipment.forEach((e, i) => {
@@ -281,7 +281,7 @@ function bestPicksBR(team: Team): {
       for (const sc of e.abilities.statChanges || []) {
         f.stats[sc.stat] += sc.amount;
       }
-      power[j] = fighterPower(f);
+      power[j] = fighterPower(f, team.fighters.length);
       // unlike bestPicks(), do not remove the equipment
     });
   });
@@ -294,13 +294,13 @@ function bestPicksBR(team: Team): {
   };
 }
 
-function fighterPower(f: FighterInBattle): number {
+function fighterPower(f: FighterInBattle, numTeammates: number): number {
   const effectiveHp = f.hp * (0.75 + f.stats.toughness / 20) / (1 - f.stats.speed / 50);
 
   let bestActionDanger = 0;
   let passiveValue = 0;
   for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
-    bestActionDanger = Math.max(bestActionDanger, actionDanger(f, e.abilities));
+    bestActionDanger = Math.max(bestActionDanger, actionDanger(f, e.abilities, numTeammates));
     passiveValue += (e.abilities.aiHints?.passiveDanger ?? 0) +
                     (e.abilities.aiHints?.passiveValue ?? 0);
   }

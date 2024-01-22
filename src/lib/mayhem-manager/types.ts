@@ -257,7 +257,7 @@ export interface Abilities {
   action?: ActionAbility
   statChanges?: StatChangeAbility[]
   triggeredEffects?: TriggeredEffect[]
-  aiHints: {
+  aiHints?: {
     actionDanger?: number
     actionStat?: StatName.Strength | StatName.Accuracy
     passiveDanger?: number

@@ -503,7 +503,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
 
     // set price based on how good the fighter is and how old they are
     for (const fighter of this.fighters) {
-      fighter.price = Math.floor(1.5 * fighterValue(fighter) + this.randInt(-5, 5));
+      fighter.price = Math.floor(1.25 * fighterValue(fighter) + this.randInt(-5, 5));
     }
 
     this.emitEventToAll({ type: "goToFA", fighters: this.fighters });
@@ -882,9 +882,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
       name: firstName + " " + this.randElement(fighterNames.lastNames),
       gender,
       price: 0,
-      abilities: {
-        danger: 0
-      },
+      abilities: {},
       stats: {
         strength: this.randInt(0, 7),
         accuracy: this.randInt(0, 7),
