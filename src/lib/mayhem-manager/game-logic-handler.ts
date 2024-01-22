@@ -618,7 +618,8 @@ export default class MayhemManager extends GameLogicHandlerBase {
       if (this.randReal() < 0.5) {
         let change = stat === StatName.Strength || stat === StatName.Accuracy ? 0.2 :
                      stat === StatName.Energy ? 0 : -0.2;
-        change = Math.round(change + this.randReal() + this.randReal() - 0.5 - f.experience / 8);
+        change = Math.round(this.randReal() + this.randReal() + this.randReal() +
+            change - 0.5 - f.experience / 8);
         f.stats[stat] = Math.min(Math.max(f.stats[stat] + change, 0), 10);
       }
     }
@@ -689,7 +690,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
       team.needsRepair = team.equipment.filter((equipment) => {
         equipment.yearsOwned++;
         if ((equipment.yearsOwned % 2) === 0) {
-          equipment.price = 5 * equipment.yearsOwned + this.randInt(-3, 3);
+          equipment.price = 4 * equipment.yearsOwned + this.randInt(-3, 3);
           return true;
         }
         return false;
