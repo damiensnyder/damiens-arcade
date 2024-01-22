@@ -699,12 +699,12 @@ class Fight {
         return [];
       }
       let bestTarget: FighterInBattle;
-      let bestEngageability = -100000000;
+      let bestTargetability = -100000000;
       for (const f2 of this.enemies(fighter)) {
         let e2 = this.targetability(f2);
-        if (e2 >= bestEngageability) {
+        if (e2 >= bestTargetability) {
           bestTarget = f2;
-          bestEngageability = e2;
+          bestTargetability = e2;
         }
       }
       return [bestTarget];
@@ -762,15 +762,18 @@ function scaleVectorToMagnitude(x: number, y: number, magnitude: number): [numbe
 function engageability(f: FighterInBattle): number {
   const effectiveHp = f.hp * (0.75 + f.stats.toughness / 20) / (1 - f.stats.speed / 50);
 
-  let bestActionDanger;
+  let bestActionDanger: number = -1000000000;
   let passiveDanger = 0;
   for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
     bestActionDanger = Math.max(bestActionDanger, actionDanger(f, e.abilities));
     passiveDanger += e.abilities.aiHints?.passiveDanger ?? 0;
+    // if ((e as Equipment).name === "Zap Helmet") {
+    //   console.log(actionDanger(f, e.abilities), bestActionDanger);
+    // }
   }
   // console.log("Name:", f.name, "| Danger:", (bestActionDanger || 0) + passiveDanger, "| Effective HP:", effectiveHp);
 
-  return (50 + 20 * ((bestActionDanger || 0) + passiveDanger)) / (50 + effectiveHp);
+  return (50 + 20 * ((bestActionDanger ?? 0) + passiveDanger)) / (50 + effectiveHp);
 }
 
 // Prefer higher effective HP when prioritizing targets in battle royale
@@ -803,6 +806,13 @@ function buffability(f: FighterInBattle): number {
 }
 
 export function actionDanger(f: FighterInBattle, a: Abilities): number {
+  // if (a.aiHints?.actionDanger === 6) {
+  //   console.log(
+  //     a.aiHints?.actionDanger ?? 0,
+  //     0.5 + 0.1 * f.stats[a.aiHints?.actionStat],
+  //     a.action?.chargeNeeded
+  //   );
+  // }
   let d = a.aiHints?.actionDanger ?? 0;
   // if therer is a relevant stat (strength or accuracy), adjust by it
   if (a.aiHints?.actionStat) {
@@ -810,7 +820,7 @@ export function actionDanger(f: FighterInBattle, a: Abilities): number {
   }
   // if it needs to charge, multiply based on how soon it will be charged, relevant to a fighter
   // with 0 charge and 0 energy
-  if (a.action && a.action.chargeNeeded) {
+  if (a.action?.chargeNeeded) {
     d *= 1 -
         (a.action.chargeNeeded - f.charge) *  // charges still needed
         (9 - 0.6 * f.stats.energy) /          // time per charge
