@@ -510,6 +510,8 @@ class Fight {
   }
 
   doAction(f: FighterInBattle, a: Abilities, attuned: boolean, tick: MidFightEvent[]): void {
+    f.charge -= a.action.chargeNeeded ?? 0;
+
     const targets = this.targetsAffected(a.action.target, f);
 
     if (a.action.animation) {
