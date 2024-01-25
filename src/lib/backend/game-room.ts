@@ -102,7 +102,12 @@ export default class GameRoom {
 
     if (!this.handlingPacket) {
       this.handlingPacket = true;
-      this.handlePacket();
+      try {
+        this.handlePacket();
+      } catch (e) {
+        console.log(e);
+        this.teardownCallback(this.publicRoomInfo.roomCode);
+      }
     }
   }
 
