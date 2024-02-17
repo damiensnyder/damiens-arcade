@@ -343,7 +343,7 @@ class Fight {
           }
         }
         // walk away if you're way closer to them than you need to be to attack. otherwise walk toward them
-        if (bestTimeToEnemy < f.cooldown - 1) {
+        if (bestTimeToEnemy < f.cooldown - 0.6) {
           this.moveAwayFromTarget(f, closestEnemy, tick);
         } else {
           this.moveTowardsTarget(f, bestTarget, tick);
