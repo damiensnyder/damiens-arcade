@@ -298,7 +298,7 @@ class Fight {
       const closestEnemy = this.closestEnemy(f);
       if (!closestEnemy) return;  // do nothing if a teammate just downed the last enemy this tick
       // time it would take to get within melee range of closest
-      const timeToClosest = Math.max(distance(f, closestEnemy) - MELEE_RANGE, 0) / Math.max(2.5 + f.stats.speed / 2, 0.5);
+      const timeToClosest = Math.max(distance(f, closestEnemy) - MELEE_RANGE, 0) / Math.max(3 + f.stats.speed * 0.6, 0.5);
       const engaged = distance(f, closestEnemy) <= 5;
       const ownEngageability = engageability(f, this.teammates(f).length);
       // console.log("Name:", f.name, "| Own engageability:", ownEngageability.toFixed(3));
@@ -333,7 +333,7 @@ class Fight {
         let bestTargetability: number;
         let bestTimeToEnemy = 0;
         for (const f2 of this.enemies(f)) {
-          const timeToEnemy = Math.max(distance(f, f2) - 2, 0) / Math.max(2.5 + f.stats.speed / 2, 0.5);
+          const timeToEnemy = Math.max(distance(f, f2) - 2, 0) / Math.max(3 + f.stats.speed * 0.6, 0.5);
           let e2 = this.targetability(f2);
           e2 -= 0.025 * Math.max(0, timeToEnemy - f.cooldown);
           if (bestTargetability === undefined || e2 >= bestTargetability) {
@@ -431,7 +431,7 @@ class Fight {
   // distance traveled. 
   moveTowardsTarget(f: FighterInBattle, target: FighterInBattle, tick: MidFightEvent[]): number {
     const distanceToTarget = distance(f, target);
-    const distanceToMove = Math.max(Math.min((2.5 + f.stats.speed / 2) * TICK_LENGTH,
+    const distanceToMove = Math.max(Math.min((3 + f.stats.speed * 0.6) * TICK_LENGTH,
                                     distanceToTarget - CROWDING_DISTANCE), 0);
     let [deltaX, deltaY] = scaleVectorToMagnitude(target.x - f.x, target.y - f.y, distanceToMove);
 
@@ -460,7 +460,7 @@ class Fight {
 
   // Moves f away from target as far as possible.
   moveAwayFromTarget(f: FighterInBattle, target: FighterInBattle, tick: MidFightEvent[]): number {
-    const distanceToMove = Math.max(2.5 + f.stats.speed / 2, 0) * TICK_LENGTH;
+    const distanceToMove = Math.max(3 + f.stats.speed * 0.6, 0) * TICK_LENGTH;
     let [deltaX, deltaY] = scaleVectorToMagnitude(f.x - target.x, f.y - target.y, distanceToMove);
 
     // if too close to the wall, change direction to be less close to the wall.

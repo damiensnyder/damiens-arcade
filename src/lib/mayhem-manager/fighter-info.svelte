@@ -22,7 +22,7 @@
     } else if (stat === StatName.Energy) {
       return `Takes ${9 - 0.6 * value} seconds to charge`;
     } else if (stat === StatName.Speed) {
-      return `Moves ${2.5 + 0.5 * value} m/s; ${2 * value}% dodge chance on melee attacks`;
+      return `Moves ${3 + 0.6 * value} m/s; ${2 * value}% dodge chance on melee attacks`;
     } else {
       return `Incoming damage is multiplied by ${1.25 - 0.05 * value}`;
     }
