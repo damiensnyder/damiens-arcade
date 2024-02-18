@@ -101,6 +101,11 @@ const SHOES_COLORS: Color[] = [
   [[5, 11, 30], [240, 0.2, 0.5]],
   [[21, 43, 62], [200, 0.5, 0.5]]
 ];
+const FIGHTER_INIT_STAT_DIST = [
+  0, 0, 0, 0, 1, 1, 1, 1, 2, 2,
+  2, 2, 2, 3, 3, 3, 3, 4, 4, 4,
+  5, 5, 6, 7, 8
+];
 const BOT_DELAY = 2000;
 
 const joinSchema = z.object({
@@ -549,7 +554,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
 
     // set price based on how good the fighter is and how old they are
     for (const fighter of this.fighters) {
-      fighter.price = Math.floor(1.25 * fighterValue(fighter) + this.randInt(-5, 5));
+      fighter.price = Math.floor(1.35 * fighterValue(fighter) + this.randInt(-5, 5));
     }
 
     this.emitEventToAll({ type: "goToFA", fighters: this.fighters });
@@ -666,11 +671,14 @@ export default class MayhemManager extends GameLogicHandlerBase {
   doAgeBasedDevelopment(f: Fighter) {
     for (const stat in f.stats) {
       if (this.randReal() < 0.5) {
-        let change = stat === StatName.Strength || stat === StatName.Accuracy ? 0.2 :
-                     stat === StatName.Energy ? 0 : -0.2;
-        change = Math.round(this.randReal() + this.randReal() + this.randReal() +
-            change - 0.5 - f.experience / 8);
-        f.stats[stat] = Math.min(Math.max(f.stats[stat] + change, 0), 10);
+        let change = 2/3 * (this.randReal() + this.randReal() + this.randReal() - 1.5);
+        // amplify positive changes for players in first two years and all changes for players over 35
+        if ((f.experience <= 2 && change > 0) || f.experience >= 14) {
+          change *= 2;
+        }
+        // buff younger fighters, debuff older ones
+        change += (6 - f.experience) / 12;
+        f.stats[stat] = Math.min(Math.max(f.stats[stat] + Math.round(change), 0), 10);
       }
     }
   }
@@ -934,11 +942,11 @@ export default class MayhemManager extends GameLogicHandlerBase {
       price: 0,
       abilities: {},
       stats: {
-        strength: this.randInt(0, 7),
-        accuracy: this.randInt(0, 7),
-        energy: this.randInt(0, 6),
-        speed: this.randInt(1, 8),
-        toughness: this.randInt(0, 8)
+        strength: this.randElement(FIGHTER_INIT_STAT_DIST),
+        accuracy: this.randElement(FIGHTER_INIT_STAT_DIST),
+        energy: this.randElement(FIGHTER_INIT_STAT_DIST),
+        speed: this.randElement(FIGHTER_INIT_STAT_DIST),
+        toughness: this.randElement(FIGHTER_INIT_STAT_DIST)
       },
       attunements: [],
       experience: 0,

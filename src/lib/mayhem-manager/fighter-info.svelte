@@ -46,7 +46,7 @@
 <div class="horiz top-bar">
   <h3>{fighter.name}</h3>
   <div class="horiz">
-    <span class="age">age {20 + fighter.experience}</span>
+    <span class="age">age {21 + fighter.experience}</span>
     {#if isTurnToPick}
       <button on:click={pick} on:submit={pick} disabled={$ownTeam.money < fighter.price}>Pick{#if fighter.price > 0}
       : ${fighter.price}
