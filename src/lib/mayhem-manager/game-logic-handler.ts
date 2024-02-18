@@ -1137,8 +1137,8 @@ function generateBracket(components: Bracket[]): Bracket {
     const newComponents: Bracket[] = [];
     for (let i = 0; i < components.length / 2; i++) {
       newComponents.push({
-        left: components[i],
-        right: components[components.length - 1 - i],
+        left: components[components.length - 1 - i],
+        right: components[i],
         winner: null
       });
     }
@@ -1149,8 +1149,8 @@ function generateBracket(components: Bracket[]): Bracket {
     const newComponents: Bracket[] = components.slice(0, numByes);
     for (let i = numByes; i < (components.length + numByes) / 2; i++) {
       newComponents.push({
-        left: components[i],
-        right: components[components.length + numByes - 1 - i],
+        left: components[components.length + numByes - 1 - i],
+        right: components[i],
         winner: null
       });
     }
