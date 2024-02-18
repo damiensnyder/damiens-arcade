@@ -1,7 +1,8 @@
 ## Immediate goal: alpha release of Mayhem Manager
-- make UI look nicer
-- add more fighter base art
-- make the equipment less stupid
+- make the UI/UX nicer
+- make more interesting equipment
+- rebalance fighter progression
+- add league import/export
 
 ## Medium-term
 ### Site-wide
