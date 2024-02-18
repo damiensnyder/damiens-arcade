@@ -156,6 +156,40 @@
       }
     },
     {
+      "name": "Roller Blades",
+      "slots": ["feet"],
+      "imgUrl": "/static/equipment/roller-blades.png",
+      "zoomedImgUrl": "/static/zoomed/equipment/roller-blades.png",
+      "price": 15,
+      "description": "Deals 15 damage. Cooldown 5s. +3 speed.",
+      "flavor": "",
+      "abilities": {
+        "action": {
+          "target": "melee",
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 15
+            }
+          ],
+          "cooldown": 5,
+          "dodgeable": true,
+          "knockback": 0.5,
+          "animation": "swing"
+        },
+        "aiHints": {
+          "actionDanger": 3,
+          "actionStat": "strength"
+        },
+        "statChanges": [
+          {
+            "stat": "speed",
+            "amount": 3
+          }
+        ]
+      }
+    },
+    {
       "name": "The Ratio-inator",
       "slots": ["hand"],
       "imgUrl": "/static/equipment/the-ratio-inator.png",
@@ -599,23 +633,6 @@
           {
             "stat": "accuracy",
             "amount": 5
-          }
-        ]
-      }
-    },
-    {
-      "name": "Roller Blades",
-      "slots": ["feet"],
-      "imgUrl": "/static/equipment/roller-blades.png",
-      "zoomedImgUrl": "/static/zoomed/equipment/roller-blades.png",
-      "price": 7,
-      "description": "+3 speed.",
-      "flavor": "now if i could just learn to control these things...",
-      "abilities": {
-        "statChanges": [
-          {
-            "stat": "speed",
-            "amount": 6
           }
         ]
       }

@@ -673,11 +673,11 @@ export default class MayhemManager extends GameLogicHandlerBase {
       if (this.randReal() < 0.5) {
         let change = 2/3 * (this.randReal() + this.randReal() + this.randReal() - 1.5);
         // amplify positive changes for players in first two years and all changes for players over 35
-        if ((f.experience <= 2 && change > 0) || f.experience >= 14) {
+        if (f.experience <= 2 || f.experience >= 14) {
           change *= 2;
         }
         // buff younger fighters, debuff older ones
-        change += (6 - f.experience) / 12;
+        change += (5 - f.experience) / 12;
         f.stats[stat] = Math.min(Math.max(f.stats[stat] + Math.round(change), 0), 10);
       }
     }
