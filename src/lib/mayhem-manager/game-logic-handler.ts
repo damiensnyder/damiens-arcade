@@ -1,12 +1,12 @@
 import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
-import { writeFileSync } from "fs";
 import type GameRoom from "$lib/backend/game-room";
 import type { MayhemManagerGameStage, MayhemManagerViewpoint, ViewpointBase, Team, Settings, Fighter, Bracket, FighterInBattle, Equipment, PreseasonTeam, EquipmentTemplate, FighterTemplate, MayhemManagerExport, Appearance, Color } from "$lib/mayhem-manager/types";
 import { StatName } from "$lib/mayhem-manager/types";
 import { z } from "zod";
 import { fighterValue, getIndexByController, getTeamByController, nextMatch } from "$lib/mayhem-manager/utils";
-import { settingsAreValid, collatedSettings, isValidEquipmentTournament, isValidEquipmentFighter, simulateFight, TICK_LENGTH, fighterNames } from "$lib/mayhem-manager/battle-logic";
+import { settingsAreValid, collatedSettings, fighterNames } from "$lib/mayhem-manager/decks";
+import { isValidEquipmentTournament, isValidEquipmentFighter, simulateFight } from "$lib/mayhem-manager/battle-logic";
 import Bot from "$lib/mayhem-manager/bot";
 
 
