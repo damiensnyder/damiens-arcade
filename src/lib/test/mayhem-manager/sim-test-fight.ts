@@ -1,6 +1,6 @@
 import { collatedSettings, simulateFight } from "$lib/mayhem-manager/battle-logic";
 import { readFileSync, writeFileSync } from "fs";
-import type { Equipment, EquipmentTemplate, Fighter, FighterInBattle, FighterStats, MayhemManagerEvent } from "$lib/mayhem-manager/types";
+import type { Appearance, Equipment, EquipmentTemplate, Fighter, FighterInBattle, FighterStats, MayhemManagerEvent } from "$lib/mayhem-manager/types";
 import { isValidEquipment } from "$lib/mayhem-manager/utils";
 
 class RNG {
@@ -120,11 +120,12 @@ function randomFighter(equipment: EquipmentTemplate[], name: string = ""): Fight
     gender: "A",
     stats: randomFighterStats(),
     attunements: randomAttunements(equipment),
-    abilities: { danger: 0 },
+    abilities: {},
     experience: 0,
     price: 0,
     description: "",
-    flavor: ""
+    flavor: "",
+    appearance: {} as unknown as Appearance
   };
 }
 

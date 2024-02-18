@@ -2,7 +2,7 @@ import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import { writeFileSync } from "fs";
 import type GameRoom from "$lib/backend/game-room";
-import type { MayhemManagerGameStage, MayhemManagerViewpoint, ViewpointBase, Team, Settings, Fighter, Bracket, FighterInBattle, Equipment, PreseasonTeam, EquipmentTemplate, FighterTemplate, MayhemManagerExport } from "$lib/mayhem-manager/types";
+import type { MayhemManagerGameStage, MayhemManagerViewpoint, ViewpointBase, Team, Settings, Fighter, Bracket, FighterInBattle, Equipment, PreseasonTeam, EquipmentTemplate, FighterTemplate, MayhemManagerExport, Appearance, Color } from "$lib/mayhem-manager/types";
 import { StatName } from "$lib/mayhem-manager/types";
 import { z } from "zod";
 import { fighterValue, getIndexByController, getTeamByController, nextMatch } from "$lib/mayhem-manager/utils";
@@ -54,6 +54,52 @@ const TEAM_NAME_ENDS = [
   "Pandas",
   "Melonheads",
   "Wombats"
+];
+const HAIR_COLORS: Color[] = [
+  [[6, 6, 6], [0.1, 0]],
+  [[7, 6, 5], [0.1, 0.1]],
+  [[21, 10, 8], [0.2, 0.3]],
+  [[47, 17, 15], [0.4, 0.4]],
+  [[67, 20, 17], [0.5, 0.5]],
+  [[90, 15, 10], [0.5, 0.8]],
+  [[83, 38, 34], [0.8, 0.3]],
+  [[167, 62, 46], [2, 0.5]],
+  [[168, 99, 70], [4, 0.4]],
+  [[139, 123, 114], [5, 0.1]]
+];
+const SKIN_COLORS: Color[] = [
+  [[63, 7, 2], [0.3, 1]],
+  [[90, 15, 10], [0.5, 0.8]],
+  [[150, 37, 30], [1, 0.6]],
+  [[163, 54, 43], [1.5, 0.5]],
+  [[133, 70, 60], [2, 0.3]],
+  [[159, 82, 61], [3, 0.4]],
+  [[188, 113, 68], [5, 0.5]],
+  [[194, 148, 97], [7, 0.4]],
+  [[202, 164, 105], [8, 0.4]],
+  [[214, 197, 141], [10, 0.3]]
+];
+const SHIRT_COLORS: Color[] = [
+  [[176, 6, 15], [0, 0.7, 1]],
+  [[0, 0, 0], [0, 0, 1]],
+  [[12, 9, 89], [255, 0.2, 2]],
+  [[3, 55, 4], [120, 0.5, 1]],
+  [[54, 54, 54], [0, 10, 0]],
+  [[5, 11, 30], [240, 2, 0.5]]
+];
+const SHORTS_COLORS: Color[] = [
+  [[0, 0, 0], [0, 0, 1]],
+  [[1, 14, 89], [240, 0.2, 2]],
+  [[3, 47, 86], [200, 0.5, 1]],
+  [[252, 13, 27], [0, 10, 1]],
+  [[5, 11, 30], [240, 2, 0.5]]
+];
+const SHOES_COLORS: Color[] = [
+  [[91, 31, 31], [0, 0.8, 0.3]],
+  [[0, 0, 0], [0, 0, 1]],
+  [[126, 3, 8], [0, 0.5, 1]],
+  [[5, 11, 30], [240, 0.2, 0.5]],
+  [[21, 43, 62], [200, 0.5, 0.5]]
 ];
 const BOT_DELAY = 2000;
 
@@ -567,10 +613,14 @@ export default class MayhemManager extends GameLogicHandlerBase {
   }
 
   advanceToBattleRoyale(): void {
+    let i = 0;
     for (const team of this.teams) {
       for (const fighter of team.fighters) {
         fighter.oldStats = { ...fighter.stats };
+        fighter.appearance.shirtColor = SHIRT_COLORS[i % 6];
+        fighter.appearance.shortsColor = SHORTS_COLORS[i % 5];
       }
+      i++;
     }
     this.trainingChoices.forEach((choice, i) => {
       const team = this.teams[i]
@@ -893,7 +943,8 @@ export default class MayhemManager extends GameLogicHandlerBase {
       attunements: [],
       experience: 0,
       description: "",
-      flavor: ""
+      flavor: "",
+      appearance: this.generateAppearance(gender)
     }
     // 60% of the time, give them an ability. set to 0 right now
     if (this.randReal() < 0.5 && this.decks.fighters.length > 0) {
@@ -904,6 +955,23 @@ export default class MayhemManager extends GameLogicHandlerBase {
     }
     this.doAgeBasedDevelopment(fighter);
     return fighter;
+  }
+
+  generateAppearance(gender: string): Appearance {
+    return {
+      body: `/static/base/body_${gender}1.png`,
+      hair: `/static/base/hair_${gender}${this.randInt(1, 4)}.png`,
+      face: `/static/base/face_${this.randInt(1, 2)}.png`,
+      shirt: `/static/base/shirt_${gender}${this.randInt(1, 2)}.png`,
+      shorts: `/static/base/shorts_${gender}1.png`,
+      socks: `/static/base/socks_${gender}1.png`,
+      shoes: `/static/base/shoes_${gender}1.png`,
+      hairColor: this.randElement(HAIR_COLORS),
+      skinColor: this.randElement(SKIN_COLORS),
+      shirtColor: this.randElement(SHIRT_COLORS),
+      shortsColor: this.randElement(SHORTS_COLORS),
+      shoesColor: this.randElement(SHOES_COLORS)
+    };
   }
 
   // Select a random equipment from the deck of equipment

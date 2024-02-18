@@ -4,7 +4,6 @@
   export let fighter: Fighter;
   export let equipment: Equipment[];
   export let inBattle: boolean = false;
-  export let team: number = -1;
   $: imageSize = window.innerWidth > 720 ? window.innerWidth > 1200 ? "15rem" : "12rem" : "10rem";
 
   $: head = equipment.filter(e => e.slots.includes(EquipmentSlot.Head));
@@ -12,43 +11,6 @@
   $: hands = equipment.filter(e => e.slots.includes(EquipmentSlot.Hand));
   $: legs = equipment.filter(e => e.slots.includes(EquipmentSlot.Legs));
   $: feet = equipment.filter(e => e.slots.includes(EquipmentSlot.Feet));
-
-  function pseudorandomFrom<T>(arr: T[], seed1: number, seed2: number, seed3: number): T {
-    seed1++;
-    seed2++;
-    seed3++;
-    return arr[
-      (seed1 + seed2 + seed3 + seed1 * seed2 + seed1 * seed3 + seed2 * seed3)
-      % arr.length
-    ];
-  }
-
-  const HAIR_COLORS = [[0.1, 0], [0.1, 0.1], [0.2, 0.3], [0.4, 0.4], [0.5, 0.5], [0.5, 0.8],
-                       [0.8, 0.3], [2, 0.5], [4, 0.4], [5, 0.1]];
-  $: hairColor = pseudorandomFrom(
-    HAIR_COLORS, fighter.name.length, fighter.description.length, fighter.name.indexOf("e")
-  );
-
-  const SKIN_COLORS = [[0.3, 1], [0.5, 0.8], [1, 0.6], [1.5, 0.5], [2, 0.3], [3, 0.4],
-                      [5, 0.5], [7, 0.4], [8, 0.4], [10, 0.3]];
-  $: skinColor = pseudorandomFrom(
-    SKIN_COLORS, fighter.name.length, fighter.name.indexOf("a"), fighter.description.length
-  );
-
-  const SHIRT_COLORS = [[0, 0.7, 1], [0, 0, 1], [255, 0.2, 2], [120, 0.5, 1], [0, 10, 0], [240, 2, 0.5]];
-  $: shirtColor = team === -1 ? pseudorandomFrom(
-    SHIRT_COLORS, fighter.name.length, fighter.description.length, fighter.name.indexOf("t")
-  ) : SHIRT_COLORS[team % SHIRT_COLORS.length];
-
-  const SHORTS_COLORS = [[0, 0, 1], [240, 0.2, 2], [200, 0.5, 1], [0, 10, 1], [240, 2, 0.5]];
-  $: pantsColor = team === -1 ? pseudorandomFrom(
-    SHORTS_COLORS, fighter.name.length, fighter.name.indexOf("e"), fighter.name.indexOf("i")
-  ) : SHORTS_COLORS[team % SHORTS_COLORS.length];
-
-  const FEET_COLORS = [[0, 0.8, 0.3], [0, 0, 1], [0, 0.5, 1], [240, 0.2, 0.5], [200, 0.5, 0.5]];
-  $: feetColor = pseudorandomFrom(
-    FEET_COLORS, fighter.name.length, fighter.name.indexOf("t"), fighter.name.indexOf("o")
-  );
 </script>
 
 <!-- svelte-ignore a11y-missing-attribute -->
@@ -57,19 +19,19 @@
     style:height={inBattle ? "100%" : imageSize}
     style:margin-top={inBattle ? "0" : "-2rem"}
     style:margin-left={inBattle ? "0" : "-1rem"}>
-  <img src={`/static/base/body_${fighter.gender}1.png`}
-      style:filter={`hue-rotate(25deg) brightness(${skinColor[0]}) saturate(${skinColor[1]})`} />
-  <img src={`/static/base/hair_${fighter.gender}1.png`} class="body-part"
-      style:filter={`hue-rotate(25deg) brightness(${hairColor[0]}) saturate(${hairColor[1]})`} />
-  <img src={`/static/base/face_1.png`} class="body-part" />
+  <img src={fighter.appearance.body}
+      style:filter={`hue-rotate(25deg) brightness(${fighter.appearance.skinColor[1][0]}) saturate(${fighter.appearance.skinColor[1][1]})`} />
+  <img src={fighter.appearance.hair} class="body-part"
+      style:filter={`hue-rotate(25deg) brightness(${fighter.appearance.hairColor[1][0]}) saturate(${fighter.appearance.hairColor[1][1]})`} />
+  <img src={fighter.appearance.face} class="body-part" />
   {#if head.length === 1}
     <img src={head[0].imgUrl} class="equipment" />
   {/if}
   {#if torso.length === 1}
     <img src={torso[0].imgUrl} class="equipment" />
   {:else}
-    <img src={`/static/base/torso_${fighter.gender}1.png`} class="equipment"
-        style:filter={`hue-rotate(${shirtColor[0]}deg) brightness(${shirtColor[1]}) saturate(${shirtColor[2]})`} />
+    <img src={fighter.appearance.shirt} class="equipment"
+        style:filter={`hue-rotate(${fighter.appearance.shirtColor[1][0]}deg) brightness(${fighter.appearance.shirtColor[1][1]}) saturate(${fighter.appearance.shirtColor[1][2]})`} />
   {/if}
   {#if hands.length >= 1}
     <img src={hands[0].imgUrl} class="equipment hand" />
@@ -80,14 +42,15 @@
   {#if legs.length >= 1}
     <img src={legs[0].imgUrl} class="equipment legs" />
   {:else}
-    <img src={`/static/base/legs_${fighter.gender}1.png`} class="equipment legs"
-        style:filter={`hue-rotate(${pantsColor[0]}deg) brightness(${pantsColor[1]}) saturate(${pantsColor[2]})`} />
+    <img src={fighter.appearance.shorts} class="equipment legs"
+        style:filter={`hue-rotate(${fighter.appearance.shortsColor[1][0]}deg) brightness(${fighter.appearance.shortsColor[1][1]}) saturate(${fighter.appearance.shortsColor[1][2]})`} />
   {/if}
   {#if feet.length >= 1}
     <img src={feet[0].imgUrl} class="equipment" />
   {:else}
-    <img src={`/static/base/feet_${fighter.gender}1.png`} class="equipment"
-        style:filter={`hue-rotate(${feetColor[0]}deg) brightness(${feetColor[1]}) saturate(${feetColor[2]})`} />
+    <!-- <img src={fighter.appearance.socks} class="body-part" /> -->
+    <img src={fighter.appearance.shoes} class="equipment"
+        style:filter={`hue-rotate(${fighter.appearance.shoesColor[1][0]}deg) brightness(${fighter.appearance.shoesColor[1][1]}) saturate(${fighter.appearance.shoesColor[1][2]})`} />
   {/if}
 </div>
 

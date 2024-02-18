@@ -136,6 +136,25 @@ export interface Fighter {
   price: number
   description: string
   flavor: string
+  appearance: Appearance
+}
+
+// first is in battle, RGB-based. second is for HTML5 image transform and uses hue-rotate and such.
+export type Color = [[number, number, number], ([number, number] | [number, number, number])];
+
+export interface Appearance {
+  body: string
+  hair: string
+  face: string
+  shirt: string
+  shorts: string
+  socks: string
+  shoes: string
+  hairColor: Color
+  skinColor: Color
+  shirtColor: Color
+  shortsColor: Color
+  shoesColor: Color
 }
 
 export enum StatName {
