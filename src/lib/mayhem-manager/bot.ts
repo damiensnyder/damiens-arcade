@@ -163,7 +163,7 @@ const Bot = {
 function situationQuality(team: Team, gameStage: MayhemManagerGameStage): number {
   let moneyValue = 0.5;  // 1 power in picks + 1 power in BR = $3
   if (gameStage === "free agency") {
-    moneyValue *= 0.9;
+    moneyValue *= 0.8;
   } else if (gameStage === "training") {
     moneyValue *= 0.4;
   }

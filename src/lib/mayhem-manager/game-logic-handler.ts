@@ -677,7 +677,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
           change *= 2;
         }
         // buff younger fighters, debuff older ones
-        change += (5 - f.experience) / 12;
+        change += (4 - f.experience) / 12;
         f.stats[stat] = Math.min(Math.max(f.stats[stat] + Math.round(change), 0), 10);
       }
     }
