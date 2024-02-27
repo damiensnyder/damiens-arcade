@@ -73,10 +73,10 @@ export function nextMatch(bracket: Bracket): Bracket & {
 }
 
 export function fighterValue(fighter: Fighter): number {
-  let price = 20 - fighter.experience;
+  let price = 17 - 0.25 * fighter.experience;
   for (const stat in fighter.stats) {
     // compress stat ranges so super high or low ones don't affect price a ton
     price += fighter.stats[stat];
   }
-  return Math.max(price, 15);
+  return Math.max(price, 1);
 }

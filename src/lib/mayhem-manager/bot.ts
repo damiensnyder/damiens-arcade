@@ -170,9 +170,9 @@ function situationQuality(team: Team, gameStage: MayhemManagerGameStage): number
   // console.log(bestPicks(team));
   // add power, money, and a little bonus for just having more fighters / equipment
   let stuffBonus = team.equipment.length;
-  for (const f of team.fighters) {
-    stuffBonus += 0.1 * Math.max(1, 20 - f.experience);
-  }
+  // for (const f of team.fighters) {
+  //   stuffBonus += 0.1 * Math.max(1, 20 - f.experience);
+  // }
   return bestPicks(team).power + 0.5 * bestPicksBR(team).power + moneyValue * team.money + stuffBonus;
 }
 

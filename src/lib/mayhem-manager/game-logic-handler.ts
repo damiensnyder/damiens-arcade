@@ -673,11 +673,11 @@ export default class MayhemManager extends GameLogicHandlerBase {
       if (this.randReal() < 0.5) {
         let change = 2/3 * (this.randReal() + this.randReal() + this.randReal() - 1.5);
         // amplify positive changes for players in first two years and all changes for players over 35
-        if (f.experience <= 2 || f.experience >= 14) {
+        if (f.experience <= 2 || f.experience >= 12) {
           change *= 2;
         }
         // buff younger fighters, debuff older ones
-        change += (4 - f.experience) / 12;
+        change += (3 - f.experience) / 12;
         f.stats[stat] = Math.min(Math.max(f.stats[stat] + Math.round(change), 0), 10);
       }
     }
@@ -748,7 +748,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
       team.needsRepair = team.equipment.filter((equipment) => {
         equipment.yearsOwned++;
         if ((equipment.yearsOwned % 2) === 0) {
-          equipment.price = 4 * equipment.yearsOwned + this.randInt(-3, 3);
+          equipment.price = 3 * equipment.yearsOwned + this.randInt(1, 7);
           return true;
         }
         return false;
