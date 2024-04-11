@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { readFileSync, writeFileSync } from "fs";
 import { EquipmentSlot, type Equipment, type FighterInBattle, type FighterNames, type FighterTemplate, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, StatName, Target, Trigger, type TriggeredEffect, type Effect, type EquipmentTemplate, ActionAnimation, type Abilities } from "$lib/mayhem-manager/types";
 import type { RNG } from "$lib/types";

@@ -393,7 +393,7 @@ interface RepairAction {
 
 interface ImportAction {
   type: "import"
-  league: MayhemManagerViewpoint
+  league: MayhemManagerExport
 }
 
 export type MayhemManagerAction = ChangeRoomSettingsAction |

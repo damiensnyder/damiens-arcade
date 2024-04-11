@@ -161,7 +161,7 @@ const Bot = {
 
 // very simple, should be improved
 function situationQuality(team: Team, gameStage: MayhemManagerGameStage): number {
-  let moneyValue = 0.5;  // 1 power in picks + 1 power in BR = $3
+  let moneyValue = 1.5;  // 1 power in picks + 1 power in BR = $1
   if (gameStage === "free agency") {
     moneyValue *= 0.8;
   } else if (gameStage === "training") {
@@ -305,7 +305,7 @@ function fighterPower(f: FighterInBattle, numTeammates: number): number {
                     (e.abilities.aiHints?.passiveValue ?? 0);
   }
 
-  return (0.5 + 5 * (bestActionDanger + passiveValue)) * (0.5 + 0.01 * effectiveHp);
+  return Math.pow((0.5 + 5 * (bestActionDanger + passiveValue)) * (0.5 + 0.01 * effectiveHp), 1.5);
 }
 
 export default Bot;

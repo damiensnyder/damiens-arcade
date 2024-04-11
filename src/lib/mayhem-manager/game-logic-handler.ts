@@ -2,10 +2,10 @@ import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
 import type { MayhemManagerGameStage, MayhemManagerViewpoint, ViewpointBase, Team, Settings, Fighter, Bracket, FighterInBattle, Equipment, PreseasonTeam, EquipmentTemplate, FighterTemplate, MayhemManagerExport, Appearance, Color } from "$lib/mayhem-manager/types";
-import { StatName } from "$lib/mayhem-manager/types";
+import { EquipmentSlot, StatName } from "$lib/mayhem-manager/types";
 import { z } from "zod";
 import { fighterValue, getIndexByController, getTeamByController, nextMatch } from "$lib/mayhem-manager/utils";
-import { settingsAreValid, collatedSettings, fighterNames } from "$lib/mayhem-manager/decks";
+import { settingsAreValid, collatedSettings, fighterNames, settingsSchema, abilities } from "$lib/mayhem-manager/decks";
 import { isValidEquipmentTournament, isValidEquipmentFighter, simulateFight } from "$lib/mayhem-manager/battle-logic";
 import Bot from "$lib/mayhem-manager/bot";
 
@@ -175,11 +175,115 @@ const repairSchema = z.object({
   equipment: z.number().int().min(0)
 });
 
-// const importSchema = z.object({
-//   type: z.literal("import"),
-// });
+const colorSchema = z.tuple([
+  z.array(z.number()).length(3),
+  z.array(z.number()).min(2).max(3)
+]);
 
+const fighterSchema = z.object({
+  name: z.string(),
+  gender: z.union([z.literal("M"), z.literal("F"), z.literal("A")]),
+  stats: z.object({
+    strength: z.number().int().min(0).max(10),
+    accuracy: z.number().int().min(0).max(10),
+    energy: z.number().int().min(0).max(10),
+    speed: z.number().int().min(0).max(10),
+    toughness: z.number().int().min(0).max(10)
+  }),
+  attunements: z.array(z.string()),
+  abilities: abilities,
+  experience: z.number().int().min(0),
+  price: z.number().int(),
+  description: z.string(),
+  flavor: z.string(),
+  appearance: z.object({
+    body: z.string(),
+    hair: z.string(),
+    face: z.string(),
+    shirt: z.string(),
+    shorts: z.string(),
+    socks: z.string(),
+    shoes: z.string(),
+    hairColor: colorSchema,
+    skinColor: colorSchema,
+    shirtColor: colorSchema,
+    shortsColor: colorSchema,
+    shoesColor: colorSchema
+  })
+});
 
+const equipmentSchema = z.object({
+  name: z.string(),
+  imgUrl: z.string(),
+  zoomedImgUrl: z.string(),
+  slots: z.array(z.nativeEnum(EquipmentSlot)),
+  abilities: abilities,
+  yearsOwned: z.number().int().min(0),
+  price: z.number().int(),
+  description: z.string(),
+  flavor: z.string()
+});
+
+const teamSchema = z.object({
+  name: z.string().max(20),
+  money: z.number().int().min(0).max(200),
+  fighters: z.array(fighterSchema),
+  equipment: z.array(equipmentSchema)
+});
+
+const preseasonImportSchema = z.object({
+  gameStage: z.literal("preseason"),
+  teams: z.intersection(
+    teamSchema,
+    z.object({
+      needsResigning: z.array(fighterSchema),
+      needsRepair: z.array(equipmentSchema),
+      ready: z.boolean()
+    })
+  )
+});
+
+const draftExportSchema = z.object({
+  gameStage: z.literal("draft"),
+  draftOrder: z.array(z.number().int().min(0).max(15)),
+  spotInDraftOrder: z.number().int().min(0).max(15),
+  fighters: z.array(fighterSchema).min(5),
+  unsignedVeterans: z.array(fighterSchema)
+});
+
+const faExportSchema = z.object({
+  gameStage: z.literal("free agency"),
+  draftOrder: z.array(z.number().int().min(0).max(15)).min(2).max(16),
+  spotInDraftOrder: z.number().int().min(0).max(15),
+  fighters: z.array(fighterSchema).min(5),
+});
+
+const trainingExportSchema = z.object({
+  gameStage: z.literal("training"),
+  equipmentAvailable: z.array(z.array(equipmentSchema).length(8)).min(2).max(16)
+});
+
+const brExportSchema = z.object({
+  gameStage: z.literal("battle royale")
+});
+
+const tournamentExportSchema = z.object({
+  gameStage: z.literal("tournament"),
+  bracketOrdering: z.array(z.number().min(0).max(15)).min(2).max(16)
+});
+
+const importSchema = z.intersection(
+  z.object({
+    type: z.literal("import"),
+    settings: settingsSchema,
+    history: z.array(z.any()),
+    teams: z.array(teamSchema)
+  }),
+  z.union([
+    preseasonImportSchema, draftExportSchema, faExportSchema,
+    trainingExportSchema, brExportSchema, tournamentExportSchema
+  ])
+);
 
 export default class MayhemManager extends GameLogicHandlerBase {
   settings: Settings
