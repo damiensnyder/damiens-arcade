@@ -482,6 +482,8 @@ export default class MayhemManager extends GameLogicHandlerBase {
         this.gameStage === "preseason" &&
         indexControlledByViewer !== null) {
       this.repairEquipment(indexControlledByViewer, action.equipment);
+    } else if (importSchema.safeParse(action).success) {
+      // this.importLeague(action);
     }
   }
 
