@@ -2,7 +2,7 @@
 - make the UI/UX nicer
 - make more interesting equipment
 - rebalance fighter progression
-- add league import/export
+- validate league import/export
 
 ## Medium-term
 ### Site-wide

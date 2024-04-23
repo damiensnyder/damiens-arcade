@@ -165,7 +165,7 @@
     {/if}
     {#if $host === $pov}
       <button on:click={() => changeView("settings")} on:submit={() => changeView("settings")}>settings</button>
-      <button on:click={advance} on:submit={advance}>advance</button>
+      <button on:click={advance} on:submit={advance}>skip</button>
     {/if}
     {#if viewing !== "main"}
       <button on:click={() => changeView("main")} on:submit={() => changeView("main")}>
