@@ -67,7 +67,7 @@ export type /* it so is! */ MayhemManagerExport = (PreseasonExport |
 interface ExportBase {
   gameStage: MayhemManagerGameStage
   settings: Settings
-  history: Bracket[]
+  // history: string[][]
   teams: Team[]
 }
 
@@ -102,11 +102,7 @@ interface BRExport extends ExportBase {
 
 interface TournamentExport extends ExportBase {
   gameStage: "tournament"
-  bracket: Bracket
-  nextMatch?: Bracket & {
-    left: Bracket
-    right: Bracket
-  }
+  bracketOrdering: number[]
 }
 
 
@@ -122,7 +118,7 @@ export interface Team {
 export interface PreseasonTeam extends Team {
   needsResigning: Fighter[]
   needsRepair: Equipment[]
-  ready: boolean
+  ready?: boolean
 }
 
 export interface Fighter {
@@ -391,10 +387,9 @@ interface RepairAction {
   equipment: number
 }
 
-interface ImportAction {
+type ImportAction = {
   type: "import"
-  league: MayhemManagerExport
-}
+} & MayhemManagerExport;
 
 export type MayhemManagerAction = ChangeRoomSettingsAction |
     ChangeGameSettingsAction |
