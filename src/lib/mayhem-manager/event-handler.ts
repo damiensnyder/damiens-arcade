@@ -1,5 +1,5 @@
 import type { Fighter, PreseasonTeam, MayhemManagerEvent, MayhemManagerViewpoint } from "$lib/mayhem-manager/types";
-import { bracket, draftOrder, fightEvents, gameStage, rawSettings, settings, teams, spotInDraftOrder, fighters, equipment, watchingFight, history, equipmentChoices, ownTeam, ownTeamIndex } from "$lib/mayhem-manager/stores";
+import { bracket, draftOrder, fightEvents, gameStage, rawSettings, settings, teams, spotInDraftOrder, fighters, equipment, watchingFight, history, equipmentChoices, ownTeam, ownTeamIndex, ready } from "$lib/mayhem-manager/stores";
 import { get } from "svelte/store";
 import { roomName, isPublic, host, pov } from "$lib/stores";
 import type { ChangeHostEvent, ChangeRoomSettingsEvent, EventHandler } from "$lib/types";
@@ -39,15 +39,22 @@ export const eventHandler: EventHandler<MayhemManagerEvent> = {
         equipment: [],
         needsResigning: [],
         needsRepair: [],
-        ready: false,
         ...event
       });
+      return old;
+    });
+    ready.update((old) => {
+      old.push(false);
       return old;
     });
   },
   leave: function (event): void {
     teams.update((old) => {
       old[event.team].controller = "bot";
+      return old;
+    });
+    ready.update((old) => {
+      old.splice(event.team, 1);
       return old;
     });
   },
@@ -63,6 +70,16 @@ export const eventHandler: EventHandler<MayhemManagerEvent> = {
   remove: function (event): void {
     teams.update((old) => {
       old.splice(event.team, 1);
+      return old;
+    });
+    ready.update((old) => {
+      old.splice(event.team, 1);
+      return old;
+    });
+  },
+  ready: function (event): void {
+    ready.update((old) => {
+      old[event.team] = true;
       return old;
     });
   },
@@ -121,6 +138,9 @@ export const eventHandler: EventHandler<MayhemManagerEvent> = {
   goToTraining: function (event): void {
     gameStage.set("training");
     equipment.set(event.equipment || []);
+    ready.update((old) => {
+      return Array(old.length).fill(false);
+    });
   },
   goToBR: function (event): void {
     gameStage.set("battle royale");
@@ -128,6 +148,9 @@ export const eventHandler: EventHandler<MayhemManagerEvent> = {
     if (get(ownTeamIndex) !== null) {
       equipmentChoices.set(get(ownTeam).equipment.map(_ => -1));
     }
+    ready.update((old) => {
+      return Array(old.length).fill(false);
+    });
   },
   fight: function (event): void {
     fightEvents.set(event.eventLog);
@@ -143,5 +166,8 @@ export const eventHandler: EventHandler<MayhemManagerEvent> = {
     history.set(event.history);
     gameStage.set("preseason");
     teams.set(event.teams);
+    ready.update((old) => {
+      return Array(old.length).fill(false);
+    });
   }
 }

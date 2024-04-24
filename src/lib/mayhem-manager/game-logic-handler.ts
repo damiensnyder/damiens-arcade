@@ -216,8 +216,8 @@ export default class MayhemManager extends GameLogicHandlerBase {
         this.gameStage === "preseason" &&
         indexControlledByViewer !== null) {
       // mark player as ready, and if all non-bot players are ready (assuming 2+ teams), go to draft
-      (teamControlledByViewer as PreseasonTeam).ready = true;
-      if (this.teams.every((team: PreseasonTeam) => team.ready || team.controller === "bot") && this.teams.length >= 2) {
+      this.ready[indexControlledByViewer] = true;
+      if (this.teams.every((team: PreseasonTeam, i: number) => this.ready[i] || team.controller === "bot") && this.teams.length >= 2) {
         this.advanceToDraft();
       }
 
@@ -416,8 +416,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
           this.repairEquipment(i, e - j);
         });
       }
-      delete team.ready;
-    })
+    });
 
     this.unsignedVeterans = [];
     this.teams.forEach((team: PreseasonTeam) => {
@@ -524,14 +523,13 @@ export default class MayhemManager extends GameLogicHandlerBase {
 
     this.trainingChoices = Array(8);
     this.equipmentAvailable = [];
-    this.ready = [];
+    this.ready = Array(this.teams.length).fill(false);
     for (let i = 0; i < this.teams.length; i++) {
       const equipment: Equipment[] = [];
       for (let j = 0; j < 8; j++) {
         equipment.push(this.generateEquipment());
       }
       this.equipmentAvailable.push(equipment);
-      this.ready.push(false);
     }
     for (const viewer of this.room.viewers) {
       const teamIndex = getIndexByController(this.teams, viewer.index);
@@ -656,6 +654,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
       return;
     }
     this.nextMatch = nextMatch(this.bracket);
+    this.ready = Array(this.teams.length).fill(true);
     this.ready[this.nextMatch.left.winner] = false;
     this.ready[this.nextMatch.right.winner] = false;
   }
@@ -686,8 +685,8 @@ export default class MayhemManager extends GameLogicHandlerBase {
       });
       team.equipment = team.equipment.filter((equipment) => (equipment.yearsOwned % 2) !== 0);
       team.money = Math.ceil(team.money / 2 + 100);
-      team.ready = false;
     });
+    this.ready = Array(this.teams.length).fill(false);
     delete this.fightersInBattle;
     delete this.map;
     
@@ -987,9 +986,8 @@ export default class MayhemManager extends GameLogicHandlerBase {
 
   importLeague(league: MayhemManagerExport): void {
     this.teams = league.teams;
-    if (league.gameStage === "preseason") {
-      this.ready = this.teams.map((_) => false);
-    } else if (league.gameStage === "draft") {
+    this.ready = Array(this.teams.length).fill(false);
+    if (league.gameStage === "draft") {
       this.draftOrder = league.draftOrder;
       this.spotInDraftOrder = league.spotInDraftOrder;
       this.fighters = league.fighters;
@@ -1000,8 +998,6 @@ export default class MayhemManager extends GameLogicHandlerBase {
       this.fighters = league.fighters;
     } else if (league.gameStage === "training") {
       this.equipmentAvailable = league.equipmentAvailable;
-    } else if (league.gameStage === "battle royale") {
-      this.ready = this.teams.map((_) => false);
     } else if (league.gameStage === "tournament") {
       this.bracket = generateBracket(league.bracketOrdering.map(x => {
         return {
@@ -1009,6 +1005,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
         }
       }));
       this.nextMatch = nextMatch(this.bracket);
+      this.prepareForNextMatch();
     }
     this.history = []
     this.trainingChoices = this.teams.map((_) => { return { equipment: [], skills: [] } });

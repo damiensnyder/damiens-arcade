@@ -7,6 +7,7 @@ export const gameStage = writable("preseason" as MayhemManagerGameStage);
 export const settings = writable({} as Settings);
 export const rawSettings = writable("{}");
 export const teams = writable([] as Team[] | PreseasonTeam[]);
+export const ready = writable([] as boolean[]);
 export const draftOrder = writable([] as number[]);
 export const spotInDraftOrder = writable(0);
 export const fighters = writable([] as Fighter[]);

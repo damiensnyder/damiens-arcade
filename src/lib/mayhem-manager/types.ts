@@ -118,7 +118,6 @@ export interface Team {
 export interface PreseasonTeam extends Team {
   needsResigning: Fighter[]
   needsRepair: Equipment[]
-  ready?: boolean
 }
 
 export interface Fighter {
@@ -438,6 +437,11 @@ interface RemoveEvent {
   team: number
 }
 
+interface ReadyEvent {
+  type: "ready"
+  team: number
+}
+
 interface ResignEvent {
   type: "resign"
   team: number
@@ -579,6 +583,7 @@ export type MayhemManagerEvent = RoomEvent |
     LeaveEvent |
     ReplaceEvent |
     RemoveEvent |
+    ReadyEvent |
     ResignEvent |
     RepairEvent |
     GoToDraftEvent |
