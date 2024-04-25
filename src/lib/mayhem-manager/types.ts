@@ -21,9 +21,10 @@ export interface ViewpointBase extends BasicViewpointInfo {
   teams: Team[]
 }
 
-interface PreseasonViewpoint extends ViewpointBase {
+export interface PreseasonViewpoint extends ViewpointBase {
   gameStage: "preseason"
   teams: PreseasonTeam[]
+  ready: boolean[]
 }
 
 interface DraftViewpoint extends ViewpointBase {
@@ -42,16 +43,19 @@ interface FAViewpoint extends ViewpointBase {
 
 interface TrainingViewpoint extends ViewpointBase {
   gameStage: "training"
+  ready: boolean[]
 }
 
 interface BRViewpoint extends ViewpointBase {
   gameStage: "battle royale"
+  ready?: boolean[]
   fightersInBattle?: FighterInBattle[]
 }
 
 interface TournamentViewpoint extends ViewpointBase {
   gameStage: "tournament"
   bracket: Bracket
+  ready?: boolean[]
   fightersInBattle?: FighterInBattle[]
 }
 

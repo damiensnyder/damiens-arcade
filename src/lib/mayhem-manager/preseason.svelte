@@ -1,6 +1,6 @@
 <script lang="ts">
   import { host, lastAction, pov } from "$lib/stores";
-  import { ownTeam, ownTeamIndex, teams } from "$lib/mayhem-manager/stores";
+  import { ownTeam, ownTeamIndex, teams, ready } from "$lib/mayhem-manager/stores";
   import type { PreseasonTeam } from "$lib/mayhem-manager/types";
   import FighterInfo from "$lib/mayhem-manager/fighter-info.svelte";
   import EquipmentInfo from "$lib/mayhem-manager/equipment-info.svelte";
@@ -43,7 +43,7 @@
     });
   }
 
-  function ready() {
+  function readyUp() {
     lastAction.set({
       type: "ready"
     });
@@ -113,8 +113,11 @@
     {/if}
     {#if $ownTeamIndex !== null}
       <button class="right-align-inner"
-          on:click={ready} on:submit={ready}>Ready</button>
+          on:click={readyUp} on:submit={readyUp}>Ready</button>
     {/if}
+  </div>
+  <div>
+    {$ready}
   </div>
 </div>
 

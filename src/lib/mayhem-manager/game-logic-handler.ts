@@ -140,6 +140,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
     this.teams = [];
     this.decks = collatedSettings(this.settings);
     this.history = [];
+    this.ready = [];
   }
 
   handleAction(viewer: Viewer, action?: any): void {
@@ -206,6 +207,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
         isHost &&
         action.team < this.teams.length) {
       this.teams.splice(action.team, 1);
+      this.ready.splice(action.team, 1);
       this.emitEventToAll({
         type: "remove",
         team: action.team
@@ -217,6 +219,10 @@ export default class MayhemManager extends GameLogicHandlerBase {
         indexControlledByViewer !== null) {
       // mark player as ready, and if all non-bot players are ready (assuming 2+ teams), go to draft
       this.ready[indexControlledByViewer] = true;
+      this.emitEventToAll({
+        type: "ready",
+        team: indexControlledByViewer
+      });
       if (this.teams.every((team: PreseasonTeam, i: number) => this.ready[i] || team.controller === "bot") && this.teams.length >= 2) {
         this.advanceToDraft();
       }
@@ -271,6 +277,10 @@ export default class MayhemManager extends GameLogicHandlerBase {
         skills: action.skills
       };
       this.ready[indexControlledByViewer] = true;
+      this.emitEventToAll({
+        type: "ready",
+        team: indexControlledByViewer
+      });
       // if the only players not ready or bots, make them pick and ready
       if (this.teams.every((t, i) => this.ready[i] || t.controller === "bot")) {
         this.teams.forEach((t, i) => {
@@ -711,6 +721,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
       needsResigning: [],
       needsRepair: []
     });
+    this.ready.push(false);
     this.emitEventToAll({
       type: "join",
       controller: viewerIndex,
@@ -783,6 +794,10 @@ export default class MayhemManager extends GameLogicHandlerBase {
         statusEffects: []
       });
       this.ready[teamIndex] = true;
+      this.emitEventToAll({
+        type: "ready",
+        team: teamIndex
+      });
 
       // if the only players not still ready are bots, make them pick and ready
       if (doUnreadyBots &&
@@ -813,6 +828,10 @@ export default class MayhemManager extends GameLogicHandlerBase {
     if (!this.ready[teamIndex] &&
         isValidEquipmentTournament(this.teams[teamIndex], equipment)) {
       this.ready[teamIndex] = true;
+      this.emitEventToAll({
+        type: "ready",
+        team: teamIndex
+      });
       for (let i = 0; i < this.teams[teamIndex].fighters.length; i++) {
         this.fightersInBattle.push({
           ...this.teams[teamIndex].fighters[i],
@@ -952,12 +971,14 @@ export default class MayhemManager extends GameLogicHandlerBase {
       return {
         ...this.basicViewpointInfo(viewer),
         gameStage: this.gameStage,
-        teams: this.teams as PreseasonTeam[]
+        teams: this.teams as PreseasonTeam[],
+        ready: this.ready
       };
     } else if (this.gameStage === "training") {
       return {
         ...this.basicViewpointInfo(viewer),
-        gameStage: this.gameStage
+        gameStage: this.gameStage,
+        ready: this.ready
       };
     } else if (this.gameStage === "draft" ||
         this.gameStage === "free agency") {
@@ -972,6 +993,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
       return {
         ...this.basicViewpointInfo(viewer),
         gameStage: this.gameStage,
+        ready: this.ready,
         fightersInBattle: this.fightersInBattle
       };
     } else if (this.gameStage === "tournament") {
@@ -979,6 +1001,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
         ...this.basicViewpointInfo(viewer),
         gameStage: this.gameStage,
         bracket: this.bracket,
+        ready: this.ready,
         fightersInBattle: this.fightersInBattle
       };
     }

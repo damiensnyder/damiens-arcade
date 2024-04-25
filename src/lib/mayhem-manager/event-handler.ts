@@ -1,4 +1,4 @@
-import type { Fighter, PreseasonTeam, MayhemManagerEvent, MayhemManagerViewpoint } from "$lib/mayhem-manager/types";
+import type { Fighter, PreseasonTeam, MayhemManagerEvent, MayhemManagerViewpoint, PreseasonViewpoint } from "$lib/mayhem-manager/types";
 import { bracket, draftOrder, fightEvents, gameStage, rawSettings, settings, teams, spotInDraftOrder, fighters, equipment, watchingFight, history, equipmentChoices, ownTeam, ownTeamIndex, ready } from "$lib/mayhem-manager/stores";
 import { get } from "svelte/store";
 import { roomName, isPublic, host, pov } from "$lib/stores";
@@ -9,6 +9,11 @@ export function handleGamestate(gamestate: MayhemManagerViewpoint): void {
   gameStage.set(gamestate.gameStage);
   history.set(gamestate.history);
   teams.set(gamestate.teams);
+  if ((gamestate as PreseasonViewpoint).ready) {
+    ready.set((gamestate as PreseasonViewpoint).ready);
+  } else {
+    ready.set(Array(gamestate.teams.length).fill(false));
+  }
   if (gamestate.gameStage === "draft" || gamestate.gameStage === "free agency") {
     draftOrder.set(gamestate.draftOrder);
     spotInDraftOrder.set(gamestate.spotInDraftOrder);
