@@ -117,7 +117,19 @@
     {/if}
   </div>
   <div>
-    {$ready}
+    {#if !$teams.every(t => t.controller === "bot")}
+      Waiting for:
+      {
+        $teams.map((team, i) => {
+          return {
+            name: team.name,
+            unready: $teams[i].controller !== "bot" && !$ready[i]
+          };
+        }).filter(t => t.unready)
+          .map(t => t.name)
+          .join(", ")
+      }
+    {/if}
   </div>
 </div>
 

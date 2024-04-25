@@ -177,6 +177,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
     } else if (leaveSchema.safeParse(action).success &&
         teamControlledByViewer !== null) {
       teamControlledByViewer.controller = "bot";
+      this.ready[indexControlledByViewer] = false;
       this.emitEventToAll({
         type: "leave",
         team: indexControlledByViewer

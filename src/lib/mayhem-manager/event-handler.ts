@@ -59,7 +59,7 @@ export const eventHandler: EventHandler<MayhemManagerEvent> = {
       return old;
     });
     ready.update((old) => {
-      old.splice(event.team, 1);
+      old[event.team] = false;
       return old;
     });
   },
