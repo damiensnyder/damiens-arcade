@@ -25,6 +25,9 @@
   let cameraScale: number = 7;
   let cameraX: number = 50;
   let cameraY: number = 50;
+  let targetCameraScale: number = 7;
+  let targetCameraX: number = 50;
+  let targetCameraY: number = 50;
   let tickDelta: number = 0;
   let paused: boolean = true;
   let loaded: boolean = false;  // keeps pixi canvas from existing before its size is known
@@ -34,7 +37,7 @@
     if (!debug) {
       play();
     } else {
-      setCamera();
+      setCameraTarget();
     }
   });
 
@@ -46,33 +49,36 @@
         animationState.prepareTick();
         tickDelta -= 1;
       }
-      renderFrame();
+      renderFrame(delta);
     }
   }
 
-  function renderFrame(): void {
+  function renderFrame(delta: number): void {
     fighters = animationState.getFighters(tickDelta);
     rotation = animationState.getRotation(tickDelta);
     charge = animationState.getCharge(tickDelta);
     flipped = animationState.getFlipped(tickDelta);
     particles = animationState.getParticles(tickDelta);
     tint = animationState.getTint(tickDelta);
-    setCamera();
+    setCameraTarget();
+    cameraScale += (targetCameraScale - cameraScale) * Math.min(1, 1.5 * delta);
+    cameraX += (targetCameraX - cameraX) * Math.min(1, 1.5 * delta);
+    cameraY += (targetCameraY - cameraY) * Math.min(1, 1.5 * delta);
   }
 
   // Set camera transform so all fighters are visible but the camera is as zoomed as possible.
   // Camera should be centered, and the outermost fighters should be BUFFER_PIXELS from the
   // edge of the camera.
-  function setCamera(): void {
+  function setCameraTarget(): void {
     const frameAspectRatio = frameWidth / frameHeight;
     if (fighters.filter(f => f.hp > 0).length === 0) {
       if (frameAspectRatio < 1) {
-        cameraScale = frameWidth / (50 + 2 * BUFFER_PIXELS);
+        targetCameraScale = frameWidth / (50 + 2 * BUFFER_PIXELS);
       } else {
-        cameraScale = frameHeight / (50 + 2 * BUFFER_PIXELS);
+        targetCameraScale = frameHeight / (50 + 2 * BUFFER_PIXELS);
       }
-      cameraX = 50;
-      cameraY = 50;
+      targetCameraX = 50;
+      targetCameraX = 50;
     } else {
       // find the leftmost, rightmost, topmost, and bottommost coordinates a fighter has
       let left: number, right: number, top: number, bottom: number;
@@ -96,12 +102,12 @@
       // if content has wider aspect ratio than the frame, set the zoom based on width
       // if taller, set based on height
       if (frameAspectRatio < contentAspectRatio) {
-        cameraScale = frameWidth / (right - left + 2 * BUFFER_PIXELS);
+        targetCameraScale = frameWidth / (right - left + 2 * BUFFER_PIXELS);
       } else {
-        cameraScale = frameHeight / (bottom - top + 2 * BUFFER_PIXELS);
+        targetCameraScale = frameHeight / (bottom - top + 2 * BUFFER_PIXELS);
       }
-      cameraX = (right + left) / 2;
-      cameraY = (top + bottom) / 2;
+      targetCameraX = (right + left) / 2;
+      targetCameraY = (top + bottom) / 2;
     }
   }
 
@@ -128,14 +134,14 @@
 
   function step(): void {
     animationState.prepareTick();
-    renderFrame();
+    renderFrame(0);
   }
   
   function restart(): void {
     pause();
     tickDelta = 0;
     animationState = new AnimationState($fightEvents);
-    renderFrame();
+    renderFrame(0);
     play();
   }
 </script>
