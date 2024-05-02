@@ -61,6 +61,7 @@
     particles = animationState.getParticles(tickDelta);
     tint = animationState.getTint(tickDelta);
     setCameraTarget();
+    // ideally it would move slower or faster based on size of difference. but that's for later
     cameraScale += (targetCameraScale - cameraScale) * Math.min(1, 1.5 * delta);
     cameraX += (targetCameraX - cameraX) * Math.min(1, 1.5 * delta);
     cameraY += (targetCameraY - cameraY) * Math.min(1, 1.5 * delta);

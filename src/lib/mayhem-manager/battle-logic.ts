@@ -14,12 +14,12 @@ export const FISTS: Equipment = {
       target: Target.Melee,
       effects: [{
         type: "damage",
-        amount: 5
+        amount: 8
       }],
-      cooldown: 5
+      cooldown: 4
     },
     aiHints: {
-      actionDanger: 1,
+      actionDanger: 2,
       actionStat: StatName.Strength
     }
   },
@@ -183,7 +183,7 @@ class Fight {
       const closestEnemy = this.closestEnemy(f);
       if (!closestEnemy) return;  // do nothing if a teammate just downed the last enemy this tick
       // time it would take to get within melee range of closest
-      const timeToClosest = Math.max(distance(f, closestEnemy) - MELEE_RANGE, 0) / Math.max(3 + f.stats.speed * 0.6, 0.5);
+      const timeToClosest = Math.max(distance(f, closestEnemy) - MELEE_RANGE, 0) / Math.max(4 + f.stats.speed * 0.8, 0.5);
       const engaged = distance(f, closestEnemy) <= 5;
       const ownEngageability = engageability(f, this.teammates(f).length);
       // console.log("Name:", f.name, "| Own engageability:", ownEngageability.toFixed(3));
@@ -218,7 +218,7 @@ class Fight {
         let bestTargetability: number;
         let bestTimeToEnemy = 0;
         for (const f2 of this.enemies(f)) {
-          const timeToEnemy = Math.max(distance(f, f2) - 2, 0) / Math.max(3 + f.stats.speed * 0.6, 0.5);
+          const timeToEnemy = Math.max(distance(f, f2) - 2, 0) / Math.max(4 + f.stats.speed * 0.8, 0.5);
           let e2 = this.targetability(f2);
           e2 -= 0.025 * Math.max(0, timeToEnemy - f.cooldown);
           if (bestTargetability === undefined || e2 >= bestTargetability) {
@@ -316,7 +316,7 @@ class Fight {
   // distance traveled. 
   moveTowardsTarget(f: FighterInBattle, target: FighterInBattle, tick: MidFightEvent[]): number {
     const distanceToTarget = distance(f, target);
-    const distanceToMove = Math.max(Math.min((3 + f.stats.speed * 0.6) * TICK_LENGTH,
+    const distanceToMove = Math.max(Math.min((4 + f.stats.speed * 0.8) * TICK_LENGTH,
                                     distanceToTarget - CROWDING_DISTANCE), 0);
     let [deltaX, deltaY] = scaleVectorToMagnitude(target.x - f.x, target.y - f.y, distanceToMove);
 
@@ -345,7 +345,7 @@ class Fight {
 
   // Moves f away from target as far as possible.
   moveAwayFromTarget(f: FighterInBattle, target: FighterInBattle, tick: MidFightEvent[]): number {
-    const distanceToMove = Math.max(3 + f.stats.speed * 0.6, 0) * TICK_LENGTH;
+    const distanceToMove = Math.max(4 + f.stats.speed * 0.8, 0) * TICK_LENGTH;
     let [deltaX, deltaY] = scaleVectorToMagnitude(f.x - target.x, f.y - target.y, distanceToMove);
 
     // if too close to the wall, change direction to be less close to the wall.
@@ -386,7 +386,7 @@ class Fight {
 
   charge(f: FighterInBattle, tick: MidFightEvent[]): void {
     f.charge += 1;
-    f.cooldown += Math.max(1.5, 9 - 0.6 * f.stats.energy);
+    f.cooldown += Math.max(1, 6 - 0.4 * f.stats.energy);
     tick.push({
       type: "charge",
       fighter: this.fighters.indexOf(f),
@@ -718,7 +718,7 @@ export function actionDanger(f: FighterInBattle, a: Abilities, numTeammates: num
   if (a.action?.chargeNeeded) {
     d *= 1 -
         (a.action.chargeNeeded - f.charge) *  // charges still needed
-        (9 - 0.6 * f.stats.energy) /          // time per charge
+        (6 - 0.4 * f.stats.energy) /          // time per charge
         (9 * a.action.chargeNeeded);          // time needed if 0 charge and 0 energy
   }
   if (a.aiHints?.teammateMultiplier) {

@@ -20,9 +20,9 @@
     } else if (stat === StatName.Accuracy) {
       return `Hits ${25 + 5 * value}% of ranged attacks`;
     } else if (stat === StatName.Energy) {
-      return `Takes ${9 - 0.6 * value} seconds to charge`;
+      return `Takes ${6 - 0.4 * value} seconds to charge`;
     } else if (stat === StatName.Speed) {
-      return `Moves ${3 + 0.6 * value} m/s; ${2 * value}% dodge chance on melee attacks`;
+      return `Moves ${4 + 0.8 * value} m/s; ${2 * value}% dodge chance on melee attacks`;
     } else {
       return `Incoming damage is multiplied by ${1.25 - 0.05 * value}`;
     }

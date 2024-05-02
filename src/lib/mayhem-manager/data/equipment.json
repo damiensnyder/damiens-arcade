@@ -6,7 +6,7 @@
       "imgUrl": "/static/equipment/battle-axe.png",
       "zoomedImgUrl": "/static/zoomed/equipment/battle-axe.png",
       "price": 32,
-      "description": "Melee. Deals 55 damage. Cooldown 6s.",
+      "description": "Melee. Deals 70 damage. Cooldown 5s.",
       "flavor": "learn this one secret trick lumberjacks DON'T want you to know",
       "abilities": {
         "action": {
@@ -14,16 +14,16 @@
           "effects": [
             {
               "type": "damage",
-              "amount": 55
+              "amount": 70
             }
           ],
-          "cooldown": 6,
+          "cooldown": 5,
           "dodgeable": true,
           "knockback": 0.7,
           "animation": "swing"
         },
         "aiHints": {
-          "actionDanger": 9,
+          "actionDanger": 14,
           "actionStat": "strength"
         }
       }
@@ -34,7 +34,7 @@
       "imgUrl": "/static/equipment/chainsaw-headband.png",
       "zoomedImgUrl": "/static/zoomed/equipment/chainsaw-headband.png",
       "price": 20,
-      "description": "Melee. Deals 25 damage. Cooldown 2.5s. Requires 1 charge.",
+      "description": "Melee. Deals 30 damage. Cooldown 2.5s. Requires 1 charge.",
       "flavor": "it's battery powered",
       "abilities": {
         "action": {
@@ -42,7 +42,7 @@
           "effects": [
             {
               "type": "damage",
-              "amount": 25
+              "amount": 30
             }
           ],
           "chargeNeeded": 1,
@@ -52,7 +52,7 @@
           "animation": "swing"
         },
         "aiHints": {
-          "actionDanger": 10,
+          "actionDanger": 12,
           "actionStat": "strength"
         }
       }
@@ -63,7 +63,7 @@
       "imgUrl": "/static/equipment/claws-for-alarm.png",
       "zoomedImgUrl": "/static/zoomed/equipment/claws-for-alarm.png",
       "price": 22,
-      "description": "Melee. Deals 25 damage. Cooldown 4s. Accuracy -4.",
+      "description": "Melee. Deals 25 damage. Cooldown 3s. Accuracy -4.",
       "flavor": "who needs to aim when you can PINCH",
       "abilities": {
         "action": {
@@ -74,7 +74,7 @@
               "amount": 25
             }
           ],
-          "cooldown": 4,
+          "cooldown": 3,
           "dodgeable": true,
           "knockback": 0.5,
           "animation": "swing"
@@ -86,7 +86,7 @@
           }
         ],
         "aiHints": {
-          "actionDanger": 6,
+          "actionDanger": 8,
           "actionStat": "strength"
         }
       }
@@ -97,7 +97,7 @@
       "imgUrl": "/static/equipment/diamond-sword.png",
       "zoomedImgUrl": "/static/zoomed/equipment/diamond-sword.png",
       "price": 40,
-      "description": "Deals 45 damage. Cooldown 5s.",
+      "description": "Deals 50 damage. Cooldown 4s.",
       "flavor": "",
       "abilities": {
         "action": {
@@ -105,16 +105,16 @@
           "effects": [
             {
               "type": "damage",
-              "amount": 45
+              "amount": 50
             }
           ],
-          "cooldown": 5,
+          "cooldown": 4,
           "dodgeable": true,
           "knockback": 0.5,
           "animation": "swing"
         },
         "aiHints": {
-          "actionDanger": 9,
+          "actionDanger": 12,
           "actionStat": "strength"
         }
       }
@@ -125,7 +125,7 @@
       "imgUrl": "/static/equipment/headbutters-delight.png",
       "zoomedImgUrl": "/static/zoomed/equipment/headbutters-delight.png",
       "price": 19,
-      "description": "Deals 30 damage to opponent and 5 damage to wearer. Cooldown 4s.",
+      "description": "Deals 45 damage to opponent and 10 damage to wearer. Cooldown 3.5s.",
       "flavor": "no pain, no pain.",
       "abilities": {
         "action": {
@@ -133,7 +133,7 @@
           "effects": [
             {
               "type": "damage",
-              "amount": 30
+              "amount": 45
             }
           ],
           "triggeredEffects": [
@@ -141,16 +141,16 @@
               "trigger": "hitDealt",
               "target": "self",
               "type": "damage",
-              "amount": 5
+              "amount": 10
             }
           ],
-          "cooldown": 4,
+          "cooldown": 3.5,
           "dodgeable": true,
           "knockback": 0.5,
           "animation": "swing"
         },
         "aiHints": {
-          "actionDanger": 6,
+          "actionDanger": 10,
           "actionStat": "strength"
         }
       }
@@ -161,7 +161,7 @@
       "imgUrl": "/static/equipment/roller-blades.png",
       "zoomedImgUrl": "/static/zoomed/equipment/roller-blades.png",
       "price": 15,
-      "description": "Deals 15 damage. Cooldown 5s. +3 speed.",
+      "description": "Deals 18 damage. Cooldown 4s. +3 speed.",
       "flavor": "",
       "abilities": {
         "action": {
@@ -169,16 +169,16 @@
           "effects": [
             {
               "type": "damage",
-              "amount": 15
+              "amount": 18
             }
           ],
-          "cooldown": 5,
+          "cooldown": 4,
           "dodgeable": true,
           "knockback": 0.5,
           "animation": "swing"
         },
         "aiHints": {
-          "actionDanger": 3,
+          "actionDanger": 5,
           "actionStat": "strength"
         },
         "statChanges": [
@@ -195,7 +195,7 @@
       "imgUrl": "/static/equipment/the-ratio-inator.png",
       "zoomedImgUrl": "/static/zoomed/equipment/the-ratio-inator.png",
       "price": 19,
-      "description": "Deals 18 damage. Cooldown 3.5s. On hit: Opponent gets -1 to all stats for 10s.",
+      "description": "Deals 24 damage. Cooldown 3.5s. On hit: Opponent gets -1 to all stats for 10s.",
       "flavor": "Hold this.",
       "abilities": {
         "action": {
@@ -203,7 +203,7 @@
           "effects": [
             {
               "type": "damage",
-              "amount": 18
+              "amount": 24
             }
           ],
           "triggeredEffects": [
@@ -264,7 +264,7 @@
           "animation": "swing"
         },
         "aiHints": {
-          "actionDanger": 6,
+          "actionDanger": 9,
           "actionStat": "strength"
         }
       }
@@ -275,7 +275,7 @@
       "imgUrl": "/static/equipment/shiv.png",
       "zoomedImgUrl": "/static/zoomed/equipment/shiv.png",
       "price": 15,
-      "description": "Deals 9 damage. Cooldown 2s.",
+      "description": "Deals 11 damage. Cooldown 2s.",
       "flavor": "",
       "abilities": {
         "action": {
@@ -283,7 +283,7 @@
           "effects": [
             {
               "type": "damage",
-              "amount": 9
+              "amount": 11
             }
           ],
           "cooldown": 2,
@@ -292,7 +292,7 @@
           "animation": "swing"
         },
         "aiHints": {
-          "actionDanger": 4,
+          "actionDanger": 5,
           "actionStat": "strength"
         }
       }
@@ -303,7 +303,7 @@
       "imgUrl": "/static/equipment/steel-toed-boots.png",
       "zoomedImgUrl": "/static/zoomed/equipment/steel-toed-boots.png",
       "price": 17,
-      "description": "Deals 20 damage. Cooldown 5s. Toughness +1. Speed -1.",
+      "description": "Deals 28 damage. Cooldown 5s. Toughness +1. Speed -1.",
       "flavor": "",
       "abilities": {
         "action": {
@@ -311,7 +311,7 @@
           "effects": [
             {
               "type": "damage",
-              "amount": 20
+              "amount": 28
             }
           ],
           "cooldown": 5,
@@ -330,7 +330,7 @@
           }
         ],
         "aiHints": {
-          "actionDanger": 4,
+          "actionDanger": 6,
           "actionStat": "strength"
         }
       }
@@ -344,7 +344,7 @@
       "imgUrl": "/static/equipment/bow.png",
       "zoomedImgUrl": "/static/zoomed/equipment/bow.png",
       "price": 16,
-      "description": "Deals 45 damage. Cooldown 7s.",
+      "description": "Deals 50 damage. Cooldown 7s.",
       "flavor": "",
       "abilities": {
         "action": {
@@ -352,7 +352,7 @@
           "effects": [
             {
               "type": "damage",
-              "amount": 45
+              "amount": 50
             }
           ],
           "cooldown": 7,
@@ -362,7 +362,7 @@
           "knockback": 0.3
         },
         "aiHints": {
-          "actionDanger": 3,
+          "actionDanger": 4,
           "actionStat": "accuracy"
         }
       }
@@ -373,7 +373,7 @@
       "imgUrl": "/static/equipment/laser-blaster.png",
       "zoomedImgUrl": "/static/zoomed/equipment/laser-blaster.png",
       "price": 31,
-      "description": "Deals 30 damage. Cooldown 3s.",
+      "description": "Deals 25 damage. Cooldown 2s.",
       "flavor": "",
       "abilities": {
         "action": {
@@ -381,10 +381,10 @@
           "effects": [
             {
               "type": "damage",
-              "amount": 30
+              "amount": 25
             }
           ],
-          "cooldown": 3,
+          "cooldown": 2,
           "missable": true,
           "animation": "aim",
           "projectileImg": "/static/projectiles/laser.png",
@@ -402,7 +402,7 @@
       "imgUrl": "/static/equipment/snowman-head.png",
       "zoomedImgUrl": "/static/zoomed/equipment/snowman-head.png",
       "price": 15,
-      "description": "Deals 10 damage. Cooldown 2s.",
+      "description": "Deals 10 damage. Cooldown 1.5s.",
       "flavor": "",
       "abilities": {
         "action": {
@@ -410,17 +410,17 @@
           "effects": [
             {
               "type": "damage",
-              "amount": 30
+              "amount": 10
             }
           ],
-          "cooldown": 2,
+          "cooldown": 1.5,
           "missable": true,
           "animation": "aim",
           "projectileImg": "/static/projectiles/snowball.png",
           "knockback": 0.3
         },
         "aiHints": {
-          "actionDanger": 3,
+          "actionDanger": 4,
           "actionStat": "accuracy"
         }
       }
@@ -431,7 +431,7 @@
       "imgUrl": "/static/equipment/wand-of-flames.png",
       "zoomedImgUrl": "/static/zoomed/equipment/wand-of-flames.png",
       "price": 12,
-      "description": "Deals 70 damage. Cooldown 6s. Requires 1 charge.",
+      "description": "Deals 75 damage. Cooldown 6s. Requires 1 charge.",
       "flavor": "",
       "abilities": {
         "action": {
@@ -439,7 +439,7 @@
           "effects": [
             {
               "type": "damage",
-              "amount": 70
+              "amount": 75
             }
           ],
           "chargeNeeded": 1,
@@ -450,7 +450,7 @@
           "knockback": 0.7
         },
         "aiHints": {
-          "actionDanger": 6,
+          "actionDanger": 7,
           "actionStat": "accuracy"
         }
       }
@@ -461,7 +461,7 @@
       "imgUrl": "/static/equipment/zap-helmet.png",
       "zoomedImgUrl": "/static/zoomed/equipment/zap-helmet.png",
       "price": 27,
-      "description": "Deals 25 damage. Cooldown 4s. Cannot miss.",
+      "description": "Deals 22 damage. Cooldown 3.5s. Cannot miss.",
       "flavor": "i did it with my mind",
       "abilities": {
         "action": {
@@ -469,17 +469,16 @@
           "effects": [
             {
               "type": "damage",
-              "amount": 25
+              "amount": 22
             }
           ],
-          "cooldown": 5,
+          "cooldown": 3.5,
           "animation": "aim",
           "projectileImg": "/static/projectiles/laser.png",
           "knockback": 0.3
         },
         "aiHints": {
-          "actionDanger": 6,
-          "actionStat": "accuracy"
+          "actionDanger": 6
         }
       }
     },
@@ -567,13 +566,13 @@
       "imgUrl": "/static/equipment/fairy-hat.png",
       "zoomedImgUrl": "/static/zoomed/equipment/fairy-hat.png",
       "price": 4,
-      "description": "+2 energy.",
+      "description": "+2.5 energy.",
       "flavor": "",
       "abilities": {
         "statChanges": [
           {
             "stat": "are you even a real wizard without one of these?",
-            "amount": 4
+            "amount": 5
           }
         ]
       }
