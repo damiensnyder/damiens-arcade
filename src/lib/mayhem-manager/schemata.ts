@@ -147,8 +147,6 @@ export const equipmentTemplateSchema = z.object({
 });
 
 export const settingsSchema = z.object({
-  useDefaultFighters: z.boolean(),
-  useDefaultEquipment: z.boolean(),
   customFighters: z.array(fighterTemplateSchema),
   customEquipment: z.array(equipmentTemplateSchema),
 });

@@ -325,6 +325,9 @@ export default class MayhemManager extends GameLogicHandlerBase {
         type: "exportLeague",
         league: this.exportLeague()
       });
+    } else {
+      // @ts-ignore
+      console.log(importSchema.safeParse(action).error);
     }
   }
 
@@ -1014,8 +1017,10 @@ export default class MayhemManager extends GameLogicHandlerBase {
   }
 
   importLeague(league: MayhemManagerExport): void {
+    clearTimeout(this.pickTimeout);
     this.teams = league.teams;
     this.ready = Array(this.teams.length).fill(false);
+    this.gameStage = league.gameStage;
     if (league.gameStage === "draft") {
       this.draftOrder = league.draftOrder;
       this.spotInDraftOrder = league.spotInDraftOrder;

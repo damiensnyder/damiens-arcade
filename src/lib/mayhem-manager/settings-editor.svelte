@@ -4,7 +4,9 @@
   import RoomSettingsEditor from "$lib/room-settings-editor.svelte";
   import type { MayhemManagerExport } from "./types";
 
+  let leagueImportRaw = "";
   let firstUpdate = true;
+
   leagueExport.subscribe((newExport) => {
     if (firstUpdate) {
       firstUpdate = false;
@@ -34,6 +36,13 @@
     a.setAttribute('download', `mayhem-manager-${$roomName}.json`);
     a.click();
   }
+
+  function importLeague() {
+    lastAction.set({
+      type: "import",
+      ...JSON.parse(leagueImportRaw)
+    });
+  }
 </script>
 
 <RoomSettingsEditor />
@@ -49,9 +58,9 @@
   {/if}
   <button on:click={exportLeague} on:submit={exportLeague}>export league</button>
   {#if $host === $pov}
-    <textarea name="league-import" bind:value={$rawSettings}></textarea>
+    <textarea name="league-import" bind:value={leagueImportRaw}></textarea>
     <div class="horiz">
-      <button on:submit|preventDefault={exportLeague} on:click|preventDefault={exportLeague}>import league</button>
+      <button on:submit|preventDefault={importLeague} on:click|preventDefault={importLeague}>import league</button>
     </div>
   {/if}
 </form>
