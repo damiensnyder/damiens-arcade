@@ -1,5 +1,5 @@
 import type { Fighter, PreseasonTeam, MayhemManagerEvent, MayhemManagerViewpoint, PreseasonViewpoint } from "$lib/mayhem-manager/types";
-import { bracket, draftOrder, fightEvents, gameStage, rawSettings, settings, teams, spotInDraftOrder, fighters, equipment, watchingFight, history, equipmentChoices, ownTeam, ownTeamIndex, ready } from "$lib/mayhem-manager/stores";
+import { bracket, draftOrder, fightEvents, gameStage, rawSettings, settings, teams, spotInDraftOrder, fighters, equipment, watchingFight, history, equipmentChoices, ownTeam, ownTeamIndex, ready, leagueExport } from "$lib/mayhem-manager/stores";
 import { get } from "svelte/store";
 import { roomName, isPublic, host, pov } from "$lib/stores";
 import type { ChangeHostEvent, ChangeRoomSettingsEvent, EventHandler } from "$lib/types";
@@ -174,5 +174,8 @@ export const eventHandler: EventHandler<MayhemManagerEvent> = {
     ready.update((old) => {
       return Array(old.length).fill(false);
     });
+  },
+  exportLeague: function (event): void {
+    leagueExport.set(event.league);
   }
 }

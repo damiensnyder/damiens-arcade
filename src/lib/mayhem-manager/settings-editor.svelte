@@ -1,8 +1,17 @@
 <script lang="ts">
-  import { host, lastAction, pov } from "$lib/stores";
-  import { rawSettings } from "$lib/mayhem-manager/stores";
+  import { host, lastAction, pov, roomName } from "$lib/stores";
+  import { leagueExport, rawSettings } from "$lib/mayhem-manager/stores";
   import RoomSettingsEditor from "$lib/room-settings-editor.svelte";
-    import type { MayhemManagerExport, PreseasonTeam } from "./types";
+  import type { MayhemManagerExport } from "./types";
+
+  let firstUpdate = true;
+  leagueExport.subscribe((newExport) => {
+    if (firstUpdate) {
+      firstUpdate = false;
+    } else {
+      downloadLeagueExport(newExport);
+    }
+  });
 
   function changeGameSettings() {
     lastAction.set({
@@ -12,54 +21,18 @@
   }
 
   function exportLeague() {
-    let exportBase: MayhemManagerExport = {
-      gameStage: this.gameStage,
-      teams: this.teams,
-      history: this.history,
-      settings: this.settings
-    }
-    if (this.gameStage === "preseason") {
-      exportBase = {
-        ...exportBase,
-        gameStage: "preseason",
-        teams: this.teams as PreseasonTeam[]
-      }
-    } else if (this.gameStage === "draft") {
-      exportBase = {
-        ...exportBase,
-        gameStage: "draft",
-        draftOrder: this.draftOrder,
-        spotInDraftOrder: this.spotInDraftOrder,
-        fighters: this.fighters,
-        unsignedVeterans: this.unsignedVeterans,
-      }
-    } else if (this.gameStage === "free agency") {
-      exportBase = {
-        ...exportBase,
-        gameStage: "free agency",
-        draftOrder: this.draftOrder,
-        spotInDraftOrder: this.spotInDraftOrder,
-        fighters: this.fighters
-      }
-    } else if (this.gameStage === "training") {
-      exportBase = {
-        ...exportBase,
-        gameStage: "training",
-        equipmentAvailable: this.equipmentAvailable
-      }
-    } else if (this.gameStage === "battle royale") {
-      exportBase = {
-        ...exportBase,
-        gameStage: "battle royale"
-      }
-    } else if (this.gameStage === "tournament") {
-      exportBase = {
-        ...exportBase,
-        gameStage: "tournament",
-        bracket: this.bracket,
-        nextMatch: this.nextMatch
-      }
-    }
+    lastAction.set({
+      type: "export"
+    });
+  }
+
+  function downloadLeagueExport(newExport: MayhemManagerExport) {
+    const a = document.createElement('a');
+    const blob = new Blob([JSON.stringify(newExport)]);
+    const url = URL.createObjectURL(blob);
+    a.setAttribute('href', url);
+    a.setAttribute('download', `mayhem-manager-${$roomName}.json`);
+    a.click();
   }
 </script>
 

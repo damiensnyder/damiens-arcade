@@ -68,7 +68,7 @@ export type /* it so is! */ MayhemManagerExport = (PreseasonExport |
     BRExport |
     TournamentExport);
 
-interface ExportBase {
+export interface ExportBase {
   gameStage: MayhemManagerGameStage
   settings: Settings
   // history: string[][]
@@ -394,6 +394,10 @@ type ImportAction = {
   type: "import"
 } & MayhemManagerExport;
 
+type ExportAction = {
+  type: "export"
+};
+
 export type MayhemManagerAction = ChangeRoomSettingsAction |
     ChangeGameSettingsAction |
     JoinAction |
@@ -410,7 +414,8 @@ export type MayhemManagerAction = ChangeRoomSettingsAction |
     PickFightersAction |
     RepairAction |
     ResignAction |
-    ImportAction;
+    ImportAction |
+    ExportAction;
 
 
 
@@ -491,6 +496,11 @@ interface GoToBREvent {
 interface FightEvent {
   type: "fight"
   eventLog: MidFightEvent[][]
+}
+
+interface ExportLeagueEvent {
+  type: "exportLeague",
+  league: MayhemManagerExport
 }
 
 
@@ -598,4 +608,5 @@ export type MayhemManagerEvent = RoomEvent |
     GoToBREvent |
     FightEvent |
     BracketEvent |
-    GoToPreseasonEvent;
+    GoToPreseasonEvent |
+    ExportLeagueEvent;

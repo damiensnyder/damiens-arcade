@@ -268,3 +268,7 @@ export const importSchema = z.intersection(
     trainingExportSchema, brExportSchema, tournamentExportSchema
   ])
 );
+
+export const exportLeagueSchema = z.object({
+  type: z.literal("export")
+});

@@ -7,7 +7,7 @@ import { fighterValue, getIndexByController, getTeamByController, nextMatch } fr
 import { settingsAreValid, collatedSettings, fighterNames } from "$lib/mayhem-manager/decks";
 import { isValidEquipmentTournament, isValidEquipmentFighter, simulateFight } from "$lib/mayhem-manager/battle-logic";
 import Bot from "$lib/mayhem-manager/bot";
-import { addBotSchema, advanceSchema, importSchema, joinSchema, leaveSchema, passSchema, pickBRFighterSchema, pickFightersSchema, pickSchema, practiceSchema, readySchema, removeSchema, repairSchema, replaceSchema, resignSchema } from "./schemata";
+import { addBotSchema, advanceSchema, exportLeagueSchema, importSchema, joinSchema, leaveSchema, passSchema, pickBRFighterSchema, pickFightersSchema, pickSchema, practiceSchema, readySchema, removeSchema, repairSchema, replaceSchema, resignSchema } from "./schemata";
 
 
 
@@ -320,6 +320,11 @@ export default class MayhemManager extends GameLogicHandlerBase {
       // validations needed for some invariants zod misses, e.g.
       // that draft order is not longer than array of fighters
       this.importLeague(action);
+    } else if (exportLeagueSchema.safeParse(action).success) {
+      this.emitEventTo(viewer, {
+        type: "exportLeague",
+        league: this.exportLeague()
+      });
     }
   }
 
