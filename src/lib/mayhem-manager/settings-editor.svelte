@@ -15,13 +15,6 @@
     }
   });
 
-  function changeGameSettings() {
-    lastAction.set({
-      type: "changeGameSettings",
-      settings: JSON.parse($rawSettings)
-    });
-  }
-
   function exportLeague() {
     lastAction.set({
       type: "export"
@@ -45,25 +38,25 @@
   }
 </script>
 
-<RoomSettingsEditor />
+<div>
+  <RoomSettingsEditor />
+</div>
 
-<h3>Game Settings</h3>
-<form>
-  <label for="settings" style="margin-bottom: 0.3rem;">Settings:</label>
-  <textarea disabled={$host !== $pov} name="settings" bind:value={$rawSettings}></textarea>
+<div>
+  <h3>Export league to file:</h3>
+  <button on:click={exportLeague} on:submit={exportLeague}>export</button>
+  <h3>Import league:</h3>
   {#if $host === $pov}
+    <textarea name="league-import" bind:value={leagueImportRaw} placeholder={"(paste league file here)"}></textarea>
     <div class="horiz">
-      <button on:submit|preventDefault={changeGameSettings} on:click|preventDefault={changeGameSettings}>update settings</button>
+      <button on:submit|preventDefault={importLeague}
+          on:click|preventDefault={importLeague}
+          disabled={leagueImportRaw.length === 0}>
+        import
+      </button>
     </div>
   {/if}
-  <button on:click={exportLeague} on:submit={exportLeague}>export league</button>
-  {#if $host === $pov}
-    <textarea name="league-import" bind:value={leagueImportRaw}></textarea>
-    <div class="horiz">
-      <button on:submit|preventDefault={importLeague} on:click|preventDefault={importLeague}>import league</button>
-    </div>
-  {/if}
-</form>
+</div>
 
 <style>
   .horiz {
@@ -72,5 +65,9 @@
 
   button {
     margin-top: 0.5rem;
+  }
+
+  input[type=submit] {
+    text-transform: lowercase;
   }
 </style>

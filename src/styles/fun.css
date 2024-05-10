@@ -29,7 +29,8 @@ body,
  font-family: var(--font-main);
 }
 
-button {
+button,
+input[type=submit] {
   font-family: inherit;
   color: inherit;
   background-color: var(--bg-2);
