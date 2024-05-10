@@ -47,7 +47,7 @@
   <button on:click={exportLeague} on:submit={exportLeague}>export</button>
   <h3>Import league:</h3>
   {#if $host === $pov}
-    <textarea name="league-import" bind:value={leagueImportRaw} placeholder={"(paste league file here)"}></textarea>
+    <textarea name="league-import" bind:value={leagueImportRaw} placeholder={"(paste contents of league file here)"}></textarea>
     <div class="horiz">
       <button on:submit|preventDefault={importLeague}
           on:click|preventDefault={importLeague}
@@ -65,9 +65,5 @@
 
   button {
     margin-top: 0.5rem;
-  }
-
-  input[type=submit] {
-    text-transform: lowercase;
   }
 </style>
