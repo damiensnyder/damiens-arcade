@@ -1,4 +1,5 @@
-import { collatedSettings, simulateFight } from "$lib/mayhem-manager/battle-logic";
+import { simulateFight } from "$lib/mayhem-manager/battle-logic";
+import { collatedSettings } from "$lib/mayhem-manager/decks";
 import { readFileSync, writeFileSync } from "fs";
 import type { Appearance, Equipment, EquipmentTemplate, Fighter, FighterInBattle, FighterStats, MayhemManagerEvent } from "$lib/mayhem-manager/types";
 import { isValidEquipment } from "$lib/mayhem-manager/utils";
