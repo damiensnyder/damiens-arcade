@@ -124,7 +124,14 @@ export interface PreseasonTeam extends Team {
   needsRepair: Equipment[]
 }
 
-export interface Fighter {
+export interface AbilityHaver {
+  price: number
+  description: string
+  flavor: string
+  abilityName: string
+}
+
+export interface Fighter extends AbilityHaver {
   name: string
   gender: string
   stats: FighterStats
@@ -132,9 +139,6 @@ export interface Fighter {
   attunements: string[]
   abilities: Abilities
   experience: number
-  price: number
-  description: string
-  flavor: string
   appearance: Appearance
 }
 
@@ -187,16 +191,12 @@ export enum EquipmentSlot {
   Feet = "feet"
 }
 
-export interface Equipment {
-  name: string
-  imgUrl: string
-  zoomedImgUrl: string
-  slots: EquipmentSlot[]
-  abilities: Abilities
+export interface Equipment extends AbilityHaver {
+  name: string;
+  slots: EquipmentSlot[];
+  imgUrl: string;
+  zoomedImgUrl: string;
   yearsOwned: number
-  price: number
-  description: string
-  flavor: string
 }
 
 
@@ -287,8 +287,7 @@ export interface Abilities {
 
 
 export interface Settings {
-  customFighters: FighterTemplate[]
-  customEquipment: EquipmentTemplate[]
+  
 }
 
 export interface FighterNames {

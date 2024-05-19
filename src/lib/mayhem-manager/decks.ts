@@ -1,28 +1,47 @@
-import { z } from "zod";
 import { readFileSync } from "fs";
-import type { FighterNames, FighterTemplate, Settings, EquipmentTemplate } from "$lib/mayhem-manager/types";
-import { changeGameSettingsSchema } from "./schemata";
-
-const DECK_FILEPATH_BASE = "src/lib/mayhem-manager/data/";
+import type { AbilityHaver, Equipment, EquipmentSlot, FighterNames } from "$lib/mayhem-manager/types";
 
 export const fighterNames: FighterNames =
-    JSON.parse(readFileSync(DECK_FILEPATH_BASE + "names.json").toString());
-const defaultFighters: { fighters: FighterTemplate[] } =
-    JSON.parse(readFileSync(DECK_FILEPATH_BASE + "fighters.json").toString());
-const defaultEquipment: { equipment: EquipmentTemplate[] } =
-    JSON.parse(readFileSync(DECK_FILEPATH_BASE + "equipment.json").toString());
+    JSON.parse(readFileSync("src/lib/mayhem-manager/data/names.json").toString());
 
-export function settingsAreValid(settings: unknown): boolean {
-  return changeGameSettingsSchema.safeParse(settings).success;
-}
 
-// Merge all the decks of settings into a single deck
-export function collatedSettings(settings: Settings): {
-  fighters: FighterTemplate[],
-  equipment: EquipmentTemplate[],
-} {
-  return {
-    fighters: settings.customFighters.concat(defaultFighters.fighters),
-    equipment: settings.customEquipment.concat(defaultEquipment.equipment)
+let x = {
+  "name": "Battle Axe",
+  "slots": ["hand", "hand"],
+  "imgUrl": "/static/equipment/battle-axe.png",
+  "zoomedImgUrl": "/static/zoomed/equipment/battle-axe.png",
+  "price": 32,
+  "description": "Melee. Deals 70 damage. Cooldown 5s.",
+  "flavor": "learn this one secret trick lumberjacks DON'T want you to know",
+  "abilities": {
+    "action": {
+      "target": "melee",
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 70
+        }
+      ],
+      "cooldown": 5,
+      "dodgeable": true,
+      "knockback": 0.7,
+      "animation": "swing"
+    },
+    "aiHints": {
+      "actionDanger": 14,
+      "actionStat": "strength"
+    }
   }
 }
+
+export const equipmentCatalog: Record<string, Equipment> = {
+
+};
+
+export const fighterAbilitiesCatalog: Record<string, AbilityHaver> = {
+
+}
+
+export const equipmentPool = [];
+
+export const fighterAbilitiesPool = [];
