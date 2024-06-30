@@ -192,11 +192,23 @@ export enum EquipmentSlot {
 }
 
 export interface Equipment extends AbilityHaver {
-  name: string;
-  slots: EquipmentSlot[];
-  imgUrl: string;
-  zoomedImgUrl: string;
+  name: string
+  slots: EquipmentSlot[]
+  imgUrl: string
+  zoomedImgUrl: string
   yearsOwned: number
+}
+
+export interface EquipmentInBattle {
+  name: string
+  slots: EquipmentSlot[]
+  imgUrl: string
+  fighter: FighterInBattle
+  state?: any
+  getActionPriority?: () => number
+  whenPrioritized?: () => void
+  onEquip?: () => void
+  onTick?: (tickNum: number) => void
 }
 
 
