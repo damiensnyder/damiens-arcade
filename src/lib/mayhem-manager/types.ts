@@ -1,4 +1,5 @@
 import type { BasicViewpointInfo, ChangeRoomSettingsAction, RoomEvent } from "$lib/types";
+import type { Fight } from "./battle-logic";
 
 export type MayhemManagerGameStage = "preseason" |
     "draft" |
@@ -172,15 +173,27 @@ export type FighterStats = {
   [key in StatName]: number;
 };
 
-export interface FighterInBattle extends Fighter {
+export interface AbilityHaverInBattle {
+  state?: any
+  getActionPriority?: () => number
+  whenPrioritized?: () => void
+  onFightStart?: () => void
+  onTick?: (tickNum: number) => void
+}
+
+export interface FighterInBattle extends AbilityHaverInBattle {
   team: number
   hp: number
-  equipment: Equipment[]
+  equipment: EquipmentInBattle[]
   x: number
   y: number
   cooldown: number
   charge: number
+  stats: FighterStats
+  appearance: Appearance
+  attunements: string[]
   statusEffects: StatChangeEffect[]
+  fight: Fight
 }
 
 export enum EquipmentSlot {
@@ -199,16 +212,11 @@ export interface Equipment extends AbilityHaver {
   yearsOwned: number
 }
 
-export interface EquipmentInBattle {
+export interface EquipmentInBattle extends AbilityHaverInBattle {
   name: string
   slots: EquipmentSlot[]
   imgUrl: string
   fighter: FighterInBattle
-  state?: any
-  getActionPriority?: () => number
-  whenPrioritized?: () => void
-  onEquip?: () => void
-  onTick?: (tickNum: number) => void
 }
 
 

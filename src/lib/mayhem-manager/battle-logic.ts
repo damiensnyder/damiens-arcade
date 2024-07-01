@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from "fs";
-import { EquipmentSlot, type Equipment, type FighterInBattle, type FighterNames, type FighterTemplate, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, StatName, Target, Trigger, type TriggeredEffect, type Effect, type EquipmentTemplate, ActionAnimation, type Abilities } from "$lib/mayhem-manager/types";
+import { EquipmentSlot, type Equipment, type FighterInBattle, type FighterNames, type FighterTemplate, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, StatName, Target, Trigger, type TriggeredEffect, type Effect, type EquipmentTemplate, ActionAnimation, type Abilities, type AbilityHaverInBattle } from "$lib/mayhem-manager/types";
 import type { RNG } from "$lib/types";
 
 const DEBUG = false;
@@ -95,11 +95,12 @@ export function simulateFight(
   return fight.placementOrder;
 }
 
-class Fight {
+export class Fight {
   private rng: RNG
   private fighters: FighterInBattle[]
   eventLog: MidFightEvent[][]
   placementOrder: number[]
+  tickNum: number
 
   constructor(
     rng: RNG,
@@ -117,16 +118,13 @@ class Fight {
     });
     this.eventLog = [];
     this.placementOrder = [];
+    this.tickNum = 0;
 
     // do stat changes
     this.fighters.forEach((f) => {
+      f.onFightStart?.bind(f)();
       f.equipment.forEach(e => {
-        (e.abilities.statChanges || []).forEach((a) => {
-          f.stats[a.stat] += a.amount;
-          if (f.attunements.includes(e.name)) {
-            f.stats[a.stat] += 1;
-          }
-        });
+        e.onFightStart?.bind(e)();
       });
     });
   }
@@ -151,10 +149,10 @@ class Fight {
         type: "spawn",
         fighter: {  // f will be mutated during the fight so we need a current snapshot
           ...f,
+          appearance: f.appearance,
+          hp: f.hp,
           x: Number(f.x.toFixed(2)),  // round to save data
           y: Number(f.y.toFixed(2)),
-          stats: { ...f.stats },
-          abilities: { ...f.abilities },
           statusEffects: []
         }
       });
@@ -177,6 +175,7 @@ class Fight {
   }
 
   doTick(): void {
+    this.tickNum++;
     const tick: MidFightEvent[] = [];
     this.fighters.forEach((f, i) => {
       if (f.hp <= 0) return;  // do nothing if fighter is down
@@ -190,7 +189,7 @@ class Fight {
 
       let bestAction: Abilities;
       let bestActionDanger: number;
-      for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
+      for (const e of (f.equipment as AbilityHaverInBattle[]).concat(f, FISTS) as AbilityHaverInBattle[]) {
         if (e.abilities.action) {
           let currentActionDanger = actionDanger(f, e.abilities, this.teammates(f).length);
           if (e.abilities.action.target === Target.Melee) {
@@ -639,6 +638,8 @@ class Fight {
     return this.fighters.filter(f => f.team !== fighter.team && f.hp > 0);
   }
 }
+
+
 
 // Calculate the Euclidean distance between two fighters in the x-y plane
 function distance(f1: FighterInBattle, f2: FighterInBattle): number {
