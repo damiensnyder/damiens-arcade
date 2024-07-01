@@ -134,11 +134,9 @@ export interface AbilityHaver {
 
 export interface Fighter extends AbilityHaver {
   name: string
-  gender: string
   stats: FighterStats
   oldStats?: FighterStats
   attunements: string[]
-  abilities: Abilities
   experience: number
   appearance: Appearance
 }
@@ -183,6 +181,7 @@ export interface AbilityHaverInBattle {
 
 export interface FighterInBattle extends AbilityHaverInBattle {
   team: number
+  name: string
   hp: number
   equipment: EquipmentInBattle[]
   x: number
