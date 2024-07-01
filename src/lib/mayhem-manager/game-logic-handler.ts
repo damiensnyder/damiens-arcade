@@ -4,8 +4,8 @@ import type GameRoom from "$lib/backend/game-room";
 import type { MayhemManagerGameStage, MayhemManagerViewpoint, ViewpointBase, Team, Settings, Fighter, Bracket, FighterInBattle, Equipment, PreseasonTeam, EquipmentTemplate, FighterTemplate, MayhemManagerExport, Appearance, Color } from "$lib/mayhem-manager/types";
 import { StatName } from "$lib/mayhem-manager/types";
 import { fighterValue, getIndexByController, getTeamByController, nextMatch } from "$lib/mayhem-manager/utils";
-import { settingsAreValid, collatedSettings, fighterNames } from "$lib/mayhem-manager/decks";
-import { isValidEquipmentTournament, isValidEquipmentFighter, simulateFight } from "$lib/mayhem-manager/battle-logic";
+import { settingsAreValid, collatedSettings, fighterNames, equipmentCatalog } from "$lib/mayhem-manager/decks";
+import { isValidEquipmentTournament, isValidEquipmentFighter, simulateFight, Fight } from "$lib/mayhem-manager/battle-logic";
 import Bot from "$lib/mayhem-manager/bot";
 import { addBotSchema, advanceSchema, exportLeagueSchema, importSchema, joinSchema, leaveSchema, passSchema, pickBRFighterSchema, pickFightersSchema, pickSchema, practiceSchema, readySchema, removeSchema, repairSchema, replaceSchema, resignSchema } from "./schemata";
 
@@ -795,12 +795,13 @@ export default class MayhemManager extends GameLogicHandlerBase {
         ...this.teams[teamIndex].fighters[fighter],
         team: teamIndex,
         hp: 100,
-        equipment: equipment.map((e) => this.teams[teamIndex].equipment[e]),
+        equipment: equipment.map((e) => equipmentCatalog[this.teams[teamIndex].equipment[e].abilityName]),
         x: 0,
         y: 0,
         cooldown: 0,
         charge: 0,
-        statusEffects: []
+        statusEffects: [],
+        fight: {} as unknown as Fight
       });
       this.ready[teamIndex] = true;
       this.emitEventToAll({
