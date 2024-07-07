@@ -203,7 +203,16 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     price: 32,
     description: "Melee. Deals 70 damage. Cooldown 5s.",
     flavor: "learn this secret trick lumberjacks DON'T want you to know",
-    abilities: {}
+    abilities: {
+      getActionPriority: (f) => {
+        const dps = 14 * (0.5 + 0.1 * f.stats.strength);
+        let maxValue = 0;
+        for (let f2 of f.fight.enemies(f)) {
+          maxValue = Math.max(valueOfMeleeAttack(f, f2, dps));
+        }
+        return maxValue;
+      }
+    }
   }
 };
 
@@ -214,4 +223,18 @@ export const fighterAbilitiesCatalog: Record<string, FighterTemplate> = {
     price: 0,
     abilities: {}
   }
+}
+
+function valueOfMeleeAttack(f1: FighterInBattle, f2: FighterInBattle, dps: number): number {
+  const distance = Math.sqrt((f1.x - f2.x) ** 2 + (f1.y - f2.y) ** 2);
+  const timeToReach = Math.max(
+    f1.cooldown,
+    distance / (3 + 0.6 * f1.stats.speed)
+  );
+  const survivability = f2.hp * (0.75 + 0.05 * f2.stats.toughness); 
+  return fighterDanger(f2) / (timeToReach + (survivability / dps));
+}
+
+function fighterDanger(f: FighterInBattle): number {
+  return 1;
 }

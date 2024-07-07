@@ -173,10 +173,12 @@ export type FighterStats = {
 
 export interface AbilityHaverInBattle {
   state?: any
-  getActionPriority?: () => number
-  whenPrioritized?: () => void
-  onFightStart?: () => void
-  onTick?: (tickNum: number) => void
+  getActionPriority?: (f: FighterInBattle) => number
+  whenPrioritized?: (f: FighterInBattle) => void
+  activeDanger?: (f: FighterInBattle) => void
+  passiveDanger?: (f: FighterInBattle) => void
+  onFightStart?: (f: FighterInBattle) => void
+  onTick?: (f: FighterInBattle, tickNum: number) => void
 }
 
 export interface FighterInBattle extends AbilityHaverInBattle {
