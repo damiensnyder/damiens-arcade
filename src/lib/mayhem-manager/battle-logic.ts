@@ -1,37 +1,13 @@
 import { readFileSync, writeFileSync } from "fs";
-import { EquipmentSlot, type Equipment, type FighterInBattle, type FighterNames, type FighterTemplate, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, StatName, Target, Trigger, type TriggeredEffect, type Effect, type EquipmentTemplate, ActionAnimation, type Abilities, type AbilityHaverInBattle } from "$lib/mayhem-manager/types";
+import { EquipmentSlot, type Equipment, type FighterNames, type FighterTemplate, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, StatName, Target, Trigger, type TriggeredEffect, type Effect, type EquipmentTemplate, ActionAnimation, type Abilities, type AbilityHaverInBattle, type Fighter, type StatChangeEffect, type FighterStats, type Appearance, type EquipmentInBattle } from "$lib/mayhem-manager/types";
 import type { RNG } from "$lib/types";
+import { getEquipmentForBattle, getFighterAbilityForBattle } from "./decks";
 
 const DEBUG = false;
-
-export const FISTS: Equipment = {
-  name: "fists",
-  imgUrl: "",
-  zoomedImgUrl: "",
-  slots: [],
-  abilities: {
-    action: {
-      target: Target.Melee,
-      effects: [{
-        type: "damage",
-        amount: 8
-      }],
-      cooldown: 4
-    },
-    aiHints: {
-      actionDanger: 2,
-      actionStat: StatName.Strength
-    }
-  },
-  yearsOwned: 0,
-  price: 0,
-  description: "",
-  flavor: ""
-};
 const CROWDING_DISTANCE = 3;  // at less than this distance, fighters repel
-const MELEE_RANGE = 4;  // at less than this distance, fighters repel
+export const MELEE_RANGE = 4;  // at less than this distance, fighters repel
 export const TICK_LENGTH = 0.2;  // length of a tick in seconds
-const EPSILON = 0.00001;  // to account for rounding errors
+export const EPSILON = 0.00001;  // to account for rounding errors
 
 
 
@@ -95,6 +71,125 @@ export function simulateFight(
   return fight.placementOrder;
 }
 
+
+
+export class FighterInBattle {
+  team: number;
+  name: string;
+  hp: number;
+  x: number;
+  y: number;
+  cooldown: number;
+  charge: number;
+  stats: FighterStats;
+  appearance: Appearance;
+  attunements: string[];
+  statusEffects: StatChangeEffect[];
+  fight: Fight;
+  equipment: EquipmentInBattle[];
+
+  constructor(fighter: Fighter, equipment: Equipment[], fight: Fight, team: number, x: number, y: number) {
+    this.team = team;
+    this.name = fighter.name;
+    this.hp = 100;
+    this.x = x;
+    this.y = y;
+    this.cooldown = 3;
+    this.charge = 0;
+    this.stats = fighter.stats;
+    this.appearance = fighter.appearance;
+    this.attunements = fighter.attunements;
+    this.statusEffects = [];
+    this.fight = fight;
+    this.equipment = [
+      getFighterAbilityForBattle(fighter.abilityName, this)
+    ].concat(
+      equipment.map(e => getEquipmentForBattle(e.abilityName, this))
+    );
+  }
+
+  distanceTo(f: FighterInBattle): number {
+    return Math.sqrt((this.x - f.x) ** 2 + (this.y - f.y) ** 2);
+  }
+
+  enemies(): FighterInBattle[] {
+    return this.fight.enemies(this);
+  }
+
+  meleeDamageMultiplier(): number {
+    // cannot have less than 25% multiplier
+    return Math.max(0.5 + 0.1 * this.stats.strength), 0.25);
+  }
+
+  rangedHitChance(): number {
+    // hit chance must be between 0% and 100%
+    return Math.max(0, 
+      Math.min(0.25 + 0.05 * this.stats.accuracy, 1)
+    );
+  }
+
+  speedInMetersPerSecond(): number {
+    // cannot move slower than 1 m/s
+    return Math.max(3 + 0.6 * this.stats.speed, 1);
+  }
+
+  timeToCharge(): number {
+    // cannot charge faster than 1s
+    return Math.max(6 - 0.4 * this.stats.energy, 1);
+  }
+
+  effectiveHp(): number {
+    // cannot reduce incoming damage by more than 50%
+    return this.hp / Math.max(1.25 - 0.05 * this.stats.toughness, 0.5);
+  }
+
+  timeToReach(target: FighterInBattle): number {
+    return Math.max(
+      this.cooldown,
+      this.distanceTo(target) / this.speedInMetersPerSecond()
+    );
+  }
+
+  valueOfAttack(target: FighterInBattle, dps: number, timeUntilFirst: number): number {
+    return target.fighterDanger() / (timeUntilFirst + (target.effectiveHp() / dps));
+  }
+  
+  fighterDanger(): number {
+    let bestActionDanger = 0;
+    let passiveDanger = 0;
+    for (let e of this.equipment) {
+      if (e.actionDanger) {
+        bestActionDanger = Math.max(bestActionDanger, e.actionDanger(e));
+      }
+      if (e.passiveDanger) {
+        passiveDanger += e.passiveDanger(e);
+      }
+    }
+    return bestActionDanger + passiveDanger;
+  }
+
+  moveTowards(target: FighterInBattle): void {
+
+  }
+
+  moveAwayFrom(target: FighterInBattle): void {
+
+  }
+
+  attemptMeleeAttack(target: FighterInBattle, damage: number): void {
+    if (this.distanceTo(target) > MELEE_RANGE && this.timeToReach(target) > this.cooldown - 0.8) {
+      this.moveTowards(target);
+    } else if (this.timeToReach(target) < this.cooldown - 0.8) {
+      this.moveAwayFrom(target);
+    }
+    if (this.distanceTo(target) < MELEE_RANGE && this.cooldown < EPSILON) {
+      // attack
+    }
+  }
+}
+
+
+
 export class Fight {
   private rng: RNG
   private fighters: FighterInBattle[]
@@ -109,12 +204,7 @@ export class Fight {
     this.rng = rng;
     // clone each fighter and their stats and abilities objects so we can mutate them temporarily
     this.fighters = fighters.map((f) => {
-      return {
-        ...f,
-        equipment: f.equipment.slice(),
-        stats: { ...f.stats },
-        statusEffects: []
-      };
+      new FighterInBattle(f, f.equipment, this, f.team, f.x, f.y)
     });
     this.eventLog = [];
     this.placementOrder = [];

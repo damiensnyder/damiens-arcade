@@ -1,5 +1,5 @@
 import type { BasicViewpointInfo, ChangeRoomSettingsAction, RoomEvent } from "$lib/types";
-import type { Fight } from "./battle-logic";
+import type { Fight, FighterInBattle } from "./battle-logic";
 
 export type MayhemManagerGameStage = "preseason" |
     "draft" |
@@ -171,17 +171,8 @@ export type FighterStats = {
   [key in StatName]: number;
 };
 
-export interface AbilityHaverInBattle {
-  state?: any
-  getActionPriority?: (f: FighterInBattle) => number
-  whenPrioritized?: (f: FighterInBattle) => void
-  activeDanger?: (f: FighterInBattle) => void
-  passiveDanger?: (f: FighterInBattle) => void
-  onFightStart?: (f: FighterInBattle) => void
-  onTick?: (f: FighterInBattle, tickNum: number) => void
-}
-
-export interface FighterInBattle extends AbilityHaverInBattle {
+/*
+export interface FighterInBattle {
   team: number
   name: string
   hp: number
@@ -196,6 +187,7 @@ export interface FighterInBattle extends AbilityHaverInBattle {
   statusEffects: StatChangeEffect[]
   fight: Fight
 }
+*/
 
 export enum EquipmentSlot {
   Head = "head",
@@ -213,11 +205,19 @@ export interface Equipment extends AbilityHaver {
   yearsOwned: number
 }
 
-export interface EquipmentInBattle extends AbilityHaverInBattle {
+export interface EquipmentInBattle {
   name: string
   slots: EquipmentSlot[]
   imgUrl: string
   fighter: FighterInBattle
+  state?: any
+  isFighterAbility?: boolean
+  getActionPriority?: (self: EquipmentInBattle) => number
+  actionDanger?: (self: EquipmentInBattle) => number
+  passiveDanger?: (self: EquipmentInBattle) => number
+  whenPrioritized?: (self: EquipmentInBattle) => void
+  onFightStart?: (self: EquipmentInBattle) => void
+  onTick?: (self: EquipmentInBattle, tickNum: number) => void
 }
 
 

@@ -1,6 +1,6 @@
 import { readFileSync } from "fs";
 import { EquipmentSlot, type AbilityHaverInBattle, type Appearance, type Color, type Equipment, type EquipmentInBattle, type Fighter, type FighterInBattle, type FighterNames, type FighterStats } from "$lib/mayhem-manager/types";
-import type { Fight } from "./battle-logic";
+import { EPSILON, MELEE_RANGE, actionDanger, type Fight } from "./battle-logic";
 import type { RNG } from "$lib/types";
 
 const fighterNames: FighterNames =
@@ -119,27 +119,16 @@ export function getFighterForPick(fighterKey: string,
   };
 }
 
-export function getFighterForBattle(fighterKey: string, fighterOutOfBattle: Fighter,
-    fight: Fight, equipmentNames: string[], x: number, y: number, team: number): FighterInBattle {
+export function getFighterAbilityForBattle(fighterKey: string, fighter: FighterInBattle): EquipmentInBattle {
   const template = fighterAbilitiesCatalog[fighterKey];
-  const ret: FighterInBattle = {
-    name: fighterOutOfBattle.name,
-    stats: fighterOutOfBattle.stats,
-    appearance: fighterOutOfBattle.appearance,
-    attunements: fighterOutOfBattle.attunements,
-    equipment: [],
-    hp: 100,
-    cooldown: 0,
-    charge: 0,
-    x,
-    y,
-    statusEffects: [],
-    team,
-    fight,
+  return {
+    name: "",
+    slots: [],
+    imgUrl: "",
+    fighter,
+    isFighterAbility: true,
     ...template.abilities
   };
-  ret.equipment = equipmentNames.map(e => getEquipmentForBattle(e, ret));
-  return ret;
 }
 
 export function generateSevenEquipment(rng: RNG): Equipment[] {
@@ -204,13 +193,29 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     description: "Melee. Deals 70 damage. Cooldown 5s.",
     flavor: "learn this secret trick lumberjacks DON'T want you to know",
     abilities: {
-      getActionPriority: (f) => {
-        const dps = 14 * (0.5 + 0.1 * f.stats.strength);
+      actionDanger: (self: EquipmentInBattle) => {
+        return 14 * self.fighter.meleeDamageMultiplier();
+      },
+      getActionPriority: (self: EquipmentInBattle) => {
+        const dps = 14 * self.fighter.meleeDamageMultiplier();
         let maxValue = 0;
-        for (let f2 of f.fight.enemies(f)) {
-          maxValue = Math.max(valueOfMeleeAttack(f, f2, dps));
+        for (let target of self.fighter.enemies()) {
+          maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.timeToReach(target)));
         }
         return maxValue;
+      },
+      whenPrioritized: (self: EquipmentInBattle) => {
+        const dps = 14 * self.fighter.meleeDamageMultiplier();
+        let bestTarget;
+        let maxValue = 0;
+        for (let target of self.fighter.enemies()) {
+          const value = self.fighter.valueOfAttack(target, dps, self.fighter.timeToReach(target));
+          if (bestTarget === undefined || value > maxValue) {
+            bestTarget = target;
+            maxValue = value;
+          }
+        }
+        self.fighter.attemptMeleeAttack(bestTarget, 70);
       }
     }
   }
@@ -221,20 +226,18 @@ export const fighterAbilitiesCatalog: Record<string, FighterTemplate> = {
     description: "",
     flavor: "",
     price: 0,
-    abilities: {}
+    abilities: {
+      actionDanger: (self: EquipmentInBattle) => {
+        return 2 * self.fighter.meleeDamageMultiplier();
+      },
+      getActionPriority: (self: EquipmentInBattle) => {
+        const dps = 2 * self.fighter.meleeDamageMultiplier();
+        let maxValue = 0;
+        for (let target of self.fighter.enemies()) {
+          maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.timeToReach(target)));
+        }
+        return maxValue;
+      }
+    }
   }
-}
-
-function valueOfMeleeAttack(f1: FighterInBattle, f2: FighterInBattle, dps: number): number {
-  const distance = Math.sqrt((f1.x - f2.x) ** 2 + (f1.y - f2.y) ** 2);
-  const timeToReach = Math.max(
-    f1.cooldown,
-    distance / (3 + 0.6 * f1.stats.speed)
-  );
-  const survivability = f2.hp * (0.75 + 0.05 * f2.stats.toughness); 
-  return fighterDanger(f2) / (timeToReach + (survivability / dps));
-}
-
-function fighterDanger(f: FighterInBattle): number {
-  return 1;
 }
