@@ -112,8 +112,12 @@ export class FighterInBattle {
     return Math.sqrt((this.x - f.x) ** 2 + (this.y - f.y) ** 2);
   }
 
+  teammates(): FighterInBattle[] {
+    return this.fight.fighters.filter(f => f.team === this.team && f.hp > 0);
+  }
+
   enemies(): FighterInBattle[] {
-    return this.fight.enemies(this);
+    return this.fight.fighters.filter(f => f.team !== this.team && f.hp > 0);
   }
 
   meleeDamageMultiplier(): number {
@@ -169,11 +173,55 @@ export class FighterInBattle {
   }
 
   moveTowards(target: FighterInBattle): void {
+    const distanceToMove = Math.max(
+      Math.min(
+        this.speedInMetersPerSecond() * TICK_LENGTH,
+        this.distanceTo(target) - CROWDING_DISTANCE
+      ),
+      0
+    );
+    let [deltaX, deltaY] = scaleVectorToMagnitude(target.x - this.x, target.y - this.y, distanceToMove);
 
+    // if too close to the wall, change direction to be less close to the wall.
+    if (this.x + deltaX < CROWDING_DISTANCE) {
+      deltaX = Math.abs(deltaX);
+    } else if (this.x + deltaX > 100 - CROWDING_DISTANCE) {
+      deltaX = -Math.abs(deltaX);
+    }
+    if (this.y + deltaY < CROWDING_DISTANCE) {
+      deltaY = Math.abs(deltaY);
+      // being past the bottom of the screen is worse 
+    } else if (this.y + deltaY > 100 - CROWDING_DISTANCE) {
+      deltaY = -Math.abs(deltaY);
+    }
+    this.x += deltaX;
+    this.y += deltaY;
+    this.fight.uncrowd(this);
+
+    // also log the movement in the event log
   }
 
   moveAwayFrom(target: FighterInBattle): void {
+    const distanceToMove = this.speedInMetersPerSecond() * TICK_LENGTH;
+    let [deltaX, deltaY] = scaleVectorToMagnitude(this.x - target.x, this.y - target.y, distanceToMove);
 
+    // if too close to the wall, change direction to be less close to the wall.
+    if (this.x + deltaX < CROWDING_DISTANCE) {
+      deltaX = Math.abs(deltaX);
+    } else if (this.x + deltaX > 100 - CROWDING_DISTANCE) {
+      deltaX = -Math.abs(deltaX);
+    }
+    if (this.y + deltaY < CROWDING_DISTANCE) {
+      deltaY = Math.abs(deltaY);
+      // being past the bottom of the screen is worse 
+    } else if (this.y + deltaY > 100 - 2 * CROWDING_DISTANCE) {
+      deltaY = -Math.abs(deltaY);
+    }
+    this.x += deltaX;
+    this.y += deltaY;
+    this.fight.uncrowd(this);
+
+    // also log the movement in the event log
   }
 
   attemptMeleeAttack(target: FighterInBattle, damage: number): void {
@@ -191,8 +239,8 @@ export class FighterInBattle {
 
 
 export class Fight {
-  private rng: RNG
-  private fighters: FighterInBattle[]
+  rng: RNG
+  fighters: FighterInBattle[]
   eventLog: MidFightEvent[][]
   placementOrder: number[]
   tickNum: number
@@ -711,22 +759,6 @@ export class Fight {
       return [];
     }
   }
-
-  // in battle royales, prioritize danger; in duels, prioritize danger + low HP
-  targetability(fighter: FighterInBattle): number {
-    const numberOfTeams = this.fighters.reduce((a, b) => Math.max(a, b.team), 0);
-    return numberOfTeams > 2 ?
-        engageabilityBR(fighter, this.teammates(fighter).length) :
-        engageability(fighter, this.teammates(fighter).length);
-  }
-
-  teammates(fighter: FighterInBattle) {
-    return this.fighters.filter(f => f.team === fighter.team && f.hp > 0);
-  }
-
-  enemies(fighter: FighterInBattle) {
-    return this.fighters.filter(f => f.team !== fighter.team && f.hp > 0);
-  }
 }
 
 
@@ -742,78 +774,4 @@ function scaleVectorToMagnitude(x: number, y: number, magnitude: number): [numbe
     x / currentMagnitude * magnitude,
     y / currentMagnitude * magnitude
   ];
-}
-
-function engageability(f: FighterInBattle, numTeammates: number): number {
-  const effectiveHp = f.hp * (0.75 + f.stats.toughness / 20) / (1 - f.stats.speed / 50);
-
-  let bestActionDanger = -Infinity;
-  let passiveDanger = 0;
-  for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
-    bestActionDanger = Math.max(bestActionDanger, actionDanger(f, e.abilities, numTeammates));
-    passiveDanger += e.abilities.aiHints?.passiveDanger ?? 0;
-    // if ((e as Equipment).name === "Zap Helmet") {
-    //   console.log(actionDanger(f, e.abilities), bestActionDanger);
-    // }
-  }
-  // console.log("Name:", f.name, "| Danger:", (bestActionDanger || 0) + passiveDanger, "| Effective HP:", effectiveHp);
-
-  if (bestActionDanger < -100) console.debug(f, bestActionDanger);
-  return (50 + 20 * (bestActionDanger + passiveDanger)) / (50 + effectiveHp);
-}
-
-// Prefer higher effective HP when prioritizing targets in battle royale
-// Also make engageabliity way less important in general
-export function engageabilityBR(f: FighterInBattle, numTeammates: number): number {
-  const effectiveHp = f.hp * (0.75 + f.stats.toughness / 20) / (1 - f.stats.speed / 50);
-
-  let bestActionDanger = -Infinity;
-  let passiveDanger = 0;
-  for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
-    bestActionDanger = Math.max(bestActionDanger, actionDanger(f, e.abilities, numTeammates));
-    passiveDanger += actionDanger(f, e.abilities, numTeammates);
-  }
-
-  return (10 + 4 * (bestActionDanger + passiveDanger)) / (150 - effectiveHp);
-}
-
-function buffability(f: FighterInBattle, numTeammates: number): number {
-  const effectiveHp = f.hp * (0.75 + f.stats.toughness / 20) / (1 - f.stats.speed / 50);
-
-  let bestActionValue = -Infinity;
-  let passiveValue = 0;
-  for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
-    bestActionValue = Math.max(bestActionValue, actionDanger(f, e.abilities, numTeammates));
-    passiveValue += (e.abilities.aiHints?.passiveDanger ?? 0) +
-                    (e.abilities.aiHints?.passiveValue ?? 0);
-  }
-
-  return (1 + 0.5 * (bestActionValue + passiveValue)) / (150 - effectiveHp);
-}
-
-export function actionDanger(f: FighterInBattle, a: Abilities, numTeammates: number): number {
-  // if (a.aiHints?.actionDanger === 6) {
-  //   console.log(
-  //     a.aiHints?.actionDanger ?? 0,
-  //     0.5 + 0.1 * f.stats[a.aiHints?.actionStat],
-  //     a.action?.chargeNeeded
-  //   );
-  // }
-  let d = a.aiHints?.actionDanger ?? 0;
-  // if therer is a relevant stat (strength or accuracy), adjust by it
-  if (a.aiHints?.actionStat) {
-    d *= 0.5 + 0.1 * f.stats[a.aiHints?.actionStat];
-  }
-  // if it needs to charge, multiply based on how soon it will be charged, relevant to a fighter
-  // with 0 charge and 0 energy
-  if (a.action?.chargeNeeded) {
-    d *= 1 -
-        (a.action.chargeNeeded - f.charge) *  // charges still needed
-        (6 - 0.4 * f.stats.energy) /          // time per charge
-        (9 * a.action.chargeNeeded);          // time needed if 0 charge and 0 energy
-  }
-  if (a.aiHints?.teammateMultiplier) {
-    d *= numTeammates - 1;
-  }
-  return d;
 }
