@@ -1,7 +1,8 @@
 import { readFileSync } from "fs";
-import { EquipmentSlot, type AbilityHaverInBattle, type Appearance, type Color, type Equipment, type EquipmentInBattle, type Fighter, type FighterInBattle, type FighterNames, type FighterStats } from "$lib/mayhem-manager/types";
-import { EPSILON, MELEE_RANGE, actionDanger, type Fight } from "./battle-logic";
+import { EquipmentSlot, type Abilities, type Appearance, type Color, type Equipment, type EquipmentInBattle, type Fighter, type FighterNames, type FighterStats } from "$lib/mayhem-manager/types";
+
 import type { RNG } from "$lib/types";
+import type { FighterInBattle } from "./battle-logic";
 
 const fighterNames: FighterNames =
     JSON.parse(readFileSync("src/lib/mayhem-manager/data/names.json").toString());
@@ -30,7 +31,7 @@ const SKIN_COLORS: Color[] = [
   [[202, 164, 105], [8, 0.4]],
   [[214, 197, 141], [10, 0.3]]
 ];
-const SHIRT_COLORS: Color[] = [
+export const SHIRT_COLORS: Color[] = [
   [[176, 6, 15], [0, 0.7, 1]],
   [[0, 0, 0], [0, 0, 1]],
   [[12, 9, 89], [255, 0.2, 2]],
@@ -38,7 +39,7 @@ const SHIRT_COLORS: Color[] = [
   [[54, 54, 54], [0, 10, 0]],
   [[5, 11, 30], [240, 2, 0.5]]
 ];
-const SHORTS_COLORS: Color[] = [
+export const SHORTS_COLORS: Color[] = [
   [[0, 0, 0], [0, 0, 1]],
   [[1, 14, 89], [240, 0.2, 2]],
   [[3, 47, 86], [200, 0.5, 1]],
@@ -67,14 +68,14 @@ export interface EquipmentTemplate {
   zoomedImgUrl: string
   price: number
   slots: EquipmentSlot[]
-  abilities: AbilityHaverInBattle
+  abilities: Abilities
 }
 
 export interface FighterTemplate {
   description: string
   flavor: string
   price: number
-  abilities: AbilityHaverInBattle
+  abilities: Abilities
 }
 
 export function getEquipmentForPick(equipmentKey: string): Equipment {
@@ -131,12 +132,12 @@ export function getFighterAbilityForBattle(fighterKey: string, fighter: FighterI
   };
 }
 
-export function generateSevenEquipment(rng: RNG): Equipment[] {
+export function generateEightEquipment(rng: RNG): Equipment[] {
   const ret: Equipment[] = [];
   const equipmentList = Object.keys(equipmentCatalog);
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 8; i++) {
     let equipmentPicked = rng.randElement(equipmentList);
-    while (equipmentList.length >= 7 && ret.map(e => e.name).includes(equipmentPicked)) {
+    while (equipmentList.length >= 8 && ret.some(e => e.name === equipmentPicked)) {
       equipmentPicked = rng.randElement(equipmentList);
     }
     ret.push(getEquipmentForPick(equipmentPicked));
@@ -206,7 +207,7 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
       },
       whenPrioritized: (self: EquipmentInBattle) => {
         const dps = 14 * self.fighter.meleeDamageMultiplier();
-        let bestTarget;
+        let bestTarget: FighterInBattle;
         let maxValue = 0;
         for (let target of self.fighter.enemies()) {
           const value = self.fighter.valueOfAttack(target, dps, self.fighter.timeToReach(target));

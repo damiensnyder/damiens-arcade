@@ -1,11 +1,11 @@
 import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
-import type { MayhemManagerGameStage, MayhemManagerViewpoint, ViewpointBase, Team, Settings, Fighter, Bracket, FighterInBattle, Equipment, PreseasonTeam, EquipmentTemplate, FighterTemplate, MayhemManagerExport, Appearance, Color } from "$lib/mayhem-manager/types";
+import type { MayhemManagerGameStage, MayhemManagerViewpoint, ViewpointBase, Team, Settings, Fighter, Bracket, Equipment, PreseasonTeam, EquipmentTemplate, FighterTemplate, MayhemManagerExport, Appearance, Color } from "$lib/mayhem-manager/types";
 import { StatName } from "$lib/mayhem-manager/types";
 import { fighterValue, getIndexByController, getTeamByController, nextMatch } from "$lib/mayhem-manager/utils";
-import { settingsAreValid, collatedSettings, fighterNames, equipmentCatalog } from "$lib/mayhem-manager/decks";
-import { isValidEquipmentTournament, isValidEquipmentFighter, simulateFight, Fight } from "$lib/mayhem-manager/battle-logic";
+import { SHIRT_COLORS, SHORTS_COLORS, equipmentCatalog, generateFighters, generateEightEquipment, getEquipmentForBattle, getFighterForPick } from "$lib/mayhem-manager/decks";
+import { isValidEquipmentTournament, isValidEquipmentFighter, simulateFight, Fight, FighterInBattle } from "$lib/mayhem-manager/battle-logic";
 import Bot from "$lib/mayhem-manager/bot";
 import { addBotSchema, advanceSchema, exportLeagueSchema, importSchema, joinSchema, leaveSchema, passSchema, pickBRFighterSchema, pickFightersSchema, pickSchema, practiceSchema, readySchema, removeSchema, repairSchema, replaceSchema, resignSchema } from "./schemata";
 
@@ -60,10 +60,6 @@ const BOT_DELAY = 2000;
 
 export default class MayhemManager extends GameLogicHandlerBase {
   settings: Settings
-  decks?: {
-    fighters: FighterTemplate[],
-    equipment: EquipmentTemplate[]
-  }
   declare gameStage: MayhemManagerGameStage
   teams?: (Team | PreseasonTeam)[]
   ready?: boolean[]
@@ -88,7 +84,6 @@ export default class MayhemManager extends GameLogicHandlerBase {
     };
     this.gameStage = "preseason";
     this.teams = [];
-    this.decks = collatedSettings(this.settings);
     this.history = [];
     this.ready = [];
   }
@@ -404,10 +399,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
     this.spotInDraftOrder = 0;
 
     // generate n + 4 random fighters to draft, where n is the number of teams
-    this.fighters = [];
-    for (let i = 0; i < this.teams.length + 4; i++) {
-      this.fighters.push(this.generateFighter());
-    }
+    this.fighters = generateFighters(this.teams.length + 4, false, this);
     this.fighters.sort((a, b) => fighterValue(b) - fighterValue(a));
 
     this.emitEventToAll({
@@ -446,9 +438,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
     // free agents are undrafted fighters and unsigned veterans, padded with random new ones if
     // there aren't enough
     this.fighters = this.unsignedVeterans.concat(this.fighters);
-    while (this.fighters.length < this.teams.length + 4) {
-      this.fighters.push(this.generateFighter());
-    }
+    this.fighters = this.fighters.concat(generateFighters(this.teams.length + 4 - this.fighters.length, false, this));
     this.fighters.sort((a, b) => fighterValue(b) - fighterValue(a));
 
     // set price based on how good the fighter is and how old they are
@@ -494,10 +484,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
     this.equipmentAvailable = [];
     this.ready = Array(this.teams.length).fill(false);
     for (let i = 0; i < this.teams.length; i++) {
-      const equipment: Equipment[] = [];
-      for (let j = 0; j < 8; j++) {
-        equipment.push(this.generateEquipment());
-      }
+      const equipment = generateEightEquipment(this)
       this.equipmentAvailable.push(equipment);
     }
     for (const viewer of this.room.viewers) {
@@ -745,7 +732,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
         ...this.teams[teamIndex].fighters[fighter],
         team: teamIndex,
         hp: 100,
-        equipment: equipment.map((e) => equipmentCatalog[this.teams[teamIndex].equipment[e].abilityName]),
+        equipment: equipment.map((e) => getEquipmentForBattle(this.teams[teamIndex].equipment[e].abilityName, this.teams[teamIndex].fighters[fighter])),
         x: 0,
         y: 0,
         cooldown: 0,
@@ -770,7 +757,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
               ...this.teams[i].fighters[picks.fighter],
               team: i,
               hp: 100,
-              equipment: picks.equipment.map((e) => this.teams[i].equipment[e]),
+              equipment: picks.equipment.map((e) => getEquipmentForBattle(this.teams[i].equipment[e].abilityName, picks.fighter)),
               x: 0,
               y: 0,
               cooldown: 0,
@@ -831,75 +818,6 @@ export default class MayhemManager extends GameLogicHandlerBase {
         this.simulateFight();
       }
     }
-  }
-
-  // Generate a random fighter
-  generateFighter(): Fighter {
-    const gender = ["M", "F", "A"][this.randInt(0, 2)];
-    let firstName;
-    // if androgynous, pick a first name from either bank. otherwise pick from the matching bank
-    if (gender === "A") {
-      firstName = this.randElement(fighterNames["firstNames" +
-          ["M", "F"][this.randInt(0, 1)]]);
-    } else {
-      firstName = this.randElement(fighterNames["firstNames" + gender]);
-    }
-
-    const fighter: Fighter = {
-      name: firstName + " " + this.randElement(fighterNames.lastNames),
-      gender,
-      price: 0,
-      abilities: {},
-      stats: {
-        strength: this.randElement(FIGHTER_INIT_STAT_DIST),
-        accuracy: this.randElement(FIGHTER_INIT_STAT_DIST),
-        energy: this.randElement(FIGHTER_INIT_STAT_DIST),
-        speed: this.randElement(FIGHTER_INIT_STAT_DIST),
-        toughness: this.randElement(FIGHTER_INIT_STAT_DIST)
-      },
-      attunements: [],
-      experience: 0,
-      description: "",
-      flavor: "",
-      appearance: this.generateAppearance(gender)
-    }
-    // 60% of the time, give them an ability. set to 0 right now
-    if (this.randReal() < 0.5 && this.decks.fighters.length > 0) {
-      return {
-        ...fighter,
-        ...this.randElement(this.decks.fighters)
-      }
-    }
-    this.doAgeBasedDevelopment(fighter);
-    return fighter;
-  }
-
-  generateAppearance(gender: string): Appearance {
-    return {
-      body: `/static/base/body_${gender}1.png`,
-      hair: `/static/base/hair_${gender}${this.randInt(1, 4)}.png`,
-      face: `/static/base/face_${this.randInt(1, 2)}.png`,
-      shirt: `/static/base/shirt_${gender}${this.randInt(1, 2)}.png`,
-      shorts: `/static/base/shorts_${gender}1.png`,
-      socks: `/static/base/socks_${gender}1.png`,
-      shoes: `/static/base/shoes_${gender}1.png`,
-      hairColor: this.randElement(HAIR_COLORS),
-      skinColor: this.randElement(SKIN_COLORS),
-      shirtColor: this.randElement(SHIRT_COLORS),
-      shortsColor: this.randElement(SHORTS_COLORS),
-      shoesColor: this.randElement(SHOES_COLORS)
-    };
-  }
-
-  // Select a random equipment from the deck of equipment
-  generateEquipment(): Equipment {
-    // @ts-ignore
-    return {
-      description: "",
-      flavor: "",
-      yearsOwned: 0,
-      ...this.randElement(this.decks.equipment),
-    };
   }
 
   handleDisconnect(viewer: Viewer, wasHost: boolean): void {
