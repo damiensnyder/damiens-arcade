@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { type Equipment, EquipmentSlot, type FighterInBattle } from "$lib/mayhem-manager/types";
+  import { EquipmentSlot, type FighterVisual, type EquipmentInBattle } from "$lib/mayhem-manager/types";
   import { Sprite } from "svelte-pixi";
   import * as PIXI from "pixi.js";
   import { onMount } from "svelte";
 
-  export let fighter: FighterInBattle;
-  export let equipment: Equipment[];
+  export let fighter: FighterVisual;
+  export let equipment: EquipmentInBattle[];
   export let charge: number;
 
   $: head = equipment.filter(e => e.slots.includes(EquipmentSlot.Head));

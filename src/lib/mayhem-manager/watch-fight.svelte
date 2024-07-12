@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { FighterInBattle, MidFightEvent } from "$lib/mayhem-manager/types";
+  import type { FighterVisual, MidFightEvent } from "$lib/mayhem-manager/types";
   import { fightEvents } from "$lib/mayhem-manager/stores";
   import FighterBattleInfo from "$lib/mayhem-manager/fighter-battle-info.svelte";
   import { onMount } from "svelte";
@@ -13,9 +13,7 @@
   export let debug: boolean = false;
   let eventLogRaw: string = "";
   $: animationState = new AnimationState(debug ? [] : $fightEvents);
-  let fighters: FighterInBattle[] = [];
-  let rotation: number[] = [];
-  let flipped: number[] = [];
+  let fighters: FighterVisual[] = [];
   let charge: number[] = [];
   let particles: Particle[] = [];
   let tint: PIXI.ColorMatrixFilter[] = [];
@@ -55,9 +53,7 @@
 
   function renderFrame(delta: number): void {
     fighters = animationState.getFighters(tickDelta);
-    rotation = animationState.getRotation(tickDelta);
     charge = animationState.getCharge(tickDelta);
-    flipped = animationState.getFlipped(tickDelta);
     particles = animationState.getParticles(tickDelta);
     tint = animationState.getTint(tickDelta);
     setCameraTarget();
@@ -159,7 +155,7 @@
             {#each fighters as f, i}
               {#if f.hp > 0}
                 <Container x={f.x - cameraX} y={f.y - cameraY} pivot={0.5}
-                    scale={[15 / 384 * flipped[i], 15 / 384]} angle={rotation[i]} filters={[tint[i]]}>
+                    scale={[15 / 384 * f.facing, 15 / 384]} angle={f.rotation} filters={[tint[i]]}>
                 <!-- using height / width does not work on the first run and i have no idea why -->
                   <FighterBattleSprite fighter={f} equipment={f.equipment} charge={charge[i]} />
                 </Container>

@@ -728,18 +728,13 @@ export default class MayhemManager extends GameLogicHandlerBase {
     if (!this.ready[teamIndex] &&
         fighter < this.teams[teamIndex].fighters.length &&
         isValidEquipmentFighter(this.teams[teamIndex], equipment)) {
-      this.fightersInBattle.push({
-        ...this.teams[teamIndex].fighters[fighter],
-        team: teamIndex,
-        hp: 100,
-        equipment: equipment.map((e) => getEquipmentForBattle(this.teams[teamIndex].equipment[e].abilityName, this.teams[teamIndex].fighters[fighter])),
-        x: 0,
-        y: 0,
-        cooldown: 0,
-        charge: 0,
-        statusEffects: [],
-        fight: {} as unknown as Fight
-      });
+      this.fightersInBattle.push(
+        new FighterInBattle(
+          this.teams[teamIndex].fighters[fighter],
+          equipment.map(e => this.teams[teamIndex].equipment[e]),
+          teamIndex
+        )
+      );
       this.ready[teamIndex] = true;
       this.emitEventToAll({
         type: "ready",
@@ -753,19 +748,15 @@ export default class MayhemManager extends GameLogicHandlerBase {
           if (t.controller === "bot" && !this.ready[i]) {
             const picks = Bot.getBRPicks(t);
             this.ready[i] = true;
-            this.fightersInBattle.push({
-              ...this.teams[i].fighters[picks.fighter],
-              team: i,
-              hp: 100,
-              equipment: picks.equipment.map((e) => getEquipmentForBattle(this.teams[i].equipment[e].abilityName, picks.fighter)),
-              x: 0,
-              y: 0,
-              cooldown: 0,
-              charge: 0,
-              statusEffects: []
-            });
+            this.fightersInBattle.push(
+              new FighterInBattle(
+                this.teams[i].fighters[picks.fighter],
+                picks.equipment.map(e => this.teams[i].equipment[e]),
+                i
+              )
+            );
           }
-        })
+        });
         this.simulateBattleRoyale();
       }
     }
@@ -780,17 +771,13 @@ export default class MayhemManager extends GameLogicHandlerBase {
         team: teamIndex
       });
       for (let i = 0; i < this.teams[teamIndex].fighters.length; i++) {
-        this.fightersInBattle.push({
-          ...this.teams[teamIndex].fighters[i],
-          team: teamIndex,
-          hp: 100,
-          equipment: equipment[i].map((e) => this.teams[teamIndex].equipment[e]),
-          x: 0,
-          y: 0,
-          cooldown: 0,
-          charge: 0,
-          statusEffects: []
-        });
+        this.fightersInBattle.push(
+          new FighterInBattle(
+            this.teams[teamIndex].fighters[i],
+            equipment[i].map((e) => this.teams[teamIndex].equipment[e]),
+            i
+          )
+        );
       }
 
       // if the only players not still ready are bots, make them pick and ready
@@ -801,17 +788,13 @@ export default class MayhemManager extends GameLogicHandlerBase {
             const picks = Bot.getFightPicks(t);
             this.ready[i] = true;
             for (let j = 0; j < t.fighters.length; j++) {
-              this.fightersInBattle.push({
-                ...this.teams[i].fighters[j],
-                team: i,
-                hp: 100,
-                equipment: picks[j].map((e) => this.teams[i].equipment[e]),
-                x: 0,
-                y: 0,
-                cooldown: 0,
-                charge: 0,
-                statusEffects: []
-              });
+              this.fightersInBattle.push(
+                new FighterInBattle(
+                  this.teams[i].fighters[j],
+                  picks[j].map((e) => this.teams[i].equipment[e]),
+                  i
+                )
+              );
             }
           }
         });

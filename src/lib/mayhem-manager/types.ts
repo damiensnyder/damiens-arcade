@@ -220,7 +220,7 @@ export interface EquipmentInBattle extends Abilities {
   name: string
   slots: EquipmentSlot[]
   imgUrl: string
-  fighter: FighterInBattle
+  fighter?: FighterInBattle
 }
 
 
@@ -528,23 +528,45 @@ interface ExportLeagueEvent {
 
 
 
-export interface MFSpawnEvent {
-  type: "spawn"
-  fighter: FighterInBattle
+export interface PartialFighterVisual {
+  name?: string
+  team?: number
+  stats?: FighterStats
+  appearance?: Appearance
+  description?: string
+  flavor?: string
+  tint?: [number, number, number, number]
+  x?: number
+  y?: number
+  flipped?: boolean
+  rotation?: number
 }
 
-export interface MFMoveEvent {
-  type: "move"
-  fighter: number
+export interface FighterVisual {
+  name: string
+  team: number
+  stats: FighterStats
+  appearance: Appearance
+  equipment: EquipmentInBattle[]
+  description: string
+  flavor: string
+  tint: [number, number, number, number]
   x: number
   y: number
+  hp: number
+  facing: number
+  rotation: number
+}
+
+export interface MFSpawnEvent {
+  type: "spawn"
+  fighter: FighterVisual
 }
 
 export interface MFAnimationEvent {
   type: "animation"
   fighter: number
-  animation: ActionAnimation
-  flipped: boolean
+  updates: PartialFighterVisual
 }
 
 export interface MFProjectileEvent {
@@ -560,38 +582,17 @@ export interface MFTextEvent {
   text: string
 }
 
-export interface MFTintEvent {
-  type: "tint"
+export interface MFParticleEvent {
+  type: "particle"
   fighter: number
-  tint: [number, number, number, number]
-}
-
-export interface MFHpChangeEvent {
-  type: "hpChange"
-  fighter: number
-  newHp: number
-}
-
-export interface MFChargeStartEvent {
-  type: "chargeStart"
-  fighter: number
-}
-
-export interface MFChargeEvent {
-  type: "charge"
-  fighter: number
-  newCharge: number
+  particleImg: string
 }
 
 export type MidFightEvent = MFSpawnEvent |
-    MFMoveEvent |
     MFAnimationEvent |
     MFProjectileEvent |
     MFTextEvent |
-    MFTintEvent |
-    MFHpChangeEvent |
-    MFChargeStartEvent |
-    MFChargeEvent;
+    MFParticleEvent;
 
 
 

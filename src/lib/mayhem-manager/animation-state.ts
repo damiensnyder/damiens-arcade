@@ -1,5 +1,5 @@
 
-import type { FighterInBattle, MFAnimationEvent, MFMoveEvent, MFTextEvent, MFSpawnEvent, MidFightEvent, MFProjectileEvent, MFHpChangeEvent } from "$lib/mayhem-manager/types";
+import type { MFAnimationEvent, MFTextEvent, MFSpawnEvent, MidFightEvent, MFParticleEvent, MFProjectileEvent, FighterVisual } from "$lib/mayhem-manager/types";
 import { ColorMatrixFilter } from "pixi.js";
 import { watchingFight } from "./stores";
 
@@ -40,16 +40,12 @@ enum RotationState {
 export default class AnimationState {
   eventLog: MidFightEvent[][];
   tick: number;
-  fighters: FighterInBattle[];
-  rotation: RotationState[];
-  flipped: boolean[];
+  fighters: FighterVisual[];
   charge: number[];
   hitFlash: number[];
   particles: Particle[];
   tint: [number, number, number, number][];
-  nextFighters: FighterInBattle[];
-  nextRotation: RotationState[];
-  nextFlipped: boolean[];
+  nextFighters: FighterVisual[];
   nextCharge: number[];
   nextHitFlash: number[];
   nextParticles: Particle[];
@@ -60,15 +56,11 @@ export default class AnimationState {
     this.eventLog = eventLog;
     this.tick = -1;
     this.fighters = [];
-    this.rotation = [];
-    this.flipped = [];
     this.charge = [];
     this.hitFlash = [];
     this.particles = [];
     this.tint = [];
     this.nextFighters = [];
-    this.nextRotation = [];
-    this.nextFlipped = [];
     this.nextCharge = [];
     this.nextHitFlash = [];
     this.nextParticles = [];
@@ -79,8 +71,6 @@ export default class AnimationState {
   // tick and the next one.
   prepareTick(): void {
     this.fighters = this.nextFighters.slice();
-    this.rotation = this.nextRotation.slice();
-    this.flipped = this.nextFlipped.slice();
     this.charge = this.nextCharge.slice();
     this.hitFlash = this.nextHitFlash.slice();
     this.particles = this.nextParticles.slice();
@@ -104,43 +94,13 @@ export default class AnimationState {
         if (event.type === "spawn") {
           event = event as MFSpawnEvent;
           this.fighters.push(event.fighter);
-          this.rotation.push(RotationState.Stationary1);
-          this.flipped.push(false);
           this.charge.push(1);
           this.hitFlash.push(1);
           this.tint.push([0, 0, 0, 0]);
           this.nextFighters.push(event.fighter);
-          this.nextRotation.push(RotationState.Stationary1);
-          this.nextFlipped.push(false);
           this.nextCharge.push(1);
           this.nextHitFlash.push(1);
           this.nextTint.push([0, 0, 0, 0]);
-        } else if (event.type === "move") {
-          event = event as MFMoveEvent;
-          const f: number = event.fighter;
-          this.nextFighters[f] = {
-            ...this.nextFighters[f],
-            x: event.x,
-            y: event.y
-          };
-          if (f < this.rotation.length) {
-            const prevRotation = this.rotation[event.fighter];
-            if (prevRotation === RotationState.Stationary1) {
-              this.nextRotation[f] = RotationState.WalkingStart1;
-            } else if (prevRotation === RotationState.WalkingStart1) {
-              this.nextRotation[f] = RotationState.Walking1;
-            } else if (prevRotation === RotationState.Walking1) {
-              this.nextRotation[f] = RotationState.Stationary2;
-            } else if (prevRotation === RotationState.Stationary2) {
-              this.nextRotation[f] = RotationState.WalkingStart2;
-            } else if (prevRotation === RotationState.WalkingStart2) {
-              this.nextRotation[f] = RotationState.Walking2;
-            } else if (prevRotation === RotationState.Walking2 ||
-                prevRotation === RotationState.ForwardSwing ||
-                prevRotation === RotationState.Aim) {
-              this.nextRotation[f] = RotationState.Stationary1;
-            }
-          }
         } else if (event.type === "text" && event.text !== "0") {
           event = event as MFTextEvent;
           this.nextParticles.push({
@@ -162,82 +122,32 @@ export default class AnimationState {
             destY: t.y,
             imgUrl: event.projectileImg
           });
-        } else if (event.type === "hpChange") {
-          event = event as MFHpChangeEvent;
-          const f = this.fighters[event.fighter];
+        } else if (event.type === "animation") {
+          event = event as MFAnimationEvent;
           this.nextFighters[event.fighter] = {
-            ...f,
-            hp: event.newHp
-          };
-          if (event.newHp < f.hp) {
-            this.nextHitFlash[event.fighter] = 1;
+            ...this.nextFighters[event.fighter],
+            ...event.updates
           }
-        } else if (event.type === "tint") {
-          this.nextTint[event.fighter] = event.tint;
-        } else if (event.type === "charge") {
-          this.nextCharge[event.fighter] = 1;
-          this.nextParticles.push({
-            type: "text",
-            text: `${event.newCharge} ${event.newCharge === 1 ? "charge" : "charges"}`,
-            x: this.nextFighters[event.fighter].x,
-            y: this.nextFighters[event.fighter].y - 7,  // moved up to be just over the fighter's head
-            opacity: 1
-          });
         }
       }
-    }
-
-    // cycle through attack animation if in one
-    this.nextRotation = this.nextRotation.map((r) => {
-      if (r === RotationState.BackswingStart) {
-        return RotationState.Backswing;
-      } else if (r === RotationState.AimStart) {
-        return RotationState.Aim
-      } else if (r === RotationState.Backswing) {
-        return RotationState.ForwardSwing;
-      } else if (r === RotationState.ForwardSwing ||
-          r === RotationState.Aim) {
-        return RotationState.Stationary1;
-      }
-      return r;
-    });
-
-    // start animations 2 ticks in advance
-    if (this.tick < this.eventLog.length - 2) {
-      const tick2Away = this.eventLog[this.tick + 2];
-      tick2Away.filter(e => e.type === "animation").forEach((e) => {
-        e = e as MFAnimationEvent;
-        this.nextFlipped[e.fighter] = e.flipped;
-        if (e.animation === "swing") {
-          this.nextRotation[e.fighter] = RotationState.BackswingStart;
-        } else if (e.animation === "aim") {
-          this.nextRotation[e.fighter] = RotationState.AimStart;
-        }
-      });
     }
   }
 
   // Fighters with correct coordinate interpolation
-  getFighters(delta: number): FighterInBattle[] {
+  getFighters(delta: number): FighterVisual[] {
     return this.fighters.map((f1, i) => {
       const f2 = this.nextFighters[i];
       return {
         ...f1,
         x: f2.x * delta + f1.x * (1 - delta),
-        y: f2.y * delta + f1.y * (1 - delta)
+        y: f2.y * delta + f1.y * (1 - delta),
+        facing: f2.facing * delta + f1.facing * (1 - delta),
+        rotation: f2.rotation * delta + f1.rotation * (1 - delta)
       };
     });
   }
 
-  // Rotation with correct interpolation
-  getRotation(delta: number): number[] {
-    return this.rotation.map((r1, i) => {
-      const r2 = this.nextRotation[i];
-      return r2 * delta + r1 * (1 - delta);
-    });
-  }
-
-  // Flippedness with correct interpolation
+  // TODO: This should be part of getParticles
   getCharge(delta: number): number[] {
     return this.charge.map((c1, i) => {
       const c2 = this.nextCharge[i];
@@ -245,15 +155,7 @@ export default class AnimationState {
     });
   }
 
-  // Flippedness with correct interpolation
-  getFlipped(delta: number): number[] {
-    return this.flipped.map((f1, i) => {
-      const f2 = this.nextFlipped[i];
-      return (f2 ? -1 : 1) * delta + (f1 ? -1 : 1) * (1 - delta);
-    });
-  }
-
-  // Hit flash with correct interpolation
+  // TODO: This shouldn't be here anymore
   getTint(delta: number): ColorMatrixFilter[] {
     return this.hitFlash.map((h1, i) => {
       const h2 = this.nextHitFlash[i];

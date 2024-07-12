@@ -74,38 +74,80 @@ export function simulateFight(
 
 
 export class FighterInBattle {
-  team: number;
-  name: string;
-  hp: number;
-  x: number;
-  y: number;
-  cooldown: number;
-  charge: number;
-  stats: FighterStats;
-  appearance: Appearance;
-  attunements: string[];
-  statusEffects: StatChangeEffect[];
-  fight: Fight;
-  equipment: EquipmentInBattle[];
+  team: number
+  name: string
+  description: string
+  flavor: string
+  hp: number
+  x: number
+  y: number
+  cooldown: number
+  charge: number
+  stats: FighterStats
+  appearance: Appearance
+  attunements: string[]
+  statusEffects: StatChangeEffect[]
+  fight?: Fight
+  index?: number
+  equipment: EquipmentInBattle[]
 
-  constructor(fighter: Fighter, equipment: Equipment[], fight: Fight, team: number, x: number, y: number) {
+  constructor(fighter: Fighter, equipment: Equipment[], team: number) {
     this.team = team;
     this.name = fighter.name;
+    this.description = fighter.description;
+    this.flavor = fighter.flavor;
     this.hp = 100;
-    this.x = x;
-    this.y = y;
+    this.x = 0;
+    this.y = 0;
     this.cooldown = 3;
     this.charge = 0;
     this.stats = fighter.stats;
     this.appearance = fighter.appearance;
     this.attunements = fighter.attunements;
     this.statusEffects = [];
-    this.fight = fight;
     this.equipment = [
       getFighterAbilityForBattle(fighter.abilityName, this)
     ].concat(
       equipment.map(e => getEquipmentForBattle(e.abilityName, this))
     );
+  }
+
+  doTick(): void {
+    if (this.hp <= 0) return;  // do nothing if fighter is down
+    if (this.enemies().length === 0) return;  // do nothing if no enemies
+
+    // TODO: do stuff
+
+    // tick down status effects, and end them if they're done
+    let prevTint = [0, 0, 0, 0];
+    let newTint: [number, number, number, number] = [0, 0, 0, 0];
+    this.statusEffects.forEach((s) => {
+      s.duration -= TICK_LENGTH;
+      if (s.tint) {
+        prevTint = s.tint;
+        if (s.duration > 0) {
+          newTint = s.tint;
+        }
+      }
+      if (s.duration <= 0) {
+        this.stats[s.stat] -= s.amount;
+      }
+    });
+    // TODO: not sure all this is being logged
+    this.statusEffects = this.statusEffects.filter((s) => s.duration > 0);
+    if (!newTint.every((v, i) => v === prevTint[i])) {
+      this.logEvent({
+        type: "animation",
+        fighter: this.index,
+        updates: {
+          tint: newTint
+        }
+      });
+    }
+
+    // decrease cooldown. cooldown can go slightly below 0 to compensate for if a cooldown
+    // is not a multiple of tick length, but if already at or below 0 it stays at 0
+    this.cooldown = this.cooldown <= EPSILON ? 0 : this.cooldown - TICK_LENGTH;
   }
 
   distanceTo(f: FighterInBattle): number {
@@ -198,7 +240,16 @@ export class FighterInBattle {
     this.y += deltaY;
     this.fight.uncrowd(this);
 
-    // also log the movement in the event log
+    // TODO: also log the fighter's rotation change
+    this.logEvent({
+      type: "animation",
+      fighter: this.index,
+      updates: {
+        x: this.x,
+        y: this.y,
+        flipped: deltaX > 0
+      }
+    });
   }
 
   moveAwayFrom(target: FighterInBattle): void {
@@ -221,7 +272,16 @@ export class FighterInBattle {
     this.y += deltaY;
     this.fight.uncrowd(this);
 
-    // also log the movement in the event log
+    // TODO: also log the fighter's rotation change
+    this.logEvent({
+      type: "animation",
+      fighter: this.index,
+      updates: {
+        x: this.x,
+        y: this.y,
+        flipped: deltaX > 0
+      }
+    });
   }
 
   attemptMeleeAttack(target: FighterInBattle, damage: number): void {
@@ -234,6 +294,10 @@ export class FighterInBattle {
       // attack
     }
   }
+
+  logEvent(event: MidFightEvent, ticksAgo: number = 0): void {
+    this.fight.eventLog[this.fight.eventLog.length - 1 - ticksAgo].push(event);
+  }
 }
 
 
@@ -243,27 +307,15 @@ export class Fight {
   fighters: FighterInBattle[]
   eventLog: MidFightEvent[][]
   placementOrder: number[]
-  tickNum: number
 
   constructor(
     rng: RNG,
     fighters: FighterInBattle[]
   ) {
     this.rng = rng;
-    // clone each fighter and their stats and abilities objects so we can mutate them temporarily
-    this.fighters = fighters.map((f) => {
-      return new FighterInBattle(f, f.equipment, this, f.team, f.x, f.y)
-    });
+    this.fighters = fighters;
     this.eventLog = [];
     this.placementOrder = [];
-    this.tickNum = 0;
-
-    // do stat changes
-    this.fighters.forEach((f) => {
-      f.equipment.forEach(e => {
-        e.onFightStart?.bind(e)();
-      });
-    });
   }
 
   // Simulates the fight
@@ -274,18 +326,26 @@ export class Fight {
     // place the fighters evenly spaced in a circle of radius 25 centered at (0, 0)
     this.fighters.forEach((f, i) => {
       const spawnTick: MidFightEvent[] = [];
+      f.fight = this;
       f.x = 50 + -25 * Math.cos(2 * Math.PI * i / this.fighters.length);
       f.y = 50 + 25 * Math.sin(2 * Math.PI * i / this.fighters.length);
 
       spawnTick.push({
         type: "spawn",
         fighter: {  // f will be mutated during the fight so we need a current snapshot
-          ...f,
+          name: f.name,
+          description: f.description,
+          flavor: f.flavor,
+          stats: f.stats,
           appearance: f.appearance,
+          equipment: f.equipment,
           hp: f.hp,
           x: Number(f.x.toFixed(2)),  // round to save data
           y: Number(f.y.toFixed(2)),
-          statusEffects: []
+          facing: 1,
+          tint: [0, 0, 0, 0],
+          rotation: 0,
+          team: f.team
         }
       });
       // pause 1 second between spawning fighters
@@ -296,10 +356,16 @@ export class Fight {
       }
     });
     if (DEBUG) writeFileSync("logs/ticks.txt", "[][][]", { flag: "a+" });
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 4; i++) {
       this.eventLog.push([]);
     }
 
+    // do stat changes
+    this.fighters.forEach((f) => {
+      f.equipment.forEach(e => {
+        e.onFightStart?.bind(e)();
+      });
+    });
 
     while (!this.fightIsOver()) {
       this.doTick();
@@ -307,45 +373,11 @@ export class Fight {
   }
 
   doTick(): void {
-    this.tickNum++;
-    const tick: MidFightEvent[] = [];
-    this.fighters.forEach((f, i) => {
-      if (f.hp <= 0) return;  // do nothing if fighter is down
-      const closestEnemy = this.closestEnemy(f);
-      if (!closestEnemy) return;
-
-      // tick down status effects, and end them if they're done
-      let prevTint = [0, 0, 0, 0];
-      let newTint: [number, number, number, number] = [0, 0, 0, 0];
-      f.statusEffects.forEach((s) => {
-        s.duration -= TICK_LENGTH;
-        if (s.tint) {
-          prevTint = s.tint;
-          if (s.duration > 0) {
-            newTint = s.tint;
-          }
-        }
-        if (s.duration <= 0) {
-          f.stats[s.stat] -= s.amount;
-        }
-      });
-      f.statusEffects = f.statusEffects.filter((s) => s.duration > 0);
-      if (!newTint.every((v, i) => v === prevTint[i])) {
-        tick.push({
-          type: "tint",
-          fighter: i,
-          tint: newTint
-        });
-      }
-
-      // decrease cooldown. cooldown can go slightly below 0 to compensate for if a cooldown
-      // is not a multiple of tick length, but if already at or below 0 it stays at 0
-      f.cooldown = f.cooldown <= EPSILON ? 0 : f.cooldown - TICK_LENGTH;
-    });
+    this.fighters.forEach(f => f.doTick());
     
     // we stringify the tick so later mutations don't mess up earlier ticks
-    if (DEBUG) writeFileSync("logs/ticks.txt", JSON.stringify(tick), { flag: "a+" });
-    this.eventLog.push(tick);
+    if (DEBUG) writeFileSync("logs/ticks.txt", JSON.stringify(this.eventLog[this.eventLog.length - 1]), { flag: "a+" });
+    this.eventLog.push([]);
   }
 
   fightIsOver(): boolean {
@@ -371,7 +403,7 @@ export class Fight {
       this.placementOrder.unshift(teamsRemaining[0]);
     }
     // forcibly end the match if it has been more than 5 minutes
-    if (this.eventLog.length > 300 / TICK_LENGTH) {
+    if (this.eventLog.length * TICK_LENGTH > 300) {
       while (teamsRemaining.length > 0) {
         this.placementOrder.unshift(teamsRemaining.pop());
       }
