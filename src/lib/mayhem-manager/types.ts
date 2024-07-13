@@ -17,7 +17,6 @@ export type MayhemManagerViewpoint = PreseasonViewpoint |
 
 export interface ViewpointBase extends BasicViewpointInfo {
   gameStage: MayhemManagerGameStage
-  settings: Settings
   history: Bracket[]
   teams: Team[]
 }
@@ -71,7 +70,6 @@ export type /* it so is! */ MayhemManagerExport = (PreseasonExport |
 
 export interface ExportBase {
   gameStage: MayhemManagerGameStage
-  settings: Settings
   // history: string[][]
   teams: Team[]
 }
@@ -310,10 +308,6 @@ export interface Abilities {
 
 
 
-export interface Settings {
-  
-}
-
 export interface FighterNames {
   firstNamesM: string[]
   firstNamesF: string[]
@@ -340,11 +334,6 @@ export interface EquipmentTemplate {
 }
 
 
-
-interface ChangeGameSettingsAction {
-  type: "changeGameSettings"
-  settings: Settings
-}
 
 interface JoinAction {
   type: "join"
@@ -422,7 +411,6 @@ type ExportAction = {
 };
 
 export type MayhemManagerAction = ChangeRoomSettingsAction |
-    ChangeGameSettingsAction |
     JoinAction |
     LeaveAction |
     ReplaceAction |
@@ -441,11 +429,6 @@ export type MayhemManagerAction = ChangeRoomSettingsAction |
     ExportAction;
 
 
-
-interface ChangeGameSettingsEvent {
-  type: "changeGameSettings"
-  settings: Settings
-}
 
 interface JoinEvent {
   type: "join"
@@ -533,12 +516,14 @@ export interface PartialFighterVisual {
   team?: number
   stats?: FighterStats
   appearance?: Appearance
+  equipment?: EquipmentInBattle[]
   description?: string
   flavor?: string
   tint?: [number, number, number, number]
   x?: number
   y?: number
-  flipped?: boolean
+  hp?: number
+  facing?: boolean
   rotation?: number
 }
 
@@ -616,7 +601,6 @@ interface GoToPreseasonEvent {
 }
 
 export type MayhemManagerEvent = RoomEvent |
-    ChangeGameSettingsEvent |
     JoinEvent |
     LeaveEvent |
     ReplaceEvent |

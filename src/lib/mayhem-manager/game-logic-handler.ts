@@ -1,7 +1,7 @@
 import type { Viewer } from "$lib/types";
 import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
-import type { MayhemManagerGameStage, MayhemManagerViewpoint, ViewpointBase, Team, Settings, Fighter, Bracket, Equipment, PreseasonTeam, EquipmentTemplate, FighterTemplate, MayhemManagerExport, Appearance, Color } from "$lib/mayhem-manager/types";
+import type { MayhemManagerGameStage, MayhemManagerViewpoint, ViewpointBase, Team, Fighter, Bracket, Equipment, PreseasonTeam, EquipmentTemplate, FighterTemplate, MayhemManagerExport, Appearance, Color } from "$lib/mayhem-manager/types";
 import { StatName } from "$lib/mayhem-manager/types";
 import { fighterValue, getIndexByController, getTeamByController, nextMatch } from "$lib/mayhem-manager/utils";
 import { SHIRT_COLORS, SHORTS_COLORS, equipmentCatalog, generateFighters, generateEightEquipment, getEquipmentForBattle, getFighterForPick } from "$lib/mayhem-manager/decks";
@@ -59,7 +59,6 @@ const TEAM_NAME_ENDS = [
 const BOT_DELAY = 2000;
 
 export default class MayhemManager extends GameLogicHandlerBase {
-  settings: Settings
   declare gameStage: MayhemManagerGameStage
   teams?: (Team | PreseasonTeam)[]
   ready?: boolean[]
@@ -78,10 +77,6 @@ export default class MayhemManager extends GameLogicHandlerBase {
 
   constructor(room: GameRoom) {
     super(room);
-    this.settings = {
-      customFighters: [],
-      customEquipment: []
-    };
     this.gameStage = "preseason";
     this.teams = [];
     this.history = [];
@@ -100,16 +95,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
       delete this.room;  // so we don't have to look at all the parameters of the socket
       console.debug(this);
       this.room = temp;
-
-    // CHANGE GAME SETTINGS
-    } else if (settingsAreValid(action) &&
-        this.room.host === viewer.index) {
-      this.settings = action.settings;
-      this.emitEventToAll({
-        type: "changeGameSettings",
-        settings: this.settings
-      });
-
+      
       // JOIN
     } else if (joinSchema.safeParse(action).success &&
         this.gameStage === "preseason" &&
@@ -821,7 +807,6 @@ export default class MayhemManager extends GameLogicHandlerBase {
     return {
       ...super.basicViewpointInfo(viewer),
       gameStage: this.gameStage,
-      settings: this.settings,
       history: this.history,
       teams: this.teams
     }
@@ -904,7 +889,6 @@ export default class MayhemManager extends GameLogicHandlerBase {
       gameStage: this.gameStage,
       teams: this.teams,
       history: this.history,
-      settings: this.settings
     }
     if (this.gameStage === "preseason") {
       return {

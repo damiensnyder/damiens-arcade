@@ -280,7 +280,7 @@ export class FighterInBattle {
       updates: {
         x: this.x,
         y: this.y,
-        flipped: deltaX > 0
+        facing: deltaX > 0
       }
     });
   }
@@ -312,7 +312,7 @@ export class FighterInBattle {
       updates: {
         x: this.x,
         y: this.y,
-        flipped: deltaX > 0
+        facing: deltaX > 0
       }
     });
   }
@@ -325,11 +325,25 @@ export class FighterInBattle {
     }
     if (this.distanceTo(target) < MELEE_RANGE && this.cooldown === 0) {
       damage *= target.damageTakenMultiplier();
+      damage = Math.round(damage);
       target.hp -= damage;
-      // TODO: log this in event log
+      this.logEvent({
+        type: "animation",
+        fighter: target.index,
+        updates: {
+          hp: target.hp
+        }
+      });
+      this.logEvent({
+        type: "text",
+        fighter: target.index,
+        text: damage.toString()
+      });
+      // TODO: log hit flash
     }
   }
 
+  // TODO: combine this with the fighter's first animation event in the same tick, if one exists
   logEvent(event: MidFightEvent, ticksAgo: number = 0): void {
     this.fight.eventLog[this.fight.eventLog.length - 1 - ticksAgo].push(event);
   }
