@@ -216,7 +216,8 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
             maxValue = value;
           }
         }
-        self.fighter.attemptMeleeAttack(bestTarget, 70);
+        self.fighter.attemptMeleeAttack(bestTarget, 70 * self.fighter.meleeDamageMultiplier());
+        self.fighter.cooldown = 5;
       }
     }
   }
@@ -227,18 +228,6 @@ export const fighterAbilitiesCatalog: Record<string, FighterTemplate> = {
     description: "",
     flavor: "",
     price: 0,
-    abilities: {
-      actionDanger: (self: EquipmentInBattle) => {
-        return 2 * self.fighter.meleeDamageMultiplier();
-      },
-      getActionPriority: (self: EquipmentInBattle) => {
-        const dps = 2 * self.fighter.meleeDamageMultiplier();
-        let maxValue = 0;
-        for (let target of self.fighter.enemies()) {
-          maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.timeToReach(target)));
-        }
-        return maxValue;
-      }
-    }
+    abilities: {}
   }
-}
+};

@@ -8,6 +8,23 @@ const CROWDING_DISTANCE = 3;  // at less than this distance, fighters repel
 export const MELEE_RANGE = 4;  // at less than this distance, fighters repel
 export const TICK_LENGTH = 0.2;  // length of a tick in seconds
 export const EPSILON = 0.00001;  // to account for rounding errors
+const FISTS: EquipmentInBattle = {
+  name: "Fists",
+  slots: [],
+  imgUrl: "",
+  isFighterAbility: true,
+  actionDanger: (self: EquipmentInBattle) => {
+    return 2 * self.fighter.meleeDamageMultiplier();
+  },
+  getActionPriority: (self: EquipmentInBattle) => {
+    const dps = 2 * self.fighter.meleeDamageMultiplier();
+    let maxValue = 0;
+    for (let target of self.fighter.enemies()) {
+      maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.timeToReach(target)));
+    }
+    return maxValue;
+  }
+}
 
 
 
@@ -106,6 +123,7 @@ export class FighterInBattle {
     this.attunements = fighter.attunements;
     this.statusEffects = [];
     this.equipment = [
+      FISTS,
       getFighterAbilityForBattle(fighter.abilityName, this)
     ].concat(
       equipment.map(e => getEquipmentForBattle(e.abilityName, this))
@@ -116,7 +134,18 @@ export class FighterInBattle {
     if (this.hp <= 0) return;  // do nothing if fighter is down
     if (this.enemies().length === 0) return;  // do nothing if no enemies
 
-    // TODO: do stuff
+    let bestAction: EquipmentInBattle;
+    let bestActionPriority = 0;
+
+    this.equipment.forEach((e) => {
+      const actionPriority = e.getActionPriority?.(e) ?? 0;
+      if (actionPriority > bestActionPriority) {
+        bestAction = e;
+        bestActionPriority = actionPriority;
+      }
+    });
+
+    bestAction.whenPrioritized(bestAction);
 
     // tick down status effects, and end them if they're done
     let prevTint = [0, 0, 0, 0];
@@ -145,9 +174,8 @@ export class FighterInBattle {
       });
     }
 
-    // decrease cooldown. cooldown can go slightly below 0 to compensate for if a cooldown
-    // is not a multiple of tick length, but if already at or below 0 it stays at 0
-    this.cooldown = this.cooldown <= EPSILON ? 0 : this.cooldown - TICK_LENGTH;
+    this.cooldown -= TICK_LENGTH;
+    if (this.cooldown < EPSILON) this.cooldown = 0;
   }
 
   distanceTo(f: FighterInBattle): number {
@@ -184,9 +212,14 @@ export class FighterInBattle {
     return Math.max(6 - 0.4 * this.stats.energy, 1);
   }
 
+  damageTakenMultiplier(): number {
+    // cannot reduce incoming damage by more than 50%
+    return Math.max(1.25 - 0.05 * this.stats.toughness, 0.5);
+  }
+
   effectiveHp(): number {
     // cannot reduce incoming damage by more than 50%
-    return this.hp / Math.max(1.25 - 0.05 * this.stats.toughness, 0.5);
+    return this.hp / this.damageTakenMultiplier();
   }
 
   timeToReach(target: FighterInBattle): number {
@@ -290,8 +323,10 @@ export class FighterInBattle {
     } else if (this.timeToReach(target) < this.cooldown - 0.8) {
       this.moveAwayFrom(target);
     }
-    if (this.distanceTo(target) < MELEE_RANGE && this.cooldown < EPSILON) {
-      // attack
+    if (this.distanceTo(target) < MELEE_RANGE && this.cooldown === 0) {
+      damage *= target.damageTakenMultiplier();
+      target.hp -= damage;
+      // TODO: log this in event log
     }
   }
 
@@ -336,11 +371,11 @@ export class Fight {
           name: f.name,
           description: f.description,
           flavor: f.flavor,
-          stats: f.stats,
-          appearance: f.appearance,
-          equipment: f.equipment,
+          stats: { ...f.stats },
+          appearance: { ...f.appearance },
+          equipment: { ...f.equipment },
           hp: f.hp,
-          x: Number(f.x.toFixed(2)),  // round to save data
+          x: Number(f.x.toFixed(2)),
           y: Number(f.y.toFixed(2)),
           facing: 1,
           tint: [0, 0, 0, 0],
@@ -348,7 +383,7 @@ export class Fight {
           team: f.team
         }
       });
-      // pause 1 second between spawning fighters
+      // pause 0.8 seconds between spawning fighters
       this.eventLog.push(spawnTick);
       if (DEBUG) writeFileSync("logs/ticks.txt", JSON.stringify(spawnTick) + "[][][]", { flag: "a+" });
       for (let i = 0; i < 3; i++) {
