@@ -280,7 +280,7 @@ export class FighterInBattle {
       updates: {
         x: this.x,
         y: this.y,
-        facing: deltaX > 0
+        facing: deltaX > 0 ? -1 : 1
       }
     });
   }
@@ -312,7 +312,7 @@ export class FighterInBattle {
       updates: {
         x: this.x,
         y: this.y,
-        facing: deltaX > 0
+        facing: deltaX > 0 ? -1 : 1
       }
     });
   }

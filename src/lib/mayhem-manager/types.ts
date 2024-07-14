@@ -523,7 +523,7 @@ export interface PartialFighterVisual {
   x?: number
   y?: number
   hp?: number
-  facing?: boolean
+  facing?: number
   rotation?: number
 }
 
