@@ -8,7 +8,8 @@ const CROWDING_DISTANCE = 3;  // at less than this distance, fighters repel
 export const MELEE_RANGE = 4;  // at less than this distance, fighters repel
 export const TICK_LENGTH = 0.2;  // length of a tick in seconds
 export const EPSILON = 0.00001;  // to account for rounding errors
-const FISTS: EquipmentInBattle = {
+const INITIAL_COOLDOWN = 3;  // seconds of cooldown fighters start the battle with
+export const FISTS: EquipmentInBattle = {
   name: "Fists",
   slots: [],
   imgUrl: "",
@@ -409,8 +410,9 @@ export class Fight {
       this.eventLog.push([]);
     }
 
-    // do stat changes
+    // do stat changes and set initial cooldowns
     this.fighters.forEach((f) => {
+      f.cooldown = INITIAL_COOLDOWN;
       f.equipment.forEach(e => {
         e.onFightStart?.bind(e)();
       });

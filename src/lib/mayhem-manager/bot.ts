@@ -1,6 +1,6 @@
 import { StatName } from "$lib/mayhem-manager/types";
-import type { Abilities, Equipment, Fighter, FighterInBattle, MayhemManagerGameStage, PreseasonTeam, Team } from "$lib/mayhem-manager/types";
-import { FISTS, actionDanger, isValidEquipmentFighter } from "./battle-logic";
+import type { Abilities, Equipment, Fighter, MayhemManagerGameStage, PreseasonTeam, Team } from "$lib/mayhem-manager/types";
+import { FISTS, FighterInBattle, isValidEquipmentFighter } from "./battle-logic";
 
 const Bot = {
   getPreseasonPicks: function (team: PreseasonTeam): {
@@ -182,58 +182,27 @@ function bestPicks(team: Team): {
   power: number
 } {
   // try on most dangerous / powerful equipment first (should be based on base price but that is not persistent)
-  const equipment = team.equipment.slice().sort((a, b) => {
-    return (b.abilities.aiHints?.actionDanger ?? 0) - (a.abilities.aiHints?.actionDanger ?? 0);
-  });
-  const teamInBattle: FighterInBattle[] = team.fighters.map((f) => {
-    return {
-      ...f,
-      stats: { ...f.stats },
-      team: 0,
-      hp: 100,
-      equipment: [],
-      x: 0,
-      y: 0,
-      cooldown: 0,
-      charge: 0,
-      statusEffects: []
-    };
-  });
-  const picks: number[][] = teamInBattle.map(_ => []);
-  const power: number[] = teamInBattle.map(f => fighterPower(f, team.fighters.length));
+  const equipment = team.equipment.slice();
+  const picks: number[][] = team.fighters.map(_ => []);
+  const power: number[] = team.fighters.map(_ => 0);
 
   // for each piece of equipment, assign it to the fighter who improves most (assuming at least one can wear it)
   equipment.forEach((e, i) => {
     let bestFighter: number;
     let bestImprovement: number;
-    teamInBattle.forEach((f, j) => {
+    team.fighters.forEach((f, j) => {
       // skip if fighter cannot wear this equipment while already wearing their other equipment
       if (!isValidEquipmentFighter(team, picks[j].concat(i))) return;
       // try it on and check how much the fighter's power improves
-      f.equipment.push(e);
-      for (const sc of e.abilities.statChanges || []) {
-        f.stats[sc.stat] += sc.amount;
-      }
-      const newPower = fighterPower(f, team.fighters.length);
-      if (bestImprovement === undefined || newPower - power[j] >= bestImprovement) {
-        bestFighter = j;
-        bestImprovement = newPower - power[j];
-      }
-      f.equipment.pop();
-      for (const sc of e.abilities.statChanges || []) {
-        f.stats[sc.stat] -= sc.amount;
-      }
-      // console.log("Fighter:", f.name, "| Equipment:", e.name, "| Old power:", power[j], "| New power:", newPower);
+      // f.equipment.push(e);
+      // f.equipment.pop();
+      bestFighter = j;
+      bestImprovement = 1;
     });
     if (bestFighter !== undefined) {
-      // console.log("Equipment:", e.name, "| Fighter:", teamInBattle[bestFighter].name);
       picks[bestFighter].push(i);
-      // console.log(picks);
-      teamInBattle[bestFighter].equipment.push(e);
+      // team.fighters[bestFighter].equipment.push(e);
       power[bestFighter] += bestImprovement;
-      for (const sc of e.abilities.statChanges || []) {
-        teamInBattle[bestFighter].stats[sc.stat] += sc.amount;
-      }
     }
   });
 
@@ -250,38 +219,19 @@ function bestPicksBR(team: Team): {
   power: number
 } {
   // try on most dangerous / powerful equipment first (should be based on base price but that is not persistent)
-  const equipment = team.equipment.slice().sort((a, b) => {
-    return (b.abilities.aiHints?.actionDanger ?? 0) - (a.abilities.aiHints?.actionDanger ?? 0);
-  });
-  const teamInBattle: FighterInBattle[] = team.fighters.map((f) => {
-    return {
-      ...f,
-      stats: { ...f.stats },
-      team: 0,
-      hp: 100,
-      equipment: [],
-      x: 0,
-      y: 0,
-      cooldown: 0,
-      charge: 0,
-      statusEffects: []
-    };
-  });
-  const picks: number[][] = teamInBattle.map(_ => []);
-  const power: number[] = teamInBattle.map(f => fighterPower(f, team.fighters.length));
+  const equipment = team.equipment.slice();
+  const picks: number[][] = team.fighters.map(_ => []);
+  const power: number[] = team.fighters.map(f => 0);
 
   // for each piece of equipment, assign it to the fighter who improves most (assuming at least one can wear it)
   equipment.forEach((e, i) => {
-    teamInBattle.forEach((f, j) => {
+    team.fighters.forEach((f, j) => {
       // skip if fighter cannot wear this equipment while already wearing their other equipment
       if (!isValidEquipmentFighter(team, picks[j].concat(i))) return;
       // try it on and check how much the fighter's power improves
-      f.equipment.push(e);
+      // f.equipment.push(e);
       picks[j].push(i);
-      for (const sc of e.abilities.statChanges || []) {
-        f.stats[sc.stat] += sc.amount;
-      }
-      power[j] = fighterPower(f, team.fighters.length);
+      power[j] = 1;
       // unlike bestPicks(), do not remove the equipment
     });
   });
@@ -292,20 +242,6 @@ function bestPicksBR(team: Team): {
     equipment: picks[bestFighter],
     power: power.reduce((a, b) => a + b, 0)
   };
-}
-
-function fighterPower(f: FighterInBattle, numTeammates: number): number {
-  const effectiveHp = f.hp * (0.75 + f.stats.toughness / 20) / (1 - f.stats.speed / 50);
-
-  let bestActionDanger = 0;
-  let passiveValue = 0;
-  for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
-    bestActionDanger = Math.max(bestActionDanger, actionDanger(f, e.abilities, numTeammates));
-    passiveValue += (e.abilities.aiHints?.passiveDanger ?? 0) +
-                    (e.abilities.aiHints?.passiveValue ?? 0);
-  }
-
-  return Math.pow((0.5 + 5 * (bestActionDanger + passiveValue)) * (0.5 + 0.01 * effectiveHp), 1.5);
 }
 
 export default Bot;
