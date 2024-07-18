@@ -36,8 +36,7 @@ export const FISTS: EquipmentInBattle = {
         maxValue = value;
       }
     }
-    self.fighter.attemptMeleeAttack(bestTarget, 8 * self.fighter.meleeDamageMultiplier());
-    self.fighter.cooldown = 4;
+    self.fighter.attemptMeleeAttack(bestTarget, 6 * self.fighter.meleeDamageMultiplier(), 3);
   }
 }
 
@@ -317,7 +316,7 @@ export class FighterInBattle {
     });
   }
 
-  attemptMeleeAttack(target: FighterInBattle, damage: number): void {
+  attemptMeleeAttack(target: FighterInBattle, damage: number, cooldown: number): void {
     if (this.distanceTo(target) > MELEE_RANGE && this.timeToReach(target) > this.cooldown - 0.8) {
       this.moveTowards(target);
     } else if (this.timeToReach(target) < this.cooldown - 0.8) {
@@ -327,6 +326,7 @@ export class FighterInBattle {
       damage *= target.damageTakenMultiplier();
       damage = Math.round(damage);
       target.hp -= damage;
+      this.cooldown = cooldown;
       this.logEvent({
         type: "animation",
         fighter: target.index,
@@ -346,6 +346,8 @@ export class FighterInBattle {
   // TODO: combine this with the fighter's first animation event in the same tick, if one exists
   logEvent(event: MidFightEvent, ticksAgo: number = 0): void {
     this.fight.eventLog[this.fight.eventLog.length - 1 - ticksAgo].push(event);
+    console.log(event);
+    console.log(this.fight.eventLog[this.fight.eventLog.length - 1]);
   }
 }
 
@@ -376,6 +378,7 @@ export class Fight {
     this.fighters.forEach((f, i) => {
       const spawnTick: MidFightEvent[] = [];
       f.fight = this;
+      f.index = i;
       f.x = 50 + -25 * Math.cos(2 * Math.PI * i / this.fighters.length);
       f.y = 50 + 25 * Math.sin(2 * Math.PI * i / this.fighters.length);
       f.equipment.forEach((e) => {
