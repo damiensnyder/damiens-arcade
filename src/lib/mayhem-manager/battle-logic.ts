@@ -24,6 +24,20 @@ export const FISTS: EquipmentInBattle = {
       maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.timeToReach(target)));
     }
     return maxValue;
+  },
+  whenPrioritized: (self: EquipmentInBattle) => {
+    const dps = 2 * self.fighter.meleeDamageMultiplier();
+    let bestTarget: FighterInBattle;
+    let maxValue = 0;
+    for (let target of self.fighter.enemies()) {
+      const value = self.fighter.valueOfAttack(target, dps, self.fighter.timeToReach(target));
+      if (bestTarget === undefined || value > maxValue) {
+        bestTarget = target;
+        maxValue = value;
+      }
+    }
+    self.fighter.attemptMeleeAttack(bestTarget, 8 * self.fighter.meleeDamageMultiplier());
+    self.fighter.cooldown = 4;
   }
 }
 
@@ -74,21 +88,6 @@ export function isValidEquipmentTournament(team: Team, equipment: number[][]): b
   return true;
 }
 
-// Simulate the fight and return the order of teams in it, going from winner to first out
-export function simulateFight(
-  eventEmitter: (event: MayhemManagerEvent) => void,
-  rng: RNG,
-  fighters: FighterInBattle[]
-): number[] {
-  const fight = new Fight(rng, fighters);
-  fight.simulate();
-  eventEmitter({
-    type: "fight",
-    eventLog: fight.eventLog
-  });
-  return fight.placementOrder;
-}
-
 
 
 export class FighterInBattle {
@@ -136,7 +135,7 @@ export class FighterInBattle {
     if (this.enemies().length === 0) return;  // do nothing if no enemies
 
     let bestAction: EquipmentInBattle;
-    let bestActionPriority = 0;
+    let bestActionPriority = -1;
 
     this.equipment.forEach((e) => {
       const actionPriority = e.getActionPriority?.(e) ?? 0;
@@ -379,6 +378,9 @@ export class Fight {
       f.fight = this;
       f.x = 50 + -25 * Math.cos(2 * Math.PI * i / this.fighters.length);
       f.y = 50 + 25 * Math.sin(2 * Math.PI * i / this.fighters.length);
+      f.equipment.forEach((e) => {
+        e.fighter = f;
+      });
 
       spawnTick.push({
         type: "spawn",
@@ -388,7 +390,13 @@ export class Fight {
           flavor: f.flavor,
           stats: { ...f.stats },
           appearance: { ...f.appearance },
-          equipment: { ...f.equipment },
+          equipment: f.equipment.map((e) => {
+            return {
+              name: e.name,
+              imgUrl: e.imgUrl,
+              slots: e.slots
+            };
+          }),
           hp: f.hp,
           x: Number(f.x.toFixed(2)),
           y: Number(f.y.toFixed(2)),

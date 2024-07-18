@@ -149,13 +149,13 @@ export function generateFighters(amount: number, inFA: boolean, rng: RNG): Fight
   const ret: Fighter[] = [];
   const fighterAbilitiesList = Object.keys(fighterAbilitiesCatalog);
   for (let i = 0; i < amount; i++) {
-    const gender = this.randElement(["M", "F", "A"]);
+    const gender = rng.randElement(["M", "F", "A"]);
     const eligibleFirstNames = (gender === "M" || (gender === "A" && rng.randReal() < 0.5)) ? fighterNames.firstNamesM : fighterNames.firstNamesF;
     const appearance: Appearance = {
       body: `/static/base/body_${gender}1.png`,
-      hair: `/static/base/hair_${gender}${this.randInt(1, 4)}.png`,
-      face: `/static/base/face_${this.randInt(1, 2)}.png`,
-      shirt: `/static/base/shirt_${gender}${this.randInt(1, 2)}.png`,
+      hair: `/static/base/hair_${gender}${rng.randInt(1, 4)}.png`,
+      face: `/static/base/face_${rng.randInt(1, 2)}.png`,
+      shirt: `/static/base/shirt_${gender}${rng.randInt(1, 2)}.png`,
       shorts: `/static/base/shorts_${gender}1.png`,
       socks: `/static/base/socks_${gender}1.png`,
       shoes: `/static/base/shoes_${gender}1.png`,

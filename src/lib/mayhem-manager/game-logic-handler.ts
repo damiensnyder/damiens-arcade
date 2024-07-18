@@ -4,8 +4,8 @@ import type GameRoom from "$lib/backend/game-room";
 import type { MayhemManagerGameStage, MayhemManagerViewpoint, ViewpointBase, Team, Fighter, Bracket, Equipment, PreseasonTeam, EquipmentTemplate, FighterTemplate, MayhemManagerExport, Appearance, Color } from "$lib/mayhem-manager/types";
 import { StatName } from "$lib/mayhem-manager/types";
 import { fighterValue, getIndexByController, getTeamByController, nextMatch } from "$lib/mayhem-manager/utils";
-import { SHIRT_COLORS, SHORTS_COLORS, equipmentCatalog, generateFighters, generateEightEquipment, getEquipmentForBattle, getFighterForPick } from "$lib/mayhem-manager/decks";
-import { isValidEquipmentTournament, isValidEquipmentFighter, simulateFight, Fight, FighterInBattle } from "$lib/mayhem-manager/battle-logic";
+import { SHIRT_COLORS, SHORTS_COLORS, generateFighters, generateEightEquipment } from "$lib/mayhem-manager/decks";
+import { isValidEquipmentTournament, isValidEquipmentFighter, Fight, FighterInBattle } from "$lib/mayhem-manager/battle-logic";
 import Bot from "$lib/mayhem-manager/bot";
 import { addBotSchema, advanceSchema, exportLeagueSchema, importSchema, joinSchema, leaveSchema, passSchema, pickBRFighterSchema, pickFightersSchema, pickSchema, practiceSchema, readySchema, removeSchema, repairSchema, replaceSchema, resignSchema } from "./schemata";
 
@@ -257,8 +257,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
         league: this.exportLeague()
       });
     } else {
-      // @ts-ignore
-      console.log(importSchema.safeParse(action).error);
+      console.log(action);
     }
   }
 
@@ -555,16 +554,13 @@ export default class MayhemManager extends GameLogicHandlerBase {
   }
 
   simulateBattleRoyale(): void {
-    const seeding = simulateFight(
-      this.emitEventToAll.bind(this),
-      {
-        randInt: this.randInt.bind(this),
-        randReal: this.randReal.bind(this),
-        randElement: this.randElement.bind(this)
-      },
-      this.fightersInBattle
-    );
-    this.bracket = generateBracket(seeding.map(team => {
+    const fight = new Fight(this, this.fightersInBattle);
+    fight.simulate();
+    this.emitEventToAll({
+      type: "fight",
+      eventLog: fight.eventLog
+    });
+    this.bracket = generateBracket(fight.placementOrder.map((team) => {
       return { winner: team };
     }));
     this.gameStage = "tournament";
@@ -572,15 +568,13 @@ export default class MayhemManager extends GameLogicHandlerBase {
   }
 
   simulateFight(): void {
-    this.nextMatch.winner = simulateFight(
-      this.emitEventToAll.bind(this),
-      {
-        randInt: this.randInt.bind(this),
-        randReal: this.randReal.bind(this),
-        randElement: this.randElement.bind(this)
-      },
-      this.fightersInBattle
-    )[0];
+    const fight = new Fight(this, this.fightersInBattle);
+    fight.simulate();
+    this.emitEventToAll({
+      type: "fight",
+      eventLog: fight.eventLog
+    });
+    this.nextMatch.winner = fight.placementOrder[0];
     this.prepareForNextMatch();
   }
 
