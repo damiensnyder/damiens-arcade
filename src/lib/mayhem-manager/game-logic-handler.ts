@@ -755,7 +755,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
           new FighterInBattle(
             this.teams[teamIndex].fighters[i],
             equipment[i].map((e) => this.teams[teamIndex].equipment[e]),
-            i
+            teamIndex
           )
         );
       }
