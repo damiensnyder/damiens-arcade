@@ -9,36 +9,6 @@ export const MELEE_RANGE = 4;  // at less than this distance, fighters repel
 export const TICK_LENGTH = 0.2;  // length of a tick in seconds
 export const EPSILON = 0.00001;  // to account for rounding errors
 const INITIAL_COOLDOWN = 3;  // seconds of cooldown fighters start the battle with
-export const FISTS: EquipmentInBattle = {
-  name: "Fists",
-  slots: [],
-  imgUrl: "",
-  isFighterAbility: true,
-  actionDanger: (self: EquipmentInBattle) => {
-    return 2 * self.fighter.meleeDamageMultiplier();
-  },
-  getActionPriority: (self: EquipmentInBattle) => {
-    const dps = 2 * self.fighter.meleeDamageMultiplier();
-    let maxValue = 0;
-    for (let target of self.fighter.enemies()) {
-      maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.timeToReach(target)));
-    }
-    return maxValue;
-  },
-  whenPrioritized: (self: EquipmentInBattle) => {
-    const dps = 2 * self.fighter.meleeDamageMultiplier();
-    let bestTarget: FighterInBattle;
-    let maxValue = 0;
-    for (let target of self.fighter.enemies()) {
-      const value = self.fighter.valueOfAttack(target, dps, self.fighter.timeToReach(target));
-      if (bestTarget === undefined || value > maxValue) {
-        bestTarget = target;
-        maxValue = value;
-      }
-    }
-    self.fighter.attemptMeleeAttack(bestTarget, 6 * self.fighter.meleeDamageMultiplier(), 3);
-  }
-}
 
 
 
@@ -122,7 +92,7 @@ export class FighterInBattle {
     this.attunements = fighter.attunements;
     this.statusEffects = [];
     this.equipment = [
-      FISTS,
+      fists(),
       getFighterAbilityForBattle(fighter.abilityName, this)
     ].concat(
       equipment.map(e => getEquipmentForBattle(e.abilityName, this))
@@ -203,7 +173,7 @@ export class FighterInBattle {
 
   speedInMetersPerSecond(): number {
     // cannot move slower than 1 m/s
-    return Math.max(3 + 0.6 * this.stats.speed, 1);
+    return Math.max(4 + 0.8 * this.stats.speed, 1);
   }
 
   timeToCharge(): number {
@@ -346,8 +316,6 @@ export class FighterInBattle {
   // TODO: combine this with the fighter's first animation event in the same tick, if one exists
   logEvent(event: MidFightEvent, ticksAgo: number = 0): void {
     this.fight.eventLog[this.fight.eventLog.length - 1 - ticksAgo].push(event);
-    console.log(event);
-    console.log(this.fight.eventLog[this.fight.eventLog.length - 1]);
   }
 }
 
@@ -500,4 +468,37 @@ function scaleVectorToMagnitude(x: number, y: number, magnitude: number): [numbe
     x / currentMagnitude * magnitude,
     y / currentMagnitude * magnitude
   ];
+}
+
+function fists(): EquipmentInBattle {
+  return {
+    name: "Fists",
+    slots: [],
+    imgUrl: "",
+    isFighterAbility: true,
+    actionDanger: (self: EquipmentInBattle) => {
+      return 2 * self.fighter.meleeDamageMultiplier();
+    },
+    getActionPriority: (self: EquipmentInBattle) => {
+      const dps = 2 * self.fighter.meleeDamageMultiplier();
+      let maxValue = 0;
+      for (let target of self.fighter.enemies()) {
+        maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.timeToReach(target)));
+      }
+      return maxValue;
+    },
+    whenPrioritized: (self: EquipmentInBattle) => {
+      const dps = 2 * self.fighter.meleeDamageMultiplier();
+      let bestTarget: FighterInBattle;
+      let maxValue = 0;
+      for (let target of self.fighter.enemies()) {
+        const value = self.fighter.valueOfAttack(target, dps, self.fighter.timeToReach(target));
+        if (bestTarget === undefined || value > maxValue) {
+          bestTarget = target;
+          maxValue = value;
+        }
+      }
+      self.fighter.attemptMeleeAttack(bestTarget, 6 * self.fighter.meleeDamageMultiplier(), 3);
+    }
+  }
 }
