@@ -23,20 +23,6 @@ interface ImageParticle {
 
 export type Particle = TextParticle | ImageParticle;
 
-enum RotationState {
-  Stationary1 = 0,
-  Stationary2 = 0.1,
-  WalkingStart1 = -8,
-  Walking1 = -8.1,
-  WalkingStart2 = 8,
-  Walking2 = 8.1,
-  BackswingStart = -11.1,
-  Backswing = -11,
-  ForwardSwing = 30,
-  AimStart = -5,
-  Aim = -7
-}
-
 export default class AnimationState {
   eventLog: MidFightEvent[][];
   tick: number;

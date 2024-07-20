@@ -12,6 +12,22 @@ const INITIAL_COOLDOWN = 3;  // seconds of cooldown fighters start the battle wi
 
 
 
+enum RotationState {
+  Stationary1 = 0,
+  Stationary2 = 0.0001,
+  WalkingStart1 = -8,
+  Walking1 = -8.0001,
+  WalkingStart2 = 8,
+  Walking2 = 8.0001,
+  BackswingStart = -11.0001,
+  Backswing = -11,
+  ForwardSwing = 30,
+  AimStart = -5,
+  Aim = -7
+}
+
+
+
 export function isValidEquipmentFighter(team: Team, equipment: number[]): boolean {
   const usedEquipmentIds: number[] = [];
   let usedSlots: EquipmentSlot[] = [];
@@ -73,6 +89,7 @@ export class FighterInBattle {
   appearance: Appearance
   attunements: string[]
   statusEffects: StatChangeEffect[]
+  rotationState: RotationState
   fight?: Fight
   index?: number
   equipment: EquipmentInBattle[]
@@ -91,6 +108,7 @@ export class FighterInBattle {
     this.appearance = fighter.appearance;
     this.attunements = fighter.attunements;
     this.statusEffects = [];
+    this.rotationState = RotationState.Stationary1;
     this.equipment = [
       fists(),
       getFighterAbilityForBattle(fighter.abilityName, this)
