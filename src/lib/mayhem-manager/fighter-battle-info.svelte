@@ -26,7 +26,7 @@
     </div>
     <div class="info">
       {#if fighter.hp > 0}
-        HP: {fighter.hp} / 100 {fighter.flash}
+        HP: {fighter.hp} / 100
       {:else}
         downed
       {/if}
