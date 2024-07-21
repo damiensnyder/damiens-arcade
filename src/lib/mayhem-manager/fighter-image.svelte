@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { type Fighter, type Equipment, EquipmentSlot } from "$lib/mayhem-manager/types";
+  import { type Equipment, EquipmentSlot } from "$lib/mayhem-manager/types";
 
-  export let fighter: Fighter;
+  export let fighter: any;
   export let equipment: Equipment[];
   export let inBattle: boolean = false;
   $: imageSize = window.innerWidth > 720 ? window.innerWidth > 1200 ? "15rem" : "12rem" : "10rem";

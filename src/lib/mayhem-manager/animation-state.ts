@@ -141,6 +141,9 @@ export default class AnimationState {
   }
 
   interpolateTint(tint1: Tint, tint2: Tint, delta: number): Tint {
+    if (tint1.every(x => x === 0)) {
+      return tint1;
+    }
     const tint: number[] = [];
     for (let j = 0; j < 4; j++) {
       tint.push(tint2[j] * delta + tint1[j] * (1 - delta));

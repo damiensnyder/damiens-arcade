@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from "fs";
-import { EquipmentSlot, type Equipment, type MidFightEvent, type Team, type MayhemManagerEvent, type Fighter, type StatChangeEffect, type FighterStats, type Appearance, type EquipmentInBattle, RotationState, type Tint } from "$lib/mayhem-manager/types";
+import { EquipmentSlot, type Equipment, type MidFightEvent, type Team, type MayhemManagerEvent, type Fighter, type StatChangeEffect, type FighterStats, type Appearance, type EquipmentInBattle, RotationState, type Tint, type MFAnimationEvent } from "$lib/mayhem-manager/types";
 import type { RNG } from "$lib/types";
 import { getEquipmentForBattle, getFighterAbilityForBattle } from "./decks";
 
@@ -106,17 +106,6 @@ export class FighterInBattle {
 
   // decay or remove any temporary effects that were present at start of turn
   decayEffects(): void {
-    if (this.rotationState === RotationState.ForwardSwing) {
-      this.rotationState = RotationState.Stationary1;
-      this.logEvent({
-        type: "animation",
-        fighter: this.index,
-        updates: {
-          rotation: this.rotationState
-        }
-      });
-    }
-
     if (this.flash > 0) {
       this.flash = Math.max(this.flash - 0.75, 0);
       this.logEvent({
@@ -155,9 +144,10 @@ export class FighterInBattle {
     if (this.hp <= 0) return;  // do nothing if fighter is down
     if (this.enemies().length === 0) return;  // do nothing if no enemies
 
+    const positionAtStartOfTurn = [this.x, this.y];
+
     let bestAction: EquipmentInBattle;
     let bestActionPriority = -1;
-
     this.equipment.forEach((e) => {
       const actionPriority = e.getActionPriority?.(e) ?? 0;
       if (actionPriority > bestActionPriority) {
@@ -165,8 +155,19 @@ export class FighterInBattle {
         bestActionPriority = actionPriority;
       }
     });
-
     bestAction.whenPrioritized(bestAction);
+
+    // return to stationary if not moving
+    if (this.x === positionAtStartOfTurn[0] && this.y === positionAtStartOfTurn[1]) {
+      this.rotationState = RotationState.Stationary1;
+      this.logEvent({
+        type: "animation",
+        fighter: this.index,
+        updates: {
+          rotation: this.rotationState
+        }
+      });
+    }
   }
 
   // merge the tints of all status effects
@@ -253,7 +254,7 @@ export class FighterInBattle {
     return bestActionDanger + passiveDanger;
   }
 
-  moveByVector(deltaX: number, deltaY: number): void {
+  moveByVector(deltaX: number, deltaY: number, causeFlip: boolean = true): void {
     // if too close to the wall, change direction to be less close to the wall.
     if (this.x + deltaX < CROWDING_DISTANCE) {
       deltaX = Math.abs(deltaX);
@@ -297,10 +298,18 @@ export class FighterInBattle {
       updates: {
         x: Number(this.x.toFixed(2)),
         y: Number(this.y.toFixed(2)),
-        facing: deltaX > 0 ? -1 : 1,
         rotation: this.rotationState
       }
     });
+    if (causeFlip) {
+      this.logEvent({
+        type: "animation",
+        fighter: this.index,
+        updates: {
+          facing: deltaX > 0 ? -1 : 1
+        }
+      });
+    }
   }
 
   moveTowards(target: FighterInBattle): void {
@@ -338,7 +347,7 @@ export class FighterInBattle {
       let [deltaX, deltaY] = scaleVectorToMagnitude(target.x - this.x, target.y - this.y, knockback);
       const rotatedX = Math.cos(KNOCKBACK_ROTATION * deltaX) - Math.sin(KNOCKBACK_ROTATION * deltaY);
       const rotatedY = Math.sin(KNOCKBACK_ROTATION * deltaX) + Math.cos(KNOCKBACK_ROTATION * deltaY);
-      target.moveByVector(rotatedX, rotatedY);
+      target.moveByVector(rotatedX, rotatedY, false);
 
       // log the hit with animation info
       this.logEvent({
@@ -389,17 +398,15 @@ export class FighterInBattle {
     // if this is not an animation tick or this fighter doesn't have a previous animation tick,
     // just push to the tick like normal
     // otherwise, merge with the last animation tick (overwriting where conflicts exist)
-    if (event.type !== "animation" || tick.every(e => e.fighter !== this.index || e.type !== "animation")) {
-      this.fight.eventLog[this.fight.eventLog.length - 1 - ticksAgo].push(event);
+    const animationEventForFighter = tick.filter(e => event.type === "animation" && e.fighter === event.fighter);
+    if (event.type === "animation" && animationEventForFighter.length > 0) {
+      const existingEvent: MFAnimationEvent = animationEventForFighter[0] as MFAnimationEvent;
+      existingEvent.updates = {
+        ...existingEvent.updates,
+        ...event.updates
+      };
     } else {
-      for (let e of tick) {
-        if (e.fighter === this.index && e.type === "animation") {
-          e.updates = {
-            ...e.updates,
-            ...event.updates
-          };
-        }
-      }
+      tick.push(event);
     }
   }
 }

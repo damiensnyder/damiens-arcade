@@ -14,7 +14,6 @@
   let eventLogRaw: string = "";
   $: animationState = new AnimationState(debug ? [] : $fightEvents);
   let fighters: FighterVisual[] = [];
-  let charge: number[] = [];
   let particles: Particle[] = [];
   let playbackSpeed: number = 100;  // ticks are 0.2 s long
   let frameWidth: number;
