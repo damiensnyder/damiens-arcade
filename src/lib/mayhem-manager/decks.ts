@@ -216,7 +216,7 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
             maxValue = value;
           }
         }
-        self.fighter.attemptMeleeAttack(bestTarget, 70 * self.fighter.meleeDamageMultiplier(), 5);
+        self.fighter.attemptMeleeAttack(bestTarget, 70 * self.fighter.meleeDamageMultiplier(), 5, 0.5);
       }
     }
   }

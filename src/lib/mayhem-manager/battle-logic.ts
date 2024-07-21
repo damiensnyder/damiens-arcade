@@ -9,6 +9,7 @@ export const MELEE_RANGE = 4;  // at less than this distance, fighters repel
 export const TICK_LENGTH = 0.2;  // length of a tick in seconds
 export const EPSILON = 0.00001;  // to account for rounding errors
 const INITIAL_COOLDOWN = 3;  // seconds of cooldown fighters start the battle with
+const KNOCKBACK_ROTATION = Math.PI / 12;
 
 
 
@@ -73,6 +74,7 @@ export class FighterInBattle {
   appearance: Appearance
   attunements: string[]
   statusEffects: StatChangeEffect[]
+  hitFlash: number
   rotationState: RotationState
   fight?: Fight
   index?: number
@@ -92,6 +94,7 @@ export class FighterInBattle {
     this.appearance = fighter.appearance;
     this.attunements = fighter.attunements;
     this.statusEffects = [];
+    this.hitFlash = 0;
     this.rotationState = RotationState.Stationary1;
     this.equipment = [
       fists(),
@@ -158,6 +161,10 @@ export class FighterInBattle {
 
     this.cooldown -= TICK_LENGTH;
     if (this.cooldown < EPSILON) this.cooldown = 0;
+  }
+
+  tint(): [number, number, number, number] {
+    return [0, 0, 0, 0];
   }
 
   distanceTo(f: FighterInBattle): number {
@@ -229,7 +236,7 @@ export class FighterInBattle {
     return bestActionDanger + passiveDanger;
   }
 
-  moveByDirection(deltaX: number, deltaY: number): void {
+  moveByVector(deltaX: number, deltaY: number): void {
     // if too close to the wall, change direction to be less close to the wall.
     if (this.x + deltaX < CROWDING_DISTANCE) {
       deltaX = Math.abs(deltaX);
@@ -289,16 +296,16 @@ export class FighterInBattle {
       0
     );
     let [deltaX, deltaY] = scaleVectorToMagnitude(target.x - this.x, target.y - this.y, distanceToMove);
-    this.moveByDirection(deltaX, deltaY);
+    this.moveByVector(deltaX, deltaY);
   }
 
   moveAwayFrom(target: FighterInBattle): void {
     const distanceToMove = this.speedInMetersPerSecond() * TICK_LENGTH;
     let [deltaX, deltaY] = scaleVectorToMagnitude(this.x - target.x, this.y - target.y, distanceToMove);
-    this.moveByDirection(deltaX, deltaY);
+    this.moveByVector(deltaX, deltaY);
   }
 
-  attemptMeleeAttack(target: FighterInBattle, damage: number, cooldown: number): void {
+  attemptMeleeAttack(target: FighterInBattle, damage: number, cooldown: number, knockback: number): void {
     if (this.distanceTo(target) > MELEE_RANGE && this.timeToReach(target) > this.cooldown - 0.8) {
       this.moveTowards(target);
     } else if (this.timeToReach(target) < this.cooldown - 0.8) {
@@ -309,11 +316,21 @@ export class FighterInBattle {
       damage = Math.round(damage);
       target.hp -= damage;
       this.cooldown = cooldown;
+      target.hitFlash = 1;
+
+      // do knockback
+      let [deltaX, deltaY] = scaleVectorToMagnitude(target.x - this.x, target.y - this.y, knockback);
+      const rotatedX = Math.cos(KNOCKBACK_ROTATION * deltaX) - Math.sin(KNOCKBACK_ROTATION * deltaY);
+      const rotatedY = Math.sin(KNOCKBACK_ROTATION * deltaX) + Math.cos(KNOCKBACK_ROTATION * deltaY);
+      target.moveByVector(rotatedX, rotatedY);
+
+      // log the hit with animation info
       this.logEvent({
         type: "animation",
         fighter: target.index,
         updates: {
-          hp: target.hp
+          hp: target.hp,
+          tint: target.tint()
         }
       });
       this.logEvent({
@@ -343,7 +360,6 @@ export class FighterInBattle {
         }
       });
       this.rotationState = RotationState.ForwardSwing;
-      // TODO: log hit flash
     }
   }
 
@@ -546,7 +562,7 @@ function fists(): EquipmentInBattle {
           maxValue = value;
         }
       }
-      self.fighter.attemptMeleeAttack(bestTarget, 12 * self.fighter.meleeDamageMultiplier(), 3);
+      self.fighter.attemptMeleeAttack(bestTarget, 12 * self.fighter.meleeDamageMultiplier(), 3, 0.2);
     }
   }
 }

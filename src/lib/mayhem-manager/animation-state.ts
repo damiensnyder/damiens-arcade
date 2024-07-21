@@ -128,7 +128,8 @@ export default class AnimationState {
         x: f2.x * delta + f1.x * (1 - delta),
         y: f2.y * delta + f1.y * (1 - delta),
         facing: f2.facing * delta + f1.facing * (1 - delta),
-        rotation: f2.rotation * delta + f1.rotation * (1 - delta)
+        rotation: f2.rotation * delta + f1.rotation * (1 - delta),
+        tint: this.interpolateTint(f1.tint, f2.tint, delta)
       };
     });
   }
@@ -139,6 +140,18 @@ export default class AnimationState {
       const c2 = this.nextCharge[i];
       return c2 * delta + c1 * (1 - delta);
     });
+  }
+
+  interpolateTint(
+    tint1: [number, number, number, number],
+    tint2: [number, number, number, number],
+    delta: number
+  ): [number, number, number, number] {
+    const tint: number[] = [];
+    for (let j = 0; j < 4; j++) {
+      tint.push(tint2[j] * delta + tint1[j] * (1 - delta));
+    }
+    return tint as [number, number, number, number];
   }
 
   // TODO: This shouldn't be here anymore
