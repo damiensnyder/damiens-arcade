@@ -188,7 +188,7 @@ export function simSample(n: number = 1000): void {
     fights.push(
       simTestFight({
         teams,
-        seed: [1, 2, 3, 4]
+        seed: [1, 2, Math.floor(Math.random() * 1000000), Math.floor(Math.random() * 1000000)]
       })
     );
   }
