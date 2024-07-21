@@ -97,13 +97,13 @@ export function simTestFight(params?: TestParams): FightRecord {
   }
 }
 
-function randomFighter(equipment: Equipment[], name: string = ""): Fighter {
+function randomFighter(name: string = ""): Fighter {
   const abilityNames = Object.keys(fighterAbilitiesCatalog);
 
   return {
     name,
     stats: randomFighterStats(),
-    attunements: randomAttunements(equipment),
+    attunements: randomAttunements(),
     experience: 0,
     price: 0,
     description: "",
@@ -113,19 +113,16 @@ function randomFighter(equipment: Equipment[], name: string = ""): Fighter {
   };
 }
 
-function randomEquipment(numEquipment: number): Equipment[] {
+function randomEquipment(numTries: number): Equipment[] {
   const equipmentNames = Object.keys(equipmentCatalog);
-  numEquipment = Math.max(0, Math.floor(numEquipment + Math.random() - 0.5));
   const used: Equipment[] = [];
 
-  let tries = 0;
-  while (used.length < numEquipment && tries < 20) {
+  for (let i = 0; i < numTries; i++) {
     const template = equipmentNames[Math.floor(Math.random() * equipmentNames.length)];
     used.push(getEquipmentForPick(template));
     if (!isValidEquipment(used)) {
       used.pop();
     }
-    tries++;
   }
 
   return used;
@@ -141,9 +138,9 @@ function randomFighterStats(): FighterStats {
   };
 }
 
-function randomAttunements(equipment: Equipment[]): string[] {
+function randomAttunements(): string[] {
   const attunements = [];
-  for (const e of equipment) {
+  for (const e of Object.values(equipmentCatalog)) {
     if (Math.random() < 0.2) {
       attunements.push(e.name);
     }
@@ -151,39 +148,121 @@ function randomAttunements(equipment: Equipment[]): string[] {
   return attunements;
 }
 
-export function simSample(n: number = 1000): void {
+function duelToCsv(fight: FightRecord): string {
+  const row: number[] = [];
+  const fighterAbilityNames = Object.keys(fighterAbilitiesCatalog);
+  const equipmentNames = Object.keys(equipmentCatalog);
+  const possibleHp = fight.teams[fight.ordering[0]].fighters.length * 100;
+  let remainingHp = 0;
+  for (let hp of fight.hp) {
+    remainingHp += Math.max(hp, 0);
+  }
+  row.push(fight.ordering[0] === 0 ?
+           (1 + remainingHp / possibleHp) :
+           (-1 - remainingHp / possibleHp));
+  for (let i = 0; i < 2; i++) {
+    for (let j = 0; j < 8; j++) {
+      if (fight.teams[i].fighters.length > j) {
+        for (let n of fighterAbilityNames) {
+          row.push(fight.teams[i].fighters[j].abilityName === n ? 1 : 0);
+        }
+        for (let n of equipmentNames) {
+          row.push(fight.teams[i].equipment[j].filter(e => e === equipmentCatalog[n].name).length);
+        }
+        for (let n of equipmentNames) {
+          row.push(fight.teams[i].fighters[j].attunements.includes(equipmentCatalog[n].name) ? 1 : 0);
+        }
+      } else {
+        for (let _ of fighterAbilityNames) {
+          row.push(0);
+        }
+        for (let _ of equipmentNames) {
+          row.push(0);
+        }
+        for (let _ of equipmentNames) {
+          row.push(0);
+        }
+      }
+    }
+  }
+  return row.join(",");
+}
+
+function csvHeader(): string {
+  const row: string[] = ["result"];
+  const fighterAbilityNames = Object.keys(fighterAbilitiesCatalog);
+  const equipmentNames = Object.keys(equipmentCatalog);
+  for (let i = 0; i < 2; i++) {
+    for (let j = 0; j < 8; j++) {
+      for (let n of fighterAbilityNames) {
+        row.push(`t${i}_f${j}_${n}`);
+      }
+      for (let n of equipmentNames) {
+        row.push(`t${i}_f${j}_${n}`);
+      }
+      for (let n of equipmentNames) {
+        row.push(`t${i}_f${j}_${n}_att`);
+      }
+    }
+  }
+  return row.join(",");
+}
+
+export function duelSample(n: number = 1000): void {
   const fights: FightRecord[] = [];
   for (let i = 0; i < n; i++) {
-    const isBR = Math.random() < 0.3;
+    const teams: {
+      fighters: Fighter[],
+      equipment: Equipment[][]
+    }[] = [];
+    for (let j = 0; j < 2; j++) {
+      teams.push({
+        fighters: [],
+        equipment: []
+      })
+      const numFighters = Math.ceil(Math.random() * 8);
+      for (let k = 0; k < numFighters; k++) {
+        teams[j].fighters.push(randomFighter());
+        teams[j].equipment.push(randomEquipment(Math.round(Math.random() * 6)));
+      }
+    }
+    fights.push(
+      simTestFight({
+        teams,
+        seed: [
+          Math.random() * 4294967296,
+          Math.random() * 4294967296,
+          Math.random() * 4294967296,
+          Math.random() * 4294967296
+        ]
+      })
+    );
+  }
+  writeFileSync(
+    FILEPATH_BASE + "duel-sample.json",
+    JSON.stringify(fights)
+  );
+  writeFileSync(
+    FILEPATH_BASE + "duel-sample.csv",
+    csvHeader() + "\n" + fights.map(duelToCsv).join("\n")
+  );
+}
+
+export function brSample(n: number = 1000): void {
+  const fights: FightRecord[] = [];
+  for (let i = 0; i < n; i++) {
     const powerLevel = 1 + Math.floor(Math.random() * 11);
     const teams: {
       fighters: Fighter[],
       equipment: Equipment[][]
     }[] = [];
-    if (isBR) {
-      const numTeams = 2 + Math.floor(Math.random() * Math.random() * 14);
-      for (let j = 0; j < numTeams; j++) {
-        const numEquipment = Math.floor(Math.random() * powerLevel);
-        const equipment = randomEquipment(numEquipment);
-        teams.push({
-          fighters: [randomFighter(equipment, j.toString())],
-          equipment: [equipment]
-        });
-      }
-    } else {
-      for (let j = 0; j < 2; j++) {
-        const numFighters = Math.max(Math.floor(Math.random() * powerLevel * 0.7), 1);
-        const numEquipment = (powerLevel - numFighters) / numFighters;
-        teams.push({
-          fighters: [],
-          equipment: []
-        })
-        for (let k = 0; k < numFighters; k++) {
-          const equipment = randomEquipment(numEquipment);
-          teams[j].fighters.push(randomFighter(equipment, k.toString()));
-          teams[j].equipment.push(equipment);
-        }
-      }
+    const numTeams = 2 + Math.floor(Math.random() * Math.random() * 14);
+    for (let j = 0; j < numTeams; j++) {
+      const numEquipment = Math.floor(Math.random() * powerLevel);
+      teams.push({
+        fighters: [randomFighter()],
+        equipment: [randomEquipment(numEquipment)]
+      });
     }
     fights.push(
       simTestFight({
@@ -193,7 +272,7 @@ export function simSample(n: number = 1000): void {
     );
   }
   writeFileSync(
-    FILEPATH_BASE + "fight-sample.json",
+    FILEPATH_BASE + "br-sample.json",
     JSON.stringify(fights)
   );
 }
