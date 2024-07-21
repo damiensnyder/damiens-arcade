@@ -104,10 +104,8 @@ export class FighterInBattle {
     );
   }
 
-  doTick(): void {
-    if (this.hp <= 0) return;  // do nothing if fighter is down
-    if (this.enemies().length === 0) return;  // do nothing if no enemies
-
+  // decay or remove any temporary effects that were present at start of turn
+  decayEffects(): void {
     if (this.rotationState === RotationState.ForwardSwing) {
       this.rotationState = RotationState.Stationary1;
       this.logEvent({
@@ -118,6 +116,7 @@ export class FighterInBattle {
         }
       });
     }
+
     if (this.flash > 0) {
       this.flash = Math.max(this.flash - 0.75, 0);
       this.logEvent({
@@ -128,6 +127,33 @@ export class FighterInBattle {
         }
       });
     }
+
+    const oldTint = this.tint();
+    this.statusEffects.forEach((s) => {
+      s.duration -= TICK_LENGTH;
+      if (s.duration <= 0) {
+        this.stats[s.stat] -= s.amount;
+      }
+    });
+    this.statusEffects = this.statusEffects.filter((s) => s.duration > 0);
+    const newTint = this.tint();
+    if (newTint.some((x, i) => x !== oldTint[i])) {
+      this.logEvent({
+        type: "animation",
+        fighter: this.index,
+        updates: {
+          tint: newTint
+        }
+      });
+    }
+
+    this.cooldown -= TICK_LENGTH;
+    if (this.cooldown < EPSILON) this.cooldown = 0;
+  }
+
+  act(): void {
+    if (this.hp <= 0) return;  // do nothing if fighter is down
+    if (this.enemies().length === 0) return;  // do nothing if no enemies
 
     let bestAction: EquipmentInBattle;
     let bestActionPriority = -1;
@@ -141,36 +167,6 @@ export class FighterInBattle {
     });
 
     bestAction.whenPrioritized(bestAction);
-
-    // tick down status effects, and end them if they're done
-    let prevTint = [0, 0, 0, 0];
-    let newTint: [number, number, number, number] = [0, 0, 0, 0];
-    this.statusEffects.forEach((s) => {
-      s.duration -= TICK_LENGTH;
-      if (s.tint) {
-        prevTint = s.tint;
-        if (s.duration > 0) {
-          newTint = s.tint;
-        }
-      }
-      if (s.duration <= 0) {
-        this.stats[s.stat] -= s.amount;
-      }
-    });
-    // TODO: not sure all this is being logged
-    this.statusEffects = this.statusEffects.filter((s) => s.duration > 0);
-    if (!newTint.every((v, i) => v === prevTint[i])) {
-      this.logEvent({
-        type: "animation",
-        fighter: this.index,
-        updates: {
-          tint: newTint
-        }
-      });
-    }
-
-    this.cooldown -= TICK_LENGTH;
-    if (this.cooldown < EPSILON) this.cooldown = 0;
   }
 
   // merge the tints of all status effects
@@ -295,13 +291,12 @@ export class FighterInBattle {
         this.rotationState = RotationState.Stationary1;
     }
 
-    // TODO: also log the fighter's rotation change
     this.logEvent({
       type: "animation",
       fighter: this.index,
       updates: {
-        x: this.x,
-        y: this.y,
+        x: Number(this.x.toFixed(2)),
+        y: Number(this.y.toFixed(2)),
         facing: deltaX > 0 ? -1 : 1,
         rotation: this.rotationState
       }
@@ -429,9 +424,6 @@ export class Fight {
 
   // Simulates the fight
   simulate(): void {
-    // clear tick log file
-    if (DEBUG) writeFileSync("logs/ticks.txt", "");
-
     // place the fighters evenly spaced in a circle of radius 25 centered at (0, 0)
     this.fighters.forEach((f, i) => {
       const spawnTick: MidFightEvent[] = [];
@@ -477,12 +469,10 @@ export class Fight {
 
       // pause 0.8 seconds between spawning fighters
       this.eventLog.push(spawnTick);
-      if (DEBUG) writeFileSync("logs/ticks.txt", JSON.stringify(spawnTick) + "[][][]", { flag: "a+" });
       for (let i = 0; i < 3; i++) {
         this.eventLog.push([]);
       }
     });
-    if (DEBUG) writeFileSync("logs/ticks.txt", "[][][]", { flag: "a+" });
     for (let i = 0; i < 4; i++) {
       this.eventLog.push([]);
     }
@@ -501,10 +491,8 @@ export class Fight {
   }
 
   doTick(): void {
-    this.fighters.forEach(f => f.doTick());
-    
-    // we stringify the tick so later mutations don't mess up earlier ticks
-    if (DEBUG) writeFileSync("logs/ticks.txt", JSON.stringify(this.eventLog[this.eventLog.length - 1]), { flag: "a+" });
+    this.fighters.forEach(f => f.decayEffects());
+    this.fighters.forEach(f => f.act());
     this.eventLog.push([]);
   }
 
@@ -537,6 +525,7 @@ export class Fight {
       }
     }
 
+    if (DEBUG) writeFileSync("logs/ticks.txt", JSON.stringify(this.eventLog));
     return teamsRemaining.length <= 1;
   }
 

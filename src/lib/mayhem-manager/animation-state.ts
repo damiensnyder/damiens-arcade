@@ -135,7 +135,7 @@ export default class AnimationState {
         facing: f2.facing * delta + f1.facing * (1 - delta),
         rotation: f2.rotation * delta + f1.rotation * (1 - delta),
         tint: this.interpolateTint(f1.tint, f2.tint, delta),
-        flash: f2.flash * delta + f1.flash * (1 - delta)
+        flash: Math.min(f1.flash, f2.flash) * delta + f1.flash * (1 - delta)  // diff interpolation to be more sudden
       };
     });
   }
