@@ -191,14 +191,14 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     imgUrl: "/static/equipment/battle-axe.png",
     zoomedImgUrl: "/static/zoomed/equipment/battle-axe.png",
     price: 32,
-    description: "Melee. Deals 70 damage. Cooldown 5s.",
+    description: "Melee. Deals 70 damage. Cooldown 4s.",
     flavor: "learn this secret trick lumberjacks DON'T want you to know",
     abilities: {
       actionDanger: (self: EquipmentInBattle) => {
-        return 14 * self.fighter.meleeDamageMultiplier();
+        return 70/4 * self.fighter.meleeDamageMultiplier();
       },
       getActionPriority: (self: EquipmentInBattle) => {
-        const dps = 14 * self.fighter.meleeDamageMultiplier();
+        const dps = 70/4 * self.fighter.meleeDamageMultiplier();
         let maxValue = 0;
         for (let target of self.fighter.enemies()) {
           maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.timeToReach(target)));
@@ -206,7 +206,7 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
         return maxValue;
       },
       whenPrioritized: (self: EquipmentInBattle) => {
-        const dps = 14 * self.fighter.meleeDamageMultiplier();
+        const dps = 70/4 * self.fighter.meleeDamageMultiplier();
         let bestTarget: FighterInBattle;
         let maxValue = 0;
         for (let target of self.fighter.enemies()) {
@@ -216,7 +216,7 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
             maxValue = value;
           }
         }
-        self.fighter.attemptMeleeAttack(bestTarget, 70 * self.fighter.meleeDamageMultiplier(), 5, 0.5);
+        self.fighter.attemptMeleeAttack(bestTarget, 70 * self.fighter.meleeDamageMultiplier(), 4, 0.5);
       }
     }
   }

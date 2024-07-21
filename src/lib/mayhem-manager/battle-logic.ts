@@ -211,7 +211,7 @@ export class FighterInBattle {
 
   speedInMetersPerSecond(): number {
     // cannot move slower than 1 m/s
-    return Math.max(4 + 0.8 * this.stats.speed, 1);
+    return Math.max(5 + 1 * this.stats.speed, 1);
   }
 
   timeToCharge(): number {
@@ -571,10 +571,10 @@ function fists(): EquipmentInBattle {
     imgUrl: "",
     isFighterAbility: true,
     actionDanger: (self: EquipmentInBattle) => {
-      return 4 * self.fighter.meleeDamageMultiplier();
+      return 5 * self.fighter.meleeDamageMultiplier();
     },
     getActionPriority: (self: EquipmentInBattle) => {
-      const dps = 4 * self.fighter.meleeDamageMultiplier();
+      const dps = 5 * self.fighter.meleeDamageMultiplier();
       let maxValue = 0;
       for (let target of self.fighter.enemies()) {
         maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.timeToReach(target)));
@@ -582,7 +582,7 @@ function fists(): EquipmentInBattle {
       return maxValue;
     },
     whenPrioritized: (self: EquipmentInBattle) => {
-      const dps = 4 * self.fighter.meleeDamageMultiplier();
+      const dps = 5 * self.fighter.meleeDamageMultiplier();
       let bestTarget: FighterInBattle;
       let maxValue = 0;
       for (let target of self.fighter.enemies()) {
@@ -592,7 +592,7 @@ function fists(): EquipmentInBattle {
           maxValue = value;
         }
       }
-      self.fighter.attemptMeleeAttack(bestTarget, 12 * self.fighter.meleeDamageMultiplier(), 3, 0.2);
+      self.fighter.attemptMeleeAttack(bestTarget, 12 * self.fighter.meleeDamageMultiplier(), 2.4, 0.2);
     }
   }
 }

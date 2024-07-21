@@ -605,7 +605,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
       team.needsResigning = team.fighters.filter((fighter) => {
         fighter.experience++;
         if ((fighter.experience % 2) === 1) {
-          fighter.price = fighterValue(fighter) + this.randInt(-5, 5);
+          fighter.price = Math.floor(fighterValue(fighter)) + this.randInt(-5, 5);
           return true;
         }
         return false;
