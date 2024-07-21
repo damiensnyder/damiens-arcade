@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from "fs";
-import { EquipmentSlot, type Equipment, type MidFightEvent, type Team, type MayhemManagerEvent, type Fighter, type StatChangeEffect, type FighterStats, type Appearance, type EquipmentInBattle } from "$lib/mayhem-manager/types";
+import { EquipmentSlot, type Equipment, type MidFightEvent, type Team, type MayhemManagerEvent, type Fighter, type StatChangeEffect, type FighterStats, type Appearance, type EquipmentInBattle, RotationState } from "$lib/mayhem-manager/types";
 import type { RNG } from "$lib/types";
 import { getEquipmentForBattle, getFighterAbilityForBattle } from "./decks";
 
@@ -9,22 +9,6 @@ export const MELEE_RANGE = 4;  // at less than this distance, fighters repel
 export const TICK_LENGTH = 0.2;  // length of a tick in seconds
 export const EPSILON = 0.00001;  // to account for rounding errors
 const INITIAL_COOLDOWN = 3;  // seconds of cooldown fighters start the battle with
-
-
-
-enum RotationState {
-  Stationary1 = 0,
-  Stationary2 = 0.0001,
-  WalkingStart1 = -8,
-  Walking1 = -8.0001,
-  WalkingStart2 = 8,
-  Walking2 = 8.0001,
-  BackswingStart = -11.0001,
-  Backswing = -11,
-  ForwardSwing = 30,
-  AimStart = -5,
-  Aim = -7
-}
 
 
 
@@ -120,6 +104,17 @@ export class FighterInBattle {
   doTick(): void {
     if (this.hp <= 0) return;  // do nothing if fighter is down
     if (this.enemies().length === 0) return;  // do nothing if no enemies
+
+    if (this.rotationState === RotationState.ForwardSwing) {
+      this.rotationState = RotationState.Stationary1;
+      this.logEvent({
+        type: "animation",
+        fighter: this.index,
+        updates: {
+          rotation: this.rotationState
+        }
+      });
+    }
 
     let bestAction: EquipmentInBattle;
     let bestActionPriority = -1;
@@ -234,16 +229,7 @@ export class FighterInBattle {
     return bestActionDanger + passiveDanger;
   }
 
-  moveTowards(target: FighterInBattle): void {
-    const distanceToMove = Math.max(
-      Math.min(
-        this.speedInMetersPerSecond() * TICK_LENGTH,
-        this.distanceTo(target) - CROWDING_DISTANCE
-      ),
-      0
-    );
-    let [deltaX, deltaY] = scaleVectorToMagnitude(target.x - this.x, target.y - this.y, distanceToMove);
-
+  moveByDirection(deltaX: number, deltaY: number): void {
     // if too close to the wall, change direction to be less close to the wall.
     if (this.x + deltaX < CROWDING_DISTANCE) {
       deltaX = Math.abs(deltaX);
@@ -260,6 +246,27 @@ export class FighterInBattle {
     this.y += deltaY;
     this.fight.uncrowd(this);
 
+    // go to next rotation state
+    switch (this.rotationState) {
+      case RotationState.Stationary1:
+        this.rotationState = RotationState.WalkingStart1;
+        break;
+      case RotationState.WalkingStart1:
+        this.rotationState = RotationState.Walking1;
+        break;
+      case RotationState.Walking1:
+        this.rotationState = RotationState.Stationary2;
+        break;
+      case RotationState.Stationary2:
+        this.rotationState = RotationState.WalkingStart2;
+        break;
+      case RotationState.WalkingStart2:
+        this.rotationState = RotationState.Walking2;
+        break;
+      default:
+        this.rotationState = RotationState.Stationary1;
+    }
+
     // TODO: also log the fighter's rotation change
     this.logEvent({
       type: "animation",
@@ -267,41 +274,28 @@ export class FighterInBattle {
       updates: {
         x: this.x,
         y: this.y,
-        facing: deltaX > 0 ? -1 : 1
+        facing: deltaX > 0 ? -1 : 1,
+        rotation: this.rotationState
       }
     });
+  }
+
+  moveTowards(target: FighterInBattle): void {
+    const distanceToMove = Math.max(
+      Math.min(
+        this.speedInMetersPerSecond() * TICK_LENGTH,
+        this.distanceTo(target) - CROWDING_DISTANCE
+      ),
+      0
+    );
+    let [deltaX, deltaY] = scaleVectorToMagnitude(target.x - this.x, target.y - this.y, distanceToMove);
+    this.moveByDirection(deltaX, deltaY);
   }
 
   moveAwayFrom(target: FighterInBattle): void {
     const distanceToMove = this.speedInMetersPerSecond() * TICK_LENGTH;
     let [deltaX, deltaY] = scaleVectorToMagnitude(this.x - target.x, this.y - target.y, distanceToMove);
-
-    // if too close to the wall, change direction to be less close to the wall.
-    if (this.x + deltaX < CROWDING_DISTANCE) {
-      deltaX = Math.abs(deltaX);
-    } else if (this.x + deltaX > 100 - CROWDING_DISTANCE) {
-      deltaX = -Math.abs(deltaX);
-    }
-    if (this.y + deltaY < CROWDING_DISTANCE) {
-      deltaY = Math.abs(deltaY);
-      // being past the bottom of the screen is worse 
-    } else if (this.y + deltaY > 100 - 2 * CROWDING_DISTANCE) {
-      deltaY = -Math.abs(deltaY);
-    }
-    this.x += deltaX;
-    this.y += deltaY;
-    this.fight.uncrowd(this);
-
-    // TODO: also log the fighter's rotation change
-    this.logEvent({
-      type: "animation",
-      fighter: this.index,
-      updates: {
-        x: this.x,
-        y: this.y,
-        facing: deltaX > 0 ? -1 : 1
-      }
-    });
+    this.moveByDirection(deltaX, deltaY);
   }
 
   attemptMeleeAttack(target: FighterInBattle, damage: number, cooldown: number): void {
@@ -327,13 +321,49 @@ export class FighterInBattle {
         fighter: target.index,
         text: damage.toString()
       });
+      this.logEvent({
+        type: "animation",
+        fighter: this.index,
+        updates: {
+          rotation: RotationState.BackswingStart
+        }
+      }, 2);
+      this.logEvent({
+        type: "animation",
+        fighter: this.index,
+        updates: {
+          rotation: RotationState.Backswing
+        }
+      }, 1);
+      this.logEvent({
+        type: "animation",
+        fighter: this.index,
+        updates: {
+          rotation: RotationState.ForwardSwing
+        }
+      });
+      this.rotationState = RotationState.ForwardSwing;
       // TODO: log hit flash
     }
   }
 
-  // TODO: combine this with the fighter's first animation event in the same tick, if one exists
   logEvent(event: MidFightEvent, ticksAgo: number = 0): void {
-    this.fight.eventLog[this.fight.eventLog.length - 1 - ticksAgo].push(event);
+    const tick = this.fight.eventLog[this.fight.eventLog.length - 1 - ticksAgo];
+    // if this is not an animation tick or this fighter doesn't have a previous animation tick,
+    // just push to the tick like normal
+    // otherwise, merge with the last animation tick (overwriting where conflicts exist)
+    if (event.type !== "animation" || tick.every(e => e.fighter !== this.index || e.type !== "animation")) {
+      this.fight.eventLog[this.fight.eventLog.length - 1 - ticksAgo].push(event);
+    } else {
+      for (let e of tick) {
+        if (e.fighter === this.index && e.type === "animation") {
+          e.updates = {
+            ...e.updates,
+            ...event.updates
+          };
+        }
+      }
+    }
   }
 }
 
@@ -495,10 +525,10 @@ function fists(): EquipmentInBattle {
     imgUrl: "",
     isFighterAbility: true,
     actionDanger: (self: EquipmentInBattle) => {
-      return 2 * self.fighter.meleeDamageMultiplier();
+      return 4 * self.fighter.meleeDamageMultiplier();
     },
     getActionPriority: (self: EquipmentInBattle) => {
-      const dps = 2 * self.fighter.meleeDamageMultiplier();
+      const dps = 4 * self.fighter.meleeDamageMultiplier();
       let maxValue = 0;
       for (let target of self.fighter.enemies()) {
         maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.timeToReach(target)));
@@ -506,7 +536,7 @@ function fists(): EquipmentInBattle {
       return maxValue;
     },
     whenPrioritized: (self: EquipmentInBattle) => {
-      const dps = 2 * self.fighter.meleeDamageMultiplier();
+      const dps = 4 * self.fighter.meleeDamageMultiplier();
       let bestTarget: FighterInBattle;
       let maxValue = 0;
       for (let target of self.fighter.enemies()) {
@@ -516,7 +546,7 @@ function fists(): EquipmentInBattle {
           maxValue = value;
         }
       }
-      self.fighter.attemptMeleeAttack(bestTarget, 6 * self.fighter.meleeDamageMultiplier(), 3);
+      self.fighter.attemptMeleeAttack(bestTarget, 12 * self.fighter.meleeDamageMultiplier(), 3);
     }
   }
 }

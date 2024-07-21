@@ -511,6 +511,20 @@ interface ExportLeagueEvent {
 
 
 
+export enum RotationState {
+  Stationary1 = 0,
+  Stationary2 = 0.0001,
+  WalkingStart1 = -8,
+  Walking1 = -8.0001,
+  WalkingStart2 = 8,
+  Walking2 = 8.0001,
+  BackswingStart = -11.0001,
+  Backswing = -11,
+  ForwardSwing = 30,
+  AimStart = -5,
+  Aim = -7
+}
+
 export interface PartialFighterVisual {
   name?: string
   team?: number
@@ -524,7 +538,7 @@ export interface PartialFighterVisual {
   y?: number
   hp?: number
   facing?: number
-  rotation?: number
+  rotation?: RotationState
 }
 
 export interface FighterVisual {
