@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from "fs";
-import type { Appearance, Equipment, EquipmentTemplate, Fighter, FighterStats } from "$lib/mayhem-manager/types";
+import { StatName, type Appearance, type Equipment, type EquipmentTemplate, type Fighter, type FighterStats } from "$lib/mayhem-manager/types";
 import { isValidEquipment } from "$lib/mayhem-manager/utils";
 import { Fight, FighterInBattle } from "$lib/mayhem-manager/battle-logic";
 import { equipmentCatalog, fighterAbilitiesCatalog, getEquipmentForPick } from "$lib/mayhem-manager/decks";
@@ -163,6 +163,9 @@ function duelToCsv(fight: FightRecord): string {
   for (let i = 0; i < 2; i++) {
     for (let j = 0; j < 8; j++) {
       if (fight.teams[i].fighters.length > j) {
+        for (let stat of Object.values(fight.teams[i].fighters[j].stats)) {
+          row.push(stat);
+        }
         for (let n of fighterAbilityNames) {
           row.push(fight.teams[i].fighters[j].abilityName === n ? 1 : 0);
         }
@@ -173,6 +176,9 @@ function duelToCsv(fight: FightRecord): string {
           row.push(fight.teams[i].fighters[j].attunements.includes(equipmentCatalog[n].name) ? 1 : 0);
         }
       } else {
+        for (let _ of Array(5).fill(0)) {
+          row.push(0);
+        }
         for (let _ of fighterAbilityNames) {
           row.push(0);
         }
@@ -194,6 +200,9 @@ function csvHeader(): string {
   const equipmentNames = Object.keys(equipmentCatalog);
   for (let i = 0; i < 2; i++) {
     for (let j = 0; j < 8; j++) {
+      for (let n of Object.values(StatName)) {
+        row.push(`t${i}_f${j}_${n}`);
+      }
       for (let n of fighterAbilityNames) {
         row.push(`t${i}_f${j}_${n}`);
       }
@@ -238,10 +247,6 @@ export function duelSample(n: number = 1000): void {
       })
     );
   }
-  writeFileSync(
-    FILEPATH_BASE + "duel-sample.json",
-    JSON.stringify(fights)
-  );
   writeFileSync(
     FILEPATH_BASE + "duel-sample.csv",
     csvHeader() + "\n" + fights.map(duelToCsv).join("\n")
