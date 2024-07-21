@@ -3,10 +3,11 @@
   import { Sprite } from "svelte-pixi";
   import * as PIXI from "pixi.js";
   import { onMount } from "svelte";
+  import { type FighterParticle } from "$lib/mayhem-manager/animation-state";
 
   export let fighter: FighterVisual;
   export let equipment: EquipmentInBattle[];
-  export let charge: number;
+  export let particles: FighterParticle[];
 
   $: head = equipment.filter(e => e.slots.includes(EquipmentSlot.Head));
   $: torso = equipment.filter(e => e.slots.includes(EquipmentSlot.Torso));
@@ -77,6 +78,6 @@
   <!-- <Sprite texture={PIXI.Texture.from(fighter.appearance.socks)} x={0} y={0} anchor={0.5} zIndex={4} /> -->
 {/if}
 
-{#if charge > 0}
-  <Sprite texture={PIXI.Texture.from("/static/charge.png")} x={0} y={0} anchor={0.5} zIndex={8} alpha={charge} />
-{/if}
+{#each particles as p}
+  <Sprite texture={PIXI.Texture.from(p.imgUrl)} x={0} y={0} anchor={0.5} zIndex={8} alpha={p.opacity} />
+{/each}

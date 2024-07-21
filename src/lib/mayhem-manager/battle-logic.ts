@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from "fs";
-import { EquipmentSlot, type Equipment, type MidFightEvent, type Team, type MayhemManagerEvent, type Fighter, type StatChangeEffect, type FighterStats, type Appearance, type EquipmentInBattle, RotationState } from "$lib/mayhem-manager/types";
+import { EquipmentSlot, type Equipment, type MidFightEvent, type Team, type MayhemManagerEvent, type Fighter, type StatChangeEffect, type FighterStats, type Appearance, type EquipmentInBattle, RotationState, type Tint } from "$lib/mayhem-manager/types";
 import type { RNG } from "$lib/types";
 import { getEquipmentForBattle, getFighterAbilityForBattle } from "./decks";
 
@@ -74,7 +74,7 @@ export class FighterInBattle {
   appearance: Appearance
   attunements: string[]
   statusEffects: StatChangeEffect[]
-  hitFlash: number
+  flash: number
   rotationState: RotationState
   fight?: Fight
   index?: number
@@ -94,7 +94,7 @@ export class FighterInBattle {
     this.appearance = fighter.appearance;
     this.attunements = fighter.attunements;
     this.statusEffects = [];
-    this.hitFlash = 0;
+    this.flash = 0;
     this.rotationState = RotationState.Stationary1;
     this.equipment = [
       fists(),
@@ -115,6 +115,16 @@ export class FighterInBattle {
         fighter: this.index,
         updates: {
           rotation: this.rotationState
+        }
+      });
+    }
+    if (this.flash > 0) {
+      this.flash = Math.max(this.flash - 0.75, 0);
+      this.logEvent({
+        type: "animation",
+        fighter: this.index,
+        updates: {
+          flash: this.flash
         }
       });
     }
@@ -163,8 +173,19 @@ export class FighterInBattle {
     if (this.cooldown < EPSILON) this.cooldown = 0;
   }
 
-  tint(): [number, number, number, number] {
-    return [0, 0, 0, 0];
+  // merge the tints of all status effects
+  tint(): Tint {
+    let ret: Tint = [0, 0, 0, 0];
+    for (let se of this.statusEffects) {
+      if (se.tint) {
+        if (ret.every(x => x === 0)) {
+          ret = se.tint;
+        } else {
+          ret = ret.map((x, i) => x / 2 + se.tint[i] / 2) as Tint;
+        }
+      }
+    }
+    return ret;
   }
 
   distanceTo(f: FighterInBattle): number {
@@ -316,7 +337,7 @@ export class FighterInBattle {
       damage = Math.round(damage);
       target.hp -= damage;
       this.cooldown = cooldown;
-      target.hitFlash = 1;
+      target.flash = 1;
 
       // do knockback
       let [deltaX, deltaY] = scaleVectorToMagnitude(target.x - this.x, target.y - this.y, knockback);
@@ -330,13 +351,18 @@ export class FighterInBattle {
         fighter: target.index,
         updates: {
           hp: target.hp,
-          tint: target.tint()
+          flash: target.flash
         }
       });
       this.logEvent({
         type: "text",
         fighter: target.index,
         text: damage.toString()
+      });
+      this.logEvent({
+        type: "particle",
+        fighter: target.index,
+        particleImg: "/static/damage.png"
       });
       this.logEvent({
         type: "animation",
@@ -437,10 +463,18 @@ export class Fight {
           y: Number(f.y.toFixed(2)),
           facing: 1,
           tint: [0, 0, 0, 0],
+          flash: 0,
           rotation: 0,
           team: f.team
         }
       });
+      // add a little flair to the spawn with a particle effect
+      spawnTick.push({
+        type: "particle",
+        fighter: i,
+        particleImg: "/static/charge.png"
+      });
+
       // pause 0.8 seconds between spawning fighters
       this.eventLog.push(spawnTick);
       if (DEBUG) writeFileSync("logs/ticks.txt", JSON.stringify(spawnTick) + "[][][]", { flag: "a+" });

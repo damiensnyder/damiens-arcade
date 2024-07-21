@@ -5,7 +5,7 @@
   import { onMount } from "svelte";
   import { Application, Container, Graphics, Sprite, Text, Ticker } from "svelte-pixi";
   import FighterBattleSprite from "$lib/mayhem-manager/fighter-battle-sprite.svelte";
-  import AnimationState, { type Particle } from "$lib/mayhem-manager/animation-state";
+  import AnimationState, { type FighterParticle, getColorFilters, type Particle } from "$lib/mayhem-manager/animation-state";
   import * as PIXI from "pixi.js";
 
   const BUFFER_PIXELS = 15;
@@ -16,7 +16,6 @@
   let fighters: FighterVisual[] = [];
   let charge: number[] = [];
   let particles: Particle[] = [];
-  let tint: PIXI.ColorMatrixFilter[] = [];
   let playbackSpeed: number = 100;  // ticks are 0.2 s long
   let frameWidth: number;
   let frameHeight: number;
@@ -53,9 +52,7 @@
 
   function renderFrame(delta: number): void {
     fighters = animationState.getFighters(tickDelta);
-    charge = animationState.getCharge(tickDelta);
     particles = animationState.getParticles(tickDelta);
-    tint = animationState.getTint(tickDelta);
     setCameraTarget();
     // ideally it would move slower or faster based on size of difference. but that's for later
     cameraScale += (targetCameraScale - cameraScale) * Math.min(1, 1.5 * delta);
@@ -141,8 +138,13 @@
     renderFrame(0);
     play();
   }
+
+  function particlesRelevantToFighter(fighter: number): FighterParticle[] {
+    return particles.filter(p => p.type === "fighter" && p.fighter === fighter) as FighterParticle[];
+  }
 </script>
 
+<!-- @ts-ignore -->
 <div class="outer horiz">
   <div class="column" style:flex=2 style:overflow="visible">
     <div class="viewport" bind:offsetWidth={frameWidth} bind:offsetHeight={frameHeight}>
@@ -155,17 +157,17 @@
             {#each fighters as f, i}
               {#if f.hp > 0}
                 <Container x={f.x - cameraX} y={f.y - cameraY} pivot={0.5}
-                    scale={[15 / 384 * f.facing, 15 / 384]} angle={f.rotation} filters={[tint[i]]}>
+                    scale={[15 / 384 * f.facing, 15 / 384]} angle={f.rotation} filters={getColorFilters(f.tint, f.flash)}>
                 <!-- using height / width does not work on the first run and i have no idea why -->
-                  <FighterBattleSprite fighter={f} equipment={f.equipment} charge={charge[i]} />
+                  <FighterBattleSprite fighter={f} equipment={f.equipment} particles={particlesRelevantToFighter(i)} />
                 </Container>
               {/if}
             {/each}
             {#each particles as p}
-              {#if p.type === "image"}
+              {#if p.type === "projectile"}
                 <Sprite texture={PIXI.Texture.from(p.imgUrl)}
                     x={p.x - cameraX} y={p.y - cameraY} scale={15 / 384} anchor={0.5} zIndex={p.y} rotation={p.rotation} />
-              {:else}
+              {:else if p.type === "text"}
                 <Text text={p.text} x={p.x - cameraX} y={p.y - cameraY} anchor={0.5} zIndex={1001} alpha={p.opacity} scale={1/16} style={{
                   fill: 0xeeeeee,
                   fontFamily: "Comic Sans MS",

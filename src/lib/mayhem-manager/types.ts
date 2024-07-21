@@ -525,6 +525,8 @@ export enum RotationState {
   Aim = -7
 }
 
+export type Tint = [number, number, number, number];
+
 export interface PartialFighterVisual {
   name?: string
   team?: number
@@ -533,7 +535,8 @@ export interface PartialFighterVisual {
   equipment?: EquipmentInBattle[]
   description?: string
   flavor?: string
-  tint?: [number, number, number, number]
+  tint?: Tint
+  flash?: number
   x?: number
   y?: number
   hp?: number
@@ -549,7 +552,8 @@ export interface FighterVisual {
   equipment: EquipmentInBattle[]
   description: string
   flavor: string
-  tint: [number, number, number, number]
+  tint: Tint
+  flash: number
   x: number
   y: number
   hp: number
