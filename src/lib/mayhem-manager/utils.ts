@@ -1,4 +1,4 @@
-import { EquipmentSlot, type Bracket, type Equipment, type Fighter, type PreseasonTeam, type Team } from "$lib/mayhem-manager/types";
+import { EquipmentSlot, StatName, type Bracket, type Equipment, type Fighter, type PreseasonTeam, type Team } from "$lib/mayhem-manager/types";
 
 export function getIndexByController(teams: Team[], controller: number): number | null {
   if (teams === undefined) return null;
@@ -72,11 +72,39 @@ export function nextMatch(bracket: Bracket): Bracket & {
   return nextMatch;
 }
 
+const FIGHTER_BASE_VALUE = 0.13;
+const STAT_VALUES = {
+  strength: 0.03,
+  accuracy: 0,
+  energy: 0,
+  speed: 0,
+  toughness: 0.01
+}
+const FIGHTER_ABILITY_VALUES = {
+  noAbilities: 0
+};
+
+const EQUIPMENT_ABILITY_VALUES = {
+  battleAxe: 0.21
+}
+const VALUE_TO_DOLLARS = 40;
+
 export function fighterValue(fighter: Fighter): number {
-  let price = 17 - 0.25 * fighter.experience;
+  let value = FIGHTER_BASE_VALUE;
   for (const stat in fighter.stats) {
-    // compress stat ranges so super high or low ones don't affect price a ton
-    price += fighter.stats[stat];
+    value += (fighter.stats[stat] + 1 - 0.2 * fighter.experience) * STAT_VALUES[stat];
   }
-  return Math.max(price, 1);
+  return value * VALUE_TO_DOLLARS;
+}
+
+// not taking experience into account
+export function fighterValueInBattle(fighter: Fighter, equipment: Equipment[]): number {
+  let value = FIGHTER_BASE_VALUE + FIGHTER_ABILITY_VALUES[fighter.abilityName];
+  for (const stat of Object.keys(fighter.stats)) {
+    value += fighter.stats[stat] * STAT_VALUES[stat];
+  }
+  for (const e of equipment) {
+    value += EQUIPMENT_ABILITY_VALUES[e.abilityName];
+  }
+  return value * VALUE_TO_DOLLARS;
 }

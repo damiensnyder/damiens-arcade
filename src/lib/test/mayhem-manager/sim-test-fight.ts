@@ -161,7 +161,7 @@ function duelToCsv(fight: FightRecord): string {
            (1 + remainingHp / possibleHp) :
            (-1 - remainingHp / possibleHp));
   for (let i = 0; i < 2; i++) {
-    for (let j = 0; j < 8; j++) {
+    for (let j = 0; j < 6; j++) {
       if (fight.teams[i].fighters.length > j) {
         for (let stat of Object.values(fight.teams[i].fighters[j].stats)) {
           row.push(stat);
@@ -199,7 +199,7 @@ function csvHeader(): string {
   const fighterAbilityNames = Object.keys(fighterAbilitiesCatalog);
   const equipmentNames = Object.keys(equipmentCatalog);
   for (let i = 0; i < 2; i++) {
-    for (let j = 0; j < 8; j++) {
+    for (let j = 0; j < 6; j++) {
       for (let n of Object.values(StatName)) {
         row.push(`t${i}_f${j}_${n}`);
       }
@@ -229,7 +229,7 @@ export function duelSample(n: number = 1000): void {
         fighters: [],
         equipment: []
       })
-      const numFighters = Math.ceil(Math.random() * 8);
+      const numFighters = Math.ceil(Math.random() * 6);
       for (let k = 0; k < numFighters; k++) {
         teams[j].fighters.push(randomFighter());
         teams[j].equipment.push(randomEquipment(Math.round(Math.random() * 6)));

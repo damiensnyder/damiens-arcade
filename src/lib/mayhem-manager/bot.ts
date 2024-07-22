@@ -1,6 +1,7 @@
 import { StatName } from "$lib/mayhem-manager/types";
-import type { Abilities, Equipment, Fighter, MayhemManagerGameStage, PreseasonTeam, Team } from "$lib/mayhem-manager/types";
-import { FISTS, FighterInBattle, isValidEquipmentFighter } from "./battle-logic";
+import type { Equipment, Fighter, MayhemManagerGameStage, PreseasonTeam, Team } from "$lib/mayhem-manager/types";
+import { isValidEquipmentFighter } from "./battle-logic";
+import { fighterValueInBattle } from "./utils";
 
 const Bot = {
   getPreseasonPicks: function (team: PreseasonTeam): {
@@ -58,8 +59,8 @@ const Bot = {
   },
   getDraftPick: function (team: Team, fighters: Fighter[]): number {
     // pick the fighter that improves the team's total power the most
-    let bestFighter;
-    let bestQuality;
+    let bestFighter: number;
+    let bestQuality: number;
 
     fighters.forEach((f, i) => {
       team.fighters.push(f);
@@ -165,15 +166,10 @@ function situationQuality(team: Team, gameStage: MayhemManagerGameStage): number
   if (gameStage === "free agency") {
     moneyValue *= 0.8;
   } else if (gameStage === "training") {
-    moneyValue *= 0.4;
+    moneyValue *= 0.5;
   }
-  // console.log(bestPicks(team));
-  // add power, money, and a little bonus for just having more fighters / equipment
-  let stuffBonus = team.equipment.length;
-  // for (const f of team.fighters) {
-  //   stuffBonus += 0.1 * Math.max(1, 20 - f.experience);
-  // }
-  return bestPicks(team).power + 0.5 * bestPicksBR(team).power + moneyValue * team.money + stuffBonus;
+  console.log(bestPicks(team).power, bestPicksBR(team).power, team.money);
+  return bestPicks(team).power + 0.5 * bestPicksBR(team).power + moneyValue * team.money;
 }
 
 // Find best possible picks optimizing for sum of power
@@ -187,22 +183,25 @@ function bestPicks(team: Team): {
   const power: number[] = team.fighters.map(_ => 0);
 
   // for each piece of equipment, assign it to the fighter who improves most (assuming at least one can wear it)
-  equipment.forEach((e, i) => {
+  equipment.forEach((_, i) => {
     let bestFighter: number;
     let bestImprovement: number;
     team.fighters.forEach((f, j) => {
       // skip if fighter cannot wear this equipment while already wearing their other equipment
       if (!isValidEquipmentFighter(team, picks[j].concat(i))) return;
       // try it on and check how much the fighter's power improves
-      // f.equipment.push(e);
-      // f.equipment.pop();
-      bestFighter = j;
-      bestImprovement = 1;
+      const valueBefore = fighterValueInBattle(f, picks[j].map(p => team.equipment[p]));
+      picks[j].push(i);
+      const valueAfter = fighterValueInBattle(f, picks[j].map(p => team.equipment[p]));
+      picks[j].pop();
+      if (bestFighter === undefined || valueAfter - valueBefore > bestImprovement) {
+        bestFighter = j;
+        bestImprovement = 1;
+      }
     });
     if (bestFighter !== undefined) {
       picks[bestFighter].push(i);
-      // team.fighters[bestFighter].equipment.push(e);
-      power[bestFighter] += bestImprovement;
+      power[bestFighter] = fighterValueInBattle(team.fighters[bestFighter], picks[bestFighter].map(p => team.equipment[p]));
     }
   });
 
@@ -212,7 +211,7 @@ function bestPicks(team: Team): {
   };
 }
 
-// Find best possible picks optimizing for sum of power
+// Find best possible picks optimizing for best fighter power
 function bestPicksBR(team: Team): {
   fighter: number,
   equipment: number[],
@@ -221,17 +220,16 @@ function bestPicksBR(team: Team): {
   // try on most dangerous / powerful equipment first (should be based on base price but that is not persistent)
   const equipment = team.equipment.slice();
   const picks: number[][] = team.fighters.map(_ => []);
-  const power: number[] = team.fighters.map(f => 0);
+  const power: number[] = team.fighters.map(_ => 0);
 
   // for each piece of equipment, assign it to the fighter who improves most (assuming at least one can wear it)
   equipment.forEach((e, i) => {
     team.fighters.forEach((f, j) => {
       // skip if fighter cannot wear this equipment while already wearing their other equipment
       if (!isValidEquipmentFighter(team, picks[j].concat(i))) return;
-      // try it on and check how much the fighter's power improves
-      // f.equipment.push(e);
+      // put it on (i think this is not the best way to do it, but works for now)
       picks[j].push(i);
-      power[j] = 1;
+      power[j] = fighterValueInBattle(f, picks[j].map(p => team.equipment[p]));
       // unlike bestPicks(), do not remove the equipment
     });
   });
