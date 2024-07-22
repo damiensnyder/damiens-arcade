@@ -1,9 +1,9 @@
-import { readFileSync, writeFileSync } from "fs";
-import { EquipmentSlot, type Equipment, type MidFightEvent, type Team, type MayhemManagerEvent, type Fighter, type StatChangeEffect, type FighterStats, type Appearance, type EquipmentInBattle, RotationState, type Tint, type MFAnimationEvent } from "$lib/mayhem-manager/types";
+import { writeFileSync } from "fs";
+import { EquipmentSlot, type Equipment, type MidFightEvent, type Team, type Fighter, type StatChangeEffect, type FighterStats, type Appearance, type EquipmentInBattle, RotationState, type Tint, type MFAnimationEvent } from "$lib/mayhem-manager/types";
 import type { RNG } from "$lib/types";
 import { getEquipmentForBattle, getFighterAbilityForBattle } from "./decks";
 
-const DEBUG = true;
+const DEBUG = false;
 const CROWDING_DISTANCE = 3;  // at less than this distance, fighters repel
 export const MELEE_RANGE = 4;  // at less than this distance, fighters repel
 export const TICK_LENGTH = 0.2;  // length of a tick in seconds
@@ -491,7 +491,7 @@ export class Fight {
     this.fighters.forEach((f) => {
       f.cooldown = INITIAL_COOLDOWN;
       f.equipment.forEach(e => {
-        e.onFightStart?.bind(e)();
+        e.onFightStart?.(e);
       });
     });
 

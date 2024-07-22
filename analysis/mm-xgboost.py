@@ -1,21 +1,21 @@
-import csv
 import xgboost as xgb
+import pandas as pd
 import numpy as np
 
 csv_path = "src/lib/test/mayhem-manager/duel-sample.csv"
 
-# Load the CSV file
-data = []
-with open(csv_path, "r") as file:
-    reader = csv.reader(file)
-    for row in reader:
-        if "result" not in row:
-            data.append([float(x) for x in row])
+df = pd.read_csv(csv_path, header="infer")
+num_columns_per_fighter = int((len(df.columns) - 1) / 12)
+num_matches = len(df)
 
-# Separate the features (columns 1-48) and the target (column 0)
-data = np.array(data)
-x = data[:, 1:]
-y = data[:, 0]
+matrix = np.array(df)
+wide_x = matrix[:, 1:]
+x = np.zeros(shape=(num_matches * 12, num_columns_per_fighter))
+for i in range(12):
+    x[i * num_matches:(i + 1) * num_matches, :] = wide_x[:, i * num_columns_per_fighter:(i + 1) * num_columns_per_fighter]
+y = matrix[:, 0]
+y = np.resize(y, len(y) * 12)
+y[int(len(y) / 2):] = -y[int(len(y) / 2):]
 
 # Convert the data to the format required by XGBoost
 dtrain = xgb.DMatrix(x, label=y)

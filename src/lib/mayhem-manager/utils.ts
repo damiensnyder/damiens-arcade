@@ -72,7 +72,6 @@ export function nextMatch(bracket: Bracket): Bracket & {
   return nextMatch;
 }
 
-const FIGHTER_BASE_VALUE = 0.12;
 const STAT_VALUES = {
   strength: 0.03,
   accuracy: 0,
@@ -81,13 +80,17 @@ const STAT_VALUES = {
   toughness: 0.01
 }
 const FIGHTER_ABILITY_VALUES = {
-  noAbilities: 0.12
+  noAbilities: 0.1
 };
 const EQUIPMENT_ABILITY_VALUES = {
-  battleAxe: 0.19
+  battleAxe: 0.22,
+  rollerBlades: 0.13,
+  shield: 0.03
 }
 const EQUIPMENT_ATTUNEMENT_VALUES = {
-  battleAxe: 0.02
+  battleAxe: 0.02,
+  rollerBlades: 0.01,
+  shield: 0
 }
 const VALUE_TO_DOLLARS = 60;
 

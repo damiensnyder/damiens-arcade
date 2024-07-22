@@ -70,7 +70,10 @@ export function simTestFight(params?: TestParams): FightRecord {
     for (let j = 0; j < team.fighters.length; j++) {
       fightersInBattle.push(
         new FighterInBattle(
-          team.fighters[j],
+          {
+            ...team.fighters[j],
+            stats: { ...team.fighters[j].stats }
+          },
           team.equipment[j],
           i
         )

@@ -222,7 +222,68 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
         self.fighter.attemptMeleeAttack(bestTarget, baseDamage * self.fighter.meleeDamageMultiplier(), 4, 0.5);
       }
     }
-  }
+  },
+  rollerBlades: {
+    name: "Roller Blades",
+    slots: [EquipmentSlot.Feet],
+    imgUrl: "/static/equipment/roller-blades.png",
+    zoomedImgUrl: "/static/zoomed/equipment/roller-blades.png",
+    price: 23,
+    description: "+2 [attuned: +3] speed",
+    flavor: "it's a shield",
+    abilities: {
+      actionDanger: (self: EquipmentInBattle) => {
+        const baseDamage = 30;
+        return baseDamage / 4 * self.fighter.meleeDamageMultiplier();
+      },
+      getActionPriority: (self: EquipmentInBattle) => {
+        const baseDamage = 30;
+        const dps = baseDamage / 4 * self.fighter.meleeDamageMultiplier();
+        let maxValue = 0;
+        for (let target of self.fighter.enemies()) {
+          maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.timeToReach(target)));
+        }
+        return maxValue;
+      },
+      whenPrioritized: (self: EquipmentInBattle) => {
+        const baseDamage = 30;
+        const dps = baseDamage / 4 * self.fighter.meleeDamageMultiplier();
+        let bestTarget: FighterInBattle;
+        let maxValue = 0;
+        for (let target of self.fighter.enemies()) {
+          const value = self.fighter.valueOfAttack(target, dps, self.fighter.timeToReach(target));
+          if (bestTarget === undefined || value > maxValue) {
+            bestTarget = target;
+            maxValue = value;
+          }
+        }
+        self.fighter.attemptMeleeAttack(bestTarget, baseDamage * self.fighter.meleeDamageMultiplier(), 4, 0.5);
+      },
+      onFightStart: (self: EquipmentInBattle) => {
+        self.fighter.stats.toughness += 4;
+        if (self.fighter.attunements.includes("Roller Blades")) {
+          self.fighter.stats.toughness += 2;
+        }
+      }
+    }
+  },
+  shield: {
+    name: "Shield",
+    slots: [EquipmentSlot.Hand],
+    imgUrl: "/static/equipment/shield.png",
+    zoomedImgUrl: "/static/zoomed/equipment/shield.png",
+    price: 15,
+    description: "+3 [attuned: +4] toughness",
+    flavor: "it's a shield",
+    abilities: {
+      onFightStart: (self: EquipmentInBattle) => {
+        self.fighter.stats.toughness += 6;
+        if (self.fighter.attunements.includes("Shield")) {
+          self.fighter.stats.toughness += 2;
+        }
+      }
+    }
+  },
 };
 
 export const fighterAbilitiesCatalog: Record<string, FighterTemplate> = {
