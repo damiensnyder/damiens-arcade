@@ -203,7 +203,7 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
         const dps = baseDamage / 4 * self.fighter.meleeDamageMultiplier();
         let maxValue = 0;
         for (let target of self.fighter.enemies()) {
-          maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.timeToReach(target)));
+          maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.timeToAttack(target)));
         }
         return maxValue;
       },
@@ -213,7 +213,7 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
         let bestTarget: FighterInBattle;
         let maxValue = 0;
         for (let target of self.fighter.enemies()) {
-          const value = self.fighter.valueOfAttack(target, dps, self.fighter.timeToReach(target));
+          const value = self.fighter.valueOfAttack(target, dps, self.fighter.timeToAttack(target));
           if (bestTarget === undefined || value > maxValue) {
             bestTarget = target;
             maxValue = value;
@@ -229,8 +229,8 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     imgUrl: "/static/equipment/roller-blades.png",
     zoomedImgUrl: "/static/zoomed/equipment/roller-blades.png",
     price: 23,
-    description: "+2 [attuned: +3] speed",
-    flavor: "it's a shield",
+    description: "Melee. Deals 30 damage. Cooldown 4s. +2 [attuned: +3] speed",
+    flavor: "",
     abilities: {
       actionDanger: (self: EquipmentInBattle) => {
         const baseDamage = 30;
@@ -241,7 +241,7 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
         const dps = baseDamage / 4 * self.fighter.meleeDamageMultiplier();
         let maxValue = 0;
         for (let target of self.fighter.enemies()) {
-          maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.timeToReach(target)));
+          maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.timeToAttack(target)));
         }
         return maxValue;
       },
@@ -251,7 +251,7 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
         let bestTarget: FighterInBattle;
         let maxValue = 0;
         for (let target of self.fighter.enemies()) {
-          const value = self.fighter.valueOfAttack(target, dps, self.fighter.timeToReach(target));
+          const value = self.fighter.valueOfAttack(target, dps, self.fighter.timeToAttack(target));
           if (bestTarget === undefined || value > maxValue) {
             bestTarget = target;
             maxValue = value;

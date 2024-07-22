@@ -76,16 +76,16 @@ const STAT_VALUES = {
   strength: 0.03,
   accuracy: 0,
   energy: 0,
-  speed: 0,
+  speed: 0.01,
   toughness: 0.01
 }
 const FIGHTER_ABILITY_VALUES = {
-  noAbilities: 0.1
+  noAbilities: 0.10
 };
 const EQUIPMENT_ABILITY_VALUES = {
   battleAxe: 0.22,
-  rollerBlades: 0.13,
-  shield: 0.03
+  rollerBlades: 0.12,
+  shield: 0.02
 }
 const EQUIPMENT_ATTUNEMENT_VALUES = {
   battleAxe: 0.02,

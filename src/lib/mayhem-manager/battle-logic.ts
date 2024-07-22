@@ -232,9 +232,13 @@ export class FighterInBattle {
   }
 
   timeToReach(target: FighterInBattle): number {
+    return Math.max(this.distanceTo(target) - MELEE_RANGE, 0) / this.speedInMetersPerSecond();
+  }
+
+  timeToAttack(target: FighterInBattle): number {
     return Math.max(
       this.cooldown,
-      this.distanceTo(target) / this.speedInMetersPerSecond()
+      this.timeToReach(target)
     );
   }
 
@@ -333,9 +337,9 @@ export class FighterInBattle {
   }
 
   attemptMeleeAttack(target: FighterInBattle, damage: number, cooldown: number, knockback: number): void {
-    if (this.distanceTo(target) > MELEE_RANGE && this.timeToReach(target) > this.cooldown - 0.8) {
+    if (this.distanceTo(target) > MELEE_RANGE && this.timeToAttack(target) > this.cooldown - 0.8) {
       this.moveTowards(target);
-    } else if (this.timeToReach(target) < this.cooldown - 0.8) {
+    } else if (this.timeToReach(target) < this.cooldown - 0.5) {
       this.moveAwayFrom(target);
     }
     if (this.distanceTo(target) < MELEE_RANGE && this.cooldown === 0) {
@@ -580,7 +584,7 @@ function fists(): EquipmentInBattle {
       const dps = 5 * self.fighter.meleeDamageMultiplier();
       let maxValue = 0;
       for (let target of self.fighter.enemies()) {
-        maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.timeToReach(target)));
+        maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.timeToAttack(target)));
       }
       return maxValue;
     },
@@ -589,7 +593,7 @@ function fists(): EquipmentInBattle {
       let bestTarget: FighterInBattle;
       let maxValue = 0;
       for (let target of self.fighter.enemies()) {
-        const value = self.fighter.valueOfAttack(target, dps, self.fighter.timeToReach(target));
+        const value = self.fighter.valueOfAttack(target, dps, self.fighter.timeToAttack(target));
         if (bestTarget === undefined || value > maxValue) {
           bestTarget = target;
           maxValue = value;
