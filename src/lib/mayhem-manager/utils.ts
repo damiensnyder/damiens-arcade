@@ -72,7 +72,7 @@ export function nextMatch(bracket: Bracket): Bracket & {
   return nextMatch;
 }
 
-const FIGHTER_BASE_VALUE = 0.13;
+const FIGHTER_BASE_VALUE = 0.12;
 const STAT_VALUES = {
   strength: 0.03,
   accuracy: 0,
@@ -81,16 +81,18 @@ const STAT_VALUES = {
   toughness: 0.01
 }
 const FIGHTER_ABILITY_VALUES = {
-  noAbilities: 0
+  noAbilities: 0.12
 };
-
 const EQUIPMENT_ABILITY_VALUES = {
-  battleAxe: 0.21
+  battleAxe: 0.19
+}
+const EQUIPMENT_ATTUNEMENT_VALUES = {
+  battleAxe: 0.02
 }
 const VALUE_TO_DOLLARS = 60;
 
 export function fighterValue(fighter: Fighter): number {
-  let value = FIGHTER_BASE_VALUE;
+  let value = FIGHTER_ABILITY_VALUES[fighter.abilityName];
   for (const stat in fighter.stats) {
     value += (fighter.stats[stat] + 1 - 0.2 * fighter.experience) * STAT_VALUES[stat];
   }
@@ -99,12 +101,15 @@ export function fighterValue(fighter: Fighter): number {
 
 // not taking experience into account
 export function fighterValueInBattle(fighter: Fighter, equipment: Equipment[]): number {
-  let value = FIGHTER_BASE_VALUE + FIGHTER_ABILITY_VALUES[fighter.abilityName];
+  let value = FIGHTER_ABILITY_VALUES[fighter.abilityName];
   for (const stat in fighter.stats) {
     value += fighter.stats[stat] * STAT_VALUES[stat];
   }
   for (const e of equipment) {
     value += EQUIPMENT_ABILITY_VALUES[e.abilityName];
+    if (fighter.attunements.includes(e.name)) {
+      value += EQUIPMENT_ATTUNEMENT_VALUES[e.abilityName];
+    }
   }
   return value * VALUE_TO_DOLLARS;
 }
