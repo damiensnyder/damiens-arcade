@@ -65,6 +65,7 @@ export class FighterInBattle {
   name: string
   description: string
   flavor: string
+  experience: number
   hp: number
   x: number
   y: number
@@ -85,6 +86,7 @@ export class FighterInBattle {
     this.name = fighter.name;
     this.description = fighter.description;
     this.flavor = fighter.flavor;
+    this.experience = fighter.experience;
     this.hp = 100;
     this.x = 0;
     this.y = 0;
@@ -448,6 +450,7 @@ export class Fight {
           name: f.name,
           description: f.description,
           flavor: f.flavor,
+          experience: f.experience,
           stats: { ...f.stats },
           appearance: { ...f.appearance },
           equipment: f.equipment.map((e) => {

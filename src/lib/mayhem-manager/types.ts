@@ -535,6 +535,7 @@ export interface PartialFighterVisual {
   equipment?: EquipmentInBattle[]
   description?: string
   flavor?: string
+  experience?: number
   tint?: Tint
   flash?: number
   x?: number
@@ -552,6 +553,7 @@ export interface FighterVisual {
   equipment: EquipmentInBattle[]
   description: string
   flavor: string
+  experience: number
   tint: Tint
   flash: number
   x: number
