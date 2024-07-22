@@ -15,6 +15,7 @@
   $: animationState = new AnimationState(debug ? [] : $fightEvents);
   let fighters: FighterVisual[] = [];
   let particles: Particle[] = [];
+  let fighterParticles: FighterParticle[][] = [];
   let playbackSpeed: number = 100;  // ticks are 0.2 s long
   let frameWidth: number;
   let frameHeight: number;
@@ -52,6 +53,9 @@
   function renderFrame(delta: number): void {
     fighters = animationState.getFighters(tickDelta);
     particles = animationState.getParticles(tickDelta);
+    fighterParticles = fighters.map((_, i) => {
+      return particles.filter(p => p.type === "fighter" && p.fighter === i) as FighterParticle[];
+    });
     setCameraTarget();
     // ideally it would move slower or faster based on size of difference. but that's for later
     cameraScale += (targetCameraScale - cameraScale) * Math.min(1, 1.5 * delta);
@@ -137,10 +141,6 @@
     renderFrame(0);
     play();
   }
-
-  function particlesRelevantToFighter(fighter: number): FighterParticle[] {
-    return particles.filter(p => p.type === "fighter" && p.fighter === fighter) as FighterParticle[];
-  }
 </script>
 
 <!-- @ts-ignore -->
@@ -158,7 +158,7 @@
                 <Container x={f.x - cameraX} y={f.y - cameraY} pivot={0.5}
                     scale={[15 / 384 * f.facing, 15 / 384]} angle={f.rotation} filters={getColorFilters(f.tint, f.flash)}>
                 <!-- using height / width does not work on the first run and i have no idea why -->
-                  <FighterBattleSprite fighter={f} equipment={f.equipment} particles={particlesRelevantToFighter(i)} />
+                  <FighterBattleSprite fighter={f} equipment={f.equipment} particles={fighterParticles[i]} />
                 </Container>
               {/if}
             {/each}

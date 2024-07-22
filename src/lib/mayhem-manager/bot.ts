@@ -162,13 +162,12 @@ const Bot = {
 
 // very simple, should be improved
 function situationQuality(team: Team, gameStage: MayhemManagerGameStage): number {
-  let moneyValue = 1.5;  // 1 power in picks + 1 power in BR = $1
+  let moneyValue = 1.2;  // 1 power in picks + 1 power in BR = $1
   if (gameStage === "free agency") {
     moneyValue *= 0.8;
   } else if (gameStage === "training") {
     moneyValue *= 0.5;
   }
-  console.log(bestPicks(team).power, bestPicksBR(team).power, team.money);
   return bestPicks(team).power + 0.5 * bestPicksBR(team).power + moneyValue * team.money;
 }
 
@@ -180,7 +179,7 @@ function bestPicks(team: Team): {
   // try on most dangerous / powerful equipment first (should be based on base price but that is not persistent)
   const equipment = team.equipment.slice();
   const picks: number[][] = team.fighters.map(_ => []);
-  const power: number[] = team.fighters.map(_ => 0);
+  const power: number[] = team.fighters.map(f => fighterValueInBattle(f, []));
 
   // for each piece of equipment, assign it to the fighter who improves most (assuming at least one can wear it)
   equipment.forEach((_, i) => {
@@ -220,7 +219,7 @@ function bestPicksBR(team: Team): {
   // try on most dangerous / powerful equipment first (should be based on base price but that is not persistent)
   const equipment = team.equipment.slice();
   const picks: number[][] = team.fighters.map(_ => []);
-  const power: number[] = team.fighters.map(_ => 0);
+  const power: number[] = team.fighters.map(f => fighterValueInBattle(f, []));
 
   // for each piece of equipment, assign it to the fighter who improves most (assuming at least one can wear it)
   equipment.forEach((e, i) => {

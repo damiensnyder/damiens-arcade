@@ -113,6 +113,12 @@ export default class AnimationState {
             imgUrl: event.particleImg,
             opacity: 1
           });
+          this.nextParticles.push({
+            type: "fighter",
+            fighter: event.fighter,
+            imgUrl: event.particleImg,
+            opacity: 0.8
+          });
         } else if (event.type === "animation") {
           event = event as MFAnimationEvent;
           this.nextFighters[event.fighter] = {

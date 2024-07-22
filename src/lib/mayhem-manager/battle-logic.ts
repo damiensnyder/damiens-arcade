@@ -3,7 +3,7 @@ import { EquipmentSlot, type Equipment, type MidFightEvent, type Team, type Mayh
 import type { RNG } from "$lib/types";
 import { getEquipmentForBattle, getFighterAbilityForBattle } from "./decks";
 
-const DEBUG = false;
+const DEBUG = true;
 const CROWDING_DISTANCE = 3;  // at less than this distance, fighters repel
 export const MELEE_RANGE = 4;  // at less than this distance, fighters repel
 export const TICK_LENGTH = 0.2;  // length of a tick in seconds
