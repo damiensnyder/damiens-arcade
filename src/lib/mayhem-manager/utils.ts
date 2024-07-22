@@ -87,7 +87,7 @@ const FIGHTER_ABILITY_VALUES = {
 const EQUIPMENT_ABILITY_VALUES = {
   battleAxe: 0.21
 }
-const VALUE_TO_DOLLARS = 40;
+const VALUE_TO_DOLLARS = 60;
 
 export function fighterValue(fighter: Fighter): number {
   let value = FIGHTER_BASE_VALUE;
@@ -100,7 +100,7 @@ export function fighterValue(fighter: Fighter): number {
 // not taking experience into account
 export function fighterValueInBattle(fighter: Fighter, equipment: Equipment[]): number {
   let value = FIGHTER_BASE_VALUE + FIGHTER_ABILITY_VALUES[fighter.abilityName];
-  for (const stat of Object.keys(fighter.stats)) {
+  for (const stat in fighter.stats) {
     value += fighter.stats[stat] * STAT_VALUES[stat];
   }
   for (const e of equipment) {

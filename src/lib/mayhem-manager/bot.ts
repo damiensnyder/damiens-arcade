@@ -162,13 +162,13 @@ const Bot = {
 
 // very simple, should be improved
 function situationQuality(team: Team, gameStage: MayhemManagerGameStage): number {
-  let moneyValue = 1.2;  // 1 power in picks + 1 power in BR = $1
+  let moneyValue = 0.9;  // 1 power in picks + 1 power in BR = $1
   if (gameStage === "free agency") {
-    moneyValue *= 0.8;
+    moneyValue *= 0.75;
   } else if (gameStage === "training") {
-    moneyValue *= 0.5;
+    moneyValue *= 0.4;
   }
-  return bestPicks(team).power + 0.5 * bestPicksBR(team).power + moneyValue * team.money;
+  return bestPicks(team).power + bestPicksBR(team).power + moneyValue * team.money;
 }
 
 // Find best possible picks optimizing for sum of power
@@ -237,7 +237,7 @@ function bestPicksBR(team: Team): {
   return {
     fighter: bestFighter,
     equipment: picks[bestFighter],
-    power: power.reduce((a, b) => a + b, 0)
+    power: power[bestFighter]
   };
 }
 
