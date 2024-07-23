@@ -401,7 +401,7 @@ export class FighterInBattle {
 
   attemptRangedAttack(target: FighterInBattle, damage: number, cooldown: number, knockback: number, projectileImg: string): void {
     // run away if any enemy can reach this fighter before the cooldown ends
-    const enemiesThatCanReachBeforeShot = this.enemies().filter((f) => f.timeToReach(this) < this.cooldown);
+    const enemiesThatCanReachBeforeShot = this.enemies().filter((f) => f.timeToAttack(this) < this.cooldown);
     if (enemiesThatCanReachBeforeShot.length > 0) {
       this.moveAwayFrom(enemiesThatCanReachBeforeShot[0]);
     }
