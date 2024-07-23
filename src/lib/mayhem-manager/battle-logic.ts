@@ -92,7 +92,7 @@ export class FighterInBattle {
     this.y = 0;
     this.cooldown = 3;
     this.charge = 0;
-    this.stats = fighter.stats;
+    this.stats = { ...fighter.stats };
     this.appearance = fighter.appearance;
     this.attunements = fighter.attunements;
     this.statusEffects = [];
@@ -344,7 +344,7 @@ export class FighterInBattle {
     }
     if (this.distanceTo(target) < MELEE_RANGE && this.cooldown === 0) {
       damage *= target.damageTakenMultiplier();
-      damage = Math.round(damage);
+      damage = Math.ceil(damage);
       target.hp -= damage;
       this.cooldown = cooldown;
       target.flash = 1;
@@ -396,6 +396,78 @@ export class FighterInBattle {
         }
       });
       this.rotationState = RotationState.ForwardSwing;
+    }
+  }
+
+  attemptRangedAttack(target: FighterInBattle, damage: number, cooldown: number, knockback: number, projectileImg: string): void {
+    // run away if any enemy can reach this fighter before the cooldown ends
+    const enemiesThatCanReachBeforeShot = this.enemies().filter((f) => f.timeToReach(this) < this.cooldown);
+    if (enemiesThatCanReachBeforeShot.length > 0) {
+      this.moveAwayFrom(enemiesThatCanReachBeforeShot[0]);
+    }
+    if (this.cooldown === 0) {
+      this.cooldown = cooldown;
+      this.logEvent({
+        type: "projectile",
+        fighter: this.index,
+        target: target.index,
+        projectileImg
+      });
+      this.logEvent({
+        type: "animation",
+        fighter: this.index,
+        updates: {
+          rotation: RotationState.AimStart
+        }
+      }, 2);
+      this.logEvent({
+        type: "animation",
+        fighter: this.index,
+        updates: {
+          rotation: RotationState.Aim
+        }
+      }, 1);
+      this.logEvent({
+        type: "animation",
+        fighter: this.index,
+        updates: {
+          rotation: RotationState.ForwardSwing
+        }
+      });
+
+      // do damage + animations if the attack hits
+      if (this.fight.rng.randReal() < this.rangedHitChance()) {
+        damage *= target.damageTakenMultiplier();
+        damage = Math.ceil(damage);
+        target.hp -= damage;
+        target.flash = 1;
+
+        // do knockback
+        let [deltaX, deltaY] = scaleVectorToMagnitude(target.x - this.x, target.y - this.y, knockback);
+        const rotatedX = Math.cos(KNOCKBACK_ROTATION * deltaX) - Math.sin(KNOCKBACK_ROTATION * deltaY);
+        const rotatedY = Math.sin(KNOCKBACK_ROTATION * deltaX) + Math.cos(KNOCKBACK_ROTATION * deltaY);
+        target.moveByVector(rotatedX, rotatedY, false);
+
+        // log the hit with animation info
+        this.logEvent({
+          type: "animation",
+          fighter: target.index,
+          updates: {
+            hp: target.hp,
+            flash: target.flash
+          }
+        });
+        this.logEvent({
+          type: "text",
+          fighter: target.index,
+          text: damage.toString()
+        });
+        this.logEvent({
+          type: "particle",
+          fighter: target.index,
+          particleImg: "/static/damage.png"
+        });
+      }
     }
   }
 

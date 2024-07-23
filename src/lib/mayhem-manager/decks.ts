@@ -223,6 +223,45 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
       }
     }
   },
+
+  bow: {
+    name: "Bow",
+    slots: [EquipmentSlot.Hand, EquipmentSlot.Hand],
+    imgUrl: "/static/equipment/bow.png",
+    zoomedImgUrl: "/static/zoomed/equipment/bow.png",
+    price: 12,
+    description: "Ranged. Deals 50 [attuned: 65] damage. Cooldown 5s.",
+    flavor: "",
+    abilities: {
+      actionDanger: (self: EquipmentInBattle) => {
+        const baseDamage = self.fighter.attunements.includes("Bow") ? 50 : 40;
+        return baseDamage / 5 * self.fighter.rangedHitChance();
+      },
+      getActionPriority: (self: EquipmentInBattle) => {
+        const baseDamage = self.fighter.attunements.includes("Bow") ? 50 : 40;
+        const dps = baseDamage / 5 * self.fighter.rangedHitChance();
+        let maxValue = 0;
+        for (let target of self.fighter.enemies()) {
+          maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.cooldown));
+        }
+        return maxValue;
+      },
+      whenPrioritized: (self: EquipmentInBattle) => {
+        const baseDamage = self.fighter.attunements.includes("Bow") ? 50 : 40;
+        const dps = baseDamage / 5 * self.fighter.rangedHitChance();
+        let bestTarget: FighterInBattle;
+        let maxValue = 0;
+        for (let target of self.fighter.enemies()) {
+          const value = self.fighter.valueOfAttack(target, dps, self.fighter.cooldown);
+          if (bestTarget === undefined || value > maxValue) {
+            bestTarget = target;
+            maxValue = value;
+          }
+        }
+        self.fighter.attemptRangedAttack(bestTarget, baseDamage, 4, 0.5, "/static/projectiles/arrow.png");
+      }
+    }
+  },
   rollerBlades: {
     name: "Roller Blades",
     slots: [EquipmentSlot.Feet],
