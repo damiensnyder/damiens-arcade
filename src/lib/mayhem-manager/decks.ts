@@ -206,7 +206,35 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     price: 12,
     description: "Ranged. Deals 50 [attuned: 65] damage. Cooldown 5s.",
     flavor: "",
-    abilities: rangedAttackAbility("Bow", 65, 50, 5, 5)
+    abilities: rangedAttackAbility("Bow", 65, 50, 5, 5, "/static/projectiles/arrow.png")
+  },
+  fullSuitOfArmor: {
+    name: "Full Suit of Armor",
+    slots: [EquipmentSlot.Hand],
+    imgUrl: "/static/equipment/full-suit-of-armor.png",
+    zoomedImgUrl: "/static/zoomed/equipment/full-suit-of-armor.png",
+    price: 15,
+    description: "+6 [attuned: +7.5] toughness, -2 speed",
+    flavor: "clank. clank. clank. clank",
+    abilities: {
+      onFightStart: (self: EquipmentInBattle) => {
+        self.fighter.stats.toughness += 12;
+        self.fighter.stats.speed -= 4;
+        if (self.fighter.attunements.includes("Full Suit of Armor")) {
+          self.fighter.stats.toughness += 3;
+        }
+      }
+    }
+  },
+  laserBlaster: {
+    name: "Laser Blaster",
+    slots: [EquipmentSlot.Hand],
+    imgUrl: "/static/equipment/laser-blaster.png",
+    zoomedImgUrl: "/static/zoomed/equipment/laser-blaster.png",
+    price: 25,
+    description: "Ranged. Deals 40 [attuned: 50] damage. Cooldown 2s.",
+    flavor: "",
+    abilities: rangedAttackAbility("Bow", 50, 40, 2, 2, "/static/projectiles/laser.png")
   },
   rollerBlades: {
     name: "Roller Blades",
@@ -245,13 +273,25 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
   },
   shiv: {
     name: "Shiv",
-    slots: [EquipmentSlot.Hand, EquipmentSlot.Hand],
+    slots: [EquipmentSlot.Hand],
     imgUrl: "/static/equipment/shiv.png",
     zoomedImgUrl: "/static/zoomed/equipment/shiv.png",
     price: 20,
     description: "Melee. Deals 20 damage. Cooldown 2s [attuned: 1.5s].",
     flavor: "",
     abilities: meleeAttackAbility("Battle Axe", 90, 70, 2, 1.5)
+  },
+  zapHelmet: {
+    name: "Shiv",
+    slots: [EquipmentSlot.Hand],
+    imgUrl: "/static/equipment/zap-helmet.png",
+    zoomedImgUrl: "/static/zoomed/equipment/zap-helmet.png",
+    price: 25,
+    description: "Every 3s, deals 15 [attuned: 20] damage to the nearest enemy fighter.",
+    flavor: "",
+    abilities: {
+
+    }
   },
 };
 
@@ -314,7 +354,8 @@ function rangedAttackAbility(
   damageAttuned: number,
   damageUnattuned: number,
   cooldownAttuned: number,
-  cooldownUnattuned: number
+  cooldownUnattuned: number,
+  projectileImg: string
 ): Abilities {
   return {
     actionDanger: (self: EquipmentInBattle) => {
@@ -345,7 +386,7 @@ function rangedAttackAbility(
           maxValue = value;
         }
       }
-      self.fighter.attemptRangedAttack(bestTarget, damage, cooldown, 0.5, "/static/projectiles/arrow.png");
+      self.fighter.attemptRangedAttack(bestTarget, damage, cooldown, 0.5, projectileImg);
     }
   }
 }
