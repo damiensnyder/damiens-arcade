@@ -1,8 +1,9 @@
 import { readFileSync } from "fs";
 import { EquipmentSlot, type Abilities, type Appearance, type Color, type Equipment, type EquipmentInBattle, type Fighter, type FighterNames, type FighterStats } from "$lib/mayhem-manager/types";
-
 import type { RNG } from "$lib/types";
 import type { FighterInBattle } from "./battle-logic";
+
+
 
 const fighterNames: FighterNames =
     JSON.parse(readFileSync("src/lib/mayhem-manager/data/names.json").toString());
@@ -184,6 +185,8 @@ export function generateFighters(amount: number, inFA: boolean, rng: RNG): Fight
   return ret;
 }
 
+
+
 export const equipmentCatalog: Record<string, EquipmentTemplate> = {
   battleAxe: {
     name: "Battle Axe",
@@ -193,37 +196,8 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     price: 32,
     description: "Melee. Deals 70 [attuned: 90] damage. Cooldown 4s.",
     flavor: "learn this secret trick lumberjacks DON'T want you to know",
-    abilities: {
-      actionDanger: (self: EquipmentInBattle) => {
-        const baseDamage = self.fighter.attunements.includes("Battle Axe") ? 90 : 70;
-        return baseDamage / 4 * self.fighter.meleeDamageMultiplier();
-      },
-      getActionPriority: (self: EquipmentInBattle) => {
-        const baseDamage = self.fighter.attunements.includes("Battle Axe") ? 90 : 70;
-        const dps = baseDamage / 4 * self.fighter.meleeDamageMultiplier();
-        let maxValue = 0;
-        for (let target of self.fighter.enemies()) {
-          maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.timeToAttack(target)));
-        }
-        return maxValue;
-      },
-      whenPrioritized: (self: EquipmentInBattle) => {
-        const baseDamage = self.fighter.attunements.includes("Battle Axe") ? 90 : 70;
-        const dps = baseDamage / 4 * self.fighter.meleeDamageMultiplier();
-        let bestTarget: FighterInBattle;
-        let maxValue = 0;
-        for (let target of self.fighter.enemies()) {
-          const value = self.fighter.valueOfAttack(target, dps, self.fighter.timeToAttack(target));
-          if (bestTarget === undefined || value > maxValue) {
-            bestTarget = target;
-            maxValue = value;
-          }
-        }
-        self.fighter.attemptMeleeAttack(bestTarget, baseDamage * self.fighter.meleeDamageMultiplier(), 4, 0.5);
-      }
-    }
+    abilities: meleeAttackAbility("Battle Axe", 90, 70, 4, 4)
   },
-
   bow: {
     name: "Bow",
     slots: [EquipmentSlot.Hand, EquipmentSlot.Hand],
@@ -232,35 +206,7 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     price: 12,
     description: "Ranged. Deals 50 [attuned: 65] damage. Cooldown 5s.",
     flavor: "",
-    abilities: {
-      actionDanger: (self: EquipmentInBattle) => {
-        const baseDamage = self.fighter.attunements.includes("Bow") ? 50 : 40;
-        return baseDamage / 5 * self.fighter.rangedHitChance();
-      },
-      getActionPriority: (self: EquipmentInBattle) => {
-        const baseDamage = self.fighter.attunements.includes("Bow") ? 50 : 40;
-        const dps = baseDamage / 5 * self.fighter.rangedHitChance();
-        let maxValue = 0;
-        for (let target of self.fighter.enemies()) {
-          maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.cooldown));
-        }
-        return maxValue;
-      },
-      whenPrioritized: (self: EquipmentInBattle) => {
-        const baseDamage = self.fighter.attunements.includes("Bow") ? 50 : 40;
-        const dps = baseDamage / 5 * self.fighter.rangedHitChance();
-        let bestTarget: FighterInBattle;
-        let maxValue = 0;
-        for (let target of self.fighter.enemies()) {
-          const value = self.fighter.valueOfAttack(target, dps, self.fighter.cooldown);
-          if (bestTarget === undefined || value > maxValue) {
-            bestTarget = target;
-            maxValue = value;
-          }
-        }
-        self.fighter.attemptRangedAttack(bestTarget, baseDamage, 4, 0.5, "/static/projectiles/arrow.png");
-      }
-    }
+    abilities: rangedAttackAbility("Bow", 65, 50, 5, 5)
   },
   rollerBlades: {
     name: "Roller Blades",
@@ -271,39 +217,13 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     description: "Melee. Deals 30 damage. Cooldown 4s. +2 [attuned: +3] speed",
     flavor: "",
     abilities: {
-      actionDanger: (self: EquipmentInBattle) => {
-        const baseDamage = 30;
-        return baseDamage / 4 * self.fighter.meleeDamageMultiplier();
-      },
-      getActionPriority: (self: EquipmentInBattle) => {
-        const baseDamage = 30;
-        const dps = baseDamage / 4 * self.fighter.meleeDamageMultiplier();
-        let maxValue = 0;
-        for (let target of self.fighter.enemies()) {
-          maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.timeToAttack(target)));
-        }
-        return maxValue;
-      },
-      whenPrioritized: (self: EquipmentInBattle) => {
-        const baseDamage = 30;
-        const dps = baseDamage / 4 * self.fighter.meleeDamageMultiplier();
-        let bestTarget: FighterInBattle;
-        let maxValue = 0;
-        for (let target of self.fighter.enemies()) {
-          const value = self.fighter.valueOfAttack(target, dps, self.fighter.timeToAttack(target));
-          if (bestTarget === undefined || value > maxValue) {
-            bestTarget = target;
-            maxValue = value;
-          }
-        }
-        self.fighter.attemptMeleeAttack(bestTarget, baseDamage * self.fighter.meleeDamageMultiplier(), 4, 0.5);
-      },
       onFightStart: (self: EquipmentInBattle) => {
         self.fighter.stats.toughness += 4;
         if (self.fighter.attunements.includes("Roller Blades")) {
           self.fighter.stats.toughness += 2;
         }
-      }
+      },
+      ...meleeAttackAbility("Roller Blades", 30, 30, 4, 4)
     }
   },
   shield: {
@@ -313,7 +233,7 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     zoomedImgUrl: "/static/zoomed/equipment/shield.png",
     price: 15,
     description: "+3 [attuned: +4] toughness",
-    flavor: "it's a shield",
+    flavor: "",
     abilities: {
       onFightStart: (self: EquipmentInBattle) => {
         self.fighter.stats.toughness += 6;
@@ -323,7 +243,19 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
       }
     }
   },
+  shiv: {
+    name: "Shiv",
+    slots: [EquipmentSlot.Hand, EquipmentSlot.Hand],
+    imgUrl: "/static/equipment/shiv.png",
+    zoomedImgUrl: "/static/zoomed/equipment/shiv.png",
+    price: 20,
+    description: "Melee. Deals 20 damage. Cooldown 2s [attuned: 1.5s].",
+    flavor: "",
+    abilities: meleeAttackAbility("Battle Axe", 90, 70, 2, 1.5)
+  },
 };
+
+
 
 export const fighterAbilitiesCatalog: Record<string, FighterTemplate> = {
   noAbilities: {
@@ -333,3 +265,87 @@ export const fighterAbilitiesCatalog: Record<string, FighterTemplate> = {
     abilities: {}
   }
 };
+
+
+
+function meleeAttackAbility(
+  name: string,
+  damageAttuned: number,
+  damageUnattuned: number,
+  cooldownAttuned: number,
+  cooldownUnattuned: number
+): Abilities {
+  return {
+    actionDanger: (self: EquipmentInBattle) => {
+      const damage = self.fighter.attunements.includes(name) ? damageAttuned : damageUnattuned;
+      const cooldown = self.fighter.attunements.includes(name) ? cooldownAttuned : cooldownUnattuned;
+      return damage / cooldown * self.fighter.meleeDamageMultiplier();
+    },
+    getActionPriority: (self: EquipmentInBattle) => {
+      const damage = self.fighter.attunements.includes(name) ? damageAttuned : damageUnattuned;
+      const cooldown = self.fighter.attunements.includes(name) ? cooldownAttuned : cooldownUnattuned;
+      const dps = damage / cooldown * self.fighter.meleeDamageMultiplier();
+      let maxValue = 0;
+      for (let target of self.fighter.enemies()) {
+        maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.timeToAttack(target)));
+      }
+      return maxValue;
+    },
+    whenPrioritized: (self: EquipmentInBattle) => {
+      const damage = self.fighter.attunements.includes(name) ? damageAttuned : damageUnattuned;
+      const cooldown = self.fighter.attunements.includes(name) ? cooldownAttuned : cooldownUnattuned;
+      const dps = damage / cooldown * self.fighter.meleeDamageMultiplier();
+      let bestTarget: FighterInBattle;
+      let maxValue = 0;
+      for (let target of self.fighter.enemies()) {
+        const value = self.fighter.valueOfAttack(target, dps, self.fighter.timeToAttack(target));
+        if (bestTarget === undefined || value > maxValue) {
+          bestTarget = target;
+          maxValue = value;
+        }
+      }
+      self.fighter.attemptMeleeAttack(bestTarget, damage * self.fighter.meleeDamageMultiplier(), cooldown, 0.5);
+    }
+  };
+}
+
+function rangedAttackAbility(
+  name: string,
+  damageAttuned: number,
+  damageUnattuned: number,
+  cooldownAttuned: number,
+  cooldownUnattuned: number
+): Abilities {
+  return {
+    actionDanger: (self: EquipmentInBattle) => {
+      const damage = self.fighter.attunements.includes(name) ? damageAttuned : damageUnattuned;
+      const cooldown = self.fighter.attunements.includes(name) ? cooldownAttuned : cooldownUnattuned;
+      return damage / cooldown * self.fighter.rangedHitChance();
+    },
+    getActionPriority: (self: EquipmentInBattle) => {
+      const damage = self.fighter.attunements.includes(name) ? damageAttuned : damageUnattuned;
+      const cooldown = self.fighter.attunements.includes(name) ? cooldownAttuned : cooldownUnattuned;
+      const dps = damage / cooldown * self.fighter.rangedHitChance();
+      let maxValue = 0;
+      for (let target of self.fighter.enemies()) {
+        maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.cooldown));
+      }
+      return maxValue;
+    },
+    whenPrioritized: (self: EquipmentInBattle) => {
+      const damage = self.fighter.attunements.includes(name) ? damageAttuned : damageUnattuned;
+      const cooldown = self.fighter.attunements.includes(name) ? cooldownAttuned : cooldownUnattuned;
+      const dps = damage / cooldown * self.fighter.rangedHitChance();
+      let bestTarget: FighterInBattle;
+      let maxValue = 0;
+      for (let target of self.fighter.enemies()) {
+        const value = self.fighter.valueOfAttack(target, dps, self.fighter.cooldown);
+        if (bestTarget === undefined || value > maxValue) {
+          bestTarget = target;
+          maxValue = value;
+        }
+      }
+      self.fighter.attemptRangedAttack(bestTarget, damage, cooldown, 0.5, "/static/projectiles/arrow.png");
+    }
+  }
+}

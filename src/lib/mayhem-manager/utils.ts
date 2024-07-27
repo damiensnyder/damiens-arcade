@@ -80,19 +80,21 @@ const STAT_VALUES = {
   toughness: 0.01
 }
 const FIGHTER_ABILITY_VALUES = {
-  noAbilities: 0.16
+  noAbilities: 0.16,
 };
 const EQUIPMENT_ABILITY_VALUES = {
   battleAxe: 0.24,
+  bow: 0.02,
   rollerBlades: 0.12,
   shield: 0.03,
-  bow: 0.02
+  shiv: 0.06,
 }
 const EQUIPMENT_ATTUNEMENT_VALUES = {
   battleAxe: 0.02,
+  bow: 0.01,
   rollerBlades: 0.01,
   shield: 0,
-  bow: 0.01
+  shiv: 0.01,
 }
 const VALUE_TO_DOLLARS = 60;
 
