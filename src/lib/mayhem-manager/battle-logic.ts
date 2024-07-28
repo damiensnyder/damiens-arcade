@@ -140,6 +140,13 @@ export class FighterInBattle {
 
     this.cooldown -= TICK_LENGTH;
     if (this.cooldown < EPSILON) this.cooldown = 0;
+
+    if (this.hp <= 0) return;  // do nothing if fighter is down
+    if (this.enemies().length === 0) return;  // do nothing if no enemies
+
+    this.equipment.forEach((e) => {
+      e.onTick?.(e);
+    });
   }
 
   act(): void {

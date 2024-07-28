@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { EquipmentSlot, type Abilities, type Appearance, type Color, type Equipment, type EquipmentInBattle, type Fighter, type FighterNames, type FighterStats } from "$lib/mayhem-manager/types";
 import type { RNG } from "$lib/types";
-import type { FighterInBattle } from "./battle-logic";
+import { TICK_LENGTH, type FighterInBattle } from "./battle-logic";
 
 
 
@@ -283,14 +283,62 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
   },
   zapHelmet: {
     name: "Shiv",
-    slots: [EquipmentSlot.Hand],
+    slots: [EquipmentSlot.Head],
     imgUrl: "/static/equipment/zap-helmet.png",
     zoomedImgUrl: "/static/zoomed/equipment/zap-helmet.png",
     price: 25,
     description: "Every 3s, deals 15 [attuned: 20] damage to the nearest enemy fighter.",
     flavor: "",
     abilities: {
-
+      onFightStart: (self: EquipmentInBattle) => {
+        self.state = 0;
+      },
+      onTick: (self: EquipmentInBattle) => {
+        self.state += TICK_LENGTH;
+        if (self.state >= 3) {
+          self.state = 0;
+          let bestTarget: FighterInBattle;
+          let minDistance = Infinity;
+          for (let target of self.fighter.enemies()) {
+            const distance = self.fighter.distanceTo(target);
+            if (distance < minDistance) {
+              bestTarget = target;
+              minDistance = distance;
+            }
+          }
+          
+          self.fighter.logEvent({
+            type: "projectile",
+            fighter: self.fighter.index,
+            target: bestTarget.index,
+            projectileImg: "/static/projectiles/laser.png"
+          });
+          let damage = (self.fighter.attunements.includes("Zap Helmet") ? 20 : 15) * bestTarget.damageTakenMultiplier();
+          damage = Math.ceil(damage);
+          bestTarget.hp -= damage;
+          bestTarget.flash = 1;
+  
+          // log the hit with animation info
+          self.fighter.logEvent({
+            type: "animation",
+            fighter: bestTarget.index,
+            updates: {
+              hp: bestTarget.hp,
+              flash: bestTarget.flash
+            }
+          });
+          self.fighter.logEvent({
+            type: "text",
+            fighter: bestTarget.index,
+            text: damage.toString()
+          });
+          self.fighter.logEvent({
+            type: "particle",
+            fighter: bestTarget.index,
+            particleImg: "/static/damage.png"
+          });
+        }
+      }
     }
   },
 };

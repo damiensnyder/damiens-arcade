@@ -211,7 +211,7 @@ export interface Abilities {
   passiveDanger?: (self: EquipmentInBattle) => number
   whenPrioritized?: (self: EquipmentInBattle) => void
   onFightStart?: (self: EquipmentInBattle) => void
-  onTick?: (self: EquipmentInBattle, tickNum: number) => void
+  onTick?: (self: EquipmentInBattle) => void
 }
 
 export interface EquipmentInBattle extends Abilities {
