@@ -483,7 +483,7 @@ export class FighterInBattle {
     // if this is not an animation tick or this fighter doesn't have a previous animation tick,
     // just push to the tick like normal
     // otherwise, merge with the last animation tick (overwriting where conflicts exist)
-    const animationEventForFighter = tick.filter(e => event.type === "animation" && e.fighter === event.fighter);
+    const animationEventForFighter = tick.filter(e => e.type === "animation" && event.type === "animation" && e.fighter === event.fighter);
     if (event.type === "animation" && animationEventForFighter.length > 0) {
       const existingEvent: MFAnimationEvent = animationEventForFighter[0] as MFAnimationEvent;
       existingEvent.updates = {
@@ -562,7 +562,7 @@ export class Fight {
 
       // pause 0.8 seconds between spawning fighters
       this.eventLog.push(spawnTick);
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 1 + Math.floor(11 / this.fighters.length); i++) {
         this.eventLog.push([]);
       }
     });
