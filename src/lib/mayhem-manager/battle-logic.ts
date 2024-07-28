@@ -340,7 +340,7 @@ export class FighterInBattle {
   moveAwayFrom(target: FighterInBattle): void {
     const distanceToMove = this.speedInMetersPerSecond() * TICK_LENGTH;
     let [deltaX, deltaY] = scaleVectorToMagnitude(this.x - target.x, this.y - target.y, distanceToMove);
-    this.moveByVector(deltaX, deltaY);
+    this.moveByVector(deltaX, deltaY, false);
   }
 
   attemptMeleeAttack(target: FighterInBattle, damage: number, cooldown: number, knockback: number): void {

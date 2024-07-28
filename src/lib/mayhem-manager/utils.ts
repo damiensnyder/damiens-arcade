@@ -85,6 +85,7 @@ const FIGHTER_ABILITY_VALUES = {
 const EQUIPMENT_ABILITY_VALUES = {
   battleAxe: 0.15,
   bow: 0.05,
+  cornDog: 0.03,
   laserBlaster: 0.2,
   rollerBlades: 0.09,
   shield: 0.05,
@@ -94,6 +95,7 @@ const EQUIPMENT_ABILITY_VALUES = {
 const EQUIPMENT_ATTUNEMENT_VALUES = {
   battleAxe: 0,
   bow: 0.02,
+  cornDog: 0,
   laserBlaster: 0,
   rollerBlades: 0,
   shield: 0,

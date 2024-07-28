@@ -208,6 +208,48 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     flavor: "",
     abilities: rangedAttackAbility("Bow", 65, 50, 5, 5, "/static/projectiles/arrow.png")
   },
+  cornDog: {
+    name: "Corn Dog",
+    slots: [EquipmentSlot.Hand],
+    imgUrl: "/static/equipment/corn-dog.png",
+    zoomedImgUrl: "/static/zoomed/equipment/corn-dog.png",
+    price: 5,
+    description: "Single-use. Heals 40 [attuned: 60] HP.",
+    flavor: "surprisingly nutritious",
+    abilities: {
+      getActionPriority: (self: EquipmentInBattle) => {
+        const healAmount = self.fighter.attunements.includes("Corn Dog") ? 60 : 40;
+        return self.fighter.hp < healAmount ? healAmount / 2 / self.fighter.damageTakenMultiplier() : 0;
+      },
+      whenPrioritized: (self: EquipmentInBattle) => {
+        let healAmount = self.fighter.attunements.includes("Corn Dog") ? 60 : 40;
+        healAmount = Math.max(healAmount, 100 - self.fighter.hp);
+        self.fighter.hp += healAmount;
+        self.fighter.cooldown = 2;
+        self.fighter.equipment.splice(self.fighter.equipment.indexOf(self), 1);
+
+        self.fighter.logEvent({
+          type: "text",
+          fighter: self.fighter.index,
+          text: healAmount.toString()
+        });
+        self.fighter.logEvent({
+          type: "animation",
+          fighter: self.fighter.index,
+          updates: {
+            hp: self.fighter.hp,
+            equipment: self.fighter.equipment.map(e => {
+              return {
+                name: e.name,
+                imgUrl: e.imgUrl,
+                slots: e.slots
+              };
+            })
+          }
+        });
+      }
+    }
+  },
   fullSuitOfArmor: {
     name: "Full Suit of Armor",
     slots: [EquipmentSlot.Hand],
@@ -290,6 +332,9 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     description: "Every 3s, deals 15 [attuned: 20] damage to the nearest enemy fighter.",
     flavor: "",
     abilities: {
+      passiveDanger: (self: EquipmentInBattle) => {
+        return self.fighter.attunements.includes("Zap Helmet") ? 20/3 : 15/3;
+      },
       onFightStart: (self: EquipmentInBattle) => {
         self.state = 0;
       },
