@@ -248,7 +248,14 @@ function bestPicksBR(team: Team): {
     });
   });
 
-  const bestFighter = power.indexOf(power.reduce((a, b) => Math.max(a, b), 0));
+  let bestFighter: number = 0;
+  let bestFighterPower: number = power[0];
+  power.forEach((p, i) => {
+    if (p > bestFighterPower) {
+      bestFighter = i;
+      bestFighterPower = p;
+    }
+  });
   return {
     fighter: bestFighter,
     equipment: picks[bestFighter],

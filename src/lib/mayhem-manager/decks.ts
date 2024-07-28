@@ -252,16 +252,16 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
   },
   fullSuitOfArmor: {
     name: "Full Suit of Armor",
-    slots: [EquipmentSlot.Hand],
+    slots: [EquipmentSlot.Head, EquipmentSlot.Legs, EquipmentSlot.Feet],
     imgUrl: "/static/equipment/full-suit-of-armor.png",
     zoomedImgUrl: "/static/zoomed/equipment/full-suit-of-armor.png",
     price: 15,
-    description: "+6 [attuned: +7.5] toughness, -2 speed",
+    description: "+6 [attuned: +7.5] toughness, -1.5 speed",
     flavor: "clank. clank. clank. clank",
     abilities: {
       onFightStart: (self: EquipmentInBattle) => {
         self.fighter.stats.toughness += 12;
-        self.fighter.stats.speed -= 4;
+        self.fighter.stats.speed -= 3;
         if (self.fighter.attunements.includes("Full Suit of Armor")) {
           self.fighter.stats.toughness += 3;
         }
@@ -324,7 +324,7 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     abilities: meleeAttackAbility("Shiv", 20, 20, 2, 1.5)
   },
   zapHelmet: {
-    name: "Shiv",
+    name: "Zap Helmet",
     slots: [EquipmentSlot.Head],
     imgUrl: "/static/equipment/zap-helmet.png",
     zoomedImgUrl: "/static/zoomed/equipment/zap-helmet.png",
