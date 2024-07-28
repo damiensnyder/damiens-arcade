@@ -73,28 +73,28 @@ export function nextMatch(bracket: Bracket): Bracket & {
 }
 
 const STAT_VALUES = {
-  strength: 0.02,
+  strength: 0.01,
   accuracy: 0.01,
   energy: 0,
   speed: 0.01,
   toughness: 0.01
 }
 const FIGHTER_ABILITY_VALUES = {
-  noAbilities: 0.1,
+  noAbilities: 0.18,
 };
 const EQUIPMENT_ABILITY_VALUES = {
-  battleAxe: 0.12,
-  bow: 0.01,
-  laserBlaster: 0.13,
-  rollerBlades: 0.07,
-  shield: 0.02,
-  shiv: 0.09,
-  zapHelmet: 0.09,
+  battleAxe: 0.15,
+  bow: 0.05,
+  laserBlaster: 0.2,
+  rollerBlades: 0.09,
+  shield: 0.05,
+  shiv: 0.06,
+  zapHelmet: 0.06,
 }
 const EQUIPMENT_ATTUNEMENT_VALUES = {
   battleAxe: 0,
-  bow: 0.01,
-  laserBlaster: 0.01,
+  bow: 0.02,
+  laserBlaster: 0,
   rollerBlades: 0,
   shield: 0,
   shiv: 0,

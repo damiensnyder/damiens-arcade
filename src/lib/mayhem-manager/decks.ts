@@ -279,7 +279,7 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     price: 20,
     description: "Melee. Deals 20 damage. Cooldown 2s [attuned: 1.5s].",
     flavor: "",
-    abilities: meleeAttackAbility("Battle Axe", 90, 70, 2, 1.5)
+    abilities: meleeAttackAbility("Shiv", 20, 20, 2, 1.5)
   },
   zapHelmet: {
     name: "Shiv",

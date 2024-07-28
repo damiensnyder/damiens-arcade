@@ -516,13 +516,13 @@ export class Fight {
 
   // Simulates the fight
   simulate(): void {
-    // place the fighters evenly spaced in a circle of radius 25 centered at (0, 0)
+    // place the fighters evenly spaced in a circle of radius 35 centered at (0, 0)
     this.fighters.forEach((f, i) => {
       const spawnTick: MidFightEvent[] = [];
       f.fight = this;
       f.index = i;
-      f.x = 50 + -25 * Math.cos(2 * Math.PI * i / this.fighters.length);
-      f.y = 50 + 25 * Math.sin(2 * Math.PI * i / this.fighters.length);
+      f.x = 50 + -35 * Math.cos(2 * Math.PI * i / this.fighters.length);
+      f.y = 50 + 35 * Math.sin(2 * Math.PI * i / this.fighters.length);
       f.equipment.forEach((e) => {
         e.fighter = f;
       });
