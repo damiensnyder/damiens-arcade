@@ -213,7 +213,7 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     slots: [EquipmentSlot.Hand],
     imgUrl: "/static/equipment/corn-dog.png",
     zoomedImgUrl: "/static/zoomed/equipment/corn-dog.png",
-    price: 5,
+    price: 12,
     description: "Single-use. Heals 40 [attuned: 60] HP.",
     flavor: "surprisingly nutritious",
     abilities: {
