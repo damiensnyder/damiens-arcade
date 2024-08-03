@@ -87,10 +87,11 @@ const EQUIPMENT_ABILITY_VALUES = {
   bow: 0.05,
   cornDog: 0.03,
   devilHorns: 0.04,
-  laserBlaster: 0.2,
+  laserBlaster: 0.20,
   rollerBlades: 0.09,
   shield: 0.05,
   shiv: 0.06,
+  sportsJersey: 0.01,
   zapHelmet: 0.06,
 }
 const EQUIPMENT_ATTUNEMENT_VALUES = {
@@ -102,6 +103,7 @@ const EQUIPMENT_ATTUNEMENT_VALUES = {
   rollerBlades: 0,
   shield: 0,
   shiv: 0,
+  sportsJersey: 0,
   zapHelmet: 0,
 }
 const VALUE_TO_DOLLARS = 60;

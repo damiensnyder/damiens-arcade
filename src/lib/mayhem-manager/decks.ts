@@ -347,6 +347,35 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     flavor: "",
     abilities: meleeAttackAbility("Shiv", 20, 20, 2, 1.5)
   },
+  sportsJersey: {
+    name: "Sports Jersey",
+    slots: [EquipmentSlot.Torso],
+    imgUrl: "/static/equipment/sports-jersey.png",
+    zoomedImgUrl: "/static/zoomed/equipment/sports-jersey.png",
+    price: 9,
+    description: "+2 [attuned: +3] to all stats for each other teammate wearing a Sports Jersey.",
+    flavor: "teamwork? i sure hope it does!",
+    abilities: {
+      onFightStart: (self: EquipmentInBattle) => {
+        for (let f of self.fighter.teammates()) {
+          if (f !== self.fighter && f.equipment.some(e => e.name === "Sports Jersey")) {
+            self.fighter.stats.strength += 4;
+            self.fighter.stats.accuracy += 4;
+            self.fighter.stats.energy += 4;
+            self.fighter.stats.speed += 4;
+            self.fighter.stats.toughness += 4;
+            if (self.fighter.attunements.includes("Sports Jersey")) {
+              self.fighter.stats.strength += 2;
+              self.fighter.stats.accuracy += 2;
+              self.fighter.stats.energy += 2;
+              self.fighter.stats.speed += 2;
+              self.fighter.stats.toughness += 2;
+            }
+          }
+        }
+      }
+    }
+  },
   zapHelmet: {
     name: "Zap Helmet",
     slots: [EquipmentSlot.Head],
