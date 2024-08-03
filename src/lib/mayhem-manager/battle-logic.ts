@@ -474,6 +474,12 @@ export class FighterInBattle {
           fighter: target.index,
           particleImg: "/static/damage.png"
         });
+      } else {
+        this.logEvent({
+          type: "text",
+          fighter: target.index,
+          text: "Missed"
+        });
       }
     }
   }

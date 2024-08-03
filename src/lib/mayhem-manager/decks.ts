@@ -250,6 +250,30 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
       }
     }
   },
+  devilHorns: {
+    name: "Devil Horns",
+    slots: [EquipmentSlot.Head],
+    imgUrl: "/static/equipment/devil-horns.png",
+    zoomedImgUrl: "/static/zoomed/equipment/devil-horns.png",
+    price: 20,
+    description: "-2 toughness, +3 [attuned: +4] to all other stats",
+    flavor: "",
+    abilities: {
+      onFightStart: (self: EquipmentInBattle) => {
+        self.fighter.stats.strength += 6;
+        self.fighter.stats.accuracy += 6;
+        self.fighter.stats.energy += 6;
+        self.fighter.stats.speed += 6;
+        self.fighter.stats.toughness -= 4;
+        if (self.fighter.attunements.includes("Devil Horns")) {
+          self.fighter.stats.strength += 2;
+          self.fighter.stats.accuracy += 2;
+          self.fighter.stats.energy += 2;
+          self.fighter.stats.speed += 2;
+        }
+      }
+    }
+  },
   fullSuitOfArmor: {
     name: "Full Suit of Armor",
     slots: [EquipmentSlot.Head, EquipmentSlot.Legs, EquipmentSlot.Feet],
