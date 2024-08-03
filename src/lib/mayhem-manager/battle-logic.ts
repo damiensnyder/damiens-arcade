@@ -70,7 +70,7 @@ export class FighterInBattle {
   x: number
   y: number
   cooldown: number
-  charge: number
+  charges: number
   stats: FighterStats
   appearance: Appearance
   attunements: string[]
@@ -91,7 +91,7 @@ export class FighterInBattle {
     this.x = 0;
     this.y = 0;
     this.cooldown = 3;
-    this.charge = 0;
+    this.charges = 0;
     this.stats = { ...fighter.stats };
     this.appearance = fighter.appearance;
     this.attunements = fighter.attunements;
@@ -341,6 +341,16 @@ export class FighterInBattle {
     const distanceToMove = this.speedInMetersPerSecond() * TICK_LENGTH;
     let [deltaX, deltaY] = scaleVectorToMagnitude(this.x - target.x, this.y - target.y, distanceToMove);
     this.moveByVector(deltaX, deltaY, false);
+  }
+
+  attemptCharge(): void {
+    this.charges += 1;
+    this.cooldown = this.timeToCharge();
+    this.logEvent({
+      type: "particle",
+      fighter: this.index,
+      particleImg: "/static/charge.png"
+    });
   }
 
   attemptMeleeAttack(target: FighterInBattle, damage: number, cooldown: number, knockback: number): void {

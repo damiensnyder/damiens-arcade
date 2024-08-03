@@ -376,6 +376,25 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
       }
     }
   },
+  vikingHelmet: {
+    name: "Viking Helmet",
+    slots: [EquipmentSlot.Head],
+    imgUrl: "/static/equipment/viking-helmet.png",
+    zoomedImgUrl: "/static/zoomed/equipment/viking-helmet.png",
+    price: 11,
+    description: "+1.5 [attuned: +2] strength and toughness",
+    flavor: "",
+    abilities: {
+      onFightStart: (self: EquipmentInBattle) => {
+        self.fighter.stats.strength += 3;
+        self.fighter.stats.toughness += 3;
+        if (self.fighter.attunements.includes("Viking Helmet")) {
+          self.fighter.stats.strength += 1;
+          self.fighter.stats.toughness += 1;
+        }
+      }
+    }
+  },
   zapHelmet: {
     name: "Zap Helmet",
     slots: [EquipmentSlot.Head],
