@@ -242,9 +242,9 @@ export class FighterInBattle {
     return Math.max(this.distanceTo(target) - MELEE_RANGE, 0) / this.speedInMetersPerSecond();
   }
 
-  timeToAttack(target: FighterInBattle): number {
+  timeToAttack(target: FighterInBattle, chargeNeeded: number): number {
     return Math.max(
-      this.cooldown,
+      this.cooldown + this.timeToCharge() * Math.max(chargeNeeded - this.charges, 0),
       this.timeToReach(target)
     );
   }
@@ -343,7 +343,7 @@ export class FighterInBattle {
     this.moveByVector(deltaX, deltaY, false);
   }
 
-  attemptCharge(): void {
+  charge(): void {
     this.charges += 1;
     this.cooldown = this.timeToCharge();
     this.logEvent({
@@ -353,17 +353,19 @@ export class FighterInBattle {
     });
   }
 
-  attemptMeleeAttack(target: FighterInBattle, damage: number, cooldown: number, knockback: number): void {
-    if (this.distanceTo(target) > MELEE_RANGE && this.timeToAttack(target) > this.cooldown - 0.8) {
+  attemptMeleeAttack(target: FighterInBattle, damage: number, cooldown: number, knockback: number, chargeNeeded: number): void {
+    const cooldownReachDifferential = this.timeToAttack(target, chargeNeeded) - this.timeToReach(target);
+    if (this.distanceTo(target) > MELEE_RANGE && cooldownReachDifferential < 0.7) {
       this.moveTowards(target);
-    } else if (this.timeToReach(target) < this.cooldown - 0.5) {
+    } else if (cooldownReachDifferential > 0.7) {
       this.moveAwayFrom(target);
     }
-    if (this.distanceTo(target) < MELEE_RANGE && this.cooldown === 0) {
+    if (this.distanceTo(target) < MELEE_RANGE && this.cooldown === 0 && this.charges >= chargeNeeded) {
       damage *= target.damageTakenMultiplier();
       damage = Math.ceil(damage);
       target.hp -= damage;
       this.cooldown = cooldown;
+      this.charges -= chargeNeeded;
       target.flash = 1;
 
       // do knockback
@@ -413,17 +415,22 @@ export class FighterInBattle {
         }
       });
       this.rotationState = RotationState.ForwardSwing;
+    } else if (chargeNeeded > this.charges) {
+      this.charge();
     }
   }
 
-  attemptRangedAttack(target: FighterInBattle, damage: number, cooldown: number, knockback: number, projectileImg: string): void {
+  attemptRangedAttack(target: FighterInBattle, damage: number, cooldown: number, knockback: number, chargeNeeded: number, projectileImg: string): void {
     // run away if any enemy can reach this fighter before the cooldown ends
-    const enemiesThatCanReachBeforeShot = this.enemies().filter((f) => f.timeToAttack(this) < this.cooldown);
+    const enemiesThatCanReachBeforeShot = this.enemies().filter(
+      (f) => f.timeToAttack(this, chargeNeeded) < this.cooldown
+    );
     if (enemiesThatCanReachBeforeShot.length > 0) {
       this.moveAwayFrom(enemiesThatCanReachBeforeShot[0]);
     }
-    if (this.cooldown === 0) {
+    if (this.cooldown === 0 && this.charges >= chargeNeeded) {
       this.cooldown = cooldown;
+      this.charges -= chargeNeeded;
       this.logEvent({
         type: "projectile",
         fighter: this.index,
@@ -491,6 +498,85 @@ export class FighterInBattle {
           text: "Missed"
         });
       }
+    } else if (chargeNeeded > this.charges) {
+      this.charge();
+    }
+  }
+
+  attemptAoeAttack(targets: FighterInBattle[], damage: number, cooldown: number, knockback: number, chargeNeeded: number, projectileImg: string): void {
+    // run away if any enemy can reach this fighter before the cooldown ends
+    const enemiesThatCanReachBeforeShot = this.enemies().filter(
+      (f) => f.timeToAttack(this, chargeNeeded) < this.cooldown
+    );
+    if (enemiesThatCanReachBeforeShot.length > 0) {
+      this.moveAwayFrom(enemiesThatCanReachBeforeShot[0]);
+    }
+    if (this.cooldown === 0 && this.charges >= chargeNeeded) {
+      for (let target of targets) {
+        this.cooldown = cooldown;
+        this.charges -= chargeNeeded;
+        this.logEvent({
+          type: "projectile",
+          fighter: this.index,
+          target: target.index,
+          projectileImg
+        });
+        this.logEvent({
+          type: "animation",
+          fighter: this.index,
+          updates: {
+            rotation: RotationState.AimStart
+          }
+        }, 2);
+        this.logEvent({
+          type: "animation",
+          fighter: this.index,
+          updates: {
+            rotation: RotationState.Aim
+          }
+        }, 1);
+        this.logEvent({
+          type: "animation",
+          fighter: this.index,
+          updates: {
+            rotation: RotationState.ForwardSwing
+          }
+        });
+
+        // do damage + animations if the attack hits
+        damage *= target.damageTakenMultiplier();
+        damage = Math.ceil(damage);
+        target.hp -= damage;
+        target.flash = 1;
+
+        // do knockback
+        let [deltaX, deltaY] = scaleVectorToMagnitude(target.x - this.x, target.y - this.y, knockback);
+        const rotatedX = Math.cos(KNOCKBACK_ROTATION * deltaX) - Math.sin(KNOCKBACK_ROTATION * deltaY);
+        const rotatedY = Math.sin(KNOCKBACK_ROTATION * deltaX) + Math.cos(KNOCKBACK_ROTATION * deltaY);
+        target.moveByVector(rotatedX, rotatedY, false);
+
+        // log the hit with animation info
+        this.logEvent({
+          type: "animation",
+          fighter: target.index,
+          updates: {
+            hp: target.hp,
+            flash: target.flash
+          }
+        });
+        this.logEvent({
+          type: "text",
+          fighter: target.index,
+          text: damage.toString()
+        });
+        this.logEvent({
+          type: "particle",
+          fighter: target.index,
+          particleImg: "/static/damage.png"
+        });
+      }
+    } else if (chargeNeeded > this.charges) {
+      this.charge();
     }
   }
 
@@ -679,7 +765,7 @@ function fists(): EquipmentInBattle {
       const dps = 5 * self.fighter.meleeDamageMultiplier();
       let maxValue = 0;
       for (let target of self.fighter.enemies()) {
-        maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.timeToAttack(target)));
+        maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.timeToAttack(target, 0)));
       }
       return maxValue;
     },
@@ -688,13 +774,13 @@ function fists(): EquipmentInBattle {
       let bestTarget: FighterInBattle;
       let maxValue = 0;
       for (let target of self.fighter.enemies()) {
-        const value = self.fighter.valueOfAttack(target, dps, self.fighter.timeToAttack(target));
+        const value = self.fighter.valueOfAttack(target, dps, self.fighter.timeToAttack(target, 0));
         if (bestTarget === undefined || value > maxValue) {
           bestTarget = target;
           maxValue = value;
         }
       }
-      self.fighter.attemptMeleeAttack(bestTarget, 12 * self.fighter.meleeDamageMultiplier(), 2.4, 0.2);
+      self.fighter.attemptMeleeAttack(bestTarget, 12 * self.fighter.meleeDamageMultiplier(), 2.4, 0.2, 0);
     }
   }
 }

@@ -196,7 +196,7 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     price: 32,
     description: "Melee. Deals 70 [attuned: 90] damage. Cooldown 4s.",
     flavor: "learn this secret trick lumberjacks DON'T want you to know",
-    abilities: meleeAttackAbility("Battle Axe", 90, 70, 4, 4)
+    abilities: meleeAttackAbility("Battle Axe", 90, 70, 4, 4, 0, 0)
   },
   bow: {
     name: "Bow",
@@ -206,7 +206,7 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     price: 12,
     description: "Ranged. Deals 50 [attuned: 65] damage. Cooldown 5s.",
     flavor: "",
-    abilities: rangedAttackAbility("Bow", 65, 50, 5, 5, "/static/projectiles/arrow.png")
+    abilities: rangedAttackAbility("Bow", 65, 50, 5, 5, 0, 0, "/static/projectiles/arrow.png")
   },
   cornDog: {
     name: "Corn Dog",
@@ -300,7 +300,7 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     price: 25,
     description: "Ranged. Deals 40 [attuned: 50] damage. Cooldown 2s.",
     flavor: "",
-    abilities: rangedAttackAbility("Bow", 50, 40, 2, 2, "/static/projectiles/laser.png")
+    abilities: rangedAttackAbility("Bow", 50, 40, 2, 2, 0, 0, "/static/projectiles/laser.png")
   },
   rollerBlades: {
     name: "Roller Blades",
@@ -317,7 +317,7 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
           self.fighter.stats.toughness += 2;
         }
       },
-      ...meleeAttackAbility("Roller Blades", 30, 30, 4, 4)
+      ...meleeAttackAbility("Roller Blades", 30, 30, 4, 4, 0, 0)
     }
   },
   shield: {
@@ -345,7 +345,7 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     price: 20,
     description: "Melee. Deals 20 damage. Cooldown 2s [attuned: 1.5s].",
     flavor: "",
-    abilities: meleeAttackAbility("Shiv", 20, 20, 2, 1.5)
+    abilities: meleeAttackAbility("Shiv", 20, 20, 2, 1.5, 0, 0)
   },
   sportsJersey: {
     name: "Sports Jersey",
@@ -394,6 +394,16 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
         }
       }
     }
+  },
+  wandOfFlames: {
+    name: "Wand of the Great Pyromaniac",
+    slots: [EquipmentSlot.Hand],
+    imgUrl: "/static/equipment/wand-of-flames.png",
+    zoomedImgUrl: "/static/zoomed/equipment/wand-of-flames.png",
+    price: 40,
+    description: "Ranged. Deals 40 [attuned: 50] damage to all enemies. Requires 2 charges. Cooldown 1s.",
+    flavor: "",
+    abilities: aoeAttackAbility("Wand of Flames", 40, 50, 1, 1, 2, 2, "/static/projectiles/fireball.png")
   },
   zapHelmet: {
     name: "Zap Helmet",
@@ -478,38 +488,43 @@ function meleeAttackAbility(
   damageAttuned: number,
   damageUnattuned: number,
   cooldownAttuned: number,
-  cooldownUnattuned: number
+  cooldownUnattuned: number,
+  chargeNeededAttuned: number,
+  chargeNeededUnattuned: number
 ): Abilities {
   return {
     actionDanger: (self: EquipmentInBattle) => {
       const damage = self.fighter.attunements.includes(name) ? damageAttuned : damageUnattuned;
       const cooldown = self.fighter.attunements.includes(name) ? cooldownAttuned : cooldownUnattuned;
-      return damage / cooldown * self.fighter.meleeDamageMultiplier();
+      const chargeNeeded = self.fighter.attunements.includes(name) ? chargeNeededAttuned : chargeNeededUnattuned;
+      return damage / (cooldown + chargeNeeded * self.fighter.timeToCharge()) * self.fighter.meleeDamageMultiplier();
     },
     getActionPriority: (self: EquipmentInBattle) => {
       const damage = self.fighter.attunements.includes(name) ? damageAttuned : damageUnattuned;
       const cooldown = self.fighter.attunements.includes(name) ? cooldownAttuned : cooldownUnattuned;
-      const dps = damage / cooldown * self.fighter.meleeDamageMultiplier();
+      const chargeNeeded = self.fighter.attunements.includes(name) ? chargeNeededAttuned : chargeNeededUnattuned;
+      const dps = damage / (cooldown + chargeNeeded * self.fighter.timeToCharge()) * self.fighter.meleeDamageMultiplier();
       let maxValue = 0;
       for (let target of self.fighter.enemies()) {
-        maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.timeToAttack(target)));
+        maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.timeToAttack(target, chargeNeeded)));
       }
       return maxValue;
     },
     whenPrioritized: (self: EquipmentInBattle) => {
       const damage = self.fighter.attunements.includes(name) ? damageAttuned : damageUnattuned;
       const cooldown = self.fighter.attunements.includes(name) ? cooldownAttuned : cooldownUnattuned;
-      const dps = damage / cooldown * self.fighter.meleeDamageMultiplier();
+      const chargeNeeded = self.fighter.attunements.includes(name) ? chargeNeededAttuned : chargeNeededUnattuned;
+      const dps = damage / (cooldown + chargeNeeded * self.fighter.timeToCharge()) * self.fighter.meleeDamageMultiplier();
       let bestTarget: FighterInBattle;
       let maxValue = 0;
       for (let target of self.fighter.enemies()) {
-        const value = self.fighter.valueOfAttack(target, dps, self.fighter.timeToAttack(target));
+        const value = self.fighter.valueOfAttack(target, dps, self.fighter.timeToAttack(target, chargeNeeded));
         if (bestTarget === undefined || value > maxValue) {
           bestTarget = target;
           maxValue = value;
         }
       }
-      self.fighter.attemptMeleeAttack(bestTarget, damage * self.fighter.meleeDamageMultiplier(), cooldown, 0.5);
+      self.fighter.attemptMeleeAttack(bestTarget, damage * self.fighter.meleeDamageMultiplier(), cooldown, 0.5, chargeNeeded);
     }
   };
 }
@@ -520,38 +535,91 @@ function rangedAttackAbility(
   damageUnattuned: number,
   cooldownAttuned: number,
   cooldownUnattuned: number,
+  chargeNeededAttuned: number,
+  chargeNeededUnattuned: number,
   projectileImg: string
 ): Abilities {
   return {
     actionDanger: (self: EquipmentInBattle) => {
       const damage = self.fighter.attunements.includes(name) ? damageAttuned : damageUnattuned;
       const cooldown = self.fighter.attunements.includes(name) ? cooldownAttuned : cooldownUnattuned;
-      return damage / cooldown * self.fighter.rangedHitChance();
+      const chargeNeeded = self.fighter.attunements.includes(name) ? chargeNeededAttuned : chargeNeededUnattuned;
+      return damage / (cooldown + chargeNeeded * self.fighter.timeToCharge()) * self.fighter.rangedHitChance();
     },
     getActionPriority: (self: EquipmentInBattle) => {
       const damage = self.fighter.attunements.includes(name) ? damageAttuned : damageUnattuned;
       const cooldown = self.fighter.attunements.includes(name) ? cooldownAttuned : cooldownUnattuned;
-      const dps = damage / cooldown * self.fighter.rangedHitChance();
+      const chargeNeeded = self.fighter.attunements.includes(name) ? chargeNeededAttuned : chargeNeededUnattuned;
+      const chargeCooldownRemaining = Math.max(0, chargeNeeded - self.fighter.charges) * self.fighter.timeToCharge();
+      const dps = damage / (cooldown + chargeNeeded * self.fighter.timeToCharge()) * self.fighter.rangedHitChance();
       let maxValue = 0;
       for (let target of self.fighter.enemies()) {
-        maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.cooldown));
+        maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.cooldown + chargeCooldownRemaining));
       }
       return maxValue;
     },
     whenPrioritized: (self: EquipmentInBattle) => {
       const damage = self.fighter.attunements.includes(name) ? damageAttuned : damageUnattuned;
       const cooldown = self.fighter.attunements.includes(name) ? cooldownAttuned : cooldownUnattuned;
-      const dps = damage / cooldown * self.fighter.rangedHitChance();
+      const chargeNeeded = self.fighter.attunements.includes(name) ? chargeNeededAttuned : chargeNeededUnattuned;
+      const chargeCooldownRemaining = Math.max(0, chargeNeeded - self.fighter.charges) * self.fighter.timeToCharge();
+      const dps = damage / (cooldown + chargeNeeded * self.fighter.timeToCharge()) * self.fighter.rangedHitChance();
       let bestTarget: FighterInBattle;
       let maxValue = 0;
       for (let target of self.fighter.enemies()) {
-        const value = self.fighter.valueOfAttack(target, dps, self.fighter.cooldown);
+        const value = self.fighter.valueOfAttack(target, dps, self.fighter.cooldown + chargeCooldownRemaining);
         if (bestTarget === undefined || value > maxValue) {
           bestTarget = target;
           maxValue = value;
         }
       }
-      self.fighter.attemptRangedAttack(bestTarget, damage, cooldown, 0.5, projectileImg);
+      self.fighter.attemptRangedAttack(bestTarget, damage, cooldown, 0.5, chargeNeeded, projectileImg);
+    }
+  }
+}
+
+function aoeAttackAbility(
+  name: string,
+  damageAttuned: number,
+  damageUnattuned: number,
+  cooldownAttuned: number,
+  cooldownUnattuned: number,
+  chargeNeededAttuned: number,
+  chargeNeededUnattuned: number,
+  projectileImg: string
+): Abilities {
+  return {
+    actionDanger: (self: EquipmentInBattle) => {
+      const damage = self.fighter.attunements.includes(name) ? damageAttuned : damageUnattuned;
+      const cooldown = self.fighter.attunements.includes(name) ? cooldownAttuned : cooldownUnattuned;
+      const chargeNeeded = self.fighter.attunements.includes(name) ? chargeNeededAttuned : chargeNeededUnattuned;
+      let totalDamage = 0;
+      for (let target of self.fighter.enemies()) {
+        totalDamage += Math.min(damage * target.damageTakenMultiplier(), target.hp);
+      }
+      return totalDamage / (cooldown + chargeNeeded * self.fighter.timeToCharge());
+    },
+    getActionPriority: (self: EquipmentInBattle) => {
+      const damage = self.fighter.attunements.includes(name) ? damageAttuned : damageUnattuned;
+      const cooldown = self.fighter.attunements.includes(name) ? cooldownAttuned : cooldownUnattuned;
+      const chargeNeeded = self.fighter.attunements.includes(name) ? chargeNeededAttuned : chargeNeededUnattuned;
+      let totalDamage = 0;
+      for (let target of self.fighter.enemies()) {
+        totalDamage += Math.min(damage * target.damageTakenMultiplier(), target.hp);
+      }
+      const chargeCooldownRemaining = Math.max(0, chargeNeeded - self.fighter.charges) * self.fighter.timeToCharge();
+      const dps = totalDamage / (cooldown + chargeNeeded * self.fighter.timeToCharge()) * self.fighter.rangedHitChance();
+      let totalValue = 0;
+      for (let target of self.fighter.enemies()) {
+        totalValue += self.fighter.valueOfAttack(target, dps, self.fighter.cooldown + chargeCooldownRemaining);
+      }
+      return totalValue;
+    },
+    whenPrioritized: (self: EquipmentInBattle) => {
+      const damage = self.fighter.attunements.includes(name) ? damageAttuned : damageUnattuned;
+      const cooldown = self.fighter.attunements.includes(name) ? cooldownAttuned : cooldownUnattuned;
+      const chargeNeeded = self.fighter.attunements.includes(name) ? chargeNeededAttuned : chargeNeededUnattuned;
+      self.fighter.attemptAoeAttack(self.fighter.enemies(), damage, cooldown, 0.5, chargeNeeded, projectileImg);
     }
   }
 }

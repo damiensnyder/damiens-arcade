@@ -1,4 +1,4 @@
-import { EquipmentSlot, StatName, type Bracket, type Equipment, type Fighter, type PreseasonTeam, type Team } from "$lib/mayhem-manager/types";
+import { EquipmentSlot, type Bracket, type Equipment, type Fighter, type PreseasonTeam, type Team } from "$lib/mayhem-manager/types";
 
 export function getIndexByController(teams: Team[], controller: number): number | null {
   if (teams === undefined) return null;
@@ -75,35 +75,39 @@ export function nextMatch(bracket: Bracket): Bracket & {
 const STAT_VALUES = {
   strength: 0.01,
   accuracy: 0.01,
-  energy: 0,
+  energy: 0.01,
   speed: 0.01,
   toughness: 0.01
 }
 const FIGHTER_ABILITY_VALUES = {
-  noAbilities: 0.18,
+  noAbilities: 0.15,
 };
 const EQUIPMENT_ABILITY_VALUES = {
-  battleAxe: 0.15,
-  bow: 0.05,
-  cornDog: 0.03,
-  devilHorns: 0.04,
-  laserBlaster: 0.20,
-  rollerBlades: 0.09,
-  shield: 0.05,
-  shiv: 0.06,
-  sportsJersey: 0.01,
-  zapHelmet: 0.06,
+  battleAxe: 0.05,
+  bow: 0.01,
+  cornDog: 0.01,
+  devilHorns: 0.12,
+  laserBlaster: 0.10,
+  rollerBlades: 0.08,
+  shield: 0.02,
+  shiv: 0.01,
+  sportsJersey: 0.21,
+  vikingHelmet: 0.01,
+  wandOfFlames: 0.23,
+  zapHelmet: 0.09,
 }
 const EQUIPMENT_ATTUNEMENT_VALUES = {
   battleAxe: 0,
-  bow: 0.02,
+  bow: 0,
   cornDog: 0,
-  devilHorns: 0,
+  devilHorns: 0.01,
   laserBlaster: 0,
   rollerBlades: 0,
   shield: 0,
   shiv: 0,
   sportsJersey: 0,
+  vikingHelmet: 0,
+  wandOfFlames: 0,
   zapHelmet: 0,
 }
 const VALUE_TO_DOLLARS = 60;
