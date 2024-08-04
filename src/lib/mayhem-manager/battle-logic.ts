@@ -133,12 +133,17 @@ export class FighterInBattle {
         type: "animation",
         fighter: this.index,
         updates: {
+          stats: this.stats,
           tint: newTint
         }
       });
     }
 
-    this.cooldown -= TICK_LENGTH;
+    if (this.statusEffects.some((s) => s.name === "frozen")) {
+      this.cooldown -= TICK_LENGTH / 2;
+    } else {
+      this.cooldown -= TICK_LENGTH;
+    }
     if (this.cooldown < EPSILON) this.cooldown = 0;
 
     if (this.hp <= 0) return;  // do nothing if fighter is down
@@ -156,12 +161,14 @@ export class FighterInBattle {
     const positionAtStartOfTurn = [this.x, this.y];
 
     let bestAction: EquipmentInBattle;
-    let bestActionPriority = -1;
+    let bestActionPriority: number;
     this.equipment.forEach((e) => {
-      const actionPriority = e.getActionPriority?.(e) ?? 0;
-      if (actionPriority > bestActionPriority) {
-        bestAction = e;
-        bestActionPriority = actionPriority;
+      if (e.getActionPriority !== undefined) {
+        const actionPriority = e.getActionPriority(e);
+        if (actionPriority > bestActionPriority || bestAction === undefined) {
+          bestAction = e;
+          bestActionPriority = actionPriority;
+        }
       }
     });
     bestAction.whenPrioritized(bestAction);
@@ -353,7 +360,7 @@ export class FighterInBattle {
     });
   }
 
-  attemptMeleeAttack(target: FighterInBattle, damage: number, cooldown: number, knockback: number, chargeNeeded: number): void {
+  attemptMeleeAttack(target: FighterInBattle, equipmentUsed: EquipmentInBattle, damage: number, cooldown: number, knockback: number, chargeNeeded: number): void {
     const cooldownReachDifferential = this.timeToAttack(target, chargeNeeded) - this.timeToReach(target);
     if (this.distanceTo(target) > MELEE_RANGE && cooldownReachDifferential < 0.7) {
       this.moveTowards(target);
@@ -415,12 +422,19 @@ export class FighterInBattle {
         }
       });
       this.rotationState = RotationState.ForwardSwing;
+
+      this.equipment.forEach((e) => {
+        e.onHitDealt?.(e, target, damage, equipmentUsed);
+      });
+      target.equipment.forEach((e) => {
+        e.onHitTaken?.(e, this, damage, equipmentUsed);
+      });
     } else if (chargeNeeded > this.charges) {
       this.charge();
     }
   }
 
-  attemptRangedAttack(target: FighterInBattle, damage: number, cooldown: number, knockback: number, chargeNeeded: number, projectileImg: string): void {
+  attemptRangedAttack(target: FighterInBattle, equipmentUsed: EquipmentInBattle, damage: number, cooldown: number, knockback: number, chargeNeeded: number, projectileImg: string): void {
     // run away if any enemy can reach this fighter before the cooldown ends
     const enemiesThatCanReachBeforeShot = this.enemies().filter(
       (f) => f.timeToAttack(this, chargeNeeded) < this.cooldown
@@ -491,6 +505,13 @@ export class FighterInBattle {
           fighter: target.index,
           particleImg: "/static/damage.png"
         });
+
+        this.equipment.forEach((e) => {
+          e.onHitDealt?.(e, target, damage, equipmentUsed);
+        });
+        target.equipment.forEach((e) => {
+          e.onHitTaken?.(e, this, damage, equipmentUsed);
+        });
       } else {
         this.logEvent({
           type: "text",
@@ -498,16 +519,12 @@ export class FighterInBattle {
           text: "Missed"
         });
       }
-
-      this.equipment.forEach((e) => {
-        e.onHitDealt?.(e, target, damage);
-      });
     } else if (chargeNeeded > this.charges) {
       this.charge();
     }
   }
 
-  attemptAoeAttack(targets: FighterInBattle[], damage: number, cooldown: number, knockback: number, chargeNeeded: number, projectileImg: string): void {
+  attemptAoeAttack(targets: FighterInBattle[], equipmentUsed: EquipmentInBattle, damage: number, cooldown: number, knockback: number, chargeNeeded: number, projectileImg: string): void {
     // run away if any enemy can reach this fighter before the cooldown ends
     const enemiesThatCanReachBeforeShot = this.enemies().filter(
       (f) => f.timeToAttack(this, chargeNeeded) < this.cooldown
@@ -516,9 +533,9 @@ export class FighterInBattle {
       this.moveAwayFrom(enemiesThatCanReachBeforeShot[0]);
     }
     if (this.cooldown === 0 && this.charges >= chargeNeeded) {
+      this.cooldown = cooldown;
+      this.charges -= chargeNeeded;
       for (let target of targets) {
-        this.cooldown = cooldown;
-        this.charges -= chargeNeeded;
         this.logEvent({
           type: "projectile",
           fighter: this.index,
@@ -577,6 +594,13 @@ export class FighterInBattle {
           type: "particle",
           fighter: target.index,
           particleImg: "/static/damage.png"
+        });
+
+        this.equipment.forEach((e) => {
+          e.onHitDealt?.(e, target, damage, equipmentUsed);
+        });
+        target.equipment.forEach((e) => {
+          e.onHitTaken?.(e, this, damage, equipmentUsed);
         });
       }
     } else if (chargeNeeded > this.charges) {
@@ -784,7 +808,7 @@ function fists(): EquipmentInBattle {
           maxValue = value;
         }
       }
-      self.fighter.attemptMeleeAttack(bestTarget, 12 * self.fighter.meleeDamageMultiplier(), 2.4, 0.2, 0);
+      self.fighter.attemptMeleeAttack(bestTarget, self, 12 * self.fighter.meleeDamageMultiplier(), 2.4, 0.2, 0);
     }
   }
 }

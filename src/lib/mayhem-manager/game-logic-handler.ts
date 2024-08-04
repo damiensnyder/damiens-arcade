@@ -384,7 +384,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
     this.spotInDraftOrder = 0;
 
     // generate n + 4 random fighters to draft, where n is the number of teams
-    this.fighters = generateFighters(this.teams.length + 4, false, this);
+    this.fighters = generateFighters(Math.ceil(this.teams.length * 1.5 + 1), false, this);
     this.fighters.sort((a, b) => fighterValue(b) - fighterValue(a));
 
     this.emitEventToAll({
@@ -423,7 +423,7 @@ export default class MayhemManager extends GameLogicHandlerBase {
     // free agents are undrafted fighters and unsigned veterans, padded with random new ones if
     // there aren't enough
     this.fighters = this.unsignedVeterans.concat(this.fighters);
-    this.fighters = this.fighters.concat(generateFighters(this.teams.length + 4 - this.fighters.length, false, this));
+    this.fighters = this.fighters.concat(generateFighters(Math.ceil(this.teams.length * 1.5 + 1) - this.fighters.length, false, this));
     this.fighters.sort((a, b) => fighterValue(b) - fighterValue(a));
 
     // set price based on how good the fighter is and how old they are

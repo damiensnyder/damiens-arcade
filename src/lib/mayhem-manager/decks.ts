@@ -115,7 +115,7 @@ export function getFighterForPick(fighterKey: string,
     description: template.description,
     flavor: template.flavor,
     experience: 0,
-    price: template.price,
+    price: 0,
     attunements: [],
     abilityName: fighterKey
   };
@@ -196,7 +196,7 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     price: 32,
     description: "Melee. Deals 70 [attuned: 90] damage. Cooldown 4s.",
     flavor: "learn this secret trick lumberjacks DON'T want you to know",
-    abilities: meleeAttackAbility("Battle Axe", 90, 70, 4, 4, 0, 0)
+    abilities: meleeAttackAbility("Battle Axe", 70, 90, 4, 4, 0, 0)
   },
   bow: {
     name: "Bow",
@@ -206,7 +206,7 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     price: 12,
     description: "Ranged. Deals 50 [attuned: 65] damage. Cooldown 5s.",
     flavor: "",
-    abilities: rangedAttackAbility("Bow", 65, 50, 5, 5, 0, 0, "/static/projectiles/arrow.png")
+    abilities: rangedAttackAbility("Bow", 50, 65, 5, 5, 0, 0, "/static/projectiles/arrow.png")
   },
   cornDog: {
     name: "Corn Dog",
@@ -271,6 +271,94 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
           self.fighter.stats.energy += 2;
           self.fighter.stats.speed += 2;
         }
+        self.fighter.logEvent({
+          type: "animation",
+          fighter: self.fighter.index,
+          updates: {
+            stats: self.fighter.stats
+          }
+        });
+      }
+    }
+  },
+  diamondSword: {
+    name: "Diamond Sword",
+    slots: [EquipmentSlot.Hand],
+    imgUrl: "/static/equipment/diamond-sword.png",
+    zoomedImgUrl: "/static/zoomed/equipment/diamond-sword.png",
+    price: 30,
+    description: "Melee. Deals 50 [attuned: 65] damage. Cooldown 3s.",
+    flavor: "Durability: 858/1561; Bane of Arthropods IV",
+    abilities: meleeAttackAbility("Diamond Sword", 50, 65, 3, 3, 0, 0)
+  },
+  fairyHat: {
+    name: "Fairy Hat",
+    slots: [EquipmentSlot.Head],
+    imgUrl: "/static/equipment/fairy-hat.png",
+    zoomedImgUrl: "/static/zoomed/equipment/fairy-hat.png",
+    price: 15,
+    description: "On hit dealt: Freeze the target for 2s [attuned: 3s].",
+    flavor: "",
+    abilities: {
+      passiveDanger: (self: EquipmentInBattle) => {
+        return self.fighter.attunements.includes("Fairy Hat") ? 2 : 3;
+      },
+      onHitDealt: (self: EquipmentInBattle, target: FighterInBattle, _damage: number, _equipmentUsed: EquipmentInBattle) => {
+        target.stats.speed -= 4;
+        target.statusEffects.push({
+          name: "frozen",
+          duration: target.attunements.includes("Fairy Hat") ? 3 : 2,
+          tint: [0.5, 0.7, 1, 0.3],
+          onClear: (f: FighterInBattle) => {
+            f.stats.speed += 4;
+            self.fighter.logEvent({
+              type: "animation",
+              fighter: target.index,
+              updates: {
+                stats: target.stats,
+                tint: target.tint()
+              }
+            });
+          }
+        });
+        self.fighter.logEvent({
+          type: "animation",
+          fighter: target.index,
+          updates: {
+            stats: target.stats,
+            tint: target.tint()
+          }
+        });
+      }
+    }
+  },
+  flamingoFloaty: {
+    name: "Flamingo Floaty",
+    slots: [EquipmentSlot.Legs],
+    imgUrl: "/static/equipment/flamingo-floaty.png",
+    zoomedImgUrl: "/static/zoomed/equipment/flamingo-floaty.png",
+    price: 5,
+    description: "On hit taken: Prevent all damage. Remove Flamingo Floaty.",
+    flavor: "*pop!*",
+    abilities: {
+      onHitTaken: (self: EquipmentInBattle, _attacker: FighterInBattle, damage: number, _equipmentUsed: EquipmentInBattle) => {
+        self.fighter.hp += damage;
+        self.fighter.equipment.splice(self.fighter.equipment.indexOf(self), 1);
+        self.fighter.flash = 0;
+      }
+    }
+  },
+  frillySkirt: {
+    name: "Frilly Skirt",
+    slots: [EquipmentSlot.Legs],
+    imgUrl: "/static/equipment/frilly-skirt.png",
+    zoomedImgUrl: "/static/zoomed/equipment/frilly-skirt.png",
+    price: 17,
+    description: "Makes opponents much less likely to target the wearer.",
+    flavor: "you wouldn't hit someone in a frilly little skirt, would you?",
+    abilities: {
+      passiveDanger: (_self: EquipmentInBattle) => {
+        return -1000000;
       }
     }
   },
@@ -289,6 +377,39 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
         if (self.fighter.attunements.includes("Full Suit of Armor")) {
           self.fighter.stats.toughness += 3;
         }
+        self.fighter.logEvent({
+          type: "animation",
+          fighter: self.fighter.index,
+          updates: {
+            stats: self.fighter.stats
+          }
+        });
+      }
+    }
+  },
+  jellyhat: {
+    name: "Jellyhat",
+    slots: [EquipmentSlot.Head],
+    imgUrl: "/static/equipment/jellyhat.png",
+    zoomedImgUrl: "/static/zoomed/equipment/jellyhat.png",
+    price: 18,
+    description: "On hit taken: The attacker loses 10 HP.",
+    flavor: "",
+    abilities: {
+      onHitTaken: (self: EquipmentInBattle, attacker: FighterInBattle, _damage: number, _equipmentUsed: EquipmentInBattle) => {
+        attacker.hp -= 10;
+        self.fighter.logEvent({
+          type: "animation",
+          fighter: attacker.index,
+          updates: {
+            hp: attacker.hp
+          }
+        });
+        self.fighter.logEvent({
+          type: "text",
+          fighter: attacker.index,
+          text: "10"
+        });
       }
     }
   },
@@ -300,7 +421,31 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     price: 25,
     description: "Ranged. Deals 40 [attuned: 50] damage. Cooldown 2s.",
     flavor: "",
-    abilities: rangedAttackAbility("Bow", 50, 40, 2, 2, 0, 0, "/static/projectiles/laser.png")
+    abilities: rangedAttackAbility("Bow", 40, 50, 2, 2, 0, 0, "/static/projectiles/laser.png")
+  },
+  rhinocerosBeetleHorn: {
+    name: "Rhinoceros Beetle Horn",
+    slots: [EquipmentSlot.Head],
+    imgUrl: "/static/equipment/rhinoceros-beetle-horn.png",
+    zoomedImgUrl: "/static/zoomed/equipment/rhinoceros-beetle-horn.png",
+    price: 10,
+    description: "On hit dealt: Gain +1 [attuned: +1.5] strength.",
+    flavor: "the rhinoceros beetle is the strongest creature on earth",
+    abilities: {
+      onHitDealt: (self: EquipmentInBattle, _target: FighterInBattle, _damage: number, _equipmentUsed: EquipmentInBattle) => {
+        self.fighter.stats.strength += 2;
+        if (self.fighter.attunements.includes("Rhinoceros Beetle Horn")) {
+          self.fighter.stats.strength += 1;
+        }
+        self.fighter.logEvent({
+          type: "animation",
+          fighter: self.fighter.index,
+          updates: {
+            stats: self.fighter.stats
+          }
+        });
+      }
+    }
   },
   rollerBlades: {
     name: "Roller Blades",
@@ -316,6 +461,13 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
         if (self.fighter.attunements.includes("Roller Blades")) {
           self.fighter.stats.toughness += 2;
         }
+        self.fighter.logEvent({
+          type: "animation",
+          fighter: self.fighter.index,
+          updates: {
+            stats: self.fighter.stats
+          }
+        });
       },
       ...meleeAttackAbility("Roller Blades", 30, 30, 4, 4, 0, 0)
     }
@@ -334,6 +486,13 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
         if (self.fighter.attunements.includes("Shield")) {
           self.fighter.stats.toughness += 2;
         }
+        self.fighter.logEvent({
+          type: "animation",
+          fighter: self.fighter.index,
+          updates: {
+            stats: self.fighter.stats
+          }
+        });
       }
     }
   },
@@ -346,6 +505,48 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     description: "Melee. Deals 20 damage. Cooldown 2s [attuned: 1.5s].",
     flavor: "",
     abilities: meleeAttackAbility("Shiv", 20, 20, 2, 1.5, 0, 0)
+  },
+  snowmanHead: {
+    name: "Snowman Head",
+    slots: [EquipmentSlot.Head],
+    imgUrl: "/static/equipment/snowman-head.png",
+    zoomedImgUrl: "/static/zoomed/equipment/snowman-head.png",
+    price: 22,
+    description: "Ranged. Deals 10 damage. Cooldown 1s. On hit dealt: Freeze the target for 1s [attuned: 2s].",
+    flavor: "the snowman's revenge",
+    abilities: {
+      ...rangedAttackAbility("Snowman Head", 10, 10, 1, 1, 0, 0, "/static/projectiles/snowball.png"),
+      // TODO: make this attack higher priority
+      onHitDealt: (self: EquipmentInBattle, target: FighterInBattle, _damage: number, equipmentUsed: EquipmentInBattle) => {
+        if (equipmentUsed === self) {
+          target.stats.speed -= 2;
+          target.statusEffects.push({
+            name: "frozen",
+            duration: target.attunements.includes("Snowman Head") ? 2 : 1,
+            tint: [0.5, 0.7, 1, 0.3],
+            onClear: (f: FighterInBattle) => {
+              f.stats.speed += 4;
+              self.fighter.logEvent({
+                type: "animation",
+                fighter: target.index,
+                updates: {
+                  stats: target.stats,
+                  tint: target.tint()
+                }
+              });
+            }
+          });
+          self.fighter.logEvent({
+            type: "animation",
+            fighter: target.index,
+            updates: {
+              stats: target.stats,
+              tint: target.tint()
+            }
+          });
+        }
+      }
+    }
   },
   sportsJersey: {
     name: "Sports Jersey",
@@ -371,6 +572,13 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
               self.fighter.stats.speed += 2;
               self.fighter.stats.toughness += 2;
             }
+            self.fighter.logEvent({
+              type: "animation",
+              fighter: self.fighter.index,
+              updates: {
+                stats: self.fighter.stats
+              }
+            });
           }
         }
       }
@@ -392,6 +600,13 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
           self.fighter.stats.strength += 1;
           self.fighter.stats.toughness += 1;
         }
+        self.fighter.logEvent({
+          type: "animation",
+          fighter: self.fighter.index,
+          updates: {
+            stats: self.fighter.stats
+          }
+        });
       }
     }
   },
@@ -402,7 +617,7 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     zoomedImgUrl: "/static/zoomed/equipment/wand-of-flames.png",
     price: 40,
     description: "Ranged. Deals 40 [attuned: 50] damage to all enemies. Requires 2 charges. Cooldown 1s.",
-    flavor: "the Great Pyromaniac was a little *too* great",
+    flavor: "the Great Pyromaniac might have been a little *too* great",
     abilities: aoeAttackAbility("Wand of Flames", 40, 50, 1, 1, 2, 2, "/static/projectiles/fireball.png")
   },
   zapHelmet: {
@@ -484,12 +699,36 @@ export const fighterAbilitiesCatalog: Record<string, FighterTemplate> = {
     flavor: "just has a little more \"oomph\"",
     price: 15,
     abilities: {
-      onHitDealt: (self: EquipmentInBattle, target: FighterInBattle, _damage: number) => {
+      onHitDealt: (self: EquipmentInBattle, target: FighterInBattle, _damage: number, _equipmentUsed: EquipmentInBattle) => {
         target.hp -= 5;
+        self.fighter.logEvent({
+          type: "animation",
+          fighter: target.index,
+          updates: {
+            hp: target.hp
+          }
+        });
         self.fighter.logEvent({
           type: "text",
           fighter: target.index,
           text: "5"
+        });
+      }
+    }
+  },
+  gainStrengthOnHitTaken: {
+    description: "On hit taken: Gain 1 strength.",
+    flavor: "",
+    price: 8,
+    abilities: {
+      onHitTaken: (self: EquipmentInBattle, _attacker: FighterInBattle, _damage: number, _equipmentUsed: EquipmentInBattle) => {
+        self.fighter.stats.strength += 1;
+        self.fighter.logEvent({
+          type: "animation",
+          fighter: self.fighter.index,
+          updates: {
+            stats: self.fighter.stats
+          }
         });
       }
     }
@@ -518,12 +757,12 @@ export const fighterAbilitiesCatalog: Record<string, FighterTemplate> = {
 
 function meleeAttackAbility(
   name: string,
-  damageAttuned: number,
   damageUnattuned: number,
-  cooldownAttuned: number,
+  damageAttuned: number,
   cooldownUnattuned: number,
-  chargeNeededAttuned: number,
-  chargeNeededUnattuned: number
+  cooldownAttuned: number,
+  chargeNeededUnattuned: number,
+  chargeNeededAttuned: number
 ): Abilities {
   return {
     actionDanger: (self: EquipmentInBattle) => {
@@ -557,19 +796,19 @@ function meleeAttackAbility(
           maxValue = value;
         }
       }
-      self.fighter.attemptMeleeAttack(bestTarget, damage * self.fighter.meleeDamageMultiplier(), cooldown, 0.5, chargeNeeded);
+      self.fighter.attemptMeleeAttack(bestTarget, self, damage * self.fighter.meleeDamageMultiplier(), cooldown, 0.5, chargeNeeded);
     }
   };
 }
 
 function rangedAttackAbility(
   name: string,
-  damageAttuned: number,
   damageUnattuned: number,
-  cooldownAttuned: number,
+  damageAttuned: number,
   cooldownUnattuned: number,
-  chargeNeededAttuned: number,
+  cooldownAttuned: number,
   chargeNeededUnattuned: number,
+  chargeNeededAttuned: number,
   projectileImg: string
 ): Abilities {
   return {
@@ -606,19 +845,19 @@ function rangedAttackAbility(
           maxValue = value;
         }
       }
-      self.fighter.attemptRangedAttack(bestTarget, damage, cooldown, 0.5, chargeNeeded, projectileImg);
+      self.fighter.attemptRangedAttack(bestTarget, self, damage, cooldown, 0.5, chargeNeeded, projectileImg);
     }
   }
 }
 
 function aoeAttackAbility(
   name: string,
-  damageAttuned: number,
   damageUnattuned: number,
-  cooldownAttuned: number,
+  damageAttuned: number,
   cooldownUnattuned: number,
-  chargeNeededAttuned: number,
+  cooldownAttuned: number,
   chargeNeededUnattuned: number,
+  chargeNeededAttuned: number,
   projectileImg: string
 ): Abilities {
   return {
@@ -652,7 +891,7 @@ function aoeAttackAbility(
       const damage = self.fighter.attunements.includes(name) ? damageAttuned : damageUnattuned;
       const cooldown = self.fighter.attunements.includes(name) ? cooldownAttuned : cooldownUnattuned;
       const chargeNeeded = self.fighter.attunements.includes(name) ? chargeNeededAttuned : chargeNeededUnattuned;
-      self.fighter.attemptAoeAttack(self.fighter.enemies(), damage, cooldown, 0.5, chargeNeeded, projectileImg);
+      self.fighter.attemptAoeAttack(self.fighter.enemies(), self, damage, cooldown, 0.5, chargeNeeded, projectileImg);
     }
   }
 }

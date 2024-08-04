@@ -212,7 +212,8 @@ export interface Abilities {
   whenPrioritized?: (self: EquipmentInBattle) => void
   onFightStart?: (self: EquipmentInBattle) => void
   onTick?: (self: EquipmentInBattle) => void
-  onHitDealt?: (self: EquipmentInBattle, target: FighterInBattle, damage: number) => void
+  onHitDealt?: (self: EquipmentInBattle, target: FighterInBattle, damage: number, equipmentUsed: EquipmentInBattle) => void
+  onHitTaken?: (self: EquipmentInBattle, attacker: FighterInBattle, damage: number, equipmentUsed: EquipmentInBattle) => void
 }
 
 export interface EquipmentInBattle extends Abilities {
