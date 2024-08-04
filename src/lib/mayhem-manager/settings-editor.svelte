@@ -1,6 +1,6 @@
 <script lang="ts">
   import { host, lastAction, pov, roomName } from "$lib/stores";
-  import { leagueExport, rawSettings } from "$lib/mayhem-manager/stores";
+  import { leagueExport } from "$lib/mayhem-manager/stores";
   import RoomSettingsEditor from "$lib/room-settings-editor.svelte";
   import type { MayhemManagerExport } from "./types";
 

@@ -1,37 +1,15 @@
-import { readFileSync, writeFileSync } from "fs";
-import { EquipmentSlot, type Equipment, type FighterInBattle, type FighterNames, type FighterTemplate, type MidFightEvent, type Settings, type Team, type MayhemManagerEvent, StatName, Target, Trigger, type TriggeredEffect, type Effect, type EquipmentTemplate, ActionAnimation, type Abilities } from "$lib/mayhem-manager/types";
+import { writeFileSync } from "fs";
+import { EquipmentSlot, type Equipment, type MidFightEvent, type Team, type Fighter, type FighterStats, type Appearance, type EquipmentInBattle, RotationState, type Tint, type MFAnimationEvent, type StatusEffect } from "$lib/mayhem-manager/types";
 import type { RNG } from "$lib/types";
+import { getEquipmentForBattle, getFighterAbilityForBattle } from "./decks";
 
 const DEBUG = false;
-
-export const FISTS: Equipment = {
-  name: "fists",
-  imgUrl: "",
-  zoomedImgUrl: "",
-  slots: [],
-  abilities: {
-    action: {
-      target: Target.Melee,
-      effects: [{
-        type: "damage",
-        amount: 8
-      }],
-      cooldown: 4
-    },
-    aiHints: {
-      actionDanger: 2,
-      actionStat: StatName.Strength
-    }
-  },
-  yearsOwned: 0,
-  price: 0,
-  description: "",
-  flavor: ""
-};
 const CROWDING_DISTANCE = 3;  // at less than this distance, fighters repel
-const MELEE_RANGE = 4;  // at less than this distance, fighters repel
+export const MELEE_RANGE = 4;  // at less than this distance, fighters repel
 export const TICK_LENGTH = 0.2;  // length of a tick in seconds
-const EPSILON = 0.00001;  // to account for rounding errors
+export const EPSILON = 0.00001;  // to account for rounding errors
+const INITIAL_COOLDOWN = 3;  // seconds of cooldown fighters start the battle with
+const KNOCKBACK_ROTATION = Math.PI / 12;
 
 
 
@@ -80,24 +58,579 @@ export function isValidEquipmentTournament(team: Team, equipment: number[][]): b
   return true;
 }
 
-// Simulate the fight and return the order of teams in it, going from winner to first out
-export function simulateFight(
-  eventEmitter: (event: MayhemManagerEvent) => void,
-  rng: RNG,
-  fighters: FighterInBattle[]
-): number[] {
-  const fight = new Fight(rng, fighters);
-  fight.simulate();
-  eventEmitter({
-    type: "fight",
-    eventLog: fight.eventLog
-  });
-  return fight.placementOrder;
+
+
+export class FighterInBattle {
+  team: number
+  name: string
+  description: string
+  flavor: string
+  experience: number
+  hp: number
+  x: number
+  y: number
+  cooldown: number
+  charges: number
+  stats: FighterStats
+  appearance: Appearance
+  attunements: string[]
+  statusEffects: StatusEffect[]
+  flash: number
+  rotationState: RotationState
+  fight?: Fight
+  index?: number
+  equipment: EquipmentInBattle[]
+
+  constructor(fighter: Fighter, equipment: Equipment[], team: number) {
+    this.team = team;
+    this.name = fighter.name;
+    this.description = fighter.description;
+    this.flavor = fighter.flavor;
+    this.experience = fighter.experience;
+    this.hp = 100;
+    this.x = 0;
+    this.y = 0;
+    this.cooldown = 3;
+    this.charges = 0;
+    this.stats = { ...fighter.stats };
+    this.appearance = fighter.appearance;
+    this.attunements = fighter.attunements;
+    this.statusEffects = [];
+    this.flash = 0;
+    this.rotationState = RotationState.Stationary1;
+    this.equipment = [
+      fists(),
+      getFighterAbilityForBattle(fighter.abilityName, this)
+    ].concat(
+      equipment.map(e => getEquipmentForBattle(e.abilityName, this))
+    );
+  }
+
+  // decay or remove any temporary effects that were present at start of turn
+  decayEffects(): void {
+    if (this.flash > 0) {
+      this.flash = Math.max(this.flash - 0.75, 0);
+      this.logEvent({
+        type: "animation",
+        fighter: this.index,
+        updates: {
+          flash: this.flash
+        }
+      });
+    }
+
+    const oldTint = this.tint();
+    this.statusEffects.forEach((s) => {
+      s.duration -= TICK_LENGTH;
+      if (s.duration <= 0) {
+        s.onClear(this);
+      }
+    });
+    this.statusEffects = this.statusEffects.filter((s) => s.duration > 0);
+    const newTint = this.tint();
+    if (newTint.some((x, i) => x !== oldTint[i])) {
+      this.logEvent({
+        type: "animation",
+        fighter: this.index,
+        updates: {
+          stats: this.stats,
+          tint: newTint
+        }
+      });
+    }
+
+    if (this.statusEffects.some((s) => s.name === "frozen")) {
+      this.cooldown -= TICK_LENGTH / 2;
+    } else {
+      this.cooldown -= TICK_LENGTH;
+    }
+    if (this.cooldown < EPSILON) this.cooldown = 0;
+
+    if (this.hp <= 0) return;  // do nothing if fighter is down
+    if (this.enemies().length === 0) return;  // do nothing if no enemies
+
+    this.equipment.forEach((e) => {
+      e.onTick?.(e);
+    });
+  }
+
+  act(): void {
+    if (this.hp <= 0) return;  // do nothing if fighter is down
+    if (this.enemies().length === 0) return;  // do nothing if no enemies
+
+    const positionAtStartOfTurn = [this.x, this.y];
+
+    let bestAction: EquipmentInBattle;
+    let bestActionPriority: number;
+    this.equipment.forEach((e) => {
+      if (e.getActionPriority !== undefined) {
+        const actionPriority = e.getActionPriority(e);
+        if (actionPriority > bestActionPriority || bestAction === undefined) {
+          bestAction = e;
+          bestActionPriority = actionPriority;
+        }
+      }
+    });
+    bestAction.whenPrioritized(bestAction);
+
+    // return to stationary if not moving
+    if (this.x === positionAtStartOfTurn[0] && this.y === positionAtStartOfTurn[1]) {
+      this.rotationState = RotationState.Stationary1;
+      this.logEvent({
+        type: "animation",
+        fighter: this.index,
+        updates: {
+          rotation: this.rotationState
+        }
+      });
+    }
+  }
+
+  // merge the tints of all status effects
+  tint(): Tint {
+    let ret: Tint = [0, 0, 0, 0];
+    for (let se of this.statusEffects) {
+      if (se.tint) {
+        if (ret.every(x => x === 0)) {
+          ret = se.tint;
+        } else {
+          ret = ret.map((x, i) => x / 2 + se.tint[i] / 2) as Tint;
+        }
+      }
+    }
+    return ret;
+  }
+
+  distanceTo(f: FighterInBattle): number {
+    return Math.sqrt((this.x - f.x) ** 2 + (this.y - f.y) ** 2);
+  }
+
+  teammates(): FighterInBattle[] {
+    return this.fight.fighters.filter(f => f.team === this.team && f.hp > 0);
+  }
+
+  enemies(): FighterInBattle[] {
+    return this.fight.fighters.filter(f => f.team !== this.team && f.hp > 0);
+  }
+
+  meleeDamageMultiplier(): number {
+    // cannot have less than 25% multiplier
+    return Math.max(0.5 + 0.1 * this.stats.strength, 0.25);
+  }
+
+  rangedHitChance(): number {
+    // hit chance must be between 0% and 100%
+    return Math.max(0, 
+      Math.min(0.25 + 0.05 * this.stats.accuracy, 1)
+    );
+  }
+
+  speedInMetersPerSecond(): number {
+    // cannot move slower than 1 m/s
+    return Math.max(5 + 1 * this.stats.speed, 1);
+  }
+
+  timeToCharge(): number {
+    // cannot charge faster than 1s
+    return Math.max(6 - 0.4 * this.stats.energy, 1);
+  }
+
+  damageTakenMultiplier(): number {
+    // cannot reduce incoming damage by more than 50%
+    return Math.max(1.25 - 0.05 * this.stats.toughness, 0.5);
+  }
+
+  effectiveHp(): number {
+    // cannot reduce incoming damage by more than 50%
+    return this.hp / this.damageTakenMultiplier();
+  }
+
+  timeToReach(target: FighterInBattle): number {
+    return Math.max(this.distanceTo(target) - MELEE_RANGE, 0) / this.speedInMetersPerSecond();
+  }
+
+  timeToAttack(target: FighterInBattle, chargeNeeded: number): number {
+    return Math.max(
+      this.cooldown + this.timeToCharge() * Math.max(chargeNeeded - this.charges, 0),
+      this.timeToReach(target)
+    );
+  }
+
+  valueOfAttack(target: FighterInBattle, dps: number, timeUntilFirst: number): number {
+    return target.fighterDanger() / (timeUntilFirst + (target.effectiveHp() / dps));
+  }
+  
+  fighterDanger(): number {
+    let bestActionDanger = 0;
+    let passiveDanger = 0;
+    for (let e of this.equipment) {
+      if (e.actionDanger) {
+        bestActionDanger = Math.max(bestActionDanger, e.actionDanger(e));
+      }
+      if (e.passiveDanger) {
+        passiveDanger += e.passiveDanger(e);
+      }
+    }
+    return bestActionDanger + passiveDanger;
+  }
+
+  moveByVector(deltaX: number, deltaY: number, causeFlip: boolean = true): void {
+    // if too close to the wall, change direction to be less close to the wall.
+    if (this.x + deltaX < CROWDING_DISTANCE) {
+      deltaX = Math.abs(deltaX);
+    } else if (this.x + deltaX > 100 - CROWDING_DISTANCE) {
+      deltaX = -Math.abs(deltaX);
+    }
+    if (this.y + deltaY < CROWDING_DISTANCE) {
+      deltaY = Math.abs(deltaY);
+      // being past the bottom of the screen is worse 
+    } else if (this.y + deltaY > 100 - CROWDING_DISTANCE) {
+      deltaY = -Math.abs(deltaY);
+    }
+    this.x += deltaX;
+    this.y += deltaY;
+    this.fight.uncrowd(this);
+
+    // go to next rotation state
+    switch (this.rotationState) {
+      case RotationState.Stationary1:
+        this.rotationState = RotationState.WalkingStart1;
+        break;
+      case RotationState.WalkingStart1:
+        this.rotationState = RotationState.Walking1;
+        break;
+      case RotationState.Walking1:
+        this.rotationState = RotationState.Stationary2;
+        break;
+      case RotationState.Stationary2:
+        this.rotationState = RotationState.WalkingStart2;
+        break;
+      case RotationState.WalkingStart2:
+        this.rotationState = RotationState.Walking2;
+        break;
+      default:
+        this.rotationState = RotationState.Stationary1;
+    }
+
+    this.logEvent({
+      type: "animation",
+      fighter: this.index,
+      updates: {
+        x: Number(this.x.toFixed(2)),
+        y: Number(this.y.toFixed(2)),
+        rotation: this.rotationState
+      }
+    });
+    if (causeFlip) {
+      this.logEvent({
+        type: "animation",
+        fighter: this.index,
+        updates: {
+          facing: deltaX > 0 ? -1 : 1
+        }
+      });
+    }
+  }
+
+  moveTowards(target: FighterInBattle): void {
+    const distanceToMove = Math.max(
+      Math.min(
+        this.speedInMetersPerSecond() * TICK_LENGTH,
+        this.distanceTo(target) - CROWDING_DISTANCE
+      ),
+      0
+    );
+    let [deltaX, deltaY] = scaleVectorToMagnitude(target.x - this.x, target.y - this.y, distanceToMove);
+    this.moveByVector(deltaX, deltaY);
+  }
+
+  moveAwayFrom(target: FighterInBattle): void {
+    const distanceToMove = this.speedInMetersPerSecond() * TICK_LENGTH;
+    let [deltaX, deltaY] = scaleVectorToMagnitude(this.x - target.x, this.y - target.y, distanceToMove);
+    this.moveByVector(deltaX, deltaY, false);
+  }
+
+  charge(): void {
+    this.charges += 1;
+    this.cooldown = this.timeToCharge();
+    this.logEvent({
+      type: "particle",
+      fighter: this.index,
+      particleImg: "/static/charge.png"
+    });
+  }
+
+  attemptMeleeAttack(target: FighterInBattle, equipmentUsed: EquipmentInBattle, damage: number, cooldown: number, knockback: number, chargeNeeded: number): void {
+    const cooldownReachDifferential = this.timeToAttack(target, chargeNeeded) - this.timeToReach(target);
+    if (this.distanceTo(target) > MELEE_RANGE && cooldownReachDifferential < 0.7) {
+      this.moveTowards(target);
+    } else if (cooldownReachDifferential > 0.7) {
+      this.moveAwayFrom(target);
+    }
+    if (this.distanceTo(target) < MELEE_RANGE && this.cooldown === 0 && this.charges >= chargeNeeded) {
+      damage *= target.damageTakenMultiplier();
+      damage = Math.ceil(damage);
+      target.hp -= damage;
+      this.cooldown = cooldown;
+      this.charges -= chargeNeeded;
+      target.flash = 1;
+
+      // do knockback
+      let [deltaX, deltaY] = scaleVectorToMagnitude(target.x - this.x, target.y - this.y, knockback);
+      const rotatedX = Math.cos(KNOCKBACK_ROTATION * deltaX) - Math.sin(KNOCKBACK_ROTATION * deltaY);
+      const rotatedY = Math.sin(KNOCKBACK_ROTATION * deltaX) + Math.cos(KNOCKBACK_ROTATION * deltaY);
+      target.moveByVector(rotatedX, rotatedY, false);
+
+      // log the hit with animation info
+      this.logEvent({
+        type: "animation",
+        fighter: target.index,
+        updates: {
+          hp: target.hp,
+          flash: target.flash
+        }
+      });
+      this.logEvent({
+        type: "text",
+        fighter: target.index,
+        text: damage.toString()
+      });
+      this.logEvent({
+        type: "particle",
+        fighter: target.index,
+        particleImg: "/static/damage.png"
+      });
+      this.logEvent({
+        type: "animation",
+        fighter: this.index,
+        updates: {
+          rotation: RotationState.BackswingStart
+        }
+      }, 2);
+      this.logEvent({
+        type: "animation",
+        fighter: this.index,
+        updates: {
+          rotation: RotationState.Backswing
+        }
+      }, 1);
+      this.logEvent({
+        type: "animation",
+        fighter: this.index,
+        updates: {
+          rotation: RotationState.ForwardSwing
+        }
+      });
+      this.rotationState = RotationState.ForwardSwing;
+
+      this.equipment.forEach((e) => {
+        e.onHitDealt?.(e, target, damage, equipmentUsed);
+      });
+      target.equipment.forEach((e) => {
+        e.onHitTaken?.(e, this, damage, equipmentUsed);
+      });
+    } else if (chargeNeeded > this.charges) {
+      this.charge();
+    }
+  }
+
+  attemptRangedAttack(target: FighterInBattle, equipmentUsed: EquipmentInBattle, damage: number, cooldown: number, knockback: number, chargeNeeded: number, projectileImg: string): void {
+    // run away if any enemy can reach this fighter before the cooldown ends
+    const enemiesThatCanReachBeforeShot = this.enemies().filter(
+      (f) => f.timeToAttack(this, chargeNeeded) < this.cooldown
+    );
+    if (enemiesThatCanReachBeforeShot.length > 0) {
+      this.moveAwayFrom(enemiesThatCanReachBeforeShot[0]);
+    }
+    if (this.cooldown === 0 && this.charges >= chargeNeeded) {
+      this.cooldown = cooldown;
+      this.charges -= chargeNeeded;
+      this.logEvent({
+        type: "projectile",
+        fighter: this.index,
+        target: target.index,
+        projectileImg
+      });
+      this.logEvent({
+        type: "animation",
+        fighter: this.index,
+        updates: {
+          rotation: RotationState.AimStart
+        }
+      }, 2);
+      this.logEvent({
+        type: "animation",
+        fighter: this.index,
+        updates: {
+          rotation: RotationState.Aim
+        }
+      }, 1);
+      this.logEvent({
+        type: "animation",
+        fighter: this.index,
+        updates: {
+          rotation: RotationState.ForwardSwing
+        }
+      });
+
+      // do damage + animations if the attack hits
+      if (this.fight.rng.randReal() < this.rangedHitChance()) {
+        damage *= target.damageTakenMultiplier();
+        damage = Math.ceil(damage);
+        target.hp -= damage;
+        target.flash = 1;
+
+        // do knockback
+        let [deltaX, deltaY] = scaleVectorToMagnitude(target.x - this.x, target.y - this.y, knockback);
+        const rotatedX = Math.cos(KNOCKBACK_ROTATION * deltaX) - Math.sin(KNOCKBACK_ROTATION * deltaY);
+        const rotatedY = Math.sin(KNOCKBACK_ROTATION * deltaX) + Math.cos(KNOCKBACK_ROTATION * deltaY);
+        target.moveByVector(rotatedX, rotatedY, false);
+
+        // log the hit with animation info
+        this.logEvent({
+          type: "animation",
+          fighter: target.index,
+          updates: {
+            hp: target.hp,
+            flash: target.flash
+          }
+        });
+        this.logEvent({
+          type: "text",
+          fighter: target.index,
+          text: damage.toString()
+        });
+        this.logEvent({
+          type: "particle",
+          fighter: target.index,
+          particleImg: "/static/damage.png"
+        });
+
+        this.equipment.forEach((e) => {
+          e.onHitDealt?.(e, target, damage, equipmentUsed);
+        });
+        target.equipment.forEach((e) => {
+          e.onHitTaken?.(e, this, damage, equipmentUsed);
+        });
+      } else {
+        this.logEvent({
+          type: "text",
+          fighter: target.index,
+          text: "Missed"
+        });
+      }
+    } else if (chargeNeeded > this.charges) {
+      this.charge();
+    }
+  }
+
+  attemptAoeAttack(targets: FighterInBattle[], equipmentUsed: EquipmentInBattle, damage: number, cooldown: number, knockback: number, chargeNeeded: number, projectileImg: string): void {
+    // run away if any enemy can reach this fighter before the cooldown ends
+    const enemiesThatCanReachBeforeShot = this.enemies().filter(
+      (f) => f.timeToAttack(this, chargeNeeded) < this.cooldown
+    );
+    if (enemiesThatCanReachBeforeShot.length > 0) {
+      this.moveAwayFrom(enemiesThatCanReachBeforeShot[0]);
+    }
+    if (this.cooldown === 0 && this.charges >= chargeNeeded) {
+      this.cooldown = cooldown;
+      this.charges -= chargeNeeded;
+      for (let target of targets) {
+        this.logEvent({
+          type: "projectile",
+          fighter: this.index,
+          target: target.index,
+          projectileImg
+        });
+        this.logEvent({
+          type: "animation",
+          fighter: this.index,
+          updates: {
+            rotation: RotationState.AimStart
+          }
+        }, 2);
+        this.logEvent({
+          type: "animation",
+          fighter: this.index,
+          updates: {
+            rotation: RotationState.Aim
+          }
+        }, 1);
+        this.logEvent({
+          type: "animation",
+          fighter: this.index,
+          updates: {
+            rotation: RotationState.ForwardSwing
+          }
+        });
+
+        // do damage + animations if the attack hits
+        damage *= target.damageTakenMultiplier();
+        damage = Math.ceil(damage);
+        target.hp -= damage;
+        target.flash = 1;
+
+        // do knockback
+        let [deltaX, deltaY] = scaleVectorToMagnitude(target.x - this.x, target.y - this.y, knockback);
+        const rotatedX = Math.cos(KNOCKBACK_ROTATION * deltaX) - Math.sin(KNOCKBACK_ROTATION * deltaY);
+        const rotatedY = Math.sin(KNOCKBACK_ROTATION * deltaX) + Math.cos(KNOCKBACK_ROTATION * deltaY);
+        target.moveByVector(rotatedX, rotatedY, false);
+
+        // log the hit with animation info
+        this.logEvent({
+          type: "animation",
+          fighter: target.index,
+          updates: {
+            hp: target.hp,
+            flash: target.flash
+          }
+        });
+        this.logEvent({
+          type: "text",
+          fighter: target.index,
+          text: damage.toString()
+        });
+        this.logEvent({
+          type: "particle",
+          fighter: target.index,
+          particleImg: "/static/damage.png"
+        });
+
+        this.equipment.forEach((e) => {
+          e.onHitDealt?.(e, target, damage, equipmentUsed);
+        });
+        target.equipment.forEach((e) => {
+          e.onHitTaken?.(e, this, damage, equipmentUsed);
+        });
+      }
+    } else if (chargeNeeded > this.charges) {
+      this.charge();
+    }
+  }
+
+  logEvent(event: MidFightEvent, ticksAgo: number = 0): void {
+    const tick = this.fight.eventLog[this.fight.eventLog.length - 1 - ticksAgo];
+    // if this is not an animation tick or this fighter doesn't have a previous animation tick,
+    // just push to the tick like normal
+    // otherwise, merge with the last animation tick (overwriting where conflicts exist)
+    const animationEventForFighter = tick.filter(e => e.type === "animation" && event.type === "animation" && e.fighter === event.fighter);
+    if (event.type === "animation" && animationEventForFighter.length > 0) {
+      const existingEvent: MFAnimationEvent = animationEventForFighter[0] as MFAnimationEvent;
+      existingEvent.updates = {
+        ...existingEvent.updates,
+        ...event.updates
+      };
+    } else {
+      tick.push(event);
+    }
+  }
 }
 
-class Fight {
-  private rng: RNG
-  private fighters: FighterInBattle[]
+
+
+export class Fight {
+  rng: RNG
+  fighters: FighterInBattle[]
   eventLog: MidFightEvent[][]
   placementOrder: number[]
 
@@ -106,70 +639,74 @@ class Fight {
     fighters: FighterInBattle[]
   ) {
     this.rng = rng;
-    // clone each fighter and their stats and abilities objects so we can mutate them temporarily
-    this.fighters = fighters.map((f) => {
-      return {
-        ...f,
-        equipment: f.equipment.slice(),
-        stats: { ...f.stats },
-        statusEffects: []
-      };
-    });
+    this.fighters = fighters;
     this.eventLog = [];
     this.placementOrder = [];
-
-    // do stat changes
-    this.fighters.forEach((f) => {
-      f.equipment.forEach(e => {
-        (e.abilities.statChanges || []).forEach((a) => {
-          f.stats[a.stat] += a.amount;
-          if (f.attunements.includes(e.name)) {
-            f.stats[a.stat] += 1;
-          }
-        });
-      });
-    });
-  }
-
-  // Returns the closest fighter not on fighter f's team
-  closestEnemy(f: FighterInBattle): FighterInBattle {
-    return this.enemies(f).sort((a, b) => distance(a, f) - distance(b, f))[0];
   }
 
   // Simulates the fight
   simulate(): void {
-    // clear tick log file
-    if (DEBUG) writeFileSync("logs/ticks.txt", "");
-
-    // place the fighters evenly spaced in a circle of radius 25 centered at (0, 0)
+    // place the fighters evenly spaced in a circle of radius 35 centered at (0, 0)
     this.fighters.forEach((f, i) => {
       const spawnTick: MidFightEvent[] = [];
-      f.x = 50 + -25 * Math.cos(2 * Math.PI * i / this.fighters.length);
-      f.y = 50 + 25 * Math.sin(2 * Math.PI * i / this.fighters.length);
+      f.fight = this;
+      f.index = i;
+      f.x = 50 + -35 * Math.cos(2 * Math.PI * i / this.fighters.length);
+      f.y = 50 + 35 * Math.sin(2 * Math.PI * i / this.fighters.length);
+      f.equipment.forEach((e) => {
+        e.fighter = f;
+      });
 
       spawnTick.push({
         type: "spawn",
         fighter: {  // f will be mutated during the fight so we need a current snapshot
-          ...f,
-          x: Number(f.x.toFixed(2)),  // round to save data
-          y: Number(f.y.toFixed(2)),
+          name: f.name,
+          description: f.description,
+          flavor: f.flavor,
+          experience: f.experience,
           stats: { ...f.stats },
-          abilities: { ...f.abilities },
-          statusEffects: []
+          appearance: { ...f.appearance },
+          equipment: f.equipment.map((e) => {
+            return {
+              name: e.name,
+              imgUrl: e.imgUrl,
+              slots: e.slots
+            };
+          }),
+          hp: f.hp,
+          x: Number(f.x.toFixed(2)),
+          y: Number(f.y.toFixed(2)),
+          facing: 1,
+          tint: [0, 0, 0, 0],
+          flash: 0,
+          rotation: 0,
+          team: f.team
         }
       });
-      // pause 1 second between spawning fighters
+      // add a little flair to the spawn with a particle effect
+      spawnTick.push({
+        type: "particle",
+        fighter: i,
+        particleImg: "/static/charge.png"
+      });
+
+      // pause 0.8 seconds between spawning fighters
       this.eventLog.push(spawnTick);
-      if (DEBUG) writeFileSync("logs/ticks.txt", JSON.stringify(spawnTick) + "[][][]", { flag: "a+" });
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 1 + Math.floor(11 / this.fighters.length); i++) {
         this.eventLog.push([]);
       }
     });
-    if (DEBUG) writeFileSync("logs/ticks.txt", "[][][]", { flag: "a+" });
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 4; i++) {
       this.eventLog.push([]);
     }
 
+    // do stat changes and set initial cooldowns
+    this.fighters.forEach((f) => {
+      f.cooldown = INITIAL_COOLDOWN;
+      f.equipment.forEach(e => {
+        e.onFightStart?.(e);
+      });
+    });
 
     while (!this.fightIsOver()) {
       this.doTick();
@@ -177,107 +714,9 @@ class Fight {
   }
 
   doTick(): void {
-    const tick: MidFightEvent[] = [];
-    this.fighters.forEach((f, i) => {
-      if (f.hp <= 0) return;  // do nothing if fighter is down
-      const closestEnemy = this.closestEnemy(f);
-      if (!closestEnemy) return;  // do nothing if a teammate just downed the last enemy this tick
-      // time it would take to get within melee range of closest
-      const timeToClosest = Math.max(distance(f, closestEnemy) - MELEE_RANGE, 0) / Math.max(4 + f.stats.speed * 0.8, 0.5);
-      const engaged = distance(f, closestEnemy) <= 5;
-      const ownEngageability = engageability(f, this.teammates(f).length);
-      // console.log("Name:", f.name, "| Own engageability:", ownEngageability.toFixed(3));
-
-      let bestAction: Abilities;
-      let bestActionDanger: number;
-      for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
-        if (e.abilities.action) {
-          let currentActionDanger = actionDanger(f, e.abilities, this.teammates(f).length);
-          if (e.abilities.action.target === Target.Melee) {
-            currentActionDanger -= Math.max(0, timeToClosest - f.cooldown);
-          }
-          if (bestActionDanger === undefined || currentActionDanger > bestActionDanger) {
-            bestActionDanger = currentActionDanger
-            bestAction = e.abilities;
-          }
-          // console.log("Fighter:", f.name, "| Action: ", (e as unknown as Equipment).name, "| Danger:", actionDanger);
-        }
-      }
-      
-      // if charges needed to use the action, then charge
-      if (bestAction.action.chargeNeeded &&
-          bestAction.action.chargeNeeded > f.charge) {
-        if (engaged && engageability(closestEnemy, this.teammates(closestEnemy).length) > 1.5 * ownEngageability) {
-          this.moveAwayFromTarget(f, closestEnemy, tick);
-        } else {
-          this.charge(f, tick);
-        }
-      } else if (bestAction.action.target === Target.Melee) {
-        // find the most engageable enemy fighter, taking into account distance
-        let bestTarget: FighterInBattle;
-        let bestTargetability: number;
-        let bestTimeToEnemy = 0;
-        for (const f2 of this.enemies(f)) {
-          const timeToEnemy = Math.max(distance(f, f2) - 2, 0) / Math.max(4 + f.stats.speed * 0.8, 0.5);
-          let e2 = this.targetability(f2);
-          e2 -= 0.025 * Math.max(0, timeToEnemy - f.cooldown);
-          if (bestTargetability === undefined || e2 >= bestTargetability) {
-            bestTarget = f2;
-            bestTargetability = e2;
-            bestTimeToEnemy = timeToEnemy;
-          }
-        }
-        // walk away if you're way closer to them than you need to be to attack. otherwise walk toward them
-        if (bestTimeToEnemy < f.cooldown - 0.6) {
-          this.moveAwayFromTarget(f, closestEnemy, tick);
-        } else {
-          this.moveTowardsTarget(f, bestTarget, tick);
-          if (f.cooldown <= EPSILON && distance(f, bestTarget) <= MELEE_RANGE) {
-            let attuned = (bestAction as unknown as Equipment).name && f.attunements.includes((bestAction as unknown as Equipment).name);
-            this.doAction(f, bestAction, attuned, tick);
-          }
-        }
-      } else {
-        if (f.cooldown <= EPSILON) {
-          let attuned = (bestAction as unknown as Equipment).name && f.attunements.includes((bestAction as unknown as Equipment).name);
-          this.doAction(f, bestAction, attuned, tick);
-        } else if (distance(f, closestEnemy) < 20) {
-          this.moveAwayFromTarget(f, closestEnemy, tick);
-        }
-      }
-
-      // tick down status effects, and end them if they're done
-      let prevTint = [0, 0, 0, 0];
-      let newTint: [number, number, number, number] = [0, 0, 0, 0];
-      f.statusEffects.forEach((s) => {
-        s.duration -= TICK_LENGTH;
-        if (s.tint) {
-          prevTint = s.tint;
-          if (s.duration > 0) {
-            newTint = s.tint;
-          }
-        }
-        if (s.duration <= 0) {
-          f.stats[s.stat] -= s.amount;
-        }
-      });
-      f.statusEffects = f.statusEffects.filter((s) => s.duration > 0);
-      if (!newTint.every((v, i) => v === prevTint[i])) {
-        tick.push({
-          type: "tint",
-          fighter: i,
-          tint: newTint
-        });
-      }
-
-      // decrease cooldown. cooldown can go slightly below 0 to compensate for if a cooldown
-      // is not a multiple of tick length, but if already at or below 0 it stays at 0
-      f.cooldown = f.cooldown <= EPSILON ? 0 : f.cooldown - TICK_LENGTH;
-    });
-    
-    // we stringify the tick so later mutations don't mess up earlier ticks
-    if (DEBUG) writeFileSync("logs/ticks.txt", JSON.stringify(tick), { flag: "a+" });
-    this.eventLog.push(tick);
+    this.fighters.forEach(f => f.decayEffects());
+    this.fighters.forEach(f => f.act());
+    this.eventLog.push([]);
   }
 
   fightIsOver(): boolean {
@@ -303,73 +742,14 @@ class Fight {
       this.placementOrder.unshift(teamsRemaining[0]);
     }
     // forcibly end the match if it has been more than 5 minutes
-    if (this.eventLog.length > 300 / TICK_LENGTH) {
+    if (this.eventLog.length * TICK_LENGTH > 300) {
       while (teamsRemaining.length > 0) {
         this.placementOrder.unshift(teamsRemaining.pop());
       }
     }
 
+    if (DEBUG) writeFileSync("logs/ticks.txt", JSON.stringify(this.eventLog));
     return teamsRemaining.length <= 1;
-  }
-
-  // Moves f towards target as far as possible or within 1.5m, whichever is less. Returns the
-  // distance traveled. 
-  moveTowardsTarget(f: FighterInBattle, target: FighterInBattle, tick: MidFightEvent[]): number {
-    const distanceToTarget = distance(f, target);
-    const distanceToMove = Math.max(Math.min((4 + f.stats.speed * 0.8) * TICK_LENGTH,
-                                    distanceToTarget - CROWDING_DISTANCE), 0);
-    let [deltaX, deltaY] = scaleVectorToMagnitude(target.x - f.x, target.y - f.y, distanceToMove);
-
-    // if too close to the wall, change direction to be less close to the wall.
-    if (f.x + deltaX < CROWDING_DISTANCE) {
-      deltaX = Math.abs(deltaX);
-    } else if (f.x + deltaX > 100 - CROWDING_DISTANCE) {
-      deltaX = -Math.abs(deltaX);
-    }
-    if (f.y + deltaY < CROWDING_DISTANCE) {
-      deltaY = Math.abs(deltaY);
-    } else if (f.y + deltaY > 100 - CROWDING_DISTANCE) {
-      deltaY = -Math.abs(deltaY);
-    }
-    f.x += deltaX;
-    f.y += deltaY;
-    this.uncrowd(f);
-    tick.push({
-      type: "move",
-      fighter: this.fighters.findIndex(f2 => f2 === f),
-      x: Number(f.x.toFixed(2)),  // round to save data
-      y: Number(f.y.toFixed(2))
-    });
-    return distanceToMove;
-  }
-
-  // Moves f away from target as far as possible.
-  moveAwayFromTarget(f: FighterInBattle, target: FighterInBattle, tick: MidFightEvent[]): number {
-    const distanceToMove = Math.max(4 + f.stats.speed * 0.8, 0) * TICK_LENGTH;
-    let [deltaX, deltaY] = scaleVectorToMagnitude(f.x - target.x, f.y - target.y, distanceToMove);
-
-    // if too close to the wall, change direction to be less close to the wall.
-    if (f.x + deltaX < CROWDING_DISTANCE) {
-      deltaX = Math.abs(deltaX);
-    } else if (f.x + deltaX > 100 - CROWDING_DISTANCE) {
-      deltaX = -Math.abs(deltaX);
-    }
-    if (f.y + deltaY < CROWDING_DISTANCE) {
-      deltaY = Math.abs(deltaY);
-      // being past the bottom of the screen is worse 
-    } else if (f.y + deltaY > 100 - 2 * CROWDING_DISTANCE) {
-      deltaY = -Math.abs(deltaY);
-    }
-    f.x += deltaX;
-    f.y += deltaY;
-    this.uncrowd(f);
-    tick.push({
-      type: "move",
-      fighter: this.fighters.findIndex(f2 => f2 === f),
-      x: Number(f.x.toFixed(2)),  // round to save data
-      y: Number(f.y.toFixed(2))
-    });
-    return distanceToMove;
   }
 
   uncrowd(f: FighterInBattle): void {
@@ -383,262 +763,9 @@ class Fight {
       f.y = Math.min(Math.max(f.y, CROWDING_DISTANCE), 100 - CROWDING_DISTANCE);
     }
   }
-
-  charge(f: FighterInBattle, tick: MidFightEvent[]): void {
-    f.charge += 1;
-    f.cooldown += Math.max(1, 6 - 0.4 * f.stats.energy);
-    tick.push({
-      type: "charge",
-      fighter: this.fighters.indexOf(f),
-      newCharge: f.charge
-    });
-  }
-
-  doAction(f: FighterInBattle, a: Abilities, attuned: boolean, tick: MidFightEvent[]): void {
-    f.charge -= a.action.chargeNeeded ?? 0;
-
-    const targets = this.targetsAffected(a.action.target, f);
-
-    if (a.action.animation) {
-      let flipped = false;
-      if (targets.length >= 1) {
-        flipped = targets[0].x > f.x;
-      }
-      tick.push({
-        type: "animation",
-        fighter: this.fighters.findIndex(f2 => f2 === f),
-        animation: a.action.animation,
-        flipped
-      });
-    }
-    
-    targets.forEach((t) => {
-      // if the fighter has 0 accuracy, they have a 75% chance to miss. if they have 10 accuracy,
-      // they have a 25% chance to miss.
-      const missed = a.action.missable &&
-          this.rng.randReal() < (15 - f.stats.accuracy) / 20;
-      // the fighter being attacked has a 2% change to dodge for each point of speed they have.
-      const dodged = a.action.dodgeable &&
-          !missed &&
-          this.rng.randReal() < Math.min(t.stats.speed / 50, 0.3);
-      
-      if (!missed && !dodged) {
-        // trigger all the weapon's effects
-        a.action.effects.forEach((effect) => {
-          this.doEffect(
-            effect,
-            f,
-            t,
-            tick,
-            attuned,
-            a.action.target === Target.Melee,
-            true
-          );
-        });
-
-        // if the equipment has knockback, apply that much knockback
-        // except it cannot send the fighter out of [5, 95] on either axis
-        if (a.action.knockback) {
-          const [unitVectorX, unitVectorY] = scaleVectorToMagnitude(t.x - f.x, t.y - f.y, 1);
-          t.x += unitVectorX * a.action.knockback + 0.5 * (Math.random() - 0.5);
-          t.y += unitVectorY * a.action.knockback + 0.5 * (Math.random() - 0.5);
-          t.x = Math.max(Math.min(t.x, 100 - CROWDING_DISTANCE), CROWDING_DISTANCE);
-          t.y = Math.max(Math.min(t.y, 100 - 2 * CROWDING_DISTANCE), CROWDING_DISTANCE);
-          tick.push({
-            type: "move",
-            fighter: this.fighters.findIndex(z => z === t),
-            x: Number(t.x.toFixed(2)),
-            y: Number(t.y.toFixed(2))
-          });
-        }
-      } else if (missed) {
-        tick.push({
-          type: "text",
-          fighter: this.fighters.findIndex(t2 => t2 === t),
-          text: "Missed"
-        });
-      } else if (dodged) {
-        tick.push({
-          type: "text",
-          fighter: this.fighters.findIndex(t2 => t2 === t),
-          text: "Dodged"
-        });
-      }
-      if (a.action.projectileImg) {
-        tick.push({
-          type: "projectile",
-          fighter: this.fighters.findIndex(f2 => f2 === f),
-          target: this.fighters.findIndex(t2 => t2 === t),
-          projectileImg: a.action.projectileImg
-        });
-      }
-    });
-    f.cooldown += a.action.cooldown;
-  }
-
-  doEffect(
-    effect: Effect,
-    fighter: FighterInBattle,
-    target: FighterInBattle,
-    tick: MidFightEvent[],
-    attuned: boolean,
-    melee: boolean,
-    wasAction: boolean
-  ): void {
-    if (effect.type === "hpChange") {
-      let amount = effect.amount;
-      if (attuned) amount *= 1.25;
-      amount = Math.min(amount, 100 - target.hp);
-      target.hp += Math.round(amount);
-      tick.push({
-        type: "hpChange",
-        fighter: this.fighters.findIndex(t2 => t2 === target),
-        newHp: target.hp
-      });
-      tick.push({
-        type: "text",
-        fighter: this.fighters.findIndex(t2 => t2 === target),
-        text: amount < 0.5 ? Math.round(-amount).toString() : "+" + Math.round(amount).toString()
-      });
-    } else if (effect.type === "damage") {
-      let damage = effect.amount * (1.25 - target.stats.toughness / 20);
-      if (attuned) damage *= 1.25;
-      if (melee) damage *= 0.5 + fighter.stats.strength / 10;
-      damage = Math.max(damage, 1);
-      target.hp -= Math.round(damage);
-      tick.push({
-        type: "hpChange",
-        fighter: this.fighters.findIndex(t2 => t2 === target),
-        newHp: target.hp
-      });
-      tick.push({
-        type: "text",
-        fighter: this.fighters.findIndex(t2 => t2 === target),
-        text: Math.round(damage).toString()
-      });
-    } else if (effect.type === "statChange") {
-      const status = { ...effect };
-      if (attuned) status.duration *= 1.25;
-      target.statusEffects.push(status);
-      target.stats[effect.stat] += effect.amount;
-      if (effect.tint) {
-        tick.push({
-          type: "tint",
-          fighter: this.fighters.findIndex(t2 => t2 === target),
-          tint: effect.tint
-        });
-      }
-    }
-
-    // trigger related effects if appropriate
-    if (effect.type === "damage" && wasAction) {
-      // trigger all the fighter's equipment's hitDealt abilities
-      fighter.equipment.forEach((e) => {
-        (e.abilities.triggeredEffects || []).forEach((a) => {
-          if (a.trigger === Trigger.HitDealt) {
-            this.targetsAffected(a.target, fighter, target).forEach((f) => {
-              this.doEffect(
-                a,
-                fighter,
-                f,
-                tick,
-                fighter.attunements.includes(e.name),
-                false,
-                false
-              );
-            });
-          }
-        });
-      });
-
-      // trigger all the target's equipment's hitTaken abilities
-      target.equipment.forEach((e) => {
-        (e.abilities.triggeredEffects || []).forEach((a) => {
-          if (a.trigger === Trigger.HitTaken) {
-            this.targetsAffected(a.target, target, fighter).forEach((f) => {
-              this.doEffect(
-                a,
-                target,
-                f,
-                tick,
-                target.attunements.includes(e.name),
-                false,
-                false
-              );
-            });
-          }
-        });
-      });
-    }
-  }
-
-  targetsAffected(target: Target, fighter: FighterInBattle, actionTarget?: FighterInBattle): FighterInBattle[] {
-    if (target === Target.Self) {
-      return [fighter];
-    } else if (target === Target.Melee || target === Target.NearestEnemy) {
-      return this.enemies(fighter).length === 0 ? [] : [this.closestEnemy(fighter)];
-    } else if (target === Target.AllEnemies) {
-      return this.enemies(fighter);
-    } else if (target === Target.AllTeammates) {
-      return this.teammates(fighter);
-    } else if (target === Target.RandomEnemy) {
-      return this.enemies(fighter).length === 0 ? [] : [this.rng.randElement(this.enemies(fighter))];
-    } else if (target === Target.AnyEnemy) {
-      if (this.enemies(fighter).length === 0) {
-        return [];
-      }
-      let bestTarget: FighterInBattle;
-      let bestTargetability = -Infinity;
-      for (const f2 of this.enemies(fighter)) {
-        let e2 = this.targetability(f2);
-        if (e2 >= bestTargetability) {
-          bestTarget = f2;
-          bestTargetability = e2;
-        }
-      }
-      return [bestTarget];
-    } else if (target === Target.RandomTeammate) {
-      return this.teammates(fighter).length === 0 ? [] : [this.rng.randElement(this.teammates(fighter))];
-    } else if (target === Target.AnyTeammate) {
-      if (this.teammates(fighter).length === 0) {
-        return [];
-      }
-      let bestTarget: FighterInBattle;
-      let bestBuffability = -Infinity;
-      for (const f2 of this.teammates(fighter)) {
-        let e2 = buffability(f2, this.teammates(fighter).length);
-        if (e2 >= bestBuffability) {
-          bestTarget = f2;
-          bestBuffability = e2;
-        } else {
-          console.log(f2, e2);
-        }
-      }
-      if (bestTarget === undefined) console.log(this.teammates(fighter));
-      return [bestTarget];
-    } else if (target === Target.ActionTarget) {
-      return [actionTarget];
-    } else {
-      return [];
-    }
-  }
-
-  // in battle royales, prioritize danger; in duels, prioritize danger + low HP
-  targetability(fighter: FighterInBattle): number {
-    const numberOfTeams = this.fighters.reduce((a, b) => Math.max(a, b.team), 0);
-    return numberOfTeams > 2 ?
-        engageabilityBR(fighter, this.teammates(fighter).length) :
-        engageability(fighter, this.teammates(fighter).length);
-  }
-
-  teammates(fighter: FighterInBattle) {
-    return this.fighters.filter(f => f.team === fighter.team && f.hp > 0);
-  }
-
-  enemies(fighter: FighterInBattle) {
-    return this.fighters.filter(f => f.team !== fighter.team && f.hp > 0);
-  }
 }
+
+
 
 // Calculate the Euclidean distance between two fighters in the x-y plane
 function distance(f1: FighterInBattle, f2: FighterInBattle): number {
@@ -653,76 +780,35 @@ function scaleVectorToMagnitude(x: number, y: number, magnitude: number): [numbe
   ];
 }
 
-function engageability(f: FighterInBattle, numTeammates: number): number {
-  const effectiveHp = f.hp * (0.75 + f.stats.toughness / 20) / (1 - f.stats.speed / 50);
-
-  let bestActionDanger = -Infinity;
-  let passiveDanger = 0;
-  for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
-    bestActionDanger = Math.max(bestActionDanger, actionDanger(f, e.abilities, numTeammates));
-    passiveDanger += e.abilities.aiHints?.passiveDanger ?? 0;
-    // if ((e as Equipment).name === "Zap Helmet") {
-    //   console.log(actionDanger(f, e.abilities), bestActionDanger);
-    // }
+function fists(): EquipmentInBattle {
+  return {
+    name: "Fists",
+    slots: [],
+    imgUrl: "",
+    isFighterAbility: true,
+    actionDanger: (self: EquipmentInBattle) => {
+      return 5 * self.fighter.meleeDamageMultiplier();
+    },
+    getActionPriority: (self: EquipmentInBattle) => {
+      const dps = 5 * self.fighter.meleeDamageMultiplier();
+      let maxValue = 0;
+      for (let target of self.fighter.enemies()) {
+        maxValue = Math.max(self.fighter.valueOfAttack(target, dps, self.fighter.timeToAttack(target, 0)));
+      }
+      return maxValue;
+    },
+    whenPrioritized: (self: EquipmentInBattle) => {
+      const dps = 5 * self.fighter.meleeDamageMultiplier();
+      let bestTarget: FighterInBattle;
+      let maxValue = 0;
+      for (let target of self.fighter.enemies()) {
+        const value = self.fighter.valueOfAttack(target, dps, self.fighter.timeToAttack(target, 0));
+        if (bestTarget === undefined || value > maxValue) {
+          bestTarget = target;
+          maxValue = value;
+        }
+      }
+      self.fighter.attemptMeleeAttack(bestTarget, self, 12 * self.fighter.meleeDamageMultiplier(), 2.4, 0.2, 0);
+    }
   }
-  // console.log("Name:", f.name, "| Danger:", (bestActionDanger || 0) + passiveDanger, "| Effective HP:", effectiveHp);
-
-  if (bestActionDanger < -100) console.debug(f, bestActionDanger);
-  return (50 + 20 * (bestActionDanger + passiveDanger)) / (50 + effectiveHp);
-}
-
-// Prefer higher effective HP when prioritizing targets in battle royale
-// Also make engageabliity way less important in general
-export function engageabilityBR(f: FighterInBattle, numTeammates: number): number {
-  const effectiveHp = f.hp * (0.75 + f.stats.toughness / 20) / (1 - f.stats.speed / 50);
-
-  let bestActionDanger = -Infinity;
-  let passiveDanger = 0;
-  for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
-    bestActionDanger = Math.max(bestActionDanger, actionDanger(f, e.abilities, numTeammates));
-    passiveDanger += actionDanger(f, e.abilities, numTeammates);
-  }
-
-  return (10 + 4 * (bestActionDanger + passiveDanger)) / (150 - effectiveHp);
-}
-
-function buffability(f: FighterInBattle, numTeammates: number): number {
-  const effectiveHp = f.hp * (0.75 + f.stats.toughness / 20) / (1 - f.stats.speed / 50);
-
-  let bestActionValue = -Infinity;
-  let passiveValue = 0;
-  for (const e of (f.equipment as { abilities: Abilities }[]).concat(f, FISTS)) {
-    bestActionValue = Math.max(bestActionValue, actionDanger(f, e.abilities, numTeammates));
-    passiveValue += (e.abilities.aiHints?.passiveDanger ?? 0) +
-                    (e.abilities.aiHints?.passiveValue ?? 0);
-  }
-
-  return (1 + 0.5 * (bestActionValue + passiveValue)) / (150 - effectiveHp);
-}
-
-export function actionDanger(f: FighterInBattle, a: Abilities, numTeammates: number): number {
-  // if (a.aiHints?.actionDanger === 6) {
-  //   console.log(
-  //     a.aiHints?.actionDanger ?? 0,
-  //     0.5 + 0.1 * f.stats[a.aiHints?.actionStat],
-  //     a.action?.chargeNeeded
-  //   );
-  // }
-  let d = a.aiHints?.actionDanger ?? 0;
-  // if therer is a relevant stat (strength or accuracy), adjust by it
-  if (a.aiHints?.actionStat) {
-    d *= 0.5 + 0.1 * f.stats[a.aiHints?.actionStat];
-  }
-  // if it needs to charge, multiply based on how soon it will be charged, relevant to a fighter
-  // with 0 charge and 0 energy
-  if (a.action?.chargeNeeded) {
-    d *= 1 -
-        (a.action.chargeNeeded - f.charge) *  // charges still needed
-        (6 - 0.4 * f.stats.energy) /          // time per charge
-        (9 * a.action.chargeNeeded);          // time needed if 0 charge and 0 energy
-  }
-  if (a.aiHints?.teammateMultiplier) {
-    d *= numTeammates - 1;
-  }
-  return d;
 }

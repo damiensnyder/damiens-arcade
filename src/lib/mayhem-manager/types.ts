@@ -1,4 +1,5 @@
 import type { BasicViewpointInfo, ChangeRoomSettingsAction, RoomEvent } from "$lib/types";
+import type { FighterInBattle } from "./battle-logic";
 
 export type MayhemManagerGameStage = "preseason" |
     "draft" |
@@ -16,7 +17,6 @@ export type MayhemManagerViewpoint = PreseasonViewpoint |
 
 export interface ViewpointBase extends BasicViewpointInfo {
   gameStage: MayhemManagerGameStage
-  settings: Settings
   history: Bracket[]
   teams: Team[]
 }
@@ -70,7 +70,6 @@ export type /* it so is! */ MayhemManagerExport = (PreseasonExport |
 
 export interface ExportBase {
   gameStage: MayhemManagerGameStage
-  settings: Settings
   // history: string[][]
   teams: Team[]
 }
@@ -124,17 +123,19 @@ export interface PreseasonTeam extends Team {
   needsRepair: Equipment[]
 }
 
-export interface Fighter {
-  name: string
-  gender: string
-  stats: FighterStats
-  oldStats?: FighterStats
-  attunements: string[]
-  abilities: Abilities
-  experience: number
+export interface AbilityHaver {
   price: number
   description: string
   flavor: string
+  abilityName: string
+}
+
+export interface Fighter extends AbilityHaver {
+  name: string
+  stats: FighterStats
+  oldStats?: FighterStats
+  attunements: string[]
+  experience: number
   appearance: Appearance
 }
 
@@ -168,16 +169,23 @@ export type FighterStats = {
   [key in StatName]: number;
 };
 
-export interface FighterInBattle extends Fighter {
+/*
+export interface FighterInBattle {
   team: number
+  name: string
   hp: number
-  equipment: Equipment[]
+  equipment: EquipmentInBattle[]
   x: number
   y: number
   cooldown: number
   charge: number
+  stats: FighterStats
+  appearance: Appearance
+  attunements: string[]
   statusEffects: StatChangeEffect[]
+  fight: Fight
 }
+*/
 
 export enum EquipmentSlot {
   Head = "head",
@@ -187,109 +195,35 @@ export enum EquipmentSlot {
   Feet = "feet"
 }
 
-export interface Equipment {
+export interface Equipment extends AbilityHaver {
   name: string
+  slots: EquipmentSlot[]
   imgUrl: string
   zoomedImgUrl: string
-  slots: EquipmentSlot[]
-  abilities: Abilities
   yearsOwned: number
-  price: number
-  description: string
-  flavor: string
-}
-
-
-
-export enum Trigger {
-  HitDealt = "hitDealt",
-  HitTaken = "hitTaken",
-  Interval = "interval"
-}
-
-export enum Target {
-  Self = "self",
-  Melee = "melee",
-  MostEngageable = "mostEngageable",
-  AnyEnemy = "anyEnemy",
-  AnyTeammate = "anyTeammate",
-  ActionTarget = "actionTarget",
-  AllTeammates = "allTeammates",
-  AllEnemies = "allEnemies",
-  NearestEnemy = "nearestEnemy",
-  RandomEnemy = "randomEnemy",
-  RandomTeammate = "randomTeammate",
-  AllFighters = "allFighters"
-}
-
-export enum ActionAnimation {
-  Aim = "aim",
-  Swing = "swing"
-}
-
-export interface StatChangeAbility {
-  stat: StatName
-  amount: number
-}
-
-export interface HpChangeEffect {
-  type: "hpChange"
-  amount: number
-}
-
-export interface DamageEffect {
-  type: "damage"
-  amount: number
-}
-
-export interface StatChangeEffect {
-  type: "statChange"
-  stat: StatName
-  amount: number
-  duration: number
-  tint?: [number, number, number, number]
-}
-
-export type Effect = HpChangeEffect |
-  DamageEffect |
-  StatChangeEffect;
-
-export type TriggeredEffect = Effect & {
-  trigger: Trigger
-  target: Target
-}
-
-export interface ActionAbility {
-  target: Target
-  effects: Effect[]
-  cooldown: number
-  chargeNeeded?: number
-  dodgeable?: boolean
-  missable?: boolean
-  animation?: ActionAnimation
-  projectileImg?: string
-  knockback?: number
 }
 
 export interface Abilities {
-  action?: ActionAbility
-  statChanges?: StatChangeAbility[]
-  triggeredEffects?: TriggeredEffect[]
-  aiHints?: {
-    actionDanger?: number
-    actionStat?: StatName.Strength | StatName.Accuracy
-    passiveDanger?: number
-    passiveValue?: number  // doesn't make the fighter a more imminent threat but is valuable
-    teammateMultiplier?: boolean
-  }
+  state?: any
+  isFighterAbility?: boolean
+  getActionPriority?: (self: EquipmentInBattle) => number
+  actionDanger?: (self: EquipmentInBattle) => number
+  passiveDanger?: (self: EquipmentInBattle) => number
+  whenPrioritized?: (self: EquipmentInBattle) => void
+  onFightStart?: (self: EquipmentInBattle) => void
+  onTick?: (self: EquipmentInBattle) => void
+  onHitDealt?: (self: EquipmentInBattle, target: FighterInBattle, damage: number, equipmentUsed: EquipmentInBattle) => void
+  onHitTaken?: (self: EquipmentInBattle, attacker: FighterInBattle, damage: number, equipmentUsed: EquipmentInBattle) => void
+}
+
+export interface EquipmentInBattle extends Abilities {
+  name: string
+  slots: EquipmentSlot[]
+  imgUrl: string
+  fighter?: FighterInBattle
 }
 
 
-
-export interface Settings {
-  customFighters: FighterTemplate[]
-  customEquipment: EquipmentTemplate[]
-}
 
 export interface FighterNames {
   firstNamesM: string[]
@@ -317,11 +251,6 @@ export interface EquipmentTemplate {
 }
 
 
-
-interface ChangeGameSettingsAction {
-  type: "changeGameSettings"
-  settings: Settings
-}
 
 interface JoinAction {
   type: "join"
@@ -399,7 +328,6 @@ type ExportAction = {
 };
 
 export type MayhemManagerAction = ChangeRoomSettingsAction |
-    ChangeGameSettingsAction |
     JoinAction |
     LeaveAction |
     ReplaceAction |
@@ -418,11 +346,6 @@ export type MayhemManagerAction = ChangeRoomSettingsAction |
     ExportAction;
 
 
-
-interface ChangeGameSettingsEvent {
-  type: "changeGameSettings"
-  settings: Settings
-}
 
 interface JoinEvent {
   type: "join"
@@ -505,23 +428,74 @@ interface ExportLeagueEvent {
 
 
 
-export interface MFSpawnEvent {
-  type: "spawn"
-  fighter: FighterInBattle
+export enum RotationState {
+  Stationary1 = 0,
+  Stationary2 = 0.0001,
+  WalkingStart1 = -8,
+  Walking1 = -8.0001,
+  WalkingStart2 = 8,
+  Walking2 = 8.0001,
+  BackswingStart = -11.0001,
+  Backswing = -11,
+  ForwardSwing = 30,
+  AimStart = -5,
+  Aim = -7
 }
 
-export interface MFMoveEvent {
-  type: "move"
-  fighter: number
+export type Tint = [number, number, number, number];
+
+export interface StatusEffect {
+  name: string
+  duration: number
+  tint: Tint
+  onClear: (self: FighterInBattle) => void
+}
+
+export interface PartialFighterVisual {
+  name?: string
+  team?: number
+  stats?: FighterStats
+  appearance?: Appearance
+  equipment?: EquipmentInBattle[]
+  description?: string
+  flavor?: string
+  experience?: number
+  tint?: Tint
+  flash?: number
+  x?: number
+  y?: number
+  hp?: number
+  facing?: number
+  rotation?: RotationState
+}
+
+export interface FighterVisual {
+  name: string
+  team: number
+  stats: FighterStats
+  appearance: Appearance
+  equipment: EquipmentInBattle[]
+  description: string
+  flavor: string
+  experience: number
+  tint: Tint
+  flash: number
   x: number
   y: number
+  hp: number
+  facing: number
+  rotation: number
+}
+
+export interface MFSpawnEvent {
+  type: "spawn"
+  fighter: FighterVisual
 }
 
 export interface MFAnimationEvent {
   type: "animation"
   fighter: number
-  animation: ActionAnimation
-  flipped: boolean
+  updates: PartialFighterVisual
 }
 
 export interface MFProjectileEvent {
@@ -537,38 +511,17 @@ export interface MFTextEvent {
   text: string
 }
 
-export interface MFTintEvent {
-  type: "tint"
+export interface MFParticleEvent {
+  type: "particle"
   fighter: number
-  tint: [number, number, number, number]
-}
-
-export interface MFHpChangeEvent {
-  type: "hpChange"
-  fighter: number
-  newHp: number
-}
-
-export interface MFChargeStartEvent {
-  type: "chargeStart"
-  fighter: number
-}
-
-export interface MFChargeEvent {
-  type: "charge"
-  fighter: number
-  newCharge: number
+  particleImg: string
 }
 
 export type MidFightEvent = MFSpawnEvent |
-    MFMoveEvent |
     MFAnimationEvent |
     MFProjectileEvent |
     MFTextEvent |
-    MFTintEvent |
-    MFHpChangeEvent |
-    MFChargeStartEvent |
-    MFChargeEvent;
+    MFParticleEvent;
 
 
 
@@ -592,7 +545,6 @@ interface GoToPreseasonEvent {
 }
 
 export type MayhemManagerEvent = RoomEvent |
-    ChangeGameSettingsEvent |
     JoinEvent |
     LeaveEvent |
     ReplaceEvent |

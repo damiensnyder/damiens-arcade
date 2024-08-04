@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ActionAnimation, EquipmentSlot, StatName, Target, Trigger } from "./types";
+import { EquipmentSlot, StatName } from "./types";
 
 export const joinSchema = z.object({
   type: z.literal("join"),
@@ -68,88 +68,7 @@ export const repairSchema = z.object({
   equipment: z.number().int().min(0)
 });
 
-const hpChangeEffect = z.object({
-  type: z.literal("hpChange"),
-  amount: z.number().int()
-});
-
-const damageEffect = z.object({
-  type: z.literal("damage"),
-  amount: z.number()
-});
-
-const statChangeEffect = z.object({
-  type: z.literal("statChange"),
-  stat: z.nativeEnum(StatName),
-  amount: z.number().int(),
-  duration: z.number(),
-  tint: z.array(z.number()).length(4).optional()
-});
-
-export const effect = z.union([hpChangeEffect, damageEffect, statChangeEffect]);
-
-export const actionAbility = z.object({
-  target: z.nativeEnum(Target),
-  effects: z.array(effect),
-  cooldown: z.number().min(0),
-  chargeNeeded: z.number().int().min(1).optional(),
-  dodgeable: z.boolean().optional(),
-  missable: z.boolean().optional(),
-  animation: z.nativeEnum(ActionAnimation).optional(),
-  projectileImg: z.string().optional(),
-  knockback: z.number().optional()
-});
-
-export const statChangeAbility = z.object({
-  stat: z.nativeEnum(StatName),
-  amount: z.number()
-});
-
-export const triggeredEffect = z.intersection(
-  effect,
-  z.object({
-    trigger: z.nativeEnum(Trigger),
-    target: z.nativeEnum(Target)
-  })
-);
-
-export const aiHints = z.object({
-  actionDanger: z.number().optional(),
-  actionStat: z.nativeEnum(StatName).optional(),
-  passiveDanger: z.number().optional(),
-  passiveValue: z.number().optional(),
-  teammateMultiplier: z.boolean().optional()
-});
-
-export const abilities = z.object({
-  action: actionAbility.optional(),
-  statChanges: z.array(statChangeAbility).optional(),
-  triggeredEffects: z.array(triggeredEffect).optional(),
-  aiHints: aiHints.optional()
-});
-
-export const fighterTemplateSchema = z.object({
-  imgUrl: z.string().max(300),
-  abilities: abilities,
-  price: z.number().min(0).max(100).int(),
-  description: z.string().max(300),
-  flavor: z.string().max(300)
-});
-
-export const equipmentTemplateSchema = z.object({
-  name: z.string().min(1).max(100),
-  imgUrl: z.string().max(300),
-  slots: z.array(z.nativeEnum(EquipmentSlot)),
-  abilities: z.array(abilities),
-  price: z.number().min(0).max(100).int(),
-  description: z.string().max(300),
-  flavor: z.string().max(300)
-});
-
-export const settingsSchema = z.object({
-  customFighters: z.array(fighterTemplateSchema),
-  customEquipment: z.array(equipmentTemplateSchema),
-});
+export const settingsSchema = z.object({});
 
 export const changeGameSettingsSchema = z.object({
   type: z.literal("changeGameSettings"),
@@ -172,7 +91,7 @@ export const fighterSchema = z.object({
     toughness: z.number().int().min(0).max(10)
   }),
   attunements: z.array(z.string()),
-  abilities: abilities,
+  abilityName: z.string(),
   experience: z.number().int().min(0),
   price: z.number().int(),
   description: z.string(),
@@ -198,7 +117,7 @@ export const equipmentSchema = z.object({
   imgUrl: z.string(),
   zoomedImgUrl: z.string(),
   slots: z.array(z.nativeEnum(EquipmentSlot)),
-  abilities: abilities,
+  abilityName: z.string(),
   yearsOwned: z.number().int().min(0),
   price: z.number().int(),
   description: z.string(),

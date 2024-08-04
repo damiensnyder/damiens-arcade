@@ -1,0 +1,214 @@
+{
+  "seed": [0, 1, 2, 3],
+  "gameType": "mayhem-manager",
+  "actions": [
+    {
+      "macro": "startTourney",
+      "dynamicParams": ["mm 16"]
+    },
+    {
+      "type": "connect",
+      "index": 2
+    },
+    {
+      "type": "addBot",
+      "index": 2
+    },
+    {
+      "type": "addBot",
+      "index": 2
+    },
+    {
+      "type": "addBot",
+      "index": 2
+    },
+    {
+      "type": "addBot",
+      "index": 2
+    },
+    {
+      "type": "addBot",
+      "index": 2
+    },
+    {
+      "type": "addBot",
+      "index": 2
+    },
+    {
+      "type": "addBot",
+      "index": 2
+    },
+    {
+      "type": "addBot",
+      "index": 2
+    },
+    {
+      "type": "addBot",
+      "index": 2
+    },
+    {
+      "type": "addBot",
+      "index": 2
+    },
+    {
+      "type": "addBot",
+      "index": 2
+    },
+    {
+      "type": "addBot",
+      "index": 2
+    },
+    {
+      "type": "addBot",
+      "index": 2
+    },
+    {
+      "type": "addBot",
+      "index": 2
+    },
+    {
+      "type": "addBot",
+      "index": 2
+    },
+    {
+      "type": "addBot",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "advance",
+      "index": 2
+    },
+    {
+      "type": "disconnect",
+      "index": 2
+    }
+  ]
+}

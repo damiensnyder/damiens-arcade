@@ -20,11 +20,11 @@ export function getTeamByController(teams: Team[] | PreseasonTeam[], controller:
   return null;
 }
 
-export function slotsToString(slots: EquipmentSlot[], melee: boolean = false): string {
+export function slotsToString(slots: EquipmentSlot[]): string {
   let joined = slots.join(", ");
-  if (joined === "") return melee ? "melee • none" : "none";
-  if (joined === "hand, hand") return melee ? "melee • two-handed" : "two-handed";
-  return melee ? "melee • " + joined : joined;
+  if (joined === "") return "none";
+  if (joined === "hand, hand") return "two-handed";
+  return joined;
 }
 
 // TODO: Move all the other places I validate equipment to only validate here
@@ -72,11 +72,85 @@ export function nextMatch(bracket: Bracket): Bracket & {
   return nextMatch;
 }
 
+const STAT_VALUES = {
+  strength: 0.01,
+  accuracy: 0.01,
+  energy: 0.01,
+  speed: 0.01,
+  toughness: 0.01
+}
+const FIGHTER_ABILITY_VALUES = {
+  noAbilities: 0,
+  extraDamageOnHit: 0.05,
+  gainStrengthOnHitTaken: 0.01,
+  powerfulFists: 0.02,
+  shorterCooldowns: 0,
+};
+const EQUIPMENT_ABILITY_VALUES = {
+  battleAxe: 0.08,
+  bow: 0.01,
+  cornDog: 0.07,
+  devilHorns: 0.03,
+  diamondSword: 0.09,
+  fairyHat: 0.01,
+  flamingoFloat: 0.11,
+  frillySkirt: 0.38,
+  fullSuitOfArmor: 0.04,
+  jellyhat: 0.06,
+  laserBlaster: 0.10,
+  rhinocerosBeetleHorn: 0.01,
+  rollerBlades: 0.13,
+  shield: 0.03,
+  shiv: 0.02,
+  snowmanHead: 0.01,
+  sportsJersey: 0.16,
+  vikingHelmet: 0.01,
+  wandOfFlames: 0.10,
+  zapHelmet: 0.08,
+}
+const EQUIPMENT_ATTUNEMENT_VALUES = {
+  battleAxe: 0,
+  bow: 0.04,
+  cornDog: 0,
+  devilHorns: 0,
+  diamondSword: 0.02,
+  fairyHat: 0,
+  flamingoFloaty: 0,
+  frillySkirt: 0,
+  fullSuitOfArmor: 0,
+  jellyhat: 0,
+  laserBlaster: 0.01,
+  rhinocerosBeetleHorn: 0.04,
+  rollerBlades: 0.02,
+  shield: 0,
+  shiv: 0.01,
+  snowmanHead: 0,
+  sportsJersey: 0.02,
+  vikingHelmet: 0,
+  wandOfFlames: 0.03,
+  zapHelmet: 0.03,
+}
+const VALUE_TO_DOLLARS = 60;
+
 export function fighterValue(fighter: Fighter): number {
-  let price = 17 - 0.25 * fighter.experience;
+  let value = FIGHTER_ABILITY_VALUES[fighter.abilityName];
   for (const stat in fighter.stats) {
-    // compress stat ranges so super high or low ones don't affect price a ton
-    price += fighter.stats[stat];
+    value += (fighter.stats[stat] + 1 - 0.2 * fighter.experience) * STAT_VALUES[stat];
   }
-  return Math.max(price, 1);
+  return value * VALUE_TO_DOLLARS;
+}
+
+// not taking experience into account
+export function fighterValueInBattle(fighter: Fighter, equipment: Equipment[]): number {
+  let value = FIGHTER_ABILITY_VALUES[fighter.abilityName];
+  for (const stat in fighter.stats) {
+    value += fighter.stats[stat] * STAT_VALUES[stat];
+  }
+  for (const e of equipment) {
+    value += EQUIPMENT_ABILITY_VALUES[e.abilityName];
+    if (fighter.attunements.includes(e.name)) {
+      value += EQUIPMENT_ATTUNEMENT_VALUES[e.abilityName];
+    }
+  }
+  return value * VALUE_TO_DOLLARS;
 }
