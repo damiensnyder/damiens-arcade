@@ -1,5 +1,5 @@
 import { writeFileSync } from "fs";
-import { EquipmentSlot, type Equipment, type MidFightEvent, type Team, type Fighter, type StatChangeEffect, type FighterStats, type Appearance, type EquipmentInBattle, RotationState, type Tint, type MFAnimationEvent } from "$lib/mayhem-manager/types";
+import { EquipmentSlot, type Equipment, type MidFightEvent, type Team, type Fighter, type FighterStats, type Appearance, type EquipmentInBattle, RotationState, type Tint, type MFAnimationEvent, type StatusEffect } from "$lib/mayhem-manager/types";
 import type { RNG } from "$lib/types";
 import { getEquipmentForBattle, getFighterAbilityForBattle } from "./decks";
 
@@ -74,7 +74,7 @@ export class FighterInBattle {
   stats: FighterStats
   appearance: Appearance
   attunements: string[]
-  statusEffects: StatChangeEffect[]
+  statusEffects: StatusEffect[]
   flash: number
   rotationState: RotationState
   fight?: Fight
@@ -123,7 +123,7 @@ export class FighterInBattle {
     this.statusEffects.forEach((s) => {
       s.duration -= TICK_LENGTH;
       if (s.duration <= 0) {
-        this.stats[s.stat] -= s.amount;
+        s.onClear(this);
       }
     });
     this.statusEffects = this.statusEffects.filter((s) => s.duration > 0);
@@ -498,6 +498,10 @@ export class FighterInBattle {
           text: "Missed"
         });
       }
+
+      this.equipment.forEach((e) => {
+        e.onHitDealt?.(e, target, damage);
+      });
     } else if (chargeNeeded > this.charges) {
       this.charge();
     }

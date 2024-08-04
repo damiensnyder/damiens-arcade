@@ -212,6 +212,7 @@ export interface Abilities {
   whenPrioritized?: (self: EquipmentInBattle) => void
   onFightStart?: (self: EquipmentInBattle) => void
   onTick?: (self: EquipmentInBattle) => void
+  onHitDealt?: (self: EquipmentInBattle, target: FighterInBattle, damage: number) => void
 }
 
 export interface EquipmentInBattle extends Abilities {
@@ -219,91 +220,6 @@ export interface EquipmentInBattle extends Abilities {
   slots: EquipmentSlot[]
   imgUrl: string
   fighter?: FighterInBattle
-}
-
-
-
-export enum Trigger {
-  HitDealt = "hitDealt",
-  HitTaken = "hitTaken",
-  Interval = "interval"
-}
-
-export enum Target {
-  Self = "self",
-  Melee = "melee",
-  MostEngageable = "mostEngageable",
-  AnyEnemy = "anyEnemy",
-  AnyTeammate = "anyTeammate",
-  ActionTarget = "actionTarget",
-  AllTeammates = "allTeammates",
-  AllEnemies = "allEnemies",
-  NearestEnemy = "nearestEnemy",
-  RandomEnemy = "randomEnemy",
-  RandomTeammate = "randomTeammate",
-  AllFighters = "allFighters"
-}
-
-export enum ActionAnimation {
-  Aim = "aim",
-  Swing = "swing"
-}
-
-export interface StatChangeAbility {
-  stat: StatName
-  amount: number
-}
-
-export interface HpChangeEffect {
-  type: "hpChange"
-  amount: number
-}
-
-export interface DamageEffect {
-  type: "damage"
-  amount: number
-}
-
-export interface StatChangeEffect {
-  type: "statChange"
-  stat: StatName
-  amount: number
-  duration: number
-  tint?: [number, number, number, number]
-}
-
-export type Effect = HpChangeEffect |
-  DamageEffect |
-  StatChangeEffect;
-
-export type TriggeredEffect = Effect & {
-  trigger: Trigger
-  target: Target
-}
-
-export interface ActionAbility {
-  target: Target
-  effects: Effect[]
-  cooldown: number
-  chargeNeeded?: number
-  dodgeable?: boolean
-  missable?: boolean
-  animation?: ActionAnimation
-  projectileImg?: string
-  knockback?: number
-}
-
-export interface Abilities {
-  action?: ActionAbility
-  statChanges?: StatChangeAbility[]
-  triggeredEffects?: TriggeredEffect[]
-  aiHints?: {
-    actionDanger?: number
-    actionStat?: StatName.Strength | StatName.Accuracy
-    passiveDanger?: number
-    passiveValue?: number  // doesn't make the fighter a more imminent threat but is valuable
-    teammateMultiplier?: boolean
-  }
 }
 
 
@@ -526,6 +442,13 @@ export enum RotationState {
 }
 
 export type Tint = [number, number, number, number];
+
+export interface StatusEffect {
+  name: string
+  duration: number
+  tint: Tint
+  onClear: (self: FighterInBattle) => void
+}
 
 export interface PartialFighterVisual {
   name?: string

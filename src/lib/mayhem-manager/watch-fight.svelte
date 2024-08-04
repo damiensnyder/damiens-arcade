@@ -198,7 +198,9 @@
       </div>
     {/if}
     {#each fighters as fighter}
-      <FighterBattleInfo {fighter} />
+      {#if  fighter.hp > 0}
+        <FighterBattleInfo {fighter} />
+      {/if}
     {/each}
   </div>
 </div>

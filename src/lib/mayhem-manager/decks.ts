@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { EquipmentSlot, type Abilities, type Appearance, type Color, type Equipment, type EquipmentInBattle, type Fighter, type FighterNames, type FighterStats } from "$lib/mayhem-manager/types";
 import type { RNG } from "$lib/types";
-import { TICK_LENGTH, type FighterInBattle } from "./battle-logic";
+import { EPSILON, TICK_LENGTH, type FighterInBattle } from "./battle-logic";
 
 
 
@@ -402,7 +402,7 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     zoomedImgUrl: "/static/zoomed/equipment/wand-of-flames.png",
     price: 40,
     description: "Ranged. Deals 40 [attuned: 50] damage to all enemies. Requires 2 charges. Cooldown 1s.",
-    flavor: "",
+    flavor: "the Great Pyromaniac was a little *too* great",
     abilities: aoeAttackAbility("Wand of Flames", 40, 50, 1, 1, 2, 2, "/static/projectiles/fireball.png")
   },
   zapHelmet: {
@@ -478,7 +478,40 @@ export const fighterAbilitiesCatalog: Record<string, FighterTemplate> = {
     flavor: "",
     price: 0,
     abilities: {}
-  }
+  },
+  extraDamageOnHit: {
+    description: "On hit dealt: Target loses 5 extra HP.",
+    flavor: "just has a little more \"oomph\"",
+    price: 15,
+    abilities: {
+      onHitDealt: (self: EquipmentInBattle, target: FighterInBattle, _damage: number) => {
+        target.hp -= 5;
+        self.fighter.logEvent({
+          type: "text",
+          fighter: target.index,
+          text: "5"
+        });
+      }
+    }
+  },
+  powerfulFists: {
+    description: "Fists deal double damage.",
+    flavor: "",
+    price: 10,
+    abilities: meleeAttackAbility("", 24, 24, 2.4, 2.4, 0, 0)
+  },
+  shorterCooldowns: {
+    description: "All cooldowns are 0.2s shorter.",
+    flavor: "",
+    price: 5,
+    abilities: {
+      onTick: (self: EquipmentInBattle) => {
+        if (self.fighter.cooldown <= 0.2 + EPSILON) {
+          self.fighter.cooldown = 0;
+        }
+      }
+    }
+  },
 };
 
 
