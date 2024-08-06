@@ -1,11 +1,13 @@
-import xgboost as xgb
 import pandas as pd
 import numpy as np
+import xgboost as xgb
+from sklearn.linear_model import LinearRegression
 
-csv_path = "src/lib/test/mayhem-manager/duel-sample.csv"
+csv_path = "src/lib/test/mayhem-manager/duel-sample-large.csv"
 
 df = pd.read_csv(csv_path, header="infer")
 num_columns_per_fighter = int((len(df.columns) - 1) / 12)
+colnames = [n[6:] for n in df.columns[1:num_columns_per_fighter + 1]]
 num_matches = len(df)
 
 matrix = np.array(df)
@@ -17,23 +19,21 @@ y = matrix[:, 0]
 y = np.resize(y, len(y) * 12)
 y[int(len(y) / 2):] = -y[int(len(y) / 2):]
 
-# Convert the data to the format required by XGBoost
-dtrain = xgb.DMatrix(x, label=y)
+lm = LinearRegression()
+lm.fit(x, y)
 
-# Define the parameters for XGBoost
+with open("analysis/mm-coeffs.txt", "w") as f:
+    f.write(f"intercept: {lm.intercept_:.0%}\n")
+    for i, n in enumerate(colnames):
+        f.write(f"{n}: {lm.coef_[i]:.0%}\n")
+
+residuals = y - lm.predict(x)
+dtrain = xgb.DMatrix(x, label=residuals)
 params = {
     "objective": "reg:squarederror",
     "device": "gpu",
     "max_depth": 3,
     "eta": 0.1
 }
-
-# Train the XGBoost model
-model = xgb.train(params, dtrain)
-
-# Make predictions using the trained model
-predictions = model.predict(dtrain)
-
-print(np.square(predictions - y).mean())
-
-model.dump_model("analysis/model.txt")
+xgb_model = xgb.train(params, dtrain)
+xgb_model.dump_model("analysis/mm-xgb.txt")

@@ -80,35 +80,35 @@ const STAT_VALUES = {
   toughness: 0.01
 }
 const FIGHTER_ABILITY_VALUES = {
-  noAbilities: 0,
-  extraDamageOnHit: 0.05,
-  gainStrengthOnHitTaken: 0.01,
-  powerfulFists: 0.02,
-  shorterCooldowns: 0,
+  noAbilities: 0.58,
+  extraDamageOnHit: 0.64,
+  gainStrengthOnHitTaken: 0.59,
+  powerfulFists: 0.62,
+  shorterCooldowns: 0.60,
 };
 const EQUIPMENT_ABILITY_VALUES = {
-  battleAxe: 0.08,
-  bow: 0.01,
-  cornDog: 0.07,
-  devilHorns: 0.03,
-  diamondSword: 0.09,
-  fairyHat: 0.01,
-  flamingoFloat: 0.11,
-  frillySkirt: 0.38,
-  fullSuitOfArmor: 0.04,
-  jellyhat: 0.06,
-  laserBlaster: 0.10,
-  rhinocerosBeetleHorn: 0.01,
-  rollerBlades: 0.13,
-  shield: 0.03,
-  shiv: 0.02,
-  snowmanHead: 0.01,
-  sportsJersey: 0.16,
-  vikingHelmet: 0.01,
-  wandOfFlames: 0.10,
-  zapHelmet: 0.08,
+  battleAxe: 0.19,
+  bow: 0.06,
+  cornDog: 0.11,
+  devilHorns: 0.12,
+  diamondSword: 0.14,
+  fairyHat: 0.06,
+  flamingoFloat: 0.06,
+  frillySkirt: 0.37,
+  fullSuitOfArmor: 0.11,
+  jellyhat: 0.10,
+  laserBlaster: 0.14,
+  rhinocerosBeetleHorn: 0.04,
+  rollerBlades: 0.09,
+  shield: 0.08,
+  shiv: 0.04,
+  snowmanHead: 0.04,
+  sportsJersey: 0.14,
+  vikingHelmet: 0.09,
+  wandOfFlames: 0.18,
+  zapHelmet: 0.14,
 }
-const VALUE_TO_DOLLARS = 60;
+const VALUE_TO_DOLLARS = 100;
 
 export function fighterValue(fighter: Fighter): number {
   let value = FIGHTER_ABILITY_VALUES[fighter.abilityName];
