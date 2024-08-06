@@ -108,28 +108,6 @@ const EQUIPMENT_ABILITY_VALUES = {
   wandOfFlames: 0.10,
   zapHelmet: 0.08,
 }
-const EQUIPMENT_ATTUNEMENT_VALUES = {
-  battleAxe: 0,
-  bow: 0.04,
-  cornDog: 0,
-  devilHorns: 0,
-  diamondSword: 0.02,
-  fairyHat: 0,
-  flamingoFloaty: 0,
-  frillySkirt: 0,
-  fullSuitOfArmor: 0,
-  jellyhat: 0,
-  laserBlaster: 0.01,
-  rhinocerosBeetleHorn: 0.04,
-  rollerBlades: 0.02,
-  shield: 0,
-  shiv: 0.01,
-  snowmanHead: 0,
-  sportsJersey: 0.02,
-  vikingHelmet: 0,
-  wandOfFlames: 0.03,
-  zapHelmet: 0.03,
-}
 const VALUE_TO_DOLLARS = 60;
 
 export function fighterValue(fighter: Fighter): number {
@@ -149,7 +127,7 @@ export function fighterValueInBattle(fighter: Fighter, equipment: Equipment[]): 
   for (const e of equipment) {
     value += EQUIPMENT_ABILITY_VALUES[e.abilityName];
     if (fighter.attunements.includes(e.name)) {
-      value += EQUIPMENT_ATTUNEMENT_VALUES[e.abilityName];
+      value += EQUIPMENT_ABILITY_VALUES[e.abilityName] * 0.25;
     }
   }
   return value * VALUE_TO_DOLLARS;
