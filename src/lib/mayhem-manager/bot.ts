@@ -1,7 +1,6 @@
 import { StatName } from "$lib/mayhem-manager/types";
 import type { Equipment, Fighter, MayhemManagerGameStage, PreseasonTeam, Team } from "$lib/mayhem-manager/types";
-import { isValidEquipmentFighter } from "./battle-logic";
-import { fighterValueInBattle } from "./utils";
+import { fighterValueInBattle, isValidEquipmentFighter } from "./utils";
 
 const Bot = {
   getPreseasonPicks: function (team: PreseasonTeam): {

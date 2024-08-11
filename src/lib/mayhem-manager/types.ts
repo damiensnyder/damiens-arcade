@@ -1,5 +1,5 @@
 import type { BasicViewpointInfo, ChangeRoomSettingsAction, RoomEvent } from "$lib/types";
-import type { FighterInBattle } from "./battle-logic";
+import type { FighterInBattle } from "./fighter-in-battle";
 
 export type MayhemManagerGameStage = "preseason" |
     "draft" |
@@ -225,29 +225,28 @@ export interface EquipmentInBattle extends Abilities {
 
 
 
+export interface EquipmentTemplate {
+  name: string
+  description: string
+  flavor: string
+  imgUrl: string
+  zoomedImgUrl: string
+  price: number
+  slots: EquipmentSlot[]
+  abilities: Abilities
+}
+
+export interface FighterTemplate {
+  description: string
+  flavor: string
+  price: number
+  abilities: Abilities
+}
+
 export interface FighterNames {
   firstNamesM: string[]
   firstNamesF: string[]
   lastNames: string[]
-}
-
-export interface FighterTemplate {
-  imgUrl?: string
-  description?: string
-  flavor?: string
-  price: number
-  abilities: Abilities
-}
-
-export interface EquipmentTemplate {
-  name: string
-  slots: EquipmentSlot[]
-  imgUrl: string
-  zoomedImgUrl: string
-  price: number
-  description: string
-  flavor: string
-  abilities: Abilities
 }
 
 

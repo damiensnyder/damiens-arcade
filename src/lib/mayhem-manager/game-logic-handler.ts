@@ -3,11 +3,12 @@ import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
 import type { MayhemManagerGameStage, MayhemManagerViewpoint, ViewpointBase, Team, Fighter, Bracket, Equipment, PreseasonTeam, EquipmentTemplate, FighterTemplate, MayhemManagerExport, Appearance, Color } from "$lib/mayhem-manager/types";
 import { StatName } from "$lib/mayhem-manager/types";
-import { fighterValue, getIndexByController, getTeamByController, nextMatch } from "$lib/mayhem-manager/utils";
-import { SHIRT_COLORS, SHORTS_COLORS, generateFighters, generateEightEquipment } from "$lib/mayhem-manager/decks";
-import { isValidEquipmentTournament, isValidEquipmentFighter, Fight, FighterInBattle } from "$lib/mayhem-manager/battle-logic";
+import { fighterValue, getIndexByController, getTeamByController, isValidEquipmentFighter, isValidEquipmentTournament, nextMatch } from "$lib/mayhem-manager/utils";
 import Bot from "$lib/mayhem-manager/bot";
 import { addBotSchema, advanceSchema, exportLeagueSchema, importSchema, joinSchema, leaveSchema, passSchema, pickBRFighterSchema, pickFightersSchema, pickSchema, practiceSchema, readySchema, removeSchema, repairSchema, replaceSchema, resignSchema } from "./schemata";
+import { generateFighters, generateEightEquipment, SHIRT_COLORS, SHORTS_COLORS } from "./create-from-catalogs";
+import { Fight } from "./fight";
+import { FighterInBattle } from "./fighter-in-battle";
 
 
 

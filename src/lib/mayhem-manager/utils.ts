@@ -27,22 +27,6 @@ export function slotsToString(slots: EquipmentSlot[]): string {
   return joined;
 }
 
-// TODO: Move all the other places I validate equipment to only validate here
-export function isValidEquipment(equipment: Equipment[]) {
-  let usedSlots: EquipmentSlot[] = [];
-  for (const e of equipment) {
-    usedSlots = usedSlots.concat(e.slots);
-    if (usedSlots.filter(s => s === EquipmentSlot.Head).length > 1 ||
-        usedSlots.filter(s => s === EquipmentSlot.Torso).length > 1 ||
-        usedSlots.filter(s => s === EquipmentSlot.Hand).length > 2 ||
-        usedSlots.filter(s => s === EquipmentSlot.Legs).length > 1 ||
-        usedSlots.filter(s => s === EquipmentSlot.Feet).length > 1) {
-      return false;
-    }
-  }
-  return true;
-}
-
 export function nextMatch(bracket: Bracket): Bracket & {
   left: Bracket,
   right: Bracket
@@ -70,6 +54,67 @@ export function nextMatch(bracket: Bracket): Bracket & {
     }
   }
   return nextMatch;
+}
+
+// TODO: Move all the other places I validate equipment to only validate here
+export function isValidEquipment(equipment: Equipment[]) {
+  let usedSlots: EquipmentSlot[] = [];
+  for (const e of equipment) {
+    usedSlots = usedSlots.concat(e.slots);
+    if (usedSlots.filter(s => s === EquipmentSlot.Head).length > 1 ||
+        usedSlots.filter(s => s === EquipmentSlot.Torso).length > 1 ||
+        usedSlots.filter(s => s === EquipmentSlot.Hand).length > 2 ||
+        usedSlots.filter(s => s === EquipmentSlot.Legs).length > 1 ||
+        usedSlots.filter(s => s === EquipmentSlot.Feet).length > 1) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export function isValidEquipmentFighter(team: Team, equipment: number[]): boolean {
+  const usedEquipmentIds: number[] = [];
+  let usedSlots: EquipmentSlot[] = [];
+  for (const e of equipment) {
+    if (e < 0 || e >= team.equipment.length || usedEquipmentIds.includes(e)) {
+      return false;
+    }
+    usedSlots = usedSlots.concat(team.equipment[e].slots);
+    usedEquipmentIds.push(e);
+  }
+  return usedSlots.filter(s => s === EquipmentSlot.Head).length <= 1 &&
+      usedSlots.filter(s => s === EquipmentSlot.Torso).length <= 1 &&
+      usedSlots.filter(s => s === EquipmentSlot.Hand).length <= 2 &&
+      usedSlots.filter(s => s === EquipmentSlot.Legs).length <= 1 &&
+      usedSlots.filter(s => s === EquipmentSlot.Feet).length <= 1;
+}
+
+export function isValidEquipmentTournament(team: Team, equipment: number[][]): boolean {
+  if (equipment.length !== team.fighters.length) {
+    return false;
+  }
+  const usedEquipment: number[] = [];
+  for (const f of equipment) {
+    let usedSlots: EquipmentSlot[] = [];
+    for (const e of f) {
+      if (e < 0 || e >= team.equipment.length) {
+        return false;
+      }
+      if (usedEquipment.includes(e)) {
+        return false;
+      }
+      usedEquipment.push(e);
+      usedSlots = usedSlots.concat(team.equipment[e].slots);
+    }
+    if (usedSlots.filter(s => s === EquipmentSlot.Head).length > 1 ||
+        usedSlots.filter(s => s === EquipmentSlot.Torso).length > 1 ||
+        usedSlots.filter(s => s === EquipmentSlot.Hand).length > 2 ||
+        usedSlots.filter(s => s === EquipmentSlot.Legs).length > 1 ||
+        usedSlots.filter(s => s === EquipmentSlot.Feet).length > 1) {
+      return false;
+    }
+  }
+  return true;
 }
 
 const STAT_VALUES = {
