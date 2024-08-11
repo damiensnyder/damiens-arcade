@@ -1,5 +1,5 @@
 import { Fight, TICK_LENGTH, EPSILON, MELEE_RANGE, CROWDING_DISTANCE, KNOCKBACK_ROTATION, scaleVectorToMagnitude } from "./fight"
-import { getFighterAbilityForBattle, getEquipmentForBattle } from "./create-from-decks"
+import { getFighterAbilityForBattle, getEquipmentForBattle } from "./create-from-catalogs"
 import { FighterStats, Appearance, StatusEffect, RotationState, EquipmentInBattle, Fighter, Equipment, Tint, MidFightEvent, MFAnimationEvent } from "./types"
 
 export class FighterInBattle {

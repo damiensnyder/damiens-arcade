@@ -3,12 +3,13 @@ import GameLogicHandlerBase from "$lib/backend/game-logic-handler-base";
 import type GameRoom from "$lib/backend/game-room";
 import type { MayhemManagerGameStage, MayhemManagerViewpoint, ViewpointBase, Team, Fighter, Bracket, Equipment, PreseasonTeam, EquipmentTemplate, FighterTemplate, MayhemManagerExport, Appearance, Color } from "$lib/mayhem-manager/types";
 import { StatName } from "$lib/mayhem-manager/types";
-import { fighterValue, getIndexByController, getTeamByController, isValidEquipmentFighter, isValidEquipmentTournament, nextMatch } from "$lib/mayhem-manager/utils";
+import { getIndexByController, getTeamByController, isValidEquipmentFighter, isValidEquipmentTournament, nextMatch } from "$lib/mayhem-manager/utils";
 import Bot from "$lib/mayhem-manager/bot";
 import { addBotSchema, advanceSchema, exportLeagueSchema, importSchema, joinSchema, leaveSchema, passSchema, pickBRFighterSchema, pickFightersSchema, pickSchema, practiceSchema, readySchema, removeSchema, repairSchema, replaceSchema, resignSchema } from "./schemata";
 import { generateFighters, generateEightEquipment, SHIRT_COLORS, SHORTS_COLORS } from "./create-from-catalogs";
 import { Fight } from "./fight";
 import { FighterInBattle } from "./fighter-in-battle";
+import { fighterValue } from "./fighter-value";
 
 
 
@@ -425,12 +426,12 @@ export default class MayhemManager extends GameLogicHandlerBase {
     // there aren't enough
     this.fighters = this.unsignedVeterans.concat(this.fighters);
     this.fighters = this.fighters.concat(generateFighters(Math.ceil(this.teams.length * 1.5 + 1) - this.fighters.length, false, this));
-    this.fighters.sort((a, b) => fighterValue(b) - fighterValue(a));
 
     // set price based on how good the fighter is and how old they are
     for (const fighter of this.fighters) {
       fighter.price = Math.floor(1.35 * fighterValue(fighter) + this.randInt(-5, 5));
     }
+    this.fighters.sort((a, b) => b.price - a.price);
 
     this.emitEventToAll({ type: "goToFA", fighters: this.fighters });
     this.pickTimeout = setTimeout(this.doBotFAPick.bind(this), BOT_DELAY);
