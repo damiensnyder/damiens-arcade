@@ -87,7 +87,7 @@ export function simTestFight(params?: TestParams): FightRecord {
     FILEPATH_BASE + "fight-results.json",
     JSON.stringify({
       ordering: fight.placementOrder,
-      hp: fight.fighters.map(f => f.hp)
+      hp: fight.fighters.map(f => Math.max(f.hp, 0))
     })
   );
   return {
@@ -96,7 +96,7 @@ export function simTestFight(params?: TestParams): FightRecord {
       equipment: t.equipment.map(outer => outer.map(e => e.name))
     })),
     ordering: fight.placementOrder,
-    hp: fight.fighters.map(f => f.hp)
+    hp: fight.fighters.map(f => Math.max(f.hp, 0))
   }
 }
 
@@ -246,7 +246,7 @@ export function duelSample(n: number = 1000): void {
     );
   }
   writeFileSync(
-    FILEPATH_BASE + "duel-sample.csv",
+    FILEPATH_BASE + "duel-sample-large.csv",
     csvHeader() + "\n" + fights.map(duelToCsv).join("\n")
   );
 }
