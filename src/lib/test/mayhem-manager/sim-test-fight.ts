@@ -1,8 +1,11 @@
 import { readFileSync, writeFileSync } from "fs";
 import { StatName, type Appearance, type Equipment, type EquipmentTemplate, type Fighter, type FighterStats } from "$lib/mayhem-manager/types";
 import { isValidEquipment } from "$lib/mayhem-manager/utils";
-import { Fight, FighterInBattle } from "$lib/mayhem-manager/battle-logic";
-import { equipmentCatalog, fighterAbilitiesCatalog, getEquipmentForPick } from "$lib/mayhem-manager/decks";
+import { getEquipmentForPick } from "$lib/mayhem-manager/create-from-catalogs";
+import { equipmentCatalog } from "$lib/mayhem-manager/equipment-catalog";
+import { Fight } from "$lib/mayhem-manager/fight";
+import { fighterAbilitiesCatalog } from "$lib/mayhem-manager/fighter-ability-catalog";
+import { FighterInBattle } from "$lib/mayhem-manager/fighter-in-battle";
 
 class RNG {
   rngState: [number, number, number, number]
