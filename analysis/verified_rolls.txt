@@ -1,3 +1,69 @@
+BATCH 7
+
+acefhjlrryyz
+bbcdeeghlmnp
+bccdefhilmpy
+bcdehnorrtvz
+aabgimrrttvx
+bdhkkmmnnoru
+acfghilmnuww ignored below
+aacghilmptwx
+ehlmnorttvwx
+chikllnnotwx
+aciiklmmprrt
+accfhlmnrsuw
+aabhimnprttw
+acegmnrsstvy
+abddfklnnost
+abcillrttuvw
+ahijlprsttuw
+abdegimnptwz
+beglmnoprrst
+bbehlooppstw
+[('acefhjlrryyz', 7, 6223), ('bbcdeeghlmnp', 3, 6223), ('bccdefhilmpy', 8, 6223), ('bcdehnorrtvz', 7, 6223), ('aabgimrrttvx', 12, 1472), ('bdhkkmmnnoru', 17, 600), ('acfghilmnuww', 10, 431), ('aacghilmptwx', 10, 29), ('ehlmnorttvwx', 14, 15), ('chikllnnotwx', 12, 15), ('aciiklmmprrt', 18, 15), ('accfhlmnrsuw', 10, 12), ('aabhimnprttw', 38, 7), ('acegmnrsstvy', 21, 7), ('abddfklnnost', 28, 7), ('abcillrttuvw', 11, 7), ('ahijlprsttuw', 26, 7), ('abdegimnptwz', 128, 7), ('beglmnoprrst', 10, 4), ('bbehlooppstw', 11, 4)]
+bbdehlmnptuz
+ddeghhklmnot
+ccdefknnotvy
+acffhhiltuyz
+defgkmnnnotw
+defgmnortttx
+accefgnnrrty
+aceghillmnvz
+acgillmorttz
+abccdeghikmw
+accefhllorxy
+cdehloprttux
+bcefghimnnrt
+bcehiklopttw
+eeghknpsttwy
+bbefgllmnoop
+accdillpprsu
+abceghkmoppr
+achklmmnoprs
+abbfnooprstx
+[('bbdehlmnptuz', 4, 6223), ('ddeghhklmnot', 2, 6223), ('ccdefknnotvy', 10, 1309), ('acffhhiltuyz', 10, 1022), ('defgkmnnnotw', 10, 600), ('defgmnortttx', 12, 97), ('accefgnnrrty', 12, 38), ('aceghillmnvz', 49, 15), ('acgillmorttz', 12, 15), ('abccdeghikmw', 66, 15), ('accefhllorxy', 24, 15), ('cdehloprttux', 15, 10), ('bcefghimnnrt', 10, 10), ('bcehiklopttw', 34, 7), ('eeghknpsttwy', 10, 7), ('bbefgllmnoop', 10, 7), ('accdillpprsu', 35, 7), ('abceghkmoppr', 61, 7), ('achklmmnoprs', 62, 7), ('abbfnooprstx', 12, 6)]
+dikmmnnoprvy
+eggijmnopwwz
+adehnnpprrvw
+adiiioprruwy
+acdfinnpvwyy
+abbcceijoprz
+deffflnruuxy
+aahjooqrttuy
+giiijlnoortv
+cehikmprsuvy
+aefkkpsttvwy
+bdeijjkopssw
+abdjkoostuyz
+acfilmoqrrtu
+efijlossstvy
+bcefiknprsty
+cglloooppssu
+abehllmorryy
+aabeefhlmrrw
+aacdefgjlnpt
+[('dikmmnnoprvy', 5, 6223), ('eggijmnopwwz', 4, 6223), ('adehnnpprrvw', 1, 6223), ('adiiioprruwy', 10, 1363), ('acdfinnpvwyy', 10, 1104), ('abbcceijoprz', 10, 1084), ('deffflnruuxy', 10, 605), ('aahjooqrttuy', 12, 408), ('giiijlnoortv', 11, 54), ('cehikmprsuvy', 12, 26), ('aefkkpsttvwy', 10, 15), ('bdeijjkopssw', 15, 15), ('abdjkoostuyz', 10, 11), ('acfilmoqrrtu', 12, 10), ('efijlossstvy', 19, 7), ('bcefiknprsty', 33, 7), ('cglloooppssu', 47, 7), ('abehllmorryy', 32, 7), ('aabeefhlmrrw', 21, 7), ('aacdefgjlnpt', 36, 7)]
+
 BATCH 6
 
 cdhhijkmntuy

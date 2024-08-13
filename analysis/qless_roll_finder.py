@@ -5,7 +5,7 @@ import random
 
 definitions = {}
 realness = {}
-ANY_LETTERS = False
+ANY_LETTERS = True
 
 with open("analysis/ratings.csv") as f:
     reader = csv.reader(f, delimiter=",", quotechar="\"")
