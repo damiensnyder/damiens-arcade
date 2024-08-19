@@ -38,7 +38,7 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
       },
       whenPrioritized: (self: EquipmentInBattle) => {
         let healAmount = self.fighter.attunements.includes("Corn Dog") ? 60 : 40;
-        healAmount = Math.max(healAmount, 100 - self.fighter.hp);
+        healAmount = Math.min(healAmount, 100 - self.fighter.hp);
         self.fighter.hp += healAmount;
         self.fighter.cooldown = 2;
         self.fighter.equipment.splice(self.fighter.equipment.indexOf(self), 1);
@@ -111,7 +111,7 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     slots: [EquipmentSlot.Head],
     imgUrl: "/static/equipment/fairy-hat.png",
     zoomedImgUrl: "/static/zoomed/equipment/fairy-hat.png",
-    price: 15,
+    price: 17,
     description: "On hit dealt: Freeze the target for 2s [attuned: 3s].",
     flavor: "",
     abilities: {
@@ -168,7 +168,7 @@ export const equipmentCatalog: Record<string, EquipmentTemplate> = {
     slots: [EquipmentSlot.Legs],
     imgUrl: "/static/equipment/frilly-skirt.png",
     zoomedImgUrl: "/static/zoomed/equipment/frilly-skirt.png",
-    price: 17,
+    price: 24,
     description: "Makes opponents much less likely to target the wearer.",
     flavor: "you wouldn't hit someone in a frilly little skirt, would you?",
     abilities: {

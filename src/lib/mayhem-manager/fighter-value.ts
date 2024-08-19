@@ -13,11 +13,9 @@ const VALUE_TO_DOLLARS = 100;
 
 function weightOfCoeff(name: string, fighter: Fighter, equipment?: Equipment[]): number {
   if (fighter.abilityName === name) {
-    // console.log(name);
     return 1;
   } else if (Object.values(StatName).includes(name as StatName)) {
     const ageAdjustment = (equipment !== undefined) ? (1 - 0.2 * fighter.experience) : 0;
-    // console.log(name, fighter.stats[name as StatName] + ageAdjustment);
     return fighter.stats[name as StatName] + ageAdjustment;
   } else if (Object.keys(equipmentCatalog).includes(name)) {
     let amountEquipped = 0.05;
@@ -27,7 +25,6 @@ function weightOfCoeff(name: string, fighter: Fighter, equipment?: Equipment[]):
     if (fighter.attunements.includes(name)) {
       amountEquipped *= 1.25;
     }
-    // console.log(name, amountEquipped, equipment);
     return amountEquipped;
   }
   return 0;
@@ -49,7 +46,6 @@ export function fighterValue(fighter: Fighter): number {
       }
     }
   }
-  // console.log(fighter, value);
   return value * VALUE_TO_DOLLARS;
 }
 
