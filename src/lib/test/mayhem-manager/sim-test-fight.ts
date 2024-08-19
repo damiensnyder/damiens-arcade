@@ -1,8 +1,11 @@
 import { readFileSync, writeFileSync } from "fs";
 import { StatName, type Appearance, type Equipment, type EquipmentTemplate, type Fighter, type FighterStats } from "$lib/mayhem-manager/types";
 import { isValidEquipment } from "$lib/mayhem-manager/utils";
-import { Fight, FighterInBattle } from "$lib/mayhem-manager/battle-logic";
-import { equipmentCatalog, fighterAbilitiesCatalog, getEquipmentForPick } from "$lib/mayhem-manager/decks";
+import { getEquipmentForPick } from "$lib/mayhem-manager/create-from-catalogs";
+import { equipmentCatalog } from "$lib/mayhem-manager/equipment-catalog";
+import { Fight } from "$lib/mayhem-manager/fight";
+import { fighterAbilitiesCatalog } from "$lib/mayhem-manager/fighter-ability-catalog";
+import { FighterInBattle } from "$lib/mayhem-manager/fighter-in-battle";
 
 class RNG {
   rngState: [number, number, number, number]
@@ -87,7 +90,7 @@ export function simTestFight(params?: TestParams): FightRecord {
     FILEPATH_BASE + "fight-results.json",
     JSON.stringify({
       ordering: fight.placementOrder,
-      hp: fight.fighters.map(f => f.hp)
+      hp: fight.fighters.map(f => Math.max(f.hp, 0))
     })
   );
   return {
@@ -96,7 +99,7 @@ export function simTestFight(params?: TestParams): FightRecord {
       equipment: t.equipment.map(outer => outer.map(e => e.name))
     })),
     ordering: fight.placementOrder,
-    hp: fight.fighters.map(f => f.hp)
+    hp: fight.fighters.map(f => Math.max(f.hp, 0))
   }
 }
 
@@ -173,19 +176,17 @@ function duelToCsv(fight: FightRecord): string {
           row.push(fight.teams[i].fighters[j].abilityName === n ? 1 : 0);
         }
         for (let n of equipmentNames) {
-          row.push(fight.teams[i].equipment[j].filter(e => e === equipmentCatalog[n].name).length);
-        }
-        for (let n of equipmentNames) {
-          row.push(fight.teams[i].fighters[j].attunements.includes(equipmentCatalog[n].name) ? 1 : 0);
+          // multiply count by 1.25 if attuned
+          row.push(
+            fight.teams[i].equipment[j].filter(e => e === equipmentCatalog[n].name).length *
+            (fight.teams[i].fighters[j].attunements.includes(equipmentCatalog[n].name) ? 1.25 : 1)
+          );
         }
       } else {
         for (let _ of Array(5).fill(0)) {
           row.push(0);
         }
         for (let _ of fighterAbilityNames) {
-          row.push(0);
-        }
-        for (let _ of equipmentNames) {
           row.push(0);
         }
         for (let _ of equipmentNames) {
@@ -211,9 +212,6 @@ function csvHeader(): string {
       }
       for (let n of equipmentNames) {
         row.push(`t${i}_f${j}_${n}`);
-      }
-      for (let n of equipmentNames) {
-        row.push(`t${i}_f${j}_${n}_att`);
       }
     }
   }
@@ -251,7 +249,7 @@ export function duelSample(n: number = 1000): void {
     );
   }
   writeFileSync(
-    FILEPATH_BASE + "duel-sample.csv",
+    FILEPATH_BASE + "duel-sample-large.csv",
     csvHeader() + "\n" + fights.map(duelToCsv).join("\n")
   );
 }
