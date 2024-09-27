@@ -1,15 +1,15 @@
 <script lang="ts">
-  import type { FighterInBattle } from "$lib/mayhem-manager/types";
+  // import type { FighterInBattle } from "$lib/mayhem-manager/types";
   import FighterImage from "$lib/mayhem-manager/fighter-image.svelte";
   import FighterInfo from "$lib/mayhem-manager/fighter-info.svelte";
   import { ownTeamIndex, teams } from "$lib/mayhem-manager/stores";
 
-  export let fighter: FighterInBattle;
+  export let fighter: any;
 </script>
 
 <div class="horiz outer-container">
   <div class="image-container">
-    <FighterImage {fighter} equipment={fighter.equipment} inBattle={true} team={fighter.team} />
+    <FighterImage {fighter} equipment={fighter.equipment} inBattle={true} />
   </div>
   <div class="info">
     <div class="info name horiz">
@@ -26,7 +26,7 @@
     </div>
     <div class="info">
       {#if fighter.hp > 0}
-        HP: {fighter.hp} / {fighter.maxHP}
+        HP: {fighter.hp} / 100
       {:else}
         downed
       {/if}
@@ -36,7 +36,6 @@
 
 <style>
   .outer-container {
-    flex: 1;
     align-self: stretch;
     margin-top: 0.5rem;
     background-color: var(--bg-4);

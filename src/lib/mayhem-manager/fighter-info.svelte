@@ -1,18 +1,32 @@
 <script lang="ts">
   import { lastAction } from "$lib/stores";
-  import type { Equipment, Fighter, PreseasonTeam } from "$lib/mayhem-manager/types";
+  import type { Equipment, Fighter, FighterStats, PreseasonTeam } from "$lib/mayhem-manager/types";
   import { StatName } from "$lib/mayhem-manager/types";
   import StarRating from "$lib/mayhem-manager/star-rating.svelte";
-  import { draftOrder, gameStage, ownTeam, ownTeamIndex, spotInDraftOrder, teams } from "$lib/mayhem-manager/stores";
+  import { draftOrder, gameStage, ownTeam, ownTeamIndex, spotInDraftOrder } from "$lib/mayhem-manager/stores";
   import FighterImage from "$lib/mayhem-manager/fighter-image.svelte";
 
   export let fighter: Fighter;
   export let index: number = -1;
   export let equipment: Equipment[] = [];
 
-  $: canPick = index > -1 &&
-      ($gameStage === "preseason" || $draftOrder[$spotInDraftOrder] === $ownTeamIndex) &&
-      $ownTeam.money >= fighter.price
+  $: isTurnToPick = index > -1 &&
+      ($gameStage === "preseason" || $draftOrder[$spotInDraftOrder] === $ownTeamIndex);
+  
+  function tooltip(stat: StatName, value: number): string {
+    value = Math.round(value);
+    if (stat === StatName.Strength) {
+      return `Deals ${0.5 + 0.1 * value}x base damage with melee weapons`;
+    } else if (stat === StatName.Accuracy) {
+      return `Hits ${25 + 5 * value}% of ranged attacks`;
+    } else if (stat === StatName.Energy) {
+      return `Takes ${6 - 0.4 * value} seconds to charge`;
+    } else if (stat === StatName.Speed) {
+      return `Moves ${4 + 0.8 * value} m/s; ${2 * value}% dodge chance on melee attacks`;
+    } else {
+      return `Incoming damage is multiplied by ${1.25 - 0.05 * value}`;
+    }
+  }
 
   function pick(): void {
     if ($gameStage === "preseason") {
@@ -32,9 +46,9 @@
 <div class="horiz top-bar">
   <h3>{fighter.name}</h3>
   <div class="horiz">
-    <span class="age">age {20 + fighter.experience}</span>
-    {#if canPick}
-      <button on:click={pick} on:submit={pick}>Pick{#if fighter.price > 0}
+    <span class="age">age {21 + fighter.experience}</span>
+    {#if isTurnToPick}
+      <button on:click={pick} on:submit={pick} disabled={$ownTeam.money < fighter.price}>Pick{#if fighter.price > 0}
       : ${fighter.price}
       {/if}</button>
     {/if}
@@ -45,8 +59,8 @@
   <div class="horiz info">
     <div class="stats">
       {#each Object.entries(StatName) as statEntry}
-        <div class="horiz stat-name">
-          {statEntry[0]}&nbsp;<StarRating rating={fighter.stats[statEntry[1]]} />
+        <div class="horiz stat-name" title={tooltip(statEntry[1], fighter.stats[statEntry[1]])}>
+          {statEntry[1]}&nbsp;<StarRating rating={fighter.stats[statEntry[1]]} oldRating={(fighter.oldStats ?? fighter.stats)[statEntry[1]]} />
         </div>
       {/each}
     </div>

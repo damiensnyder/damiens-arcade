@@ -1,11 +1,11 @@
 <script lang="ts">
-  import type { FighterInBattle, MidFightEvent } from "$lib/mayhem-manager/types";
+  import type { FighterVisual, MidFightEvent } from "$lib/mayhem-manager/types";
   import { fightEvents } from "$lib/mayhem-manager/stores";
   import FighterBattleInfo from "$lib/mayhem-manager/fighter-battle-info.svelte";
   import { onMount } from "svelte";
   import { Application, Container, Graphics, Sprite, Text, Ticker } from "svelte-pixi";
   import FighterBattleSprite from "$lib/mayhem-manager/fighter-battle-sprite.svelte";
-  import AnimationState, { type Particle } from "$lib/mayhem-manager/animation-state";
+  import AnimationState, { type FighterParticle, getColorFilters, type Particle } from "$lib/mayhem-manager/animation-state";
   import * as PIXI from "pixi.js";
 
   const BUFFER_PIXELS = 15;
@@ -13,17 +13,18 @@
   export let debug: boolean = false;
   let eventLogRaw: string = "";
   $: animationState = new AnimationState(debug ? [] : $fightEvents);
-  let fighters: FighterInBattle[] = [];
-  let rotation: number[] = [];
-  let flipped: number[] = [];
+  let fighters: FighterVisual[] = [];
   let particles: Particle[] = [];
-  let tint: PIXI.ColorMatrixFilter[] = [];
+  let fighterParticles: FighterParticle[][] = [];
   let playbackSpeed: number = 100;  // ticks are 0.2 s long
   let frameWidth: number;
   let frameHeight: number;
   let cameraScale: number = 7;
   let cameraX: number = 50;
   let cameraY: number = 50;
+  let targetCameraScale: number = 7;
+  let targetCameraX: number = 50;
+  let targetCameraY: number = 50;
   let tickDelta: number = 0;
   let paused: boolean = true;
   let loaded: boolean = false;  // keeps pixi canvas from existing before its size is known
@@ -33,7 +34,7 @@
     if (!debug) {
       play();
     } else {
-      setCamera();
+      setCameraTarget();
     }
   });
 
@@ -45,32 +46,36 @@
         animationState.prepareTick();
         tickDelta -= 1;
       }
-      renderFrame();
+      renderFrame(delta);
     }
   }
 
-  function renderFrame(): void {
+  function renderFrame(delta: number): void {
     fighters = animationState.getFighters(tickDelta);
-    rotation = animationState.getRotation(tickDelta);
-    flipped = animationState.getFlipped(tickDelta);
     particles = animationState.getParticles(tickDelta);
-    tint = animationState.getTint(tickDelta);
-    setCamera();
+    fighterParticles = fighters.map((_, i) => {
+      return particles.filter(p => p.type === "fighter" && p.fighter === i) as FighterParticle[];
+    });
+    setCameraTarget();
+    // ideally it would move slower or faster based on size of difference. but that's for later
+    cameraScale += (targetCameraScale - cameraScale) * Math.min(1, 1.5 * delta);
+    cameraX += (targetCameraX - cameraX) * Math.min(1, 1.5 * delta);
+    cameraY += (targetCameraY - cameraY) * Math.min(1, 1.5 * delta);
   }
 
   // Set camera transform so all fighters are visible but the camera is as zoomed as possible.
   // Camera should be centered, and the outermost fighters should be BUFFER_PIXELS from the
   // edge of the camera.
-  function setCamera(): void {
+  function setCameraTarget(): void {
     const frameAspectRatio = frameWidth / frameHeight;
     if (fighters.filter(f => f.hp > 0).length === 0) {
       if (frameAspectRatio < 1) {
-        cameraScale = frameWidth / (50 + 2 * BUFFER_PIXELS);
+        targetCameraScale = frameWidth / (50 + 2 * BUFFER_PIXELS);
       } else {
-        cameraScale = frameHeight / (50 + 2 * BUFFER_PIXELS);
+        targetCameraScale = frameHeight / (50 + 2 * BUFFER_PIXELS);
       }
-      cameraX = 50;
-      cameraY = 50;
+      targetCameraX = 50;
+      targetCameraX = 50;
     } else {
       // find the leftmost, rightmost, topmost, and bottommost coordinates a fighter has
       let left: number, right: number, top: number, bottom: number;
@@ -94,12 +99,12 @@
       // if content has wider aspect ratio than the frame, set the zoom based on width
       // if taller, set based on height
       if (frameAspectRatio < contentAspectRatio) {
-        cameraScale = frameWidth / (right - left + 2 * BUFFER_PIXELS);
+        targetCameraScale = frameWidth / (right - left + 2 * BUFFER_PIXELS);
       } else {
-        cameraScale = frameHeight / (bottom - top + 2 * BUFFER_PIXELS);
+        targetCameraScale = frameHeight / (bottom - top + 2 * BUFFER_PIXELS);
       }
-      cameraX = (right + left) / 2;
-      cameraY = (top + bottom) / 2;
+      targetCameraX = (right + left) / 2;
+      targetCameraY = (top + bottom) / 2;
     }
   }
 
@@ -126,18 +131,19 @@
 
   function step(): void {
     animationState.prepareTick();
-    renderFrame();
+    renderFrame(0);
   }
   
   function restart(): void {
     pause();
     tickDelta = 0;
     animationState = new AnimationState($fightEvents);
-    renderFrame();
+    renderFrame(0);
     play();
   }
 </script>
 
+<!-- @ts-ignore -->
 <div class="outer horiz">
   <div class="column" style:flex=2 style:overflow="visible">
     <div class="viewport" bind:offsetWidth={frameWidth} bind:offsetHeight={frameHeight}>
@@ -150,17 +156,17 @@
             {#each fighters as f, i}
               {#if f.hp > 0}
                 <Container x={f.x - cameraX} y={f.y - cameraY} pivot={0.5}
-                    scale={[15 / 384 * flipped[i], 15 / 384]} angle={rotation[i]} filters={[tint[i]]}>
+                    scale={[15 / 384 * f.facing, 15 / 384]} angle={f.rotation} filters={getColorFilters(f.tint, f.flash)}>
                 <!-- using height / width does not work on the first run and i have no idea why -->
-                  <FighterBattleSprite fighter={f} equipment={f.equipment} />
+                  <FighterBattleSprite fighter={f} equipment={f.equipment} particles={fighterParticles[i]} />
                 </Container>
               {/if}
             {/each}
             {#each particles as p}
-              {#if p.type === "image"}
+              {#if p.type === "projectile"}
                 <Sprite texture={PIXI.Texture.from(p.imgUrl)}
                     x={p.x - cameraX} y={p.y - cameraY} scale={15 / 384} anchor={0.5} zIndex={p.y} rotation={p.rotation} />
-              {:else}
+              {:else if p.type === "text"}
                 <Text text={p.text} x={p.x - cameraX} y={p.y - cameraY} anchor={0.5} zIndex={1001} alpha={p.opacity} scale={1/16} style={{
                   fill: 0xeeeeee,
                   fontFamily: "Comic Sans MS",
@@ -192,7 +198,9 @@
       </div>
     {/if}
     {#each fighters as fighter}
-      <FighterBattleInfo {fighter} />
+      {#if  fighter.hp > 0}
+        <FighterBattleInfo {fighter} />
+      {/if}
     {/each}
   </div>
 </div>

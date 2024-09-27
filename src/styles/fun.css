@@ -12,6 +12,7 @@
   --accent-2: #633;
   --accent-3: #522;
   --accent-4: #eeb;
+  --accent-5: #e8c;
 
   --font-main: "Comic Sans MS", "Chalkboard", handwriting;
 }
@@ -28,7 +29,8 @@ body,
  font-family: var(--font-main);
 }
 
-button {
+button,
+input[type=submit] {
   font-family: inherit;
   color: inherit;
   background-color: var(--bg-2);
@@ -47,6 +49,12 @@ button:hover {
 button:hover:active,
 button:active {
   color: var(--text-1);
+}
+
+button:disabled,
+button:disabled:active {
+  color: var(--text-2);
+  background-color: var(--bg-2);
 }
 
 h2 {
