@@ -1,4 +1,4 @@
-import { simSample, simTestFight } from "../../../../dist/sim-test-fight.js";
+import { brSample, duelSample } from "../../../../dist/sim-test-fight.js";
 
 // simTestFight();
-simSample(5000);
+duelSample(10000);

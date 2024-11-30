@@ -1,18 +1,17 @@
 <script lang="ts">
-  import { lastAction } from "$lib/stores";
+  import { host, lastAction, pov } from "$lib/stores";
   import EquipmentInfo from "$lib/mayhem-manager/equipment-info.svelte";
   import FighterInfo from "$lib/mayhem-manager/fighter-info.svelte";
-  import { ownTeam, equipmentChoices } from "$lib/mayhem-manager/stores";
+  import { ownTeam, equipmentChoices, teams, ready, nextMatch } from "$lib/mayhem-manager/stores";
   import { EquipmentSlot } from "$lib/mayhem-manager/types";
   import { slotsToString } from "$lib/mayhem-manager/utils";
   import FighterImage from "$lib/mayhem-manager/fighter-image.svelte";
 
-  function ready(): void {
+  function readyUp(): void {
     lastAction.set({
       type: "pickFighters",
       equipment: $ownTeam.fighters.map((_, i) =>
-          $equipmentChoices.map((ec, j) => ec === i ? j : -1).filter(ec => ec >= 0)),
-      strategy: $ownTeam.fighters.map(_ => ({}))
+          $equipmentChoices.map((ec, j) => ec === i ? j : -1).filter(ec => ec >= 0))
     });
   }
 
@@ -72,10 +71,24 @@
     </div>
   {/each}
   {#if choicesAreValid() === true}
-    <button class="ready" on:click={ready} on:submit={ready}>Ready</button>
+    <button class="ready" on:click={readyUp} on:submit={readyUp}>Ready</button>
   {:else}
     <p class="error">Cannot submit: {choicesAreValid()}</p>
   {/if}
+
+  <div>
+    Waiting for:
+    {
+      $teams.map((team, i) => {
+        return {
+          name: team.name,
+          unready: $teams[i].controller !== "bot" && !$ready[i]
+        };
+      }).filter(t => t.unready)
+        .map(t => t.name)
+        .join(", ")
+    }
+  </div>
 </div>
 
 <style>

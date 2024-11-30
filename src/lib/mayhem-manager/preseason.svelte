@@ -1,6 +1,6 @@
 <script lang="ts">
   import { host, lastAction, pov } from "$lib/stores";
-  import { ownTeam, ownTeamIndex, teams } from "$lib/mayhem-manager/stores";
+  import { ownTeam, ownTeamIndex, teams, ready } from "$lib/mayhem-manager/stores";
   import type { PreseasonTeam } from "$lib/mayhem-manager/types";
   import FighterInfo from "$lib/mayhem-manager/fighter-info.svelte";
   import EquipmentInfo from "$lib/mayhem-manager/equipment-info.svelte";
@@ -8,9 +8,12 @@
   $: needsResigning = $ownTeam !== null ? ($ownTeam as PreseasonTeam).needsResigning : [];
   $: needsRepair = $ownTeam !== null ? ($ownTeam as PreseasonTeam).needsRepair : [];
 
+  let teamName = "";
+
   function start() {
     lastAction.set({
-      type: "join"
+      type: "join",
+      name: teamName
     });
   }
 
@@ -40,9 +43,9 @@
     });
   }
 
-  function advance() {
+  function readyUp() {
     lastAction.set({
-      type: "advance"
+      type: "ready"
     });
   }
 </script>
@@ -58,12 +61,24 @@
     <h2>Repair equipment</h2>
     <div>
       {#each needsRepair as equipment, index}
-          <EquipmentInfo {equipment} {index} />
+        <EquipmentInfo {equipment} {index} />
       {/each}
     </div>
   {:else if $teams.length < 16}
     <div class="horiz">
-      <button on:click={start} on:submit={start}>Join</button>
+      <form>
+        <h2>Join the game</h2>
+        <label>Team name
+          <input type="text"
+              bind:value={teamName}
+              maxLength={20} />
+        </label>
+        <button on:click={start}
+            on:submit={start}
+            disabled={teamName.trim().length === 0 || $teams.some(t => t.name === teamName)}>
+          Join
+        </button>
+      </form>
     </div>
   {/if}
 </div>
@@ -91,20 +106,44 @@
       </div>
     </div>
   {/each}
-  {#if $host === $pov}
-    <div class="horiz host-controls">
-      {#if $teams.length < 16}
-        <button class="right-align-inner"
-            on:click={addBot} on:submit={addBot}>Add Bot</button>
-      {/if}
+  <div class="horiz controls">
+    {#if $host === $pov && $teams.length < 16}
       <button class="right-align-inner"
-          on:click={advance} on:submit={advance}>Go to draft</button>
-    </div>
-  {/if}
+          on:click={addBot} on:submit={addBot}>Add a bot</button>
+    {/if}
+    {#if $ownTeamIndex !== null}
+      <button class="right-align-inner"
+          on:click={readyUp} on:submit={readyUp}>Ready</button>
+    {/if}
+  </div>
+  <div>
+    {#if !$teams.every(t => t.controller === "bot")}
+      Waiting for:
+      {
+        $teams.map((team, i) => {
+          return {
+            name: team.name,
+            unready: $teams[i].controller !== "bot" && !$ready[i]
+          };
+        }).filter(t => t.unready)
+          .map(t => t.name)
+          .join(", ")
+      }
+    {/if}
+  </div>
 </div>
 
 <style>
-  .players-list > .host-controls {
+  form {
+    padding: 0.5rem;
+    align-items: center;
+  }
+
+  label {
+    margin-top: 1.25rem;
+  }
+
+  .players-list > .controls {
     align-self: center;
     margin-top: 1rem;
   }

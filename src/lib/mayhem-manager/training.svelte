@@ -1,6 +1,6 @@
 <script lang="ts">
   import { lastAction } from "$lib/stores";
-  import { equipment, ownTeam, ownTeamIndex, teams } from "$lib/mayhem-manager/stores";
+  import { equipment, ownTeam, ownTeamIndex, ready, teams } from "$lib/mayhem-manager/stores";
   import EquipmentInfo from "$lib/mayhem-manager/equipment-info.svelte";
   import FighterInfo from "$lib/mayhem-manager/fighter-info.svelte";
   import { StatName, type Equipment, type Fighter, type FighterStats } from "$lib/mayhem-manager/types";
@@ -91,6 +91,20 @@
 
     <button class="ready"
         on:click={practice} on:submit={practice}>Ready!</button>
+
+    <div>
+      Waiting for:
+      {
+        $teams.map((team, i) => {
+          return {
+            name: team.name,
+            unready: $teams[i].controller !== "bot" && !$ready[i]
+          };
+        }).filter(t => t.unready)
+          .map(t => t.name)
+          .join(", ")
+      }
+    </div>
 
     <h2>Your equipment</h2>
 

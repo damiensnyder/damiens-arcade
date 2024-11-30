@@ -1,7 +1,11 @@
-import { collatedSettings, simulateFight } from "$lib/mayhem-manager/battle-logic";
 import { readFileSync, writeFileSync } from "fs";
-import type { Equipment, EquipmentTemplate, Fighter, FighterInBattle, FighterStats, MayhemManagerEvent } from "$lib/mayhem-manager/types";
+import { StatName, type Appearance, type Equipment, type EquipmentTemplate, type Fighter, type FighterStats } from "$lib/mayhem-manager/types";
 import { isValidEquipment } from "$lib/mayhem-manager/utils";
+import { getEquipmentForPick } from "$lib/mayhem-manager/create-from-catalogs";
+import { equipmentCatalog } from "$lib/mayhem-manager/equipment-catalog";
+import { Fight } from "$lib/mayhem-manager/fight";
+import { fighterAbilitiesCatalog } from "$lib/mayhem-manager/fighter-ability-catalog";
+import { FighterInBattle } from "$lib/mayhem-manager/fighter-in-battle";
 
 class RNG {
   rngState: [number, number, number, number]
@@ -67,47 +71,26 @@ export function simTestFight(params?: TestParams): FightRecord {
   for (let i = 0; i < params.teams.length; i++) {
     const team = params.teams[i];
     for (let j = 0; j < team.fighters.length; j++) {
-      fightersInBattle.push({
-        ...team.fighters[j],
-        team: i,
-        hp: 100,
-        maxHP: 100,
-        equipment: team.equipment[j],
-        x: 0,
-        y: 0,
-        cooldown: 0,
-        charge: 0,
-        statusEffects: []
-      });
+      fightersInBattle.push(
+        new FighterInBattle(
+          {
+            ...team.fighters[j],
+            stats: { ...team.fighters[j].stats }
+          },
+          team.equipment[j],
+          i
+        )
+      );
     }
   }
   // get winner of the fight and store the ending HP of every fighter
-  const hp = Array(fightersInBattle.length).fill(100);
-  const ordering = simulateFight(
-    (event) => {
-      if (event.type === "fight") {
-        for (const tick of event.eventLog) {
-          for (const e of tick) {
-            if (e.type === "hpChange") {
-              hp[e.fighter]= e.newHp;
-            }
-          }
-        }
-      }
-    },
-    {
-      name: "",
-      imgUrl: "",
-      features: []
-    },
-    new RNG(params.seed),
-    fightersInBattle
-  );
+  const fight = new Fight(new RNG(params.seed), fightersInBattle);
+  fight.simulate();
   writeFileSync(
     FILEPATH_BASE + "fight-results.json",
     JSON.stringify({
-      results: ordering,
-      hp
+      ordering: fight.placementOrder,
+      hp: fight.fighters.map(f => Math.max(f.hp, 0))
     })
   );
   return {
@@ -115,43 +98,37 @@ export function simTestFight(params?: TestParams): FightRecord {
       fighters: t.fighters,
       equipment: t.equipment.map(outer => outer.map(e => e.name))
     })),
-    ordering,
-    hp
+    ordering: fight.placementOrder,
+    hp: fight.fighters.map(f => Math.max(f.hp, 0))
   }
 }
 
-function randomFighter(equipment: EquipmentTemplate[], name: string = ""): Fighter {
+function randomFighter(name: string = ""): Fighter {
+  const abilityNames = Object.keys(fighterAbilitiesCatalog);
+
   return {
     name,
-    gender: "A",
     stats: randomFighterStats(),
-    attunements: randomAttunements(equipment),
-    abilities: {},
+    attunements: randomAttunements(),
     experience: 0,
     price: 0,
     description: "",
-    flavor: ""
+    flavor: "",
+    appearance: {} as unknown as Appearance,
+    abilityName: abilityNames[Math.floor(Math.random() * abilityNames.length)]
   };
 }
 
-function randomEquipment(equipment: EquipmentTemplate[], numEquipment: number): Equipment[] {
-  numEquipment = Math.max(0, Math.floor(numEquipment + Math.random() - 0.5));
+function randomEquipment(numTries: number): Equipment[] {
+  const equipmentNames = Object.keys(equipmentCatalog);
   const used: Equipment[] = [];
 
-  let tries = 0;
-  while (used.length < numEquipment && tries < 20) {
-    const template = equipment[Math.floor(Math.random() * equipment.length)];
-    used.push({
-      ...template,
-      yearsOwned: 0,
-      price: 0,
-      description: "",
-      flavor: ""
-    });
+  for (let i = 0; i < numTries; i++) {
+    const template = equipmentNames[Math.floor(Math.random() * equipmentNames.length)];
+    used.push(getEquipmentForPick(template));
     if (!isValidEquipment(used)) {
       used.pop();
     }
-    tries++;
   }
 
   return used;
@@ -167,61 +144,141 @@ function randomFighterStats(): FighterStats {
   };
 }
 
-function randomAttunements(equipment: EquipmentTemplate[]): string[] {
+function randomAttunements(): string[] {
   const attunements = [];
-  for (const e of equipment) {
-    if (Math.random() < 0.1) {
+  for (const e of Object.values(equipmentCatalog)) {
+    if (Math.random() < 0.2) {
       attunements.push(e.name);
     }
   }
   return attunements;
 }
 
-export function simSample(n: number = 1000): void {
-  const equipment = collatedSettings({
-    fighterDecks: ["default"],
-    equipmentDecks: ["default"],
-    mapDecks: ["default"],
-    customFighters: [],
-    customEquipment: [],
-    customMaps: []
-  }).equipment.equipment;
+function duelToCsv(fight: FightRecord): string {
+  const row: number[] = [];
+  const fighterAbilityNames = Object.keys(fighterAbilitiesCatalog);
+  const equipmentNames = Object.keys(equipmentCatalog);
+  const possibleHp = fight.teams[fight.ordering[0]].fighters.length * 100;
+  let remainingHp = 0;
+  for (let hp of fight.hp) {
+    remainingHp += Math.max(hp, 0);
+  }
+  row.push(fight.ordering[0] === 0 ?
+           (1 + remainingHp / possibleHp) :
+           (-1 - remainingHp / possibleHp));
+  for (let i = 0; i < 2; i++) {
+    for (let j = 0; j < 6; j++) {
+      if (fight.teams[i].fighters.length > j) {
+        for (let stat of Object.values(fight.teams[i].fighters[j].stats)) {
+          row.push(stat);
+        }
+        for (let n of fighterAbilityNames) {
+          row.push(fight.teams[i].fighters[j].abilityName === n ? 1 : 0);
+        }
+        for (let n of equipmentNames) {
+          // multiply count by 1.25 if attuned
+          row.push(
+            fight.teams[i].equipment[j].filter(e => e === equipmentCatalog[n].name).length *
+            (fight.teams[i].fighters[j].attunements.includes(equipmentCatalog[n].name) ? 1.25 : 1)
+          );
+        }
+      } else {
+        for (let _ of Array(5).fill(0)) {
+          row.push(0);
+        }
+        for (let _ of fighterAbilityNames) {
+          row.push(0);
+        }
+        for (let _ of equipmentNames) {
+          row.push(0);
+        }
+      }
+    }
+  }
+  return row.join(",");
+}
+
+function csvHeader(): string {
+  const row: string[] = ["result"];
+  const fighterAbilityNames = Object.keys(fighterAbilitiesCatalog);
+  const equipmentNames = Object.keys(equipmentCatalog);
+  for (let i = 0; i < 2; i++) {
+    for (let j = 0; j < 6; j++) {
+      for (let n of Object.values(StatName)) {
+        row.push(`t${i}_f${j}_${n}`);
+      }
+      for (let n of fighterAbilityNames) {
+        row.push(`t${i}_f${j}_${n}`);
+      }
+      for (let n of equipmentNames) {
+        row.push(`t${i}_f${j}_${n}`);
+      }
+    }
+  }
+  return row.join(",");
+}
+
+export function duelSample(n: number = 1000): void {
   const fights: FightRecord[] = [];
   for (let i = 0; i < n; i++) {
-    const isBR = Math.random() < 0.3;
-    const powerLevel = 1 + Math.floor(Math.random() * 11);
     const teams: {
       fighters: Fighter[],
       equipment: Equipment[][]
     }[] = [];
-    if (isBR) {
-      const numTeams = 2 + Math.floor(Math.random() * Math.random() * 14);
-      for (let j = 0; j < numTeams; j++) {
-        const numEquipment = Math.floor(Math.random() * powerLevel);
-        teams.push({
-          fighters: [randomFighter(equipment, j.toString())],
-          equipment: [randomEquipment(equipment, numEquipment)]
-        });
-      }
-    } else {
-      for (let j = 0; j < 2; j++) {
-        const numFighters = Math.max(Math.floor(Math.random() * powerLevel * 0.7), 1);
-        const numEquipment = (powerLevel - numFighters) / numFighters;
-        teams.push({
-          fighters: [...Array(numFighters)].map((_, k) => randomFighter(equipment, j.toString() + " " + k.toString())),
-          equipment: [...Array(numFighters)].map(_ => randomEquipment(equipment, numEquipment))
-        });
+    for (let j = 0; j < 2; j++) {
+      teams.push({
+        fighters: [],
+        equipment: []
+      })
+      const numFighters = Math.ceil(Math.random() * 6);
+      for (let k = 0; k < numFighters; k++) {
+        teams[j].fighters.push(randomFighter());
+        teams[j].equipment.push(randomEquipment(Math.round(Math.random() * 6)));
       }
     }
     fights.push(
       simTestFight({
         teams,
-        seed: [1, 2, 3, 4]
+        seed: [
+          Math.random() * 4294967296,
+          Math.random() * 4294967296,
+          Math.random() * 4294967296,
+          Math.random() * 4294967296
+        ]
       })
     );
   }
   writeFileSync(
-    FILEPATH_BASE + "fight-sample.json",
+    FILEPATH_BASE + "duel-sample-large.csv",
+    csvHeader() + "\n" + fights.map(duelToCsv).join("\n")
+  );
+}
+
+export function brSample(n: number = 1000): void {
+  const fights: FightRecord[] = [];
+  for (let i = 0; i < n; i++) {
+    const powerLevel = 1 + Math.floor(Math.random() * 11);
+    const teams: {
+      fighters: Fighter[],
+      equipment: Equipment[][]
+    }[] = [];
+    const numTeams = 2 + Math.floor(Math.random() * Math.random() * 14);
+    for (let j = 0; j < numTeams; j++) {
+      const numEquipment = Math.floor(Math.random() * powerLevel);
+      teams.push({
+        fighters: [randomFighter()],
+        equipment: [randomEquipment(numEquipment)]
+      });
+    }
+    fights.push(
+      simTestFight({
+        teams,
+        seed: [1, 2, Math.floor(Math.random() * 1000000), Math.floor(Math.random() * 1000000)]
+      })
+    );
+  }
+  writeFileSync(
+    FILEPATH_BASE + "br-sample.json",
     JSON.stringify(fights)
   );
 }
