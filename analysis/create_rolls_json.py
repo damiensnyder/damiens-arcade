@@ -4,7 +4,7 @@ import csv
 import random
 
 
-FIRST_DAY = datetime.date(2024, 9, 9)
+FIRST_DAY = datetime.date(2024, 11, 25)
 
 
 definitions = {}
