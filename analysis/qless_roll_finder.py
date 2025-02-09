@@ -39,6 +39,9 @@ with open("analysis/grids.json") as f:
 with open("analysis/rolls.txt") as f:
     current_rolls = [r.strip() for r in f.readlines() if len(r.strip()) == 12]
 
+with open("analysis/stored_solutions.json") as f:
+    stored_solutions = json.load(f)
+
 
 def is_possible(word, letters):
     if len(word) < 3:
@@ -149,14 +152,22 @@ def all_from_grid(grid, letters, words):
             results += all_from_grid(new_grid, new_letters, words)
     return results
 
+
 def all_solutions(letters, threshold=5, stop_after=10):
     letters = letters.lower()
     words = prioritize(letters, threshold)
     grids_tried = 0
     solutions = []
-    for grid in good:
-        grids_tried += 1
+    if letters in stored_solutions:
+        grids_tried = stored_solutions[letters]['max_grid_tried']
+        for solution in stored_solutions[letters]['solutions']:
+            if all([line['word'] in words for line in solution]):
+                solutions.append(solution)
+            for line in solution:
+                words_used.add(line['word'])
+    for grid in good[grids_tried:]:
         solutions += all_from_grid(grid, letters, words)
+        grids_tried += 1
         if len(solutions) >= stop_after:
             return solutions, grids_tried
     return solutions, grids_tried
@@ -164,7 +175,7 @@ def all_solutions(letters, threshold=5, stop_after=10):
 rolls = []
 words_used = set()
 
-while len(rolls) < 20:
+while len(rolls) < 50:
     if len(current_rolls) > 0:
         roll = current_rolls.pop()
     else:
@@ -175,6 +186,12 @@ while len(rolls) < 20:
             words_used.add(line['word'])
     if len(solutions5) > 0:
         rolls.append((roll, len(solutions5), grids_tried5))
+        stored_solutions[roll] = {
+            'solutions': solutions5,
+            'max_grid_tried': grids_tried5
+        }
+    elif roll in stored_solutions:
+        del stored_solutions[roll]
 
 rolls = sorted(rolls, key=lambda x: x[2], reverse=True)
 print(rolls)
@@ -186,3 +203,6 @@ with open("analysis/new_words.csv", "w") as f:
     for word in sorted(words_used, key=lambda x: len(x)):
         if realness[word] == 5:
             f.write(f"{word},,\"{definitions[word]}\"\n")
+
+with open("analysis/stored_solutions.json", "w") as f:
+    json.dump(stored_solutions, f)
