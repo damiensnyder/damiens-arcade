@@ -5,7 +5,7 @@ import random
 
 definitions = {}
 realness = {}
-ANY_LETTERS = False
+ANY_LETTERS = True
 
 with open("analysis/ratings.csv") as f:
     reader = csv.reader(f, delimiter=",", quotechar="\"")
@@ -166,22 +166,22 @@ def all_solutions(letters, threshold=5, stop_after=10):
             for line in solution:
                 words_used.add(line['word'])
     for grid in good[grids_tried:]:
-        solutions += all_from_grid(grid, letters, words)
-        grids_tried += 1
         if len(solutions) >= stop_after:
             return solutions, grids_tried
+        solutions += all_from_grid(grid, letters, words)
+        grids_tried += 1
     return solutions, grids_tried
 
 rolls = []
 words_used = set()
 
-while len(rolls) < 50:
+while len(rolls) < 20:
     if len(current_rolls) > 0:
         roll = current_rolls.pop()
     else:
         roll = generate_roll()
     solutions5, grids_tried5 = all_solutions(roll, 5)
-    for s in solutions5:
+    for s in solutions5[:25]:
         for line in s:
             words_used.add(line['word'])
     if len(solutions5) > 0:
