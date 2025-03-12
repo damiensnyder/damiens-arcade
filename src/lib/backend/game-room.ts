@@ -1,4 +1,6 @@
 import type { Namespace, Server, Socket } from "socket.io";
+import jwt from "jsonwebtoken";
+import { readFileSync } from "fs";
 import type GameLogicHandler from "./game-logic-handler-base";
 import AuctionTicTacToe from "../auction-tic-tac-toe/game-logic-handler";
 import { GameType, PacketType } from "../types";
@@ -60,9 +62,13 @@ export default class GameRoom {
 
     this.io = io.of(`/${gameType.replaceAll(" ", "-").toLowerCase()}/${roomCode}`);
     this.io.on("connection", (socket: Socket) => {
+      const cookies = socket.handshake.headers.cookie;
+      const authToken = parseCookies(cookies)['auth_token'];
+
       // on a new connection, add the viewer to the list of viewers
       const viewer = {
         socket: socket,
+        siteUsername: verifyToken(authToken)?.username,
         index: this.connectionsStarted
       };
       this.viewers.push(viewer);
@@ -179,4 +185,22 @@ export default class GameRoom {
       isPublic: newSettings.isPublic
     });
   }
+}
+
+
+const JWT_SECRET = JSON.parse(readFileSync("secrets/secrets.json").toString())["SIGNING_KEY"];
+
+function verifyToken(token: string) {
+  try {
+    return jwt.verify(token, JWT_SECRET);
+  } catch (err) {
+    return null;
+  }
+}
+
+function parseCookies(cookieString: string) {
+  if (!cookieString) return {};
+  return cookieString.split(';')
+    .map(cookie => cookie.trim().split('='))
+    .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {});
 }
