@@ -66,16 +66,17 @@ export default class GameRoom {
 
     this.io = io.of(`/${gameType.replaceAll(" ", "-").toLowerCase()}/${roomCode}`);
     this.io.on("connection", async (socket: Socket) => {
-      const cookies = cookie.parse(socket.handshake.headers['cookie']);
-      const authToken = cookies.auth_token;
       let siteUsername = null;
-      if (authToken) {
-        try {
+      let authToken = null;
+      try {
+        const cookies = cookie.parse(socket.handshake.headers['cookie']);
+        authToken = cookies.auth_token;
+        if (authToken) {
           const { payload } = await jwtVerify(authToken, JWT_SECRET, { algorithms: ['HS256'] });
           siteUsername = payload.username;
-        } catch (err) {
-          console.log(authToken);
         }
+      } catch (err) {
+        console.log(authToken);
       }
 
       // on a new connection, add the viewer to the list of viewers
