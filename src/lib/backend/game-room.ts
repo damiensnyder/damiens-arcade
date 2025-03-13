@@ -1,5 +1,6 @@
 import type { Namespace, Server, Socket } from "socket.io";
-import jwt from "jsonwebtoken";
+import { jwtVerify } from "jose";
+import cookie from "cookie";
 import { readFileSync } from "fs";
 import type GameLogicHandler from "./game-logic-handler-base";
 import AuctionTicTacToe from "../auction-tic-tac-toe/game-logic-handler";
@@ -9,6 +10,9 @@ import { z } from "zod";
 import MayhemManager from "../mayhem-manager/game-logic-handler";
 
 const TEARDOWN_TIME: number = 60 * 60 * 1000; // one hour
+const JWT_SECRET = Buffer.from(
+  JSON.parse(readFileSync("secrets/secrets.json").toString())["SIGNING_KEY"]
+);
 
 const changeSettingsSchema = z.object({
   type: z.literal("changeRoomSettings"),
@@ -61,14 +65,23 @@ export default class GameRoom {
     }
 
     this.io = io.of(`/${gameType.replaceAll(" ", "-").toLowerCase()}/${roomCode}`);
-    this.io.on("connection", (socket: Socket) => {
-      const cookies = socket.handshake.headers.cookie;
-      const authToken = parseCookies(cookies)['auth_token'];
+    this.io.on("connection", async (socket: Socket) => {
+      const cookies = cookie.parse(socket.handshake.headers['cookie']);
+      const authToken = cookies.auth_token;
+      let siteUsername = null;
+      if (authToken) {
+        try {
+          const { payload } = await jwtVerify(authToken, JWT_SECRET, { algorithms: ['HS256'] });
+          siteUsername = payload.username;
+        } catch (err) {
+          console.log(authToken);
+        }
+      }
 
       // on a new connection, add the viewer to the list of viewers
       const viewer = {
         socket: socket,
-        siteUsername: verifyToken(authToken)?.username,
+        siteUsername,
         index: this.connectionsStarted
       };
       this.viewers.push(viewer);
@@ -185,22 +198,4 @@ export default class GameRoom {
       isPublic: newSettings.isPublic
     });
   }
-}
-
-
-const JWT_SECRET = JSON.parse(readFileSync("secrets/secrets.json").toString())["SIGNING_KEY"];
-
-function verifyToken(token: string) {
-  try {
-    return jwt.verify(token, JWT_SECRET);
-  } catch (err) {
-    return null;
-  }
-}
-
-function parseCookies(cookieString: string) {
-  if (!cookieString) return {};
-  return cookieString.split(';')
-    .map(cookie => cookie.trim().split('='))
-    .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {});
 }
