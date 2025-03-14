@@ -1,7 +1,7 @@
-import { EPSILON } from "./fight";
-import { meleeAttackAbility } from "./equipment-catalog";
-import { FighterInBattle } from "./fighter-in-battle";
-import { FighterTemplate, EquipmentInBattle } from "./types";
+import { EPSILON } from "$lib/mayhem-manager/fight";
+import { meleeAttackAbility } from "$lib/mayhem-manager/equipment-catalog";
+import { FighterInBattle } from "$lib/mayhem-manager/fighter-in-battle";
+import { FighterTemplate, EquipmentInBattle } from "$lib/mayhem-manager/types";
 
 export const fighterAbilitiesCatalog: Record<string, FighterTemplate> = {
     noAbilities: {

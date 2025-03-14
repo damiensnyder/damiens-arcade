@@ -3,7 +3,7 @@
   import { GameType } from "$lib/types";
 
   async function createRoom(gameType: string) {
-    const res = await fetch("/create-room/" + gameType, {
+    const res = await fetch(`/${gameType}/create-room`, {
       method: "POST"
     });
     if (res.ok) {
@@ -18,7 +18,7 @@
 <div class="top-level-menu">
   <h2>Create a game</h2>
 
-  <form on:submit|preventDefault={() => createRoom(GameType.AuctionTTT)}>
+  <form on:submit|preventDefault={() => goto("/auction-tic-tac-toe")}>
     <input type="submit" value="Auction Tic-Tac-Toe">
   </form>
 
