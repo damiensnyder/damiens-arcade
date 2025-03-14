@@ -8,8 +8,8 @@ export const handle = async ({ event, resolve }) => {
   // Initialize once when server starts
   if (!global.io || !global.roomManager) {
     console.log("Hooks initialized!");
-    const server = event.platform.server;
-    global.io = new Server(server);
+    globalThis
+    global.io = new Server();
     global.roomManager = new RoomManager(global.io);
     
     // // Set up test rooms if needed
