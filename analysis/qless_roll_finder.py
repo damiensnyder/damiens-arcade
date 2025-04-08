@@ -3,9 +3,11 @@ import csv
 import random
 
 
+ANY_LETTERS = True
+NUM_ROLLS = 40
+
 definitions = {}
 realness = {}
-ANY_LETTERS = True
 
 with open("analysis/ratings.csv") as f:
     reader = csv.reader(f, delimiter=",", quotechar="\"")
@@ -175,7 +177,7 @@ def all_solutions(letters, threshold=5, stop_after=10):
 rolls = []
 words_used = set()
 
-while len(rolls) < 20:
+while len(rolls) < NUM_ROLLS:
     if len(current_rolls) > 0:
         roll = current_rolls.pop()
     else:
