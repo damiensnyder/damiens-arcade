@@ -2,13 +2,15 @@ import json
 import csv
 import random
 
-
-ANY_LETTERS = True
-NUM_ROLLS = 40
+# Settings
+ANY_LETTERS = True  # if false, restrict rolls to only those that could appear
+                    # from real Q-less dice
+NUM_ROLLS = 40  # number of rolls to generate
 
 definitions = {}
 realness = {}
 
+# Load flat files
 with open("analysis/ratings.csv") as f:
     reader = csv.reader(f, delimiter=",", quotechar="\"")
     for row in reader:
@@ -46,6 +48,7 @@ with open("analysis/stored_solutions.json") as f:
 
 
 def is_possible(word, letters):
+    """Determine if `word` can be made using the set of letters in `letters`."""
     if len(word) < 3:
         return False
     for letter in "abcdefghijklmnopqrstuvwxyz":
@@ -55,6 +58,12 @@ def is_possible(word, letters):
 
 
 def get_possible(letters, threshold=5):
+    """
+    Get all possible words that can be formed using the set of letters in `letters`,
+    as long as their "realness" is above `threshold`. (Realness is my estimate of
+    how well-known / legit a word is, to ensure no obscure or dubious words are
+    needed to solve the Q-less roll.)
+    """
     return [
         word for word in realness
         if (realness[word] >= threshold) and is_possible(word, letters)
@@ -62,6 +71,11 @@ def get_possible(letters, threshold=5):
 
 
 def prioritize(letters, threshold=5):
+    """
+    Get all possible words that can be formed using the set of letters in `letters`,
+    as long as their "realness" is above `threshold`. Results should be ordered so
+    words with less common letters are earlier in the list.
+    """
     words = get_possible(letters, threshold)
     available = {
         letter: letters.count(letter) for letter in letters
@@ -76,10 +90,18 @@ def prioritize(letters, threshold=5):
 
 
 def can_intersect(test_index, with_index, test_word, with_word):
+    """
+    Return true if `test_word` can intersect `with_word`, if they meet at
+    index `test_index` in `test_word` and `with_index` in `with_word`.
+    """
     return test_word[test_index] == with_word[with_index]
   
 
 def generate_roll():
+    """
+    Generate a set of 12 letters, either using the real Q-less dice faces or
+    the whole alphabet (depending on the value of `ALL_LETTERS`).
+    """
     if ANY_LETTERS:
         return "".join(
             sorted(
@@ -111,6 +133,10 @@ def generate_roll():
 
 
 def prettify(solution):
+    """
+    Format a solution visually as a grid, where each line in the returned
+    string is a row.
+    """
     if solution is None:
         return "No solution found!"
     grid = [[" "] * 12 for _ in range(12)]
@@ -124,6 +150,10 @@ def prettify(solution):
 
 
 def all_from_grid(grid, letters, words):
+    """
+    Get all valid solutions from `grid`, given the set of letters in the roll
+    (`letters`) and all legal words that can be formed from them (`words`).
+    """
     j = 0
     for line in grid:
         if "word" not in line:
@@ -156,10 +186,17 @@ def all_from_grid(grid, letters, words):
 
 
 def all_solutions(letters, threshold=5, stop_after=10):
+    """
+    Get all solutions to the roll given by `letters`, allowing only words with
+    realness >= `threshold`, and stopping after `stop_after` solutions are
+    found.
+    """
     letters = letters.lower()
     words = prioritize(letters, threshold)
     grids_tried = 0
     solutions = []
+    # Check all solutions stored in stored_solutions.json, to see if they are
+    # all still legal for this grid. (If this grid has been solved before.)
     if letters in stored_solutions:
         grids_tried = stored_solutions[letters]['max_grid_tried']
         for solution in stored_solutions[letters]['solutions']:
@@ -177,6 +214,7 @@ def all_solutions(letters, threshold=5, stop_after=10):
 rolls = []
 words_used = set()
 
+# Generate rolls and find their solutions until enough have been found.
 while len(rolls) < NUM_ROLLS:
     if len(current_rolls) > 0:
         roll = current_rolls.pop()
@@ -201,10 +239,14 @@ print(rolls)
 with open("analysis/rolls.txt", "w") as f:
     f.writelines([r[0] + "\n" for r in rolls])
 
+# Write to file any words without a "realness" score, with definitions, so I
+# can assign their realness score.
 with open("analysis/new_words.csv", "w") as f:
     for word in sorted(words_used, key=lambda x: len(x)):
         if realness[word] == 5:
             f.write(f"{word},,\"{definitions[word]}\"\n")
 
+# Write all found solutions to file to save work if the same rolls are done
+# after assigning new realness scores.
 with open("analysis/stored_solutions.json", "w") as f:
     json.dump(stored_solutions, f)
