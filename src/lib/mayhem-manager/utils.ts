@@ -20,27 +20,11 @@ export function getTeamByController(teams: Team[] | PreseasonTeam[], controller:
   return null;
 }
 
-export function slotsToString(slots: EquipmentSlot[], melee: boolean = false): string {
+export function slotsToString(slots: EquipmentSlot[]): string {
   let joined = slots.join(", ");
-  if (joined === "") return melee ? "melee • none" : "none";
-  if (joined === "hand, hand") return melee ? "melee • two-handed" : "two-handed";
-  return melee ? "melee • " + joined : joined;
-}
-
-// TODO: Move all the other places I validate equipment to only validate here
-export function isValidEquipment(equipment: Equipment[]) {
-  let usedSlots: EquipmentSlot[] = [];
-  for (const e of equipment) {
-    usedSlots = usedSlots.concat(e.slots);
-    if (usedSlots.filter(s => s === EquipmentSlot.Head).length > 1 ||
-        usedSlots.filter(s => s === EquipmentSlot.Torso).length > 1 ||
-        usedSlots.filter(s => s === EquipmentSlot.Hand).length > 2 ||
-        usedSlots.filter(s => s === EquipmentSlot.Legs).length > 1 ||
-        usedSlots.filter(s => s === EquipmentSlot.Feet).length > 1) {
-      return false;
-    }
-  }
-  return true;
+  if (joined === "") return "none";
+  if (joined === "hand, hand") return "two-handed";
+  return joined;
 }
 
 export function nextMatch(bracket: Bracket): Bracket & {
@@ -72,11 +56,63 @@ export function nextMatch(bracket: Bracket): Bracket & {
   return nextMatch;
 }
 
-export function fighterValue(fighter: Fighter): number {
-  let price = 10 - fighter.experience;
-  for (const stat in fighter.stats) {
-    // compress stat ranges so super high or low ones don't affect price a ton
-    price += fighter.stats[stat];
+// TODO: Move all the other places I validate equipment to only validate here
+export function isValidEquipment(equipment: Equipment[]) {
+  let usedSlots: EquipmentSlot[] = [];
+  for (const e of equipment) {
+    usedSlots = usedSlots.concat(e.slots);
+    if (usedSlots.filter(s => s === EquipmentSlot.Head).length > 1 ||
+        usedSlots.filter(s => s === EquipmentSlot.Torso).length > 1 ||
+        usedSlots.filter(s => s === EquipmentSlot.Hand).length > 2 ||
+        usedSlots.filter(s => s === EquipmentSlot.Legs).length > 1 ||
+        usedSlots.filter(s => s === EquipmentSlot.Feet).length > 1) {
+      return false;
+    }
   }
-  return price;
+  return true;
+}
+
+export function isValidEquipmentFighter(team: Team, equipment: number[]): boolean {
+  const usedEquipmentIds: number[] = [];
+  let usedSlots: EquipmentSlot[] = [];
+  for (const e of equipment) {
+    if (e < 0 || e >= team.equipment.length || usedEquipmentIds.includes(e)) {
+      return false;
+    }
+    usedSlots = usedSlots.concat(team.equipment[e].slots);
+    usedEquipmentIds.push(e);
+  }
+  return usedSlots.filter(s => s === EquipmentSlot.Head).length <= 1 &&
+      usedSlots.filter(s => s === EquipmentSlot.Torso).length <= 1 &&
+      usedSlots.filter(s => s === EquipmentSlot.Hand).length <= 2 &&
+      usedSlots.filter(s => s === EquipmentSlot.Legs).length <= 1 &&
+      usedSlots.filter(s => s === EquipmentSlot.Feet).length <= 1;
+}
+
+export function isValidEquipmentTournament(team: Team, equipment: number[][]): boolean {
+  if (equipment.length !== team.fighters.length) {
+    return false;
+  }
+  const usedEquipment: number[] = [];
+  for (const f of equipment) {
+    let usedSlots: EquipmentSlot[] = [];
+    for (const e of f) {
+      if (e < 0 || e >= team.equipment.length) {
+        return false;
+      }
+      if (usedEquipment.includes(e)) {
+        return false;
+      }
+      usedEquipment.push(e);
+      usedSlots = usedSlots.concat(team.equipment[e].slots);
+    }
+    if (usedSlots.filter(s => s === EquipmentSlot.Head).length > 1 ||
+        usedSlots.filter(s => s === EquipmentSlot.Torso).length > 1 ||
+        usedSlots.filter(s => s === EquipmentSlot.Hand).length > 2 ||
+        usedSlots.filter(s => s === EquipmentSlot.Legs).length > 1 ||
+        usedSlots.filter(s => s === EquipmentSlot.Feet).length > 1) {
+      return false;
+    }
+  }
+  return true;
 }

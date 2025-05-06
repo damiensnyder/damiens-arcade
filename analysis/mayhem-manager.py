@@ -1,5 +1,6 @@
 import json
 import numpy as np
+import os
 
 
 with open("src/lib/test/mayhem-manager/fight-sample.json") as f:

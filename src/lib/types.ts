@@ -63,6 +63,7 @@ export interface PacketInfo {
 // Information about a viewer of a game
 export interface Viewer {
   socket: Socket
+  siteUsername: string | null
   index: number
 }
 

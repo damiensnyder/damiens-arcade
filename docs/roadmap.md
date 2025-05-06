@@ -1,12 +1,8 @@
 ## Immediate goal: alpha release of Mayhem Manager
-- fix UI bugs
-- make UI look nicer
-- add more fighter base art
-- add charge system to game
-- improve fighter AI
-- improve manager AI
-- add import/export
-- add proper ability validation
+- make the UI/UX nicer
+- make more interesting equipment
+- rebalance fighter progression
+- validate league import/export
 
 ## Medium-term
 ### Site-wide
@@ -22,7 +18,7 @@
 ### Mayhem Manager
 - add team logos
 - add mobile UI
-- flesh out equipment and fighter abilities much further
+- make fight look cooler
 
 ### Daily Q-less
 - add more rolls
@@ -40,9 +36,12 @@
 - log settings change events
 - add a bot to play against
 - add ultimate auction tic-tac-toe
+- add link to homepage in header
 
 ### Mayhem Manager
 - add a tutorial
+- add a global permanent league
+- add link to homepage in header
 
 ### Daily Q-less
 - add link to real Q-less game in instructions

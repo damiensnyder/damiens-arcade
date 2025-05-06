@@ -21,7 +21,7 @@ function changeRoomSettings() {
       <input id="public" type="checkbox" disabled={$host !== $pov} bind:checked={$isPublic} />
     </label>
     {#if $host === $pov}
-      <input type="submit" value="UPDATE SETTINGS" />
+      <input type="submit" value="update settings" />
     {/if}
   </div>
 </form>

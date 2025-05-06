@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "license": "WTFPL",
   "scripts": {
-    "dev": "yarn build:backend && vite dev",
+    "dev": "yarn build:backend && vite dev --host arcade.ownsite.local --port 3000",
     "build": "yarn build:backend && vite build",
     "build:backend": "esbuild src/lib/backend/room-manager.ts --bundle --outfile=dist/room-manager.js --platform=node --format=esm && esbuild src/lib/test/set-up-test-rooms.ts --bundle --outfile=dist/set-up-test-rooms.js --platform=node --format=esm",
     "build:mm-test": "esbuild src/lib/backend/room-manager.ts --bundle --outfile=dist/room-manager.js --platform=node --format=esm && esbuild src/lib/test/mayhem-manager/sim-test-fight.ts --bundle --outfile=dist/sim-test-fight.js --platform=node --format=esm",
@@ -25,8 +25,10 @@
   "type": "module",
   "dependencies": {
     "@types/express": "^4.17.15",
+    "cookie": "^1.0.2",
     "esbuild": "^0.16.9",
     "express": "^4.18.2",
+    "jose": "^6.0.10",
     "n": "^9.0.1",
     "pixi.js": "^7.1.0",
     "socket.io": "^4.5.4",

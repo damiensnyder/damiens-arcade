@@ -1,4 +1,7 @@
 import type { Namespace, Server, Socket } from "socket.io";
+import { jwtVerify } from "jose";
+import cookie from "cookie";
+import { readFileSync } from "fs";
 import type GameLogicHandler from "./game-logic-handler-base";
 import AuctionTicTacToe from "../auction-tic-tac-toe/game-logic-handler";
 import { GameType, PacketType } from "../types";
@@ -7,6 +10,9 @@ import { z } from "zod";
 import MayhemManager from "../mayhem-manager/game-logic-handler";
 
 const TEARDOWN_TIME: number = 60 * 60 * 1000; // one hour
+const JWT_SECRET = Buffer.from(
+  JSON.parse(readFileSync("secrets/secrets.json").toString())["SIGNING_KEY"]
+);
 
 const changeSettingsSchema = z.object({
   type: z.literal("changeRoomSettings"),
@@ -59,10 +65,24 @@ export default class GameRoom {
     }
 
     this.io = io.of(`/${gameType.replaceAll(" ", "-").toLowerCase()}/${roomCode}`);
-    this.io.on("connection", (socket: Socket) => {
+    this.io.on("connection", async (socket: Socket) => {
+      let siteUsername = null;
+      let authToken = null;
+      try {
+        const cookies = cookie.parse(socket.handshake.headers['cookie']);
+        authToken = cookies.auth_token;
+        if (authToken) {
+          const { payload } = await jwtVerify(authToken, JWT_SECRET, { algorithms: ['HS256'] });
+          siteUsername = payload.username;
+        }
+      } catch (err) {
+        console.log(authToken);
+      }
+
       // on a new connection, add the viewer to the list of viewers
       const viewer = {
         socket: socket,
+        siteUsername,
         index: this.connectionsStarted
       };
       this.viewers.push(viewer);
@@ -102,7 +122,12 @@ export default class GameRoom {
 
     if (!this.handlingPacket) {
       this.handlingPacket = true;
-      this.handlePacket();
+      try {
+        this.handlePacket();
+      } catch (e) {
+        console.log(e);
+        this.teardownCallback(this.publicRoomInfo.roomCode);
+      }
     }
   }
 

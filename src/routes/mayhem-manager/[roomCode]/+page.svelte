@@ -7,7 +7,7 @@
   import "../../../styles/global.css";
   import "../../../styles/fun.css";
   import type { MayhemManagerAction, MayhemManagerEvent, MayhemManagerViewpoint } from "$lib/mayhem-manager/types";
-  import { bracket, draftOrder, equipment, fighters, gameStage, nextMatch, ownTeam, ownTeamIndex, spotInDraftOrder, teams, watchingFight } from "$lib/mayhem-manager/stores";
+  import { bracket, draftOrder, equipment, equipmentChoices, fighters, gameStage, nextMatch, ownTeam, ownTeamIndex, spotInDraftOrder, teams, watchingFight } from "$lib/mayhem-manager/stores";
   import TeamView from "$lib/mayhem-manager/team-view.svelte";
   import AllTeams from "$lib/mayhem-manager/all-teams.svelte";
   import WatchFight from "$lib/mayhem-manager/watch-fight.svelte";
@@ -23,6 +23,7 @@
   const socket = io(relativeUrl);
 
   let checkForDisconnect;
+  let alreadySentInPicks = false;
 
   function handleDisconnect() {
     $connected = false
@@ -60,6 +61,7 @@
 
   socket.on("event", (event: MayhemManagerEvent) => {
     console.log(event);
+    alreadySentInPicks = false;
 
     // CHANGE ROOM SETTINGS
     if (event.type === "changeRoomSettings") {
@@ -125,6 +127,19 @@
          ($nextMatch.left.winner === $ownTeamIndex ||
           $nextMatch.right.winner === $ownTeamIndex))) {
       $watchingFight = false;
+    } else if ($gameStage === "tournament" &&
+        !$watchingFight &&
+        ($nextMatch.left.winner === $ownTeamIndex ||
+         $nextMatch.right.winner === $ownTeamIndex) &&
+        !$equipmentChoices.every(ec => ec === -1) &&
+        !alreadySentInPicks) {
+      // if you've already picked equipment in the tournament, interpret advance as "ready"
+      lastAction.set({
+        type: "pickFighters",
+        equipment: $ownTeam.fighters.map((_, i) =>
+            $equipmentChoices.map((ec, j) => ec === i ? j : -1).filter(ec => ec >= 0))
+      });
+      alreadySentInPicks = true;
     } else {
       lastAction.set({ type: "advance" });
     }
@@ -150,7 +165,7 @@
     {/if}
     {#if $host === $pov}
       <button on:click={() => changeView("settings")} on:submit={() => changeView("settings")}>settings</button>
-      <button on:click={advance} on:submit={advance}>advance</button>
+      <button on:click={advance} on:submit={advance}>skip</button>
     {/if}
     {#if viewing !== "main"}
       <button on:click={() => changeView("main")} on:submit={() => changeView("main")}>

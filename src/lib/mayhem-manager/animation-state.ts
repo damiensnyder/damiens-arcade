@@ -1,5 +1,5 @@
 
-import type { FighterInBattle, MFAnimationEvent, MFMoveEvent, MFTextEvent, MFSpawnEvent, MidFightEvent, MFTintEvent, MFProjectileEvent, MFHpChangeEvent } from "$lib/mayhem-manager/types";
+import type { MFAnimationEvent, MFTextEvent, MFSpawnEvent, MidFightEvent, MFParticleEvent, MFProjectileEvent, FighterVisual, Tint } from "$lib/mayhem-manager/types";
 import { ColorMatrixFilter } from "pixi.js";
 import { watchingFight } from "./stores";
 
@@ -11,8 +11,8 @@ interface TextParticle {
   opacity: number
 }
 
-interface ImageParticle {
-  type: "image"
+interface ProjectileParticle {
+  type: "projectile"
   x: number
   y: number
   destX?: number
@@ -21,68 +21,53 @@ interface ImageParticle {
   imgUrl: string
 }
 
-export type Particle = TextParticle | ImageParticle;
-
-enum RotationState {
-  Stationary1 = 0,
-  Stationary2 = 0.1,
-  WalkingStart1 = -8,
-  Walking1 = -8.1,
-  WalkingStart2 = 8,
-  Walking2 = 8.1,
-  BackswingStart = -11.1,
-  Backswing = -11,
-  ForwardSwing = 30,
-  AimStart = -5,
-  Aim = -7
+export interface FighterParticle {
+  type: "fighter"
+  fighter: number
+  imgUrl: string
+  opacity: number
 }
+
+export type Particle = TextParticle | ProjectileParticle | FighterParticle;
 
 export default class AnimationState {
   eventLog: MidFightEvent[][];
   tick: number;
-  fighters: FighterInBattle[];
-  rotation: RotationState[];
-  flipped: boolean[];
-  hitFlash: number[];
+  fighters: FighterVisual[];
   particles: Particle[];
-  tint: [number, number, number, number][];
-  nextFighters: FighterInBattle[];
-  nextRotation: RotationState[];
-  nextFlipped: boolean[];
-  nextHitFlash: number[];
+  nextFighters: FighterVisual[];
   nextParticles: Particle[];
-  nextTint: [number, number, number, number][];
 
   constructor(eventLog: MidFightEvent[][]) {
-    eventLog.splice(1, 0, [], [], [], [], []);  // pause for a second after spawning in fighters
     eventLog.push([], [], [], [], []);  // repeat an empty tick after the last tick
     this.eventLog = eventLog;
     this.tick = -1;
     this.fighters = [];
-    this.rotation = [];
-    this.flipped = [];
-    this.hitFlash = [];
     this.particles = [];
-    this.tint = [];
     this.nextFighters = [];
-    this.nextRotation = [];
-    this.nextFlipped = [];
-    this.nextHitFlash = [];
     this.nextParticles = [];
-    this.nextTint = [];
   }
 
   // Figure out what the next tick is going to look like so we can interpolate between the current
   // tick and the next one.
   prepareTick(): void {
     this.fighters = this.nextFighters.slice();
-    this.rotation = this.nextRotation.slice();
-    this.flipped = this.nextFlipped.slice();
-    this.hitFlash = this.nextHitFlash.slice();
     this.particles = this.nextParticles.slice();
-    this.tint = this.nextTint.slice();
-    this.nextParticles = this.nextParticles.filter(p => p.type === "text" && p.opacity > 0.5)
-        .map(p => { return { ...p, opacity: (p as TextParticle).opacity - 0.5 } });
+    const temp = [];
+    for (let p of this.nextParticles) {
+      if (p.type === "text" && p.opacity > 0.5) {
+        temp.push({
+          ...p,
+          opacity: p.opacity - 0.5
+        });
+      } else if (p.type === "fighter" && p.opacity > 0.2) {
+        temp.push({
+          ...p,
+          opacity: p.opacity - 0.2
+        });
+      }
+    }
+    this.nextParticles = temp;
     if (this.tick < this.eventLog.length - 1) {
       this.tick++;
     } else {
@@ -92,48 +77,13 @@ export default class AnimationState {
       }, 1000);
     }
     const nextTick = this.eventLog[this.tick];
-    this.nextHitFlash = this.nextHitFlash.map(h => Math.max(h - 0.75, 0));
 
     if (this.tick < this.eventLog.length - 1) {
       for (let event of nextTick) {
         if (event.type === "spawn") {
           event = event as MFSpawnEvent;
           this.fighters.push(event.fighter);
-          this.rotation.push(RotationState.Stationary1);
-          this.flipped.push(false);
-          this.hitFlash.push(0);
-          this.tint.push([0, 0, 0, 0]);
           this.nextFighters.push(event.fighter);
-          this.nextRotation.push(RotationState.Stationary1);
-          this.nextFlipped.push(false);
-          this.nextHitFlash.push(0);
-          this.nextTint.push([0, 0, 0, 0]);
-        } else if (event.type === "move") {
-          event = event as MFMoveEvent;
-          const f: number = event.fighter;
-          this.nextFighters[f] = {
-            ...this.nextFighters[f],
-            x: event.x,
-            y: event.y
-          };
-          if (f < this.rotation.length) {
-            const prevRotation = this.rotation[event.fighter];
-            if (prevRotation === RotationState.Stationary1) {
-              this.nextRotation[f] = RotationState.WalkingStart1;
-            } else if (prevRotation === RotationState.WalkingStart1) {
-              this.nextRotation[f] = RotationState.Walking1;
-            } else if (prevRotation === RotationState.Walking1) {
-              this.nextRotation[f] = RotationState.Stationary2;
-            } else if (prevRotation === RotationState.Stationary2) {
-              this.nextRotation[f] = RotationState.WalkingStart2;
-            } else if (prevRotation === RotationState.WalkingStart2) {
-              this.nextRotation[f] = RotationState.Walking2;
-            } else if (prevRotation === RotationState.Walking2 ||
-                prevRotation === RotationState.ForwardSwing ||
-                prevRotation === RotationState.Aim) {
-              this.nextRotation[f] = RotationState.Stationary1;
-            }
-          }
         } else if (event.type === "text" && event.text !== "0") {
           event = event as MFTextEvent;
           this.nextParticles.push({
@@ -147,113 +97,73 @@ export default class AnimationState {
           event = event as MFProjectileEvent;
           const f = this.fighters[event.fighter];
           const t = this.nextFighters[event.target];
-          this.nextFlipped[event.fighter] = f.x > t.x;
           this.particles.push({
-            type: "image",
+            type: "projectile",
             x: f.x,
             y: f.y,
             destX: t.x,
             destY: t.y,
             imgUrl: event.projectileImg
           });
-        } else if (event.type === "hpChange") {
-          event = event as MFHpChangeEvent;
-          const f = this.fighters[event.fighter];
+        } else if (event.type === "particle") {
+          event = event as MFParticleEvent;
+          this.particles.push({
+            type: "fighter",
+            fighter: event.fighter,
+            imgUrl: event.particleImg,
+            opacity: 1
+          });
+          this.nextParticles.push({
+            type: "fighter",
+            fighter: event.fighter,
+            imgUrl: event.particleImg,
+            opacity: 0.8
+          });
+        } else if (event.type === "animation") {
+          event = event as MFAnimationEvent;
           this.nextFighters[event.fighter] = {
-            ...f,
-            hp: event.newHp
-          };
-          if (event.newHp < f.hp) {
-            this.nextHitFlash[event.fighter] = 1;
+            ...this.nextFighters[event.fighter],
+            ...event.updates
           }
-        } else if (event.type === "tint") {
-          this.nextTint[event.fighter] = event.tint;
         }
       }
-    }
-
-    // cycle through attack animation if in one
-    this.nextRotation = this.nextRotation.map((r) => {
-      if (r === RotationState.BackswingStart) {
-        return RotationState.Backswing;
-      } else if (r === RotationState.AimStart) {
-        return RotationState.Aim
-      } else if (r === RotationState.Backswing) {
-        return RotationState.ForwardSwing;
-      } else if (r === RotationState.ForwardSwing ||
-          r === RotationState.Aim) {
-        return RotationState.Stationary1;
-      }
-      return r;
-    });
-
-    // start animations 2 ticks in advance
-    if (this.tick < this.eventLog.length - 2) {
-      const tick2Away = this.eventLog[this.tick + 2];
-      tick2Away.filter(e => e.type === "animation").forEach((e) => {
-        e = e as MFAnimationEvent;
-        if (e.animation === "swing") {
-          this.nextRotation[e.fighter] = RotationState.BackswingStart;
-        } else if (e.animation === "aim") {
-          this.nextRotation[e.fighter] = RotationState.AimStart;
-        }
-      });
     }
   }
 
   // Fighters with correct coordinate interpolation
-  getFighters(delta: number): FighterInBattle[] {
+  getFighters(delta: number): FighterVisual[] {
     return this.fighters.map((f1, i) => {
       const f2 = this.nextFighters[i];
       return {
         ...f1,
         x: f2.x * delta + f1.x * (1 - delta),
-        y: f2.y * delta + f1.y * (1 - delta)
+        y: f2.y * delta + f1.y * (1 - delta),
+        facing: f2.facing * delta + f1.facing * (1 - delta),
+        rotation: f2.rotation * delta + f1.rotation * (1 - delta),
+        tint: this.interpolateTint(f1.tint, f2.tint, delta),
+        flash: Math.min(f1.flash, f2.flash) * delta + f1.flash * (1 - delta)  // diff interpolation to be more sudden
       };
     });
   }
 
-  // Rotation with correct interpolation
-  getRotation(delta: number): number[] {
-    return this.rotation.map((r1, i) => {
-      const r2 = this.nextRotation[i];
-      return r2 * delta + r1 * (1 - delta);
-    });
-  }
-
-  // Flippedness with correct interpolation
-  getFlipped(delta: number): number[] {
-    return this.flipped.map((f1, i) => {
-      const f2 = this.nextFlipped[i];
-      return (f2 ? 1 : -1) * delta + (f1 ? 1 : -1) * (1 - delta);
-    });
-  }
-
-  // Hit flash with correct interpolation
-  getTint(delta: number): ColorMatrixFilter[] {
-    return this.hitFlash.map((h1, i) => {
-      const h2 = this.nextHitFlash[i];
-      const intensity = Math.min(h1, h2) * delta + h1 * (1 - delta);
-      const tint = this.tint[i].slice();
-      for (let j = 0; j < 4; j++) {
-        tint[j] = this.nextTint[i][j] * delta + tint[j] * (1 - delta);
-      }
-      const filter = new ColorMatrixFilter();
-      filter.matrix = [1 - tint[3], 0, 0, 0, intensity / 2 + tint[0] * tint[3],
-                       0, 1 - tint[3], 0, 0, intensity / 2 + tint[1] * tint[3],
-                       0, 0, 1 - tint[3], 0, intensity / 2 + tint[2] * tint[3],
-                       0, 0, 0, 1, 0];
-      return filter;
-    });
+  interpolateTint(tint1: Tint, tint2: Tint, delta: number): Tint {
+    if (tint1.every(x => x === 0)) {
+      return tint1;
+    }
+    const tint: number[] = [];
+    for (let j = 0; j < 4; j++) {
+      tint.push(tint2[j] * delta + tint1[j] * (1 - delta));
+    }
+    return tint as Tint;
   }
 
   // Particles with correct interpolation
   getParticles(delta: number): Particle[] {
-    const projectiles: ImageParticle[] = this.particles.filter(p => p.type === "image")
+    const projectiles: ProjectileParticle[] = this.particles.filter(p => p.type === "projectile")
         .map((p) => {
-      p = p as ImageParticle;
+      p = p as ProjectileParticle;
       return {
-        type: "image",
+        type: "projectile",
         x: p.destX * delta + p.x * (1 - delta),
         y: p.destY * delta + p.y * (1 - delta),
         rotation: -Math.atan2(p.destX - p.x, p.destY - p.y),
@@ -271,6 +181,25 @@ export default class AnimationState {
         opacity: (p.opacity - 0.5) * delta + p.opacity * (1 - delta)
       };
     });
-    return (projectiles as Particle[]).concat(text);
+    const images: FighterParticle[] = this.particles.filter(p => p.type === "fighter")
+        .map((p) => {
+      p = p as FighterParticle;
+      return {
+        type: "fighter",
+        fighter: p.fighter,
+        imgUrl: p.imgUrl,
+        opacity: (p.opacity - 0.2) * delta + p.opacity * (1 - delta)
+      };
+    });
+    return (projectiles as Particle[]).concat(text).concat(images);
   }
+}
+
+export function getColorFilters(tint: Tint, flash: number): [ColorMatrixFilter] {
+  const filter = new ColorMatrixFilter();
+  filter.matrix = [1 - tint[3], 0, 0, 0, flash / 2 + tint[0] * tint[3],
+                    0, 1 - tint[3], 0, 0, flash / 2 + tint[1] * tint[3],
+                    0, 0, 1 - tint[3], 0, flash / 2 + tint[2] * tint[3],
+                    0, 0, 0, 1, 0];
+  return [filter];
 }

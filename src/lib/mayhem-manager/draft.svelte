@@ -1,6 +1,6 @@
 <script lang="ts">
   import { lastAction } from "$lib/stores";
-  import { draftOrder, fighters, ownTeam, ownTeamIndex, teams } from "$lib/mayhem-manager/stores";
+  import { draftOrder, fighters, ownTeam, ownTeamIndex, spotInDraftOrder, teams } from "$lib/mayhem-manager/stores";
   import FighterInfo from "./fighter-info.svelte";
 
   function replace(team: number) {
@@ -23,8 +23,15 @@
   <h2 class="column-title">Pick Order</h2>
   {#each $draftOrder as index, spotInOrder}
     <div class="horiz text-and-buttons">
-      <span class="team-name" style:color={index === $ownTeamIndex ? "var(--accent-4)" : "var(--text-1)"}>
+      <span class="team-name" style:color={index === $ownTeamIndex ?
+                                           "var(--accent-4)" :
+                                           (spotInOrder === $spotInDraftOrder ?
+                                            "var(--accent-5)" :
+                                            "var(--text-1)")}>
         {spotInOrder + 1}. {$teams[index].name}
+        {#if spotInOrder === $spotInDraftOrder}
+          are on the clock...
+        {/if}
       </span>
       {#if $ownTeam === null && $teams[index].controller === "bot"}
         <div class="right-align-outer">

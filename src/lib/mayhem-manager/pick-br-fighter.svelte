@@ -1,10 +1,9 @@
 <script lang="ts">
   import { lastAction } from "$lib/stores";
-  import { equipment, fighters, ownTeam, ownTeamIndex } from "$lib/mayhem-manager/stores";
+  import { ownTeam, ownTeamIndex, ready, teams } from "$lib/mayhem-manager/stores";
   import EquipmentInfo from "$lib/mayhem-manager/equipment-info.svelte";
   import FighterInfo from "$lib/mayhem-manager/fighter-info.svelte";
   import { slotsToString } from "$lib/mayhem-manager/utils";
-  import { EquipmentSlot } from "$lib/mayhem-manager/types";
 
   let selectedFighter: number = 0;
   let selectedEquipment: boolean[] = $ownTeamIndex === null ? [] : Array($ownTeam.equipment.length).fill(false);
@@ -13,12 +12,11 @@
     return e ? $ownTeam.equipment[i].slots : [];
   });
 
-  function ready(): void {
+  function readyUp(): void {
     lastAction.set({
       type: "pickBRFighter",
       fighter: selectedFighter,
-      equipment: selectedEquipment.flatMap((x, i) => x ? [i] : []),
-      strategy: {}
+      equipment: selectedEquipment.flatMap((x, i) => x ? [i] : [])
     });
   }
 </script>
@@ -59,8 +57,22 @@
     {:else if slotsTaken.filter(s => s === "feet").length > 1}
       <p>Cannot submit: Too many equipment chosen that take up the feet.</p>
     {:else}
-      <button on:click={ready} on:submit={ready}>Ready</button>
+      <button on:click={readyUp} on:submit={readyUp}>Ready</button>
     {/if}
+
+    <div>
+      Waiting for:
+      {
+        $teams.map((team, i) => {
+          return {
+            name: team.name,
+            unready: $teams[i].controller !== "bot" && !$ready[i]
+          };
+        }).filter(t => t.unready)
+          .map(t => t.name)
+          .join(", ")
+      }
+    </div>
   </div>
 {/if}
 
