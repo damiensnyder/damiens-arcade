@@ -4,7 +4,7 @@
   "license": "WTFPL",
   "scripts": {
     "dev": "concurrently \"yarn dev:backend\" \"yarn dev:frontend\"",
-    "dev:backend": "yarn build:backend && node app.js",
+    "dev:backend": "yarn build:backend && PORT=3001 node app.js",
     "dev:frontend": "vite dev --host arcade.ownsite.local --port 3000",
     "build": "yarn build:backend && vite build",
     "build:backend": "esbuild src/lib/backend/room-manager.ts --bundle --outfile=dist/room-manager.js --platform=node --format=esm && esbuild src/lib/test/set-up-test-rooms.ts --bundle --outfile=dist/set-up-test-rooms.js --platform=node --format=esm",
