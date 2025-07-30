@@ -9,7 +9,7 @@
     });
     if (res.ok) {
       const body: { roomCode: string; } = await res.json();
-      goto(`/mayhem-manager/${body.roomCode}`);
+      window.location.href = `/mayhem-manager/${body.roomCode}`;
     }
   }
 </script>
@@ -35,7 +35,7 @@
     <form on:submit|preventDefault={(e) => {
       const formData = new FormData(e.target);
       const roomCode = formData.get('roomCode');
-      if (roomCode) goto(`/mayhem-manager/${roomCode}`);
+      if (roomCode) window.location.href = `/mayhem-manager/${roomCode}`;
     }}>
       <input type="text" name="roomCode" placeholder="Enter room code" required>
       <button type="submit">Join Room</button>
