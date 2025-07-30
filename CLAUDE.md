@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Build backend only**: `yarn build:backend` - Compiles TypeScript backend files with esbuild
 - **Start production server**: `yarn start` - Runs the production Express server
 - **Type checking/linting**: `yarn lint` (runs `tsc --noEmit`)
-- **Mayhem Manager testing**: `yarn mm-test` - Runs simulation test fights
+- **Mayhem Manager testing**: `yarn mm-test` - Runs simulation test fights (AI should not run this)
 
 ## Architecture Overview
 
@@ -39,14 +39,17 @@ Games follow a consistent pattern:
 
 ### Key Technologies
 - **Build System**: Vite for frontend, esbuild for backend compilation
-- **Authentication**: JWT tokens with cookie-based sessions
+- **Authentication**: JWT tokens with cookie-based sessions [human note: not really used or tested yet, not really important either]
 - **Real-time Communication**: Socket.io with packet queuing system
-- **Graphics**: PIXI.js integration via svelte-pixi for game rendering
+- **Graphics**: PIXI.js integration via svelte-pixi for game rendering for Mayhem Manager; others are HTML5 elements only
 - **Validation**: Zod schemas for packet validation
 
 ### Development Patterns
 - TypeScript interfaces define game states and packet structures
 - Game rooms auto-teardown after inactivity (1 hour)
-- Packet handling uses a queue system to prevent race conditions
-- Room codes are dynamically sized based on active room count
+- Packet handling uses a queue system to prevent race conditions [human's note: does this actually matter/work?]
 - Static assets organized by game (equipment images, sounds, etc.)
+
+### Context about deployment
+The site runs in production at arcade.damiensnyder.com, alongside www.damiensnyder.com which is a
+totally different repo. But this is a dev branch here.
