@@ -3,7 +3,9 @@
   "version": "0.0.1",
   "license": "WTFPL",
   "scripts": {
-    "dev": "yarn build:backend && vite dev --host arcade.ownsite.local --port 3000",
+    "dev": "concurrently \"yarn dev:backend\" \"yarn dev:frontend\"",
+    "dev:backend": "yarn build:backend && node app.js",
+    "dev:frontend": "vite dev --host arcade.ownsite.local --port 3000",
     "build": "yarn build:backend && vite build",
     "build:backend": "esbuild src/lib/backend/room-manager.ts --bundle --outfile=dist/room-manager.js --platform=node --format=esm && esbuild src/lib/test/set-up-test-rooms.ts --bundle --outfile=dist/set-up-test-rooms.js --platform=node --format=esm",
     "build:mm-test": "esbuild src/lib/backend/room-manager.ts --bundle --outfile=dist/room-manager.js --platform=node --format=esm && esbuild src/lib/test/mayhem-manager/sim-test-fight.ts --bundle --outfile=dist/sim-test-fight.js --platform=node --format=esm",
@@ -16,6 +18,7 @@
   "devDependencies": {
     "@sveltejs/adapter-node": "^1.0.0",
     "@sveltejs/kit": "^1.0.1",
+    "concurrently": "^9.2.0",
     "svelte": "^3.55.0",
     "svelte-check": "^2.10.2",
     "svelte-preprocess": "^5.0.0",
