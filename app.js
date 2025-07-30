@@ -12,31 +12,16 @@ const httpServer = createServer(app);
 const io = new Server(httpServer);
 const roomManager = new RoomManager(io);
 
-// Create a game room
-app.post("/create-room/:gameType", (req, res) => {
-  if (req.params.gameType === "auction-tic-tac-toe" ||
-      req.params.gameType === "mayhem-manager") {
-    res.statusCode = 200;
-    res.end(JSON.stringify(roomManager.createRoom(req.params.gameType)));
-  } else {
-    res.statusCode = 400;
-    res.end();
-  }
-});
-
-// List active game rooms
-app.get("/active-rooms", (_req, res) => {
+// Create auction tic-tac-toe game room
+app.post("/auction-tic-tac-toe/create-room", (_req, res) => {
   res.statusCode = 200;
-  res.json(roomManager.listActiveRooms());
+  res.end(JSON.stringify(roomManager.createRoom("auction-tic-tac-toe")));
 });
 
-app.get("/game/:roomCode", (req, res, _next) => {
-  const gameType = roomManager.getGameTypeOfRoom(req.params.roomCode);
-  if (gameType === null) {
-    res.redirect("/");
-  } else {
-    res.redirect(302, `/${gameType.replaceAll(" ", "-").toLowerCase()}/${req.params.roomCode}`);
-  }
+// Create mayhem manager game room
+app.post("/mayhem-manager/create-room", (_req, res) => {
+  res.statusCode = 200;
+  res.end(JSON.stringify(roomManager.createRoom("mayhem-manager")));
 });
 
 app.use("/static", Express.static("static"));
