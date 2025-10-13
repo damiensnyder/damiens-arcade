@@ -5,7 +5,7 @@ import random
 # Settings
 ANY_LETTERS = False  # if false, restrict rolls to only those that could appear
                     # from real Q-less dice
-NUM_ROLLS = 40  # number of rolls to generate
+NUM_ROLLS = 20  # number of rolls to generate
 
 definitions = {}
 realness = {}
