@@ -22,7 +22,7 @@
 			description: "Today's crossword puzzle without the letter Q",
 			players: 'Solo',
 			duration: '5-15 min',
-			available: false // Not yet ported
+			available: true
 		}
 	];
 </script>
