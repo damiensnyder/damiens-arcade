@@ -153,7 +153,7 @@
 						{#each state.squares as row, i}
 							{#each row as cell, j}
 								{@const isCurrentlyNominated =
-									state.currentlyNominatedSquare !== null &&
+									state.currentlyNominatedSquare != null &&
 									i === state.currentlyNominatedSquare[0] &&
 									j === state.currentlyNominatedSquare[1]}
 								{@const isNominating =
