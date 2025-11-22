@@ -160,12 +160,12 @@ export class AuctionTTTLogic extends GameLogicBase<
 	}
 
 	private handleJoin(viewer: Viewer, side: Side.X | Side.O, currentSide: Side): ActionResult<GameEvent> {
-		if (currentSide !== Side.None) {
-			return { success: false, error: 'Already joined' };
-		}
-
-		if (this.state.players[side].controller !== undefined) {
-			return { success: false, error: 'Side already taken' };
+		// Allow joining multiple sides (hot seat), but not if someone else has already taken it
+		if (
+			this.state.players[side].controller !== undefined &&
+			this.state.players[side].controller !== viewer.index
+		) {
+			return { success: false, error: 'Side already taken by another player' };
 		}
 
 		this.state.players[side].controller = viewer.index;
