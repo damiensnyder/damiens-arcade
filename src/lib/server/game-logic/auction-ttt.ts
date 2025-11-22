@@ -480,9 +480,12 @@ export class AuctionTTTLogic extends GameLogicBase<
 	}
 
 	handleDisconnect(viewer: Viewer): void {
-		const side = getSideByController(this.state.players, viewer.index);
-		if (side !== Side.None) {
-			delete this.state.players[side].controller;
+		// Check both sides independently to handle hot seat mode where one viewer controls both
+		if (this.state.players.X.controller === viewer.index) {
+			delete this.state.players.X.controller;
+		}
+		if (this.state.players.O.controller === viewer.index) {
+			delete this.state.players.O.controller;
 		}
 	}
 
