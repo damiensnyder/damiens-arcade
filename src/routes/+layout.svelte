@@ -1,5 +1,6 @@
 <script lang="ts">
-	import './styles.css';
+	import '../styles/global.css';
+	import '../styles/techno.css';
 </script>
 
-<slot />
+{@render children()}

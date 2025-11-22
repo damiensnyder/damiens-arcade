@@ -28,6 +28,16 @@ export abstract class GameLogicBase<TState, TAction, TEvent, TViewpoint> {
 		// Override if needed
 	}
 
+	// Optional hook for applying initial settings (e.g., from room creation)
+	applyInitialSettings(_settings: any): void {
+		// Override if needed
+	}
+
+	// Optional hook for hot seat mode auto-join
+	autoJoinHotSeat(_viewer: Viewer): void {
+		// Override if needed
+	}
+
 	// Helper methods for random number generation
 	protected randInt(min: number, max: number): number {
 		return this.rng.randInt(min, max);

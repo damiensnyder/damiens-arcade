@@ -10,7 +10,6 @@ export class AuctionTTTState {
 	// Local UI state
 	currentBid = $state<number | null>(null);
 	nominating = $state<[number, number] | null>(null);
-	private timerInterval: ReturnType<typeof setInterval> | null = null;
 
 	constructor(roomCode: string) {
 		this.connection = new GameConnection('auction-ttt', roomCode, (event) =>
@@ -71,7 +70,6 @@ export class AuctionTTTState {
 
 	disconnect() {
 		this.connection.disconnect();
-		this.stopTimer();
 	}
 
 	sendAction(action: Action) {
@@ -169,42 +167,11 @@ export class AuctionTTTState {
 				} else {
 					this.connection.addToLog(`${event.winningSide} has won the game!`);
 				}
-				this.stopTimer();
 				break;
 
 			case 'backToSettings':
 				this.connection.addToLog('Returning to settings');
 				break;
-		}
-	}
-
-	// Timer management for tiebreaker
-	private startTimer() {
-		if (this.timerInterval) return;
-
-		this.timerInterval = setInterval(() => {
-			const state = this.state;
-			if (!state || state.gameStage !== 'midgame' || !state.timeOfLastMove) return;
-
-			const now = Date.now();
-			const elapsed = now - state.timeOfLastMove;
-
-			const whoseTurnItIs =
-				state.turnPart === TurnPart.Bidding
-					? state.whoseTurnToBid
-					: state.whoseTurnToNominate;
-
-			if (whoseTurnItIs && state.players[whoseTurnItIs].timeUsed !== undefined) {
-				state.players[whoseTurnItIs].timeUsed! += elapsed;
-				state.timeOfLastMove = now;
-			}
-		}, 1000);
-	}
-
-	private stopTimer() {
-		if (this.timerInterval) {
-			clearInterval(this.timerInterval);
-			this.timerInterval = null;
 		}
 	}
 }

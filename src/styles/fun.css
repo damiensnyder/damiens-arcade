@@ -1,0 +1,153 @@
+:root {
+  --bg-1: #311;
+  --bg-2: #755;
+  --bg-3: #632;
+  --bg-3-semitransparent: #632e;
+  --bg-4: #521;
+  --text-1: #ddd;
+  --text-2: #aaa;
+  --text-3: #111;
+  --text-4: #d7d7d7;
+  --accent-1: #e99;
+  --accent-2: #633;
+  --accent-3: #522;
+  --accent-4: #eeb;
+  --accent-5: #e8c;
+
+  --font-main: "Comic Sans MS", "Chalkboard", handwriting;
+}
+
+html,
+body,
+#svelte {
+  background-color: var(--bg-1);
+  color: var(--text-1);
+  font-family: var(--font-main);
+}
+
+* {
+ font-family: var(--font-main);
+}
+
+button,
+input[type=submit] {
+  font-family: inherit;
+  color: inherit;
+  background-color: var(--bg-2);
+  border: 2px solid var(--text-2);
+}
+
+button:hover,
+button:active {
+  background-color: var(--accent-2);
+}
+
+button:hover {
+  color: var(--text-4);
+}
+
+button:hover:active,
+button:active {
+  color: var(--text-1);
+}
+
+button:disabled,
+button:disabled:active {
+  color: var(--text-2);
+  background-color: var(--bg-2);
+}
+
+h2 {
+  font-weight: 600;
+  color: var(text-2);
+}
+
+h3 {
+  font-weight: 500;
+}
+
+select {
+  flex: 0;
+  margin: 0.5rem 0;
+  padding-bottom: 0.35rem;
+}
+
+.list-container {
+  align-self: stretch;
+  padding-top: 1rem;
+  align-items: flex-start;
+}
+
+.show-child-on-hover {
+  position: relative;
+  /* z-index: 100; */
+}
+
+.show-child-on-hover > .show-on-hover {
+  visibility: hidden;
+  opacity: 0;
+  z-index: 100;
+}
+
+.show-child-on-hover:hover > .show-on-hover {
+  visibility: visible;
+  opacity: 100%;
+  transition: all ease-in-out 0.2s;
+}
+
+.show-on-hover {
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  width: fit-content;
+  height: fit-content;
+  z-index: 1;
+  padding: 0 1rem;
+  border: 2px solid var(--bg-2);
+  border-radius: 1rem;
+  background-color: var(--bg-4);
+}
+
+.text-and-buttons {
+  align-self: stretch;
+  justify-content: space-between;
+  text-align: left;
+}
+
+.right-align-outer {
+  flex-flow: row;
+  align-self: flex-end;
+  margin-left: 1rem;
+}
+
+.right-align-inner {
+  margin: 0.25rem 0.5rem 0.25rem 0;
+}
+
+.column {
+  position: relative;
+  overflow-y: scroll;
+  margin: 0 2rem;
+}
+
+.column-title {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  text-align: center;
+  background-color: var(--bg-3-semitransparent);
+  padding: 0.5rem 0 1rem 0;
+  z-index: 10;
+}
+
+@media only screen and (max-width: 720px) {
+  .column {
+    margin: 0 1rem;
+  }
+}
+
+@media only screen and (min-width: 720px) and (max-width: 1200px) {
+  .column {
+    margin: 0 1.5rem;
+  }
+}

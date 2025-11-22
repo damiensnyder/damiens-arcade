@@ -1,0 +1,110 @@
+@font-face {
+  font-family: "Watchtower Expanded";
+  src: url(/watchtowerexpand.woff2);
+}
+
+@font-face {
+  font-family: "Watchtower Gradient Italic";
+  src: url(/watchtowergradital.woff2);
+}
+
+:root {
+  --bg-1: #00001a;
+  --bg-2: #113;
+  --bg-3: #111;
+  --bg-4: #000;
+  --bg-5: #666;
+  --text-1: #ccc;
+  --text-2: #ddd;
+  --text-3: #bbb;
+  --text-4: #888;
+  --accent-1: #ee1;
+  --accent-2: #0b0;
+  --accent-3: #090;
+  --link: #585;
+
+  --font-main: Helvetica, sans-serif;
+  --font-title: "Watchtower Gradient Italic";
+  --font-subtitle: "Watchtower Expanded";
+  --font-mono: Menlo, monospace;
+}
+
+html,
+body,
+#svelte {
+  background-color: var(--bg-1);
+  color: var(--text-1);
+  font-family: var(--font-main);
+}
+
+h1 {
+  color: var(--accent-1);
+  font-family: var(--font-title);
+}
+
+h2 {
+  color: var(--text-2);
+  font-family: var(--font-subtitle);
+}
+
+h3 {
+  font-family: var(--font-subtitle);
+}
+
+input[type=text],
+input[type=number] {
+  border: 2px solid var(--text-3);
+  background-color: var(--bg-2);
+  color: var(--text-1);
+}
+
+select {
+  border: 2px solid var(--text-3);
+  background-color: var(--bg-2);
+  color: var(--text-1);
+}
+
+textarea {
+  background-color: var(--bg-2);
+  color: var(--text-1);
+  border: 2px solid var(--text-3);
+  font-family: var(--font-mono);
+}
+
+a {
+  color: var(--link);
+}
+
+.top-level-menu {
+  border: 2px solid var(--text-1);
+  background-color: var(--bg-3);
+}
+
+button,
+input[type="submit"] {
+  border: 2px solid var(--text-3);
+
+  font-family: var(--font-subtitle);
+  color: var(--text-2);
+  background-color: var(--accent-2);
+}
+
+button:hover,
+input[type="submit"]:hover {
+  color: var(--text-3);
+}
+
+button:active,
+input[type="submit"]:active {
+  color: var(--text-3);
+  background-color: var(--accent-3);
+}
+
+input:disabled,
+input:disabled:active,
+button:disabled,
+button:disabled:active,
+select:disabled {
+  color: var(--text-3);
+  background-color: var(--bg-5);
+}

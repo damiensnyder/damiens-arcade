@@ -1,8 +1,17 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { Side } from '$lib/shared/auction-ttt/types';
+	import type { Settings } from '$lib/shared/auction-ttt/types';
 
 	let joinCode = $state('');
 	let creating = $state(false);
+	let hotSeat = $state(false);
+
+	let settings = $state<Settings>({
+		startingMoney: 100,
+		startingPlayer: Side.None,
+		useTiebreaker: false
+	});
 
 	async function createRoom() {
 		creating = true;
@@ -10,7 +19,11 @@
 			const response = await fetch('/api/rooms/create', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ gameType: 'auction-ttt' })
+				body: JSON.stringify({
+					gameType: 'auction-ttt',
+					settings,
+					hotSeat
+				})
 			});
 
 			const data = await response.json();
@@ -33,114 +46,138 @@
 	<title>Auction Tic-Tac-Toe | Damien's Arcade</title>
 </svelte:head>
 
-<div class="landing">
-	<header>
-		<h1>Auction Tic-Tac-Toe</h1>
-		<p>Bid on squares to claim them in this strategic twist on tic-tac-toe!</p>
-	</header>
+<div class="center-container">
+	<h1>Auction Tic-Tac-Toe</h1>
 
-	<div class="actions">
-		<section>
+	<div class="top-level-menu">
+		<div class="menu-section">
 			<h2>Create a Room</h2>
-			<button onclick={createRoom} disabled={creating}>
-				{creating ? 'Creating...' : 'Create Room'}
-			</button>
-		</section>
 
-		<section>
+			<h3>Game Settings</h3>
+			<form onsubmit={(e) => { e.preventDefault(); createRoom(); }}>
+				<div class="form-field">
+					<label for="startingMoney">Starting money:</label>
+					<input
+						type="number"
+						id="startingMoney"
+						min={0}
+						bind:value={settings.startingMoney}
+					/>
+				</div>
+				<div class="form-field">
+					<label for="startingPlayer">Starting player:</label>
+					<select id="startingPlayer" bind:value={settings.startingPlayer}>
+						{#each Object.values(Side) as side}
+							<option value={side}>{side === Side.None ? "Random" : side}</option>
+						{/each}
+					</select>
+				</div>
+				<div class="form-field">
+					<label for="useTiebreaker">
+						<input
+							id="useTiebreaker"
+							type="checkbox"
+							bind:checked={settings.useTiebreaker}
+						/>
+						Use time as tiebreaker
+					</label>
+				</div>
+				<div class="form-field">
+					<label for="hotSeat">
+						<input
+							id="hotSeat"
+							type="checkbox"
+							bind:checked={hotSeat}
+						/>
+						Hot seat mode (play both sides on one device)
+					</label>
+				</div>
+				<button type="submit" disabled={creating}>
+					{creating ? 'CREATING...' : 'CREATE ROOM'}
+				</button>
+			</form>
+		</div>
+
+		<div class="menu-section">
 			<h2>Join a Room</h2>
-			<input
-				type="text"
-				bind:value={joinCode}
-				placeholder="Enter room code"
-				style="text-transform: uppercase"
-			/>
-			<button onclick={joinRoom} disabled={!joinCode.trim()}>Join</button>
-		</section>
+			<form onsubmit={(e) => { e.preventDefault(); joinRoom(); }}>
+				<div class="form-field">
+					<label for="roomCode">Room code:</label>
+					<input
+						id="roomCode"
+						type="text"
+						bind:value={joinCode}
+						placeholder="ABCD"
+						style="text-transform: uppercase"
+					/>
+				</div>
+				<button type="submit" disabled={!joinCode.trim()}>JOIN ROOM</button>
+			</form>
+
+			<h3 style="margin-top: 2rem;">How to Play</h3>
+			<ol style="text-align: left; margin: 0; padding-left: 1.5rem;">
+				<li>Two players compete to get three in a row</li>
+				<li>On your turn, nominate a square and set a starting bid</li>
+				<li>Your opponent can outbid you or pass</li>
+				<li>Highest bidder gets the square and pays their bid</li>
+				<li>Manage your money wisely to win!</li>
+			</ol>
+		</div>
 	</div>
 
-	<section class="how-to-play">
-		<h2>How to Play</h2>
-		<ol>
-			<li>Two players compete to get three in a row</li>
-			<li>On your turn, nominate a square and set a starting bid</li>
-			<li>Your opponent can outbid you or pass</li>
-			<li>Highest bidder gets the square and pays their bid</li>
-			<li>Manage your money wisely to win!</li>
-		</ol>
-	</section>
-
-	<a href="/">← Back to Arcade</a>
+	<a href="/" class="back-link">← Back to Arcade</a>
 </div>
 
 <style>
-	.landing {
-		max-width: 800px;
-		margin: 0 auto;
-		padding: 2rem;
-	}
-
-	header {
-		text-align: center;
-		margin-bottom: 3rem;
-	}
-
-	.actions {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 2rem;
-		margin-bottom: 3rem;
-	}
-
-	section {
-		padding: 2rem;
-		border: 2px solid #333;
-		border-radius: 8px;
-	}
-
-	input {
+	.center-container {
 		width: 100%;
-		padding: 0.5rem;
-		margin-bottom: 1rem;
-		font-size: 1rem;
+		min-height: 100vh;
+		display: flex;
+		flex-flow: column;
+		align-items: center;
+		padding: 2rem 0;
 	}
 
-	button {
-		width: 100%;
-		padding: 1rem;
-		font-size: 1rem;
-		background: #4ecdc4;
-		color: white;
-		border: none;
-		border-radius: 4px;
-		cursor: pointer;
+	h1 {
+		margin: 2rem 0;
 	}
 
-	button:hover:not(:disabled) {
-		background: #45b8b0;
+	.top-level-menu {
+		margin: 1rem 3.5rem;
+		padding: 1.25rem 2.25rem;
+		border-radius: 1.5rem;
+		display: flex;
+		flex-flow: row;
+		gap: 3rem;
 	}
 
-	button:disabled {
-		background: #ccc;
-		cursor: not-allowed;
+	.menu-section {
+		flex: 1;
+		display: flex;
+		flex-flow: column;
+		align-items: stretch;
 	}
 
-	.how-to-play {
-		text-align: left;
+	h3 {
+		margin-top: 1.5rem;
 	}
 
-	.how-to-play ol {
-		line-height: 1.8;
-	}
-
-	a {
-		display: inline-block;
+	.back-link {
 		margin-top: 2rem;
-		color: #333;
-		text-decoration: none;
 	}
 
-	a:hover {
-		text-decoration: underline;
+	@media only screen and (max-width: 720px) {
+		.top-level-menu {
+			margin: 0.5rem 1rem;
+			padding: 1rem;
+			flex-flow: column;
+		}
+	}
+
+	@media only screen and (min-width: 720px) and (max-width: 1200px) {
+		.top-level-menu {
+			margin: 0.75rem 1.5rem;
+			padding: 1rem 1.25rem;
+		}
 	}
 </style>

@@ -28,6 +28,7 @@ export class GameRoom {
 	private teardownTimer: NodeJS.Timeout;
 	private host?: number;
 	private nextViewerIndex = 0;
+	private isHotSeat = false;
 
 	constructor(
 		private gameType: string,
@@ -36,6 +37,14 @@ export class GameRoom {
 	) {
 		this.gameLogic = gameLogic;
 		this.teardownTimer = setTimeout(() => this.emptyCallback?.(), TEARDOWN_TIME);
+	}
+
+	applyInitialSettings(settings: any) {
+		this.gameLogic.applyInitialSettings(settings);
+	}
+
+	setHotSeat(value: boolean) {
+		this.isHotSeat = value;
 	}
 
 	async handleConnection(ws: WebSocket, request: IncomingMessage) {
@@ -64,6 +73,11 @@ export class GameRoom {
 
 		// Broadcast join event to others
 		this.broadcast({ type: 'event', event: { type: 'join', viewer: viewer.index } }, ws);
+
+		// Auto-join both sides in hot seat mode (for first connection only)
+		if (this.isHotSeat && this.viewers.length === 1) {
+			this.gameLogic.autoJoinHotSeat(viewer);
+		}
 
 		// Reset teardown timer
 		this.resetTeardownTimer();

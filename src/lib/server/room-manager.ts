@@ -46,9 +46,20 @@ export class RoomManager {
 		return room;
 	}
 
-	createRoom(gameType: string): { roomCode: string } {
+	createRoom(gameType: string, options?: { settings?: any; hotSeat?: boolean }): { roomCode: string } {
 		const roomCode = this.generateRoomCode();
-		this.getOrCreateRoom(gameType, roomCode);
+		const room = this.getOrCreateRoom(gameType, roomCode);
+
+		// Apply initial settings if provided
+		if (options?.settings) {
+			room.applyInitialSettings(options.settings);
+		}
+
+		// Set hot seat mode if provided
+		if (options?.hotSeat) {
+			room.setHotSeat(true);
+		}
+
 		return { roomCode };
 	}
 

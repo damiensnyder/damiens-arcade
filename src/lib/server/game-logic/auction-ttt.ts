@@ -453,4 +453,19 @@ export class AuctionTTTLogic extends GameLogicBase<
 			delete this.state.players[side].controller;
 		}
 	}
+
+	applyInitialSettings(settings: Settings): void {
+		// Only apply settings in pregame
+		if (this.state.stage === 'pregame') {
+			this.state.settings = { ...this.state.settings, ...settings };
+		}
+	}
+
+	autoJoinHotSeat(viewer: Viewer): void {
+		// Auto-join both sides for hot seat mode
+		if (this.state.stage === 'pregame') {
+			this.state.players.X.controller = viewer.index;
+			this.state.players.O.controller = viewer.index;
+		}
+	}
 }

@@ -62,14 +62,14 @@ export function webSocketServer(): Plugin {
 
 				req.on('end', () => {
 					try {
-						const { gameType } = JSON.parse(body);
+						const { gameType, settings, hotSeat } = JSON.parse(body);
 						if (!gameType) {
 							res.statusCode = 400;
 							res.end(JSON.stringify({ error: 'Missing gameType' }));
 							return;
 						}
 
-						const result = roomManager.createRoom(gameType);
+						const result = roomManager.createRoom(gameType, { settings, hotSeat });
 						res.statusCode = 200;
 						res.setHeader('Content-Type', 'application/json');
 						res.end(JSON.stringify(result));
