@@ -27,7 +27,7 @@ export function webSocketServer(): Plugin {
 				// Match: /ws/auction-ttt/ABC123
 				const match = pathname?.match(/^\/ws\/([^/]+)\/([^/]+)$/);
 				if (!match) {
-					socket.destroy();
+					// Not a game WebSocket, let other handlers (like Vite HMR) handle it
 					return;
 				}
 
