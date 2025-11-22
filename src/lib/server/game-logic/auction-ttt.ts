@@ -36,6 +36,7 @@ export class AuctionTTTLogic extends GameLogicBase<
 	ClientGameState
 > {
 	protected gameStage: 'pregame' | 'midgame' | 'postgame' = 'pregame';
+	private lastGameStartingPlayer?: Side.X | Side.O;
 
 	initialState(): ServerGameState {
 		return {
@@ -349,7 +350,12 @@ export class AuctionTTTLogic extends GameLogicBase<
 			return { success: false, error: 'Need both players' };
 		}
 
-		this.startGame();
+		// For rematches, alternate from whoever started the last game
+		const nextStartingPlayer = this.lastGameStartingPlayer
+			? oppositeSideOf(this.lastGameStartingPlayer)
+			: Side.X; // Default to X if no previous game (shouldn't happen)
+
+		this.startGame(nextStartingPlayer);
 
 		return {
 			success: true,
@@ -373,19 +379,27 @@ export class AuctionTTTLogic extends GameLogicBase<
 		return { success: true, events: [{ type: 'backToSettings' }] };
 	}
 
-	private startGame(): void {
+	private startGame(overrideStartingPlayer?: Side.X | Side.O): void {
 		this.state.stage = 'midgame';
 		this.gameStage = 'midgame';
 		this.state.turnPart = TurnPart.Nominating;
 		this.state.players.X.money = this.state.settings.startingMoney;
 		this.state.players.O.money = this.state.settings.startingMoney;
 
-		this.state.whoseTurnToNominate =
-			this.state.settings.startingPlayer === Side.None
-				? this.randInt(0, 1) === 0
-					? Side.X
-					: Side.O
-				: this.state.settings.startingPlayer;
+		// Use override if provided (for rematches), otherwise use settings
+		if (overrideStartingPlayer) {
+			this.state.whoseTurnToNominate = overrideStartingPlayer;
+		} else {
+			this.state.whoseTurnToNominate =
+				this.state.settings.startingPlayer === Side.None
+					? this.randInt(0, 1) === 0
+						? Side.X
+						: Side.O
+					: this.state.settings.startingPlayer;
+		}
+
+		// Track who started this game for alternating in rematches
+		this.lastGameStartingPlayer = this.state.whoseTurnToNominate as Side.X | Side.O;
 
 		this.state.squares = [
 			[Side.None, Side.None, Side.None],
