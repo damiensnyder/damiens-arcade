@@ -138,849 +138,1065 @@ export class MayhemManagerLogic extends GameLogicBase<
 		this.ready = [];
 	}
 
-  handleAction(viewer: Viewer, action?: any): void {
-    // writeFileSync("logs/lastGame.json", JSON.stringify(this.exportLeague()));
+	handleAction(viewer: Viewer, rawAction: unknown): ActionResult<MayhemManagerEvent> {
+		const indexControlledByViewer = getIndexByController(this.teams, viewer.index);
+		const teamControlledByViewer = getTeamByController(this.teams, viewer.index);
 
-    const indexControlledByViewer = getIndexByController(this.teams, viewer.index);
-    const teamControlledByViewer = getTeamByController(this.teams, viewer.index);
-    const isHost = this.room.host === viewer.index;
-    
-    if (action === "debug") {
-      const temp = this.room;
-      delete this.room;  // so we don't have to look at all the parameters of the socket
-      console.debug(this);
-      this.room = temp;
-      
-      // JOIN
-    } else if (joinSchema.safeParse(action).success &&
-        this.gameStage === "preseason" &&
-        teamControlledByViewer === null &&
-        this.teams.length < 16 &&
-        !this.teams.some(t => t.name === action.name)) {
-      this.addTeam(viewer.index, action.name);
+		// JOIN
+		const joinParsed = JoinSchema.safeParse(rawAction);
+		if (
+			joinParsed.success &&
+			this.gameStage === 'preseason' &&
+			teamControlledByViewer === null &&
+			this.teams.length < 16 &&
+			!this.teams.some((t) => t.name === joinParsed.data.name)
+		) {
+			return this.handleJoin(viewer.index, joinParsed.data.name);
+		}
 
-      // LEAVE
-    } else if (leaveSchema.safeParse(action).success &&
-        teamControlledByViewer !== null) {
-      teamControlledByViewer.controller = "bot";
-      this.ready[indexControlledByViewer] = false;
-      this.emitEventToAll({
-        type: "leave",
-        team: indexControlledByViewer
-      });
+		// LEAVE
+		const leaveParsed = LeaveSchema.safeParse(rawAction);
+		if (leaveParsed.success && teamControlledByViewer !== null && indexControlledByViewer !== null) {
+			return this.handleLeave(indexControlledByViewer);
+		}
 
-      // REPLACE
-    } else if (replaceSchema.safeParse(action).success &&
-        teamControlledByViewer === null &&
-        action.team < this.teams.length &&
-        this.teams[action.team].controller === "bot") {
-      this.teams[action.team].controller = viewer.index;
-      this.emitEventToAll({
-        type: "replace",
-        team: action.team,
-        controller: viewer.index
-      });
+		// REPLACE
+		const replaceParsed = ReplaceSchema.safeParse(rawAction);
+		if (
+			replaceParsed.success &&
+			teamControlledByViewer === null &&
+			replaceParsed.data.team < this.teams.length &&
+			this.teams[replaceParsed.data.team].controller === 'bot'
+		) {
+			return this.handleReplace(viewer, replaceParsed.data.team);
+		}
 
-      if (this.gameStage === "training") {
-        this.emitEventTo(viewer, {
-          type: "goToTraining",
-          equipment: this.equipmentAvailable[action.team]
-        });
-      }
+		// REMOVE
+		const removeParsed = RemoveSchema.safeParse(rawAction);
+		if (
+			removeParsed.success &&
+			this.gameStage === 'preseason' &&
+			viewer.isHost &&
+			removeParsed.data.team < this.teams.length
+		) {
+			return this.handleRemove(removeParsed.data.team);
+		}
 
-      // REMOVE
-    } else if (removeSchema.safeParse(action).success &&
-        this.gameStage === "preseason" &&
-        isHost &&
-        action.team < this.teams.length) {
-      this.teams.splice(action.team, 1);
-      this.ready.splice(action.team, 1);
-      this.emitEventToAll({
-        type: "remove",
-        team: action.team
-      });
+		// READY
+		const readyParsed = ReadySchema.safeParse(rawAction);
+		if (
+			readyParsed.success &&
+			this.gameStage === 'preseason' &&
+			indexControlledByViewer !== null
+		) {
+			return this.handleReady(indexControlledByViewer);
+		}
 
-      // READY
-    } else if (readySchema.safeParse(action).success &&
-        this.gameStage === "preseason" &&
-        indexControlledByViewer !== null) {
-      // mark player as ready, and if all non-bot players are ready (assuming 2+ teams), go to draft
-      this.ready[indexControlledByViewer] = true;
-      this.emitEventToAll({
-        type: "ready",
-        team: indexControlledByViewer
-      });
-      if (this.teams.every((team: PreseasonTeam, i: number) => this.ready[i] || team.controller === "bot") && this.teams.length >= 2) {
-        this.advanceToDraft();
-      }
+		// ADD BOT
+		const addBotParsed = AddBotSchema.safeParse(rawAction);
+		if (
+			addBotParsed.success &&
+			this.gameStage === 'preseason' &&
+			this.teams.length < 16 &&
+			viewer.isHost
+		) {
+			return this.handleAddBot();
+		}
 
-      // ADD BOT
-    } else if (addBotSchema.safeParse(action).success &&
-        this.gameStage === "preseason" &&
-        this.teams.length < 16 &&
-        isHost) {
-      this.addTeam("bot", generateTeamName(this.teams, this.randElement.bind(this)));
+		// ADVANCE
+		const advanceParsed = AdvanceSchema.safeParse(rawAction);
+		if (advanceParsed.success && viewer.isHost) {
+			return this.handleAdvance();
+		}
 
-      // ADVANCE
-    } else if (advanceSchema.safeParse(action).success &&
-        isHost) {
-      this.advance();
-      
-      // PICK (draft)
-    } else if (pickSchema.safeParse(action).success &&
-        indexControlledByViewer !== null &&
-        this.gameStage === "draft") {
-      this.pickFighter(indexControlledByViewer, action.index);
-      if (this.spotInDraftOrder === this.draftOrder.length ||
-          this.teams[this.draftOrder[this.spotInDraftOrder]].controller === "bot") {
-        this.advance();
-      }
+		// PICK (draft or free agency)
+		const pickParsed = PickSchema.safeParse(rawAction);
+		if (
+			pickParsed.success &&
+			indexControlledByViewer !== null &&
+			(this.gameStage === 'draft' || this.gameStage === 'free agency')
+		) {
+			return this.handlePick(indexControlledByViewer, pickParsed.data.index);
+		}
 
-      // PICK (free agency)
-    } else if (pickSchema.safeParse(action).success &&
-        indexControlledByViewer !== null &&
-        this.gameStage === "free agency") {
-      this.pickFighter(indexControlledByViewer, action.index);
+		// PASS (free agency)
+		const passParsed = PassSchema.safeParse(rawAction);
+		if (
+			passParsed.success &&
+			indexControlledByViewer !== null &&
+			this.gameStage === 'free agency'
+		) {
+			return this.handlePass();
+		}
 
-      // PASS
-    } else if (passSchema.safeParse(action).success &&
-        indexControlledByViewer !== null &&
-        this.gameStage === "free agency") {
-      this.emitEventToAll(action);
-      this.spotInDraftOrder++;
-      if (this.spotInDraftOrder === this.draftOrder.length ||
-          this.teams[this.draftOrder[this.spotInDraftOrder]].controller === "bot") {
-        this.advance();
-      }
+		// PRACTICE (training)
+		const practiceParsed = PracticeSchema.safeParse(rawAction);
+		if (
+			practiceParsed.success &&
+			this.gameStage === 'training' &&
+			indexControlledByViewer !== null &&
+			teamControlledByViewer &&
+			!this.ready[indexControlledByViewer] &&
+			practiceParsed.data.skills.length === teamControlledByViewer.fighters.length
+		) {
+			return this.handlePractice(
+				indexControlledByViewer,
+				practiceParsed.data.equipment,
+				practiceParsed.data.skills
+			);
+		}
 
-      // PRACTICE
-    } else if (practiceSchema.safeParse(action).success &&
-        this.gameStage === "training" &&
-        indexControlledByViewer !== null &&
-        !this.ready[indexControlledByViewer] &&
-        action.skills.length === teamControlledByViewer.fighters.length) {
-      this.trainingChoices[indexControlledByViewer] = {
-        equipment: action.equipment,
-        skills: action.skills
-      };
-      this.ready[indexControlledByViewer] = true;
-      this.emitEventToAll({
-        type: "ready",
-        team: indexControlledByViewer
-      });
-      // if the only players not ready or bots, make them pick and ready
-      if (this.teams.every((t, i) => this.ready[i] || t.controller === "bot")) {
-        this.teams.forEach((t, i) => {
-          if (t.controller === "bot" && !this.ready[i]) {
-            this.ready[i] = true;
-            this.trainingChoices[i] = Bot.getTrainingPicks(t, this.equipmentAvailable[i]);
-          }
-        });
-        this.advanceToBattleRoyale();
-      }
+		// PICK BR FIGHTER (battle royale)
+		const pickBRParsed = PickBRFighterSchema.safeParse(rawAction);
+		if (
+			pickBRParsed.success &&
+			this.gameStage === 'battle royale' &&
+			indexControlledByViewer !== null &&
+			teamControlledByViewer
+		) {
+			return this.handlePickBRFighter(
+				indexControlledByViewer,
+				pickBRParsed.data.fighter,
+				pickBRParsed.data.equipment
+			);
+		}
 
-      // PICK BR FIGHTER
-    } else if (pickBRFighterSchema.safeParse(action).success &&
-        this.gameStage === "battle royale" &&
-        indexControlledByViewer !== null) {
-      this.submitBRPick(indexControlledByViewer, action.fighter, action.equipment);
+		// PICK FIGHTERS (tournament)
+		const pickFightersParsed = PickFightersSchema.safeParse(rawAction);
+		if (
+			pickFightersParsed.success &&
+			this.gameStage === 'tournament' &&
+			indexControlledByViewer !== null &&
+			teamControlledByViewer
+		) {
+			return this.handlePickFighters(indexControlledByViewer, pickFightersParsed.data.equipment);
+		}
 
-      // PICK FIGHTERS
-    } else if (pickFightersSchema.safeParse(action).success &&
-        this.gameStage === "tournament" &&
-        indexControlledByViewer !== null) {
-      this.submitFightPicks(indexControlledByViewer, action.equipment);
+		// RESIGN
+		const resignParsed = ResignSchema.safeParse(rawAction);
+		if (
+			resignParsed.success &&
+			this.gameStage === 'preseason' &&
+			indexControlledByViewer !== null &&
+			teamControlledByViewer
+		) {
+			return this.handleResign(indexControlledByViewer, resignParsed.data.fighter);
+		}
 
-      // RESIGN
-    } else if (resignSchema.safeParse(action).success &&
-        this.gameStage === "preseason" &&
-        indexControlledByViewer !== null) {
-      this.resignFighter(indexControlledByViewer, action.fighter);
+		// REPAIR
+		const repairParsed = RepairSchema.safeParse(rawAction);
+		if (
+			repairParsed.success &&
+			this.gameStage === 'preseason' &&
+			indexControlledByViewer !== null &&
+			teamControlledByViewer
+		) {
+			return this.handleRepair(indexControlledByViewer, repairParsed.data.equipment);
+		}
 
-      // REPAIR
-    } else if (repairSchema.safeParse(action).success &&
-        this.gameStage === "preseason" &&
-        indexControlledByViewer !== null) {
-      this.repairEquipment(indexControlledByViewer, action.equipment);
-    } else if (importSchema.safeParse(action).success) {
-      // validations needed for some invariants zod misses, e.g.
-      // that draft order is not longer than array of fighters
-      this.importLeague(action);
-    } else if (exportLeagueSchema.safeParse(action).success) {
-      this.emitEventTo(viewer, {
-        type: "exportLeague",
-        league: this.exportLeague()
-      });
-    } else {
-      console.log(action);
-    }
-  }
+		// IMPORT
+		const importParsed = ImportSchema.safeParse(rawAction);
+		if (importParsed.success && viewer.isHost && this.gameStage === 'preseason') {
+			return this.handleImport(importParsed.data);
+		}
 
-  advance(): void {
-    clearTimeout(this.pickTimeout);
-    // advance does a different thing depending on what stage you are in
-    if (this.gameStage === "preseason" &&
-        this.teams.length >= 1) {
-      this.advanceToDraft();
-    } else if (this.gameStage === "draft") {
-      if (this.spotInDraftOrder === this.draftOrder.length) {
-        // we're done, go straight to FA (no timeout)
-        this.advanceToFreeAgency();
-      } else {
-        const pickingTeam = this.teams[this.draftOrder[this.spotInDraftOrder]];
-        if (pickingTeam.controller === "bot") {
-          // if bot's turn when pressed, do bots automatically
-          this.doBotDraftPick();
-        } else {
-          // if human's turn when pressed, have bot pick for them, then do all the bots after them automatically
-          // or advance to FA if no one else left
-          const pick = Bot.getDraftPick(pickingTeam, this.fighters);
-          this.pickFighter(this.draftOrder[this.spotInDraftOrder], pick);
-          // don't advance in draft order b/c that already happens when picking fighter in draft
-          if (this.spotInDraftOrder === this.draftOrder.length) {
-            this.advanceToFreeAgency();
-          } else {
-            this.pickTimeout = setTimeout(this.doBotDraftPick.bind(this), BOT_DELAY);
-          }
-        }
-      }
-    } else if (this.gameStage === "free agency") {
-      if (this.spotInDraftOrder === this.draftOrder.length) {
-        // we're done, go straight to training (no timeout)
-        this.advanceToTraining();
-      } else {
-        const pickingTeam = this.teams[this.draftOrder[this.spotInDraftOrder]];
-        if (pickingTeam.controller === "bot") {
-          // if bot's turn when pressed, do bots automatically
-          this.doBotFAPick();
-        } else {
-          // if human's turn when pressed, make them pass, then do all the bots after them automatically
-          // or advance to training if no one else left
-          this.emitEventToAll({
-            type: "pass"
-          });
-          this.spotInDraftOrder++;
-          if (this.spotInDraftOrder === this.draftOrder.length) {
-            this.advanceToTraining();
-          } else {
-            this.pickTimeout = setTimeout(this.doBotFAPick.bind(this), BOT_DELAY);
-          }
-        }
-      }
-    } else if (this.gameStage === "training") {
-      for (let i = 0; i < this.teams.length; i++) {
-        if (!this.ready[i]) {
-          const trainingPicks = Bot.getTrainingPicks(this.teams[i], this.equipmentAvailable[i]);
-          this.trainingChoices[i] = {
-            equipment: trainingPicks.equipment,
-            skills: trainingPicks.skills
-          };
-        }
-      }
-      this.advanceToBattleRoyale();
-    } else if (this.gameStage === "battle royale") {
-      // get bot picks from unready players then simulate battle royale
-      for (let i = 0; i < this.teams.length; i++) {
-        if (!this.ready[i]) {
-          const brPicks = Bot.getBRPicks(this.teams[i]);
-          this.submitBRPick(i, brPicks.fighter, brPicks.equipment, false);
-        }
-      }
-      this.simulateBattleRoyale();
-    } else if (this.gameStage === "tournament") {
-      // if the tournament is over, advance to preseason
-      if (this.bracket.winner !== null) {
-        this.advanceToPreseason();
-      } else {
-        // otherwise, simulate the next fight
-        // need to get bot picks from unready players first
-        for (let i = 0; i < this.teams.length; i++) {
-          if (!this.ready[i]) {
-            const fightPicks = Bot.getFightPicks(this.teams[i]);
-            this.submitFightPicks(i, fightPicks, false);
-          }
-        }
-        this.simulateFight();
-      }
-    }
-  }
+		// EXPORT
+		const exportParsed = ExportLeagueSchema.safeParse(rawAction);
+		if (exportParsed.success && viewer.isHost) {
+			return this.handleExport();
+		}
 
-  advanceToDraft(): void {
-    this.gameStage = "draft";
+		return { success: false, error: 'Invalid action' };
+	}
 
-    // get picks from bot teams
-    this.teams.forEach((team: PreseasonTeam, i) => {
-      if (team.controller === "bot") {
-        const picks = Bot.getPreseasonPicks(team);
-        picks.fighters.forEach((f, j) => {
-          // subtract j because each fighter resigned shifts later fighters to the left
-          this.resignFighter(i, f - j);
-        });
-        picks.equipment.forEach((e, j) => {
-          this.repairEquipment(i, e - j);
-        });
-      }
-    });
+	// Action handlers - these will return ActionResult
+	private handleJoin(
+		viewerIndex: number,
+		name: string
+	): ActionResult<MayhemManagerEvent> {
+		const team: PreseasonTeam = {
+			controller: viewerIndex,
+			name,
+			money: 100,
+			fighters: [],
+			equipment: [],
+			needsResigning: [],
+			needsRepair: []
+		};
+		this.teams.push(team);
+		this.ready.push(false);
+		return {
+			success: true,
+			events: [{ type: 'join', controller: viewerIndex, name }]
+		};
+	}
 
-    this.unsignedVeterans = [];
-    this.teams.forEach((team: PreseasonTeam) => {
-      this.unsignedVeterans = this.unsignedVeterans.concat(team.needsResigning);
-    });
+	private handleLeave(teamIndex: number): ActionResult<MayhemManagerEvent> {
+		this.teams[teamIndex].controller = 'bot';
+		this.ready[teamIndex] = false;
+		return {
+			success: true,
+			events: [{ type: 'leave', team: teamIndex }]
+		};
+	}
 
-    // draft order is reverse order of results of previous tourney
-    this.draftOrder = [];
-    for (let i = 0; i < this.teams.length; i++) {
-      this.draftOrder.push(i);
-    }
-    const lastBracket = this.history.length > 0 ? this.history[this.history.length - 1] : undefined;
-    this.draftOrder.sort((a, b) => {
-      return levelInBracket(lastBracket, this.teams[b].name) - levelInBracket(lastBracket, this.teams[a].name);
-    })
-    this.spotInDraftOrder = 0;
+	private handleReplace(viewer: Viewer, teamIndex: number): ActionResult<MayhemManagerEvent> {
+		this.teams[teamIndex].controller = viewer.index;
+		const events: MayhemManagerEvent[] = [
+			{ type: 'replace', team: teamIndex, controller: viewer.index }
+		];
 
-    // generate n + 4 random fighters to draft, where n is the number of teams
-    this.fighters = generateFighters(Math.ceil(this.teams.length * 1.5 + 1), false, this);
-    this.fighters.sort((a, b) => fighterValue(b) - fighterValue(a));
+		// If in training, also send equipment available
+		if (this.gameStage === 'training' && this.equipmentAvailable) {
+			events.push({
+				type: 'goToTraining',
+				equipment: this.equipmentAvailable[teamIndex]
+			});
+		}
 
-    this.emitEventToAll({
-      type: "goToDraft",
-      draftOrder: this.draftOrder,
-      fighters: this.fighters
-    });
+		return { success: true, events };
+	}
 
-    clearTimeout(this.pickTimeout);
-    this.pickTimeout = setTimeout(this.doBotDraftPick.bind(this), BOT_DELAY);
-  }
+	private handleRemove(teamIndex: number): ActionResult<MayhemManagerEvent> {
+		this.teams.splice(teamIndex, 1);
+		this.ready.splice(teamIndex, 1);
+		return {
+			success: true,
+			events: [{ type: 'remove', team: teamIndex }]
+		};
+	}
 
-  doBotDraftPick(): void {
-    clearTimeout(this.pickTimeout);
+	private handleReady(teamIndex: number): ActionResult<MayhemManagerEvent> {
+		this.ready[teamIndex] = true;
+		const events: MayhemManagerEvent[] = [{ type: 'ready', team: teamIndex }];
 
-    // if (this.gameStage !== "draft" || this.spotInDraftOrder >= this.draftOrder.length) return;
-    // if you advance too fast w/o the above line, the next line crashes, despite clearTimeout
-    const pickingTeam = this.teams[this.draftOrder[this.spotInDraftOrder]];
-    if (pickingTeam.controller !== "bot") return;
-    const pick = Bot.getDraftPick(pickingTeam, this.fighters);
-    this.pickFighter(this.draftOrder[this.spotInDraftOrder], pick);
-    if (this.spotInDraftOrder === this.draftOrder.length) {
-      this.pickTimeout = setTimeout(this.advanceToFreeAgency.bind(this), BOT_DELAY);
-    } else {
-      this.pickTimeout = setTimeout(this.doBotDraftPick.bind(this), BOT_DELAY);
-    }
-  }
+		// Check if all non-bot players are ready and we have 2+ teams
+		const allReady =
+			this.teams.every(
+				(team: PreseasonTeam, i: number) => this.ready[i] || team.controller === 'bot'
+			) && this.teams.length >= 2;
 
-  advanceToFreeAgency(): void {
-    clearTimeout(this.pickTimeout);
+		if (allReady) {
+			// Advance to draft
+			events.push(...this.advanceToDraft());
+		}
 
-    this.gameStage = "free agency";
-    this.draftOrder.reverse(); // free agency has reverse pick order from the draft
-    this.spotInDraftOrder = 0;
+		return { success: true, events };
+	}
 
-    // free agents are undrafted fighters and unsigned veterans, padded with random new ones if
-    // there aren't enough
-    this.fighters = this.unsignedVeterans.concat(this.fighters);
-    this.fighters = this.fighters.concat(generateFighters(Math.ceil(this.teams.length * 1.5 + 1) - this.fighters.length, false, this));
+	private handleAddBot(): ActionResult<MayhemManagerEvent> {
+		const name = generateTeamName(this.teams, this.randElement.bind(this));
+		const team: PreseasonTeam = {
+			controller: 'bot',
+			name,
+			money: 100,
+			fighters: [],
+			equipment: [],
+			needsResigning: [],
+			needsRepair: []
+		};
+		this.teams.push(team);
+		this.ready.push(false);
+		return {
+			success: true,
+			events: [{ type: 'join', controller: 'bot', name }]
+		};
+	}
 
-    // set price based on how good the fighter is and how old they are
-    for (const fighter of this.fighters) {
-      fighter.price = Math.floor(1.35 * fighterValue(fighter) + this.randInt(-5, 5));
-    }
-    this.fighters.sort((a, b) => b.price - a.price);
+	private handleAdvance(): ActionResult<MayhemManagerEvent> {
+		const events = this.advance();
+		return { success: true, events };
+	}
 
-    this.emitEventToAll({ type: "goToFA", fighters: this.fighters });
-    this.pickTimeout = setTimeout(this.doBotFAPick.bind(this), BOT_DELAY);
-  }
+	private handlePick(teamIndex: number, fighterIndex: number): ActionResult<MayhemManagerEvent> {
+		if (!this.fighters || fighterIndex >= this.fighters.length) {
+			return { success: false, error: 'Invalid fighter index' };
+		}
 
-  doBotFAPick(): void {
-    clearTimeout(this.pickTimeout);
+		const fighter = this.fighters[fighterIndex];
+		const team = this.teams[teamIndex] as Team;
 
-    // if (this.gameStage !== "free agency" || this.spotInDraftOrder >= this.draftOrder.length) return;
-    // if you advance too fast w/o the above line, the next line crashes, despite clearTimeout
-    const pickingTeam = this.teams[this.draftOrder[this.spotInDraftOrder]];
-    if (pickingTeam.controller !== "bot") return;
-    const picks = Bot.getFAPicks(pickingTeam, this.fighters);
-    for (const pick of picks) {
-      this.pickFighter(this.draftOrder[this.spotInDraftOrder], pick);
-    }
-    this.emitEventToAll({
-      type: "pass"
-    });
-    this.spotInDraftOrder++;
-    if (this.spotInDraftOrder === this.draftOrder.length) {
-      this.pickTimeout = setTimeout(this.advanceToTraining.bind(this), BOT_DELAY);
-    } else {
-      this.pickTimeout = setTimeout(this.doBotFAPick.bind(this), BOT_DELAY);
-    }
-  }
+		if (team.money < fighter.price) {
+			return { success: false, error: 'Not enough money' };
+		}
 
-  advanceToTraining(): void {
-    clearTimeout(this.pickTimeout);
+		// Pick the fighter
+		team.fighters.push(fighter);
+		team.money -= fighter.price;
+		this.fighters.splice(fighterIndex, 1);
 
-    this.gameStage = "training";
-    delete this.fighters;
-    delete this.draftOrder;
-    delete this.spotInDraftOrder;
+		const events: MayhemManagerEvent[] = [{ type: 'pick', fighter: fighterIndex }];
 
-    this.trainingChoices = Array(8);
-    this.equipmentAvailable = [];
-    this.ready = Array(this.teams.length).fill(false);
-    for (let i = 0; i < this.teams.length; i++) {
-      const equipment = generateEightEquipment(this)
-      this.equipmentAvailable.push(equipment);
-    }
-    for (const viewer of this.room.viewers) {
-      const teamIndex = getIndexByController(this.teams, viewer.index);
-      if (teamIndex === null) {
-        this.emitEventTo(viewer, {
-          type: "goToTraining"
-        });
-      } else {
-        this.emitEventTo(viewer, {
-          type: "goToTraining",
-          equipment: this.equipmentAvailable[teamIndex]
-        });
-      }
-    }
-  }
+		// Check if we need to advance
+		if (this.gameStage === 'draft') {
+			this.spotInDraftOrder!++;
+			if (
+				this.spotInDraftOrder === this.draftOrder!.length ||
+				this.teams[this.draftOrder![this.spotInDraftOrder!]].controller === 'bot'
+			) {
+				events.push(...this.advance());
+			}
+		}
 
-  advanceToBattleRoyale(): void {
-    let i = 0;
-    for (const team of this.teams) {
-      for (const fighter of team.fighters) {
-        fighter.oldStats = { ...fighter.stats };
-        fighter.appearance.shirtColor = SHIRT_COLORS[i % 6];
-        fighter.appearance.shortsColor = SHORTS_COLORS[i % 5];
-      }
-      i++;
-    }
-    this.trainingChoices.forEach((choice, i) => {
-      const team = this.teams[i]
-      const e = this.equipmentAvailable[i];
-      choice.equipment.forEach((equipmentIndex) => {
-        if (equipmentIndex >= 0 &&
-            equipmentIndex < e.length &&
-            team.money >= e[equipmentIndex].price) {
-          const equipmentPicked = e.splice(equipmentIndex, 1)[0];
-          team.equipment.push(equipmentPicked);
-          team.money = Math.round(team.money - equipmentPicked.price);
-          equipmentPicked.price = 0;
-        }
-      });
-      choice.skills.forEach((skill, j) => {
-        if (typeof skill === "number" && skill >= 0 && skill < team.equipment.length) {
-          team.fighters[j].attunements.push(team.equipment[skill].name);
-        } else if (typeof skill === "string" &&
-            Object.values(StatName).includes(skill) &&
-            team.fighters[j].stats[skill] < 10) {
-          team.fighters[j].stats[skill] += 1;
-        }
-        this.doAgeBasedDevelopment(team.fighters[j]);
-      });
-    });
-    delete this.trainingChoices;
-    delete this.equipmentAvailable;
+		return { success: true, events };
+	}
 
-    this.gameStage = "battle royale";
-    this.emitEventToAll({
-      type: "goToBR",
-      teams: this.teams
-    });
-    this.fightersInBattle = [];
-    this.ready.fill(false);
-    for (const team of this.teams) {
-      for (const fighter of team.fighters) {
-        delete fighter.oldStats;
-      }
-    }
-  }
+	private handlePass(): ActionResult<MayhemManagerEvent> {
+		this.spotInDraftOrder!++;
+		const events: MayhemManagerEvent[] = [{ type: 'pass' }];
 
-  doAgeBasedDevelopment(f: Fighter) {
-    for (const stat in f.stats) {
-      if (this.randReal() < 0.5) {
-        let change = 2/3 * (this.randReal() + this.randReal() + this.randReal() - 1.5);
-        // amplify positive changes for players in first two years and all changes for players over 35
-        if (f.experience <= 2 || f.experience >= 12) {
-          change *= 2;
-        }
-        // buff younger fighters, debuff older ones
-        change += (3 - f.experience) / 12;
-        f.stats[stat] = Math.min(Math.max(f.stats[stat] + Math.round(change), 0), 10);
-      }
-    }
-  }
+		if (
+			this.spotInDraftOrder === this.draftOrder!.length ||
+			this.teams[this.draftOrder![this.spotInDraftOrder!]].controller === 'bot'
+		) {
+			events.push(...this.advance());
+		}
 
-  simulateBattleRoyale(): void {
-    const fight = new Fight(this, this.fightersInBattle);
-    fight.simulate();
-    this.emitEventToAll({
-      type: "fight",
-      eventLog: fight.eventLog
-    });
-    this.bracket = generateBracket(fight.placementOrder.map((team) => {
-      return { winner: team };
-    }));
-    this.gameStage = "tournament";
-    this.prepareForNextMatch();
-  }
+		return { success: true, events };
+	}
 
-  simulateFight(): void {
-    const fight = new Fight(this, this.fightersInBattle);
-    fight.simulate();
-    this.emitEventToAll({
-      type: "fight",
-      eventLog: fight.eventLog
-    });
-    this.nextMatch.winner = fight.placementOrder[0];
-    this.prepareForNextMatch();
-  }
+	private handlePractice(
+		teamIndex: number,
+		equipment: number[],
+		skills: (number | StatName)[]
+	): ActionResult<MayhemManagerEvent> {
+		this.trainingChoices![teamIndex] = { equipment, skills };
+		this.ready[teamIndex] = true;
+		const events: MayhemManagerEvent[] = [{ type: 'ready', team: teamIndex }];
 
-  prepareForNextMatch(): void {
-    delete this.map;
-    this.fightersInBattle = [];
-    this.emitEventToAll({
-      type: "bracket",
-      bracket: this.bracket
-    });
-    if (this.bracket.winner !== null) {
-      delete this.nextMatch;
-      return;
-    }
-    this.nextMatch = nextMatch(this.bracket);
-    this.ready = Array(this.teams.length).fill(true);
-    this.ready[this.nextMatch.left.winner] = false;
-    this.ready[this.nextMatch.right.winner] = false;
-  }
+		// Check if all non-bot teams are ready
+		if (
+			this.teams.every((team, i) => this.ready[i] || team.controller === 'bot') &&
+			this.teams.length >= 2
+		) {
+			events.push(...this.advanceToBattleRoyale());
+		}
 
-  advanceToPreseason(): void {
-    this.teams.forEach((team: PreseasonTeam) => {
-      // add 1 to experience (for fighters) and years owned (for equipment)
-      // fighters need to be re-signed every 3 years, starting after their 2nd
-      // equipment needs to be repaired every 2 years, starting after the 1st
-      // fighter price is based on their skill, whereas repair price is
-      // solely dependent on years owned
-      team.needsResigning = team.fighters.filter((fighter) => {
-        fighter.experience++;
-        if ((fighter.experience % 2) === 1) {
-          fighter.price = Math.floor(fighterValue(fighter)) + this.randInt(-5, 5);
-          return true;
-        }
-        return false;
-      });
-      team.fighters = team.fighters.filter((fighter) => (fighter.experience % 2 !== 1));
-      team.needsRepair = team.equipment.filter((equipment) => {
-        equipment.yearsOwned++;
-        if ((equipment.yearsOwned % 2) === 0) {
-          equipment.price = 3 * equipment.yearsOwned + this.randInt(1, 7);
-          return true;
-        }
-        return false;
-      });
-      team.equipment = team.equipment.filter((equipment) => (equipment.yearsOwned % 2) !== 0);
-      team.money = Math.ceil(team.money / 2 + 100);
-    });
-    this.ready = Array(this.teams.length).fill(false);
-    delete this.fightersInBattle;
-    delete this.map;
-    
-    // add the last season's bracket to the league's history
-    this.history.push(preserveBracket(this.bracket, this.teams));
+		return { success: true, events };
+	}
 
-    this.gameStage = "preseason";
-    this.emitEventToAll({
-      type: "goToPreseason",
-      teams: this.teams as PreseasonTeam[],
-      history: this.history
-    });
-  }
+	private handlePickBRFighter(
+		teamIndex: number,
+		fighter: number,
+		equipment: number[]
+	): ActionResult<MayhemManagerEvent> {
+		const team = this.teams[teamIndex] as Team;
 
-  addTeam(viewerIndex: number | "bot", name: string): void {
-    this.teams.push({
-      controller: viewerIndex,
-      name: name,
-      money: 100,
-      fighters: [],
-      equipment: [],
-      needsResigning: [],
-      needsRepair: []
-    });
-    this.ready.push(false);
-    this.emitEventToAll({
-      type: "join",
-      controller: viewerIndex,
-      name
-    });
-  }
+		if (fighter >= team.fighters.length) {
+			return { success: false, error: 'Invalid fighter index' };
+		}
 
-  pickFighter(teamIndex: number, fighterIndex: number): void {
-    if (fighterIndex < this.fighters.length &&
-        this.draftOrder[this.spotInDraftOrder] === teamIndex &&
-        this.teams[teamIndex].money >= this.fighters[fighterIndex].price) {
-      const fighterPicked = this.fighters.splice(fighterIndex, 1)[0];
-      this.teams[teamIndex].fighters.push(fighterPicked);
-      this.teams[teamIndex].money = Math.round(this.teams[teamIndex].money - fighterPicked.price);
-      this.emitEventToAll({
-        type: "pick",
-        fighter: fighterIndex
-      });
-      if (this.gameStage === "draft") {
-        this.spotInDraftOrder++;
-      }
-    }
-  }
+		if (!isValidEquipmentFighter(team, equipment)) {
+			return { success: false, error: 'Invalid equipment configuration' };
+		}
 
-  resignFighter(teamIndex: number, fighterIndex: number): void {
-    const team: PreseasonTeam = this.teams[teamIndex] as PreseasonTeam;
-    if (fighterIndex < team.needsResigning.length &&
-        team.money >= team.needsResigning[fighterIndex].price) {
-      const fighterResigned = team.needsResigning.splice(fighterIndex, 1)[0];
-      team.fighters.push(fighterResigned);
-      team.money = Math.round(team.money - fighterResigned.price);
-      fighterResigned.price = 0;
-      this.emitEventToAll({
-        type: "resign",
-        team: teamIndex,
-        fighter: fighterIndex
-      });
-    }
-  }
+		this.submitBRPick(teamIndex, fighter, equipment);
+		this.ready[teamIndex] = true;
 
-  repairEquipment(teamIndex: number, equipmentIndex: number): void {
-    const team: PreseasonTeam = this.teams[teamIndex] as PreseasonTeam;
-    if (equipmentIndex < team.needsRepair.length &&
-        team.money >= team.needsRepair[equipmentIndex].price) {
-      const equipmentRepaired = team.needsRepair.splice(equipmentIndex, 1)[0];
-      team.money = Math.round(team.money - equipmentRepaired.price);
-      equipmentRepaired.price = 0;
-      team.equipment.push(equipmentRepaired);
-      this.emitEventToAll({
-        type: "repair",
-        team: teamIndex,
-        equipment: equipmentIndex
-      });
-    }
-  }
+		const events: MayhemManagerEvent[] = [];
 
-  submitBRPick(teamIndex: number, fighter: number, equipment: number[], doUnreadyBots: boolean = true) {
-    if (!this.ready[teamIndex] &&
-        fighter < this.teams[teamIndex].fighters.length &&
-        isValidEquipmentFighter(this.teams[teamIndex], equipment)) {
-      this.fightersInBattle.push(
-        new FighterInBattle(
-          this.teams[teamIndex].fighters[fighter],
-          equipment.map(e => this.teams[teamIndex].equipment[e]),
-          teamIndex
-        )
-      );
-      this.ready[teamIndex] = true;
-      this.emitEventToAll({
-        type: "ready",
-        team: teamIndex
-      });
+		// Check if all teams ready
+		if (this.teams.every((team, i) => this.ready[i] || team.controller === 'bot')) {
+			// All teams ready, simulate BR
+			events.push(...this.simulateBattleRoyale());
+		}
 
-      // if the only players not still ready are bots, make them pick and ready
-      if (doUnreadyBots &&
-          this.teams.every((t, i) => t.controller === "bot" || this.ready[i])) {
-        this.teams.forEach((t, i) => {
-          if (t.controller === "bot" && !this.ready[i]) {
-            const picks = Bot.getBRPicks(t);
-            this.ready[i] = true;
-            this.fightersInBattle.push(
-              new FighterInBattle(
-                this.teams[i].fighters[picks.fighter],
-                picks.equipment.map(e => this.teams[i].equipment[e]),
-                i
-              )
-            );
-          }
-        });
-        this.simulateBattleRoyale();
-      }
-    }
-  }
+		return { success: true, events };
+	}
 
-  submitFightPicks(teamIndex: number, equipment: number[][], doUnreadyBots: boolean = true): void {
-    if (!this.ready[teamIndex] &&
-        isValidEquipmentTournament(this.teams[teamIndex], equipment)) {
-      this.ready[teamIndex] = true;
-      this.emitEventToAll({
-        type: "ready",
-        team: teamIndex
-      });
-      for (let i = 0; i < this.teams[teamIndex].fighters.length; i++) {
-        this.fightersInBattle.push(
-          new FighterInBattle(
-            this.teams[teamIndex].fighters[i],
-            equipment[i].map((e) => this.teams[teamIndex].equipment[e]),
-            teamIndex
-          )
-        );
-      }
+	private handlePickFighters(
+		teamIndex: number,
+		equipment: number[][]
+	): ActionResult<MayhemManagerEvent> {
+		const team = this.teams[teamIndex] as Team;
 
-      // if the only players not still ready are bots, make them pick and ready
-      if (doUnreadyBots &&
-          this.teams.every((t, i) => t.controller === "bot" || this.ready[i])) {
-        this.teams.forEach((t, i) => {
-          if (t.controller === "bot" && !this.ready[i]) {
-            const picks = Bot.getFightPicks(t);
-            this.ready[i] = true;
-            for (let j = 0; j < t.fighters.length; j++) {
-              this.fightersInBattle.push(
-                new FighterInBattle(
-                  this.teams[i].fighters[j],
-                  picks[j].map((e) => this.teams[i].equipment[e]),
-                  i
-                )
-              );
-            }
-          }
-        });
-        this.simulateFight();
-      }
-    }
-  }
+		if (!isValidEquipmentTournament(team, equipment)) {
+			return { success: false, error: 'Invalid equipment configuration' };
+		}
 
-  handleDisconnect(viewer: Viewer, wasHost: boolean): void {
-    const indexControlledByViewer = getIndexByController(this.teams, viewer.index);
-    const teamControlledByViewer = getTeamByController(this.teams, viewer.index);
-    if (teamControlledByViewer !== null) {
-      teamControlledByViewer.controller = "bot";
-      // in the future we will also want to make the bot finish the player's turn, if applicable
-      this.emitEventToAll({
-        type: "leave",
-        team: indexControlledByViewer
-      });
-    }
-    super.handleDisconnect(viewer, wasHost);
-  }
+		this.submitFightPicks(teamIndex, equipment);
+		this.ready[teamIndex] = true;
 
-  basicViewpointInfo(viewer: Viewer): ViewpointBase {
-    return {
-      ...super.basicViewpointInfo(viewer),
-      gameStage: this.gameStage,
-      history: this.history,
-      teams: this.teams
-    }
-  }
+		const events: MayhemManagerEvent[] = [];
 
-  viewpointOf(viewer: Viewer): MayhemManagerViewpoint {
-    if (this.gameStage === "preseason") {
-      return {
-        ...this.basicViewpointInfo(viewer),
-        gameStage: this.gameStage,
-        teams: this.teams as PreseasonTeam[],
-        ready: this.ready
-      };
-    } else if (this.gameStage === "training") {
-      return {
-        ...this.basicViewpointInfo(viewer),
-        gameStage: this.gameStage,
-        ready: this.ready
-      };
-    } else if (this.gameStage === "draft" ||
-        this.gameStage === "free agency") {
-      return {
-        ...this.basicViewpointInfo(viewer),
-        gameStage: this.gameStage,
-        draftOrder: this.draftOrder,
-        spotInDraftOrder: this.spotInDraftOrder,
-        fighters: this.fighters
-      };
-    } else if (this.gameStage === "battle royale") {
-      return {
-        ...this.basicViewpointInfo(viewer),
-        gameStage: this.gameStage,
-        ready: this.ready,
-        fightersInBattle: this.fightersInBattle
-      };
-    } else if (this.gameStage === "tournament") {
-      return {
-        ...this.basicViewpointInfo(viewer),
-        gameStage: this.gameStage,
-        bracket: this.bracket,
-        ready: this.ready,
-        fightersInBattle: this.fightersInBattle
-      };
-    }
-  }
+		// Check if both teams in match are ready
+		const match = nextMatch(this.bracket!);
+		const leftTeam = match.left.winner as number;
+		const rightTeam = match.right.winner as number;
 
-  importLeague(league: MayhemManagerExport): void {
-    clearTimeout(this.pickTimeout);
-    this.teams = league.teams;
-    this.ready = Array(this.teams.length).fill(false);
-    this.gameStage = league.gameStage;
-    if (league.gameStage === "draft") {
-      this.draftOrder = league.draftOrder;
-      this.spotInDraftOrder = league.spotInDraftOrder;
-      this.fighters = league.fighters;
-      this.unsignedVeterans = league.unsignedVeterans;
-    } else if (league.gameStage === "free agency") {
-      this.draftOrder = league.draftOrder;
-      this.spotInDraftOrder = league.spotInDraftOrder;
-      this.fighters = league.fighters;
-    } else if (league.gameStage === "training") {
-      this.equipmentAvailable = league.equipmentAvailable;
-    } else if (league.gameStage === "tournament") {
-      this.bracket = generateBracket(league.bracketOrdering.map(x => {
-        return {
-          winner: x
-        }
-      }));
-      this.nextMatch = nextMatch(this.bracket);
-      this.prepareForNextMatch();
-    }
-    this.history = []
-    this.trainingChoices = this.teams.map((_) => { return { equipment: [], skills: [] } });
-    this.fightersInBattle = [];
-    this.emitGamestateToAll();
-  }
+		if (this.ready[leftTeam] && this.ready[rightTeam]) {
+			// Both teams ready, simulate fight
+			events.push(...this.simulateFight());
+		}
 
-  exportLeague(): MayhemManagerExport {
-    let exportBase = {
-      gameStage: this.gameStage,
-      teams: this.teams,
-      history: this.history,
-    }
-    if (this.gameStage === "preseason") {
-      return {
-        ...exportBase,
-        gameStage: "preseason",
-        teams: this.teams as PreseasonTeam[]
-      }
-    } else if (this.gameStage === "draft") {
-      return {
-        ...exportBase,
-        gameStage: "draft",
-        draftOrder: this.draftOrder,
-        spotInDraftOrder: this.spotInDraftOrder,
-        fighters: this.fighters,
-        unsignedVeterans: this.unsignedVeterans,
-      }
-    } else if (this.gameStage === "free agency") {
-      return {
-        ...exportBase,
-        gameStage: "free agency",
-        draftOrder: this.draftOrder,
-        spotInDraftOrder: this.spotInDraftOrder,
-        fighters: this.fighters
-      }
-    } else if (this.gameStage === "training") {
-      return {
-        ...exportBase,
-        gameStage: "training",
-        equipmentAvailable: this.equipmentAvailable
-      }
-    } else if (this.gameStage === "battle royale") {
-      return {
-        ...exportBase,
-        gameStage: "battle royale"
-      }
-    } else if (this.gameStage === "tournament") {
-      return {
-        ...exportBase,
-        gameStage: "tournament",
-        bracketOrdering: deconstructBracket(this.bracket)
-      }
-    }
-  }
+		return { success: true, events };
+	}
+
+	private handleResign(
+		teamIndex: number,
+		fighterIndex: number
+	): ActionResult<MayhemManagerEvent> {
+		const team = this.teams[teamIndex] as PreseasonTeam;
+
+		if (fighterIndex >= team.needsResigning.length) {
+			return { success: false, error: 'Invalid fighter index' };
+		}
+
+		const fighter = team.needsResigning[fighterIndex];
+		if (team.money < fighter.price) {
+			return { success: false, error: 'Not enough money' };
+		}
+
+		team.fighters.push(fighter);
+		team.money -= fighter.price;
+		team.needsResigning.splice(fighterIndex, 1);
+
+		return {
+			success: true,
+			events: [{ type: 'resign', team: teamIndex, fighter: fighterIndex }]
+		};
+	}
+
+	private handleRepair(
+		teamIndex: number,
+		equipmentIndex: number
+	): ActionResult<MayhemManagerEvent> {
+		const team = this.teams[teamIndex] as PreseasonTeam;
+
+		if (equipmentIndex >= team.needsRepair.length) {
+			return { success: false, error: 'Invalid equipment index' };
+		}
+
+		const equipment = team.needsRepair[equipmentIndex];
+		if (team.money < equipment.price) {
+			return { success: false, error: 'Not enough money' };
+		}
+
+		team.equipment.push(equipment);
+		team.money -= equipment.price;
+		team.needsRepair.splice(equipmentIndex, 1);
+
+		return {
+			success: true,
+			events: [{ type: 'repair', team: teamIndex, equipment: equipmentIndex }]
+		};
+	}
+
+	private handleImport(league: MayhemManagerExport): ActionResult<MayhemManagerEvent> {
+		this.importLeague(league);
+		return { success: true, events: [] };
+	}
+
+	private handleExport(): ActionResult<MayhemManagerEvent> {
+		const league = this.exportLeague();
+		return {
+			success: true,
+			events: [{ type: 'exportLeague', league }]
+		};
+	}
+
+	// Helper methods - these will return event arrays
+	private advance(): MayhemManagerEvent[] {
+		clearTimeout(this.pickTimeout);
+
+		if (this.gameStage === 'preseason' && this.teams.length >= 1) {
+			return this.advanceToDraft();
+		} else if (this.gameStage === 'draft') {
+			if (this.spotInDraftOrder === this.draftOrder.length) {
+				return this.advanceToFreeAgency();
+			} else {
+				const pickingTeam = this.teams[this.draftOrder[this.spotInDraftOrder]];
+				const events: MayhemManagerEvent[] = [];
+				if (pickingTeam.controller !== 'bot') {
+					// Have bot pick for human player
+					const pick = Bot.getDraftPick(pickingTeam, this.fighters);
+					const fighter = this.fighters[pick];
+					pickingTeam.fighters.push(fighter);
+					pickingTeam.money -= fighter.price;
+					this.fighters.splice(pick, 1);
+					this.spotInDraftOrder++;
+					events.push({ type: 'pick', fighter: pick });
+				}
+				if (this.spotInDraftOrder === this.draftOrder.length) {
+					events.push(...this.advanceToFreeAgency());
+				} else {
+					this.pickTimeout = setTimeout(() => this.doBotDraftPick(), BOT_DELAY);
+				}
+				return events;
+			}
+		} else if (this.gameStage === 'free agency') {
+			if (this.spotInDraftOrder === this.draftOrder.length) {
+				return this.advanceToTraining();
+			} else {
+				const events: MayhemManagerEvent[] = [];
+				const pickingTeam = this.teams[this.draftOrder[this.spotInDraftOrder]];
+				if (pickingTeam.controller !== 'bot') {
+					events.push({ type: 'pass' });
+					this.spotInDraftOrder++;
+				}
+				if (this.spotInDraftOrder === this.draftOrder.length) {
+					events.push(...this.advanceToTraining());
+				} else {
+					this.pickTimeout = setTimeout(() => this.doBotFAPick(), BOT_DELAY);
+				}
+				return events;
+			}
+		} else if (this.gameStage === 'training') {
+			// Fill in bot training choices
+			for (let i = 0; i < this.teams.length; i++) {
+				if (!this.ready[i]) {
+					const trainingPicks = Bot.getTrainingPicks(this.teams[i], this.equipmentAvailable[i]);
+					this.trainingChoices[i] = {
+						equipment: trainingPicks.equipment,
+						skills: trainingPicks.skills
+					};
+				}
+			}
+			return this.advanceToBattleRoyale();
+		} else if (this.gameStage === 'battle royale') {
+			// Get bot picks from unready players
+			for (let i = 0; i < this.teams.length; i++) {
+				if (!this.ready[i]) {
+					const brPicks = Bot.getBRPicks(this.teams[i]);
+					this.fightersInBattle.push(
+						new FighterInBattle(
+							this.teams[i].fighters[brPicks.fighter],
+							brPicks.equipment.map((e) => this.teams[i].equipment[e]),
+							i
+						)
+					);
+					this.ready[i] = true;
+				}
+			}
+			return this.simulateBattleRoyale();
+		} else if (this.gameStage === 'tournament') {
+			if (this.bracket.winner !== null) {
+				return this.advanceToPreseason();
+			} else {
+				// Get bot picks from unready players
+				for (let i = 0; i < this.teams.length; i++) {
+					if (!this.ready[i]) {
+						const fightPicks = Bot.getFightPicks(this.teams[i]);
+						for (let j = 0; j < this.teams[i].fighters.length; j++) {
+							this.fightersInBattle.push(
+								new FighterInBattle(
+									this.teams[i].fighters[j],
+									fightPicks[j].map((e) => this.teams[i].equipment[e]),
+									i
+								)
+							);
+						}
+						this.ready[i] = true;
+					}
+				}
+				return this.simulateFight();
+			}
+		}
+		return [];
+	}
+
+	private advanceToDraft(): MayhemManagerEvent[] {
+		this.gameStage = 'draft';
+		const events: MayhemManagerEvent[] = [];
+
+		// Get picks from bot teams
+		this.teams.forEach((team: PreseasonTeam, i) => {
+			if (team.controller === 'bot') {
+				const picks = Bot.getPreseasonPicks(team);
+				picks.fighters.forEach((f, j) => {
+					const fighterIndex = f - j;
+					if (fighterIndex < team.needsResigning.length && team.money >= team.needsResigning[fighterIndex].price) {
+						const fighter = team.needsResigning.splice(fighterIndex, 1)[0];
+						team.fighters.push(fighter);
+						team.money -= fighter.price;
+						fighter.price = 0;
+						events.push({ type: 'resign', team: i, fighter: fighterIndex });
+					}
+				});
+				picks.equipment.forEach((e, j) => {
+					const equipmentIndex = e - j;
+					if (equipmentIndex < team.needsRepair.length && team.money >= team.needsRepair[equipmentIndex].price) {
+						const equipment = team.needsRepair.splice(equipmentIndex, 1)[0];
+						team.money -= equipment.price;
+						equipment.price = 0;
+						team.equipment.push(equipment);
+						events.push({ type: 'repair', team: i, equipment: equipmentIndex });
+					}
+				});
+			}
+		});
+
+		// Collect unsigned veterans
+		this.unsignedVeterans = [];
+		this.teams.forEach((team: PreseasonTeam) => {
+			this.unsignedVeterans = this.unsignedVeterans.concat(team.needsResigning);
+		});
+
+		// Draft order is reverse order of results of previous tournament
+		this.draftOrder = [];
+		for (let i = 0; i < this.teams.length; i++) {
+			this.draftOrder.push(i);
+		}
+		const lastBracket = this.history.length > 0 ? this.history[this.history.length - 1] : undefined;
+		this.draftOrder.sort((a, b) => {
+			return (
+				levelInBracket(lastBracket, this.teams[b].name) -
+				levelInBracket(lastBracket, this.teams[a].name)
+			);
+		});
+		this.spotInDraftOrder = 0;
+
+		// Generate random fighters to draft
+		this.fighters = generateFighters(Math.ceil(this.teams.length * 1.5 + 1), false, this);
+		this.fighters.sort((a, b) => fighterValue(b) - fighterValue(a));
+
+		events.push({
+			type: 'goToDraft',
+			draftOrder: this.draftOrder,
+			fighters: this.fighters
+		});
+
+		clearTimeout(this.pickTimeout);
+		this.pickTimeout = setTimeout(() => this.doBotDraftPick(), BOT_DELAY);
+
+		return events;
+	}
+
+	private doBotDraftPick(): void {
+		clearTimeout(this.pickTimeout);
+
+		if (this.gameStage !== 'draft' || this.spotInDraftOrder >= this.draftOrder.length) return;
+		const pickingTeam = this.teams[this.draftOrder[this.spotInDraftOrder]];
+		if (pickingTeam.controller !== 'bot') return;
+
+		const pick = Bot.getDraftPick(pickingTeam, this.fighters);
+		const fighter = this.fighters[pick];
+		pickingTeam.fighters.push(fighter);
+		pickingTeam.money -= fighter.price;
+		this.fighters.splice(pick, 1);
+		this.spotInDraftOrder++;
+
+		// Emit the pick event immediately
+		// Note: In new architecture, this would be emitted via event return, but bot automation
+		// runs via setTimeout so we need a different pattern here (will be handled by room layer)
+
+		if (this.spotInDraftOrder === this.draftOrder.length) {
+			this.pickTimeout = setTimeout(() => {
+				// This will trigger through the room layer
+			}, BOT_DELAY);
+		} else {
+			this.pickTimeout = setTimeout(() => this.doBotDraftPick(), BOT_DELAY);
+		}
+	}
+
+	private advanceToFreeAgency(): MayhemManagerEvent[] {
+		clearTimeout(this.pickTimeout);
+
+		this.gameStage = 'free agency';
+		this.draftOrder.reverse();
+		this.spotInDraftOrder = 0;
+
+		// Combine unsigned veterans and undrafted fighters
+		this.fighters = this.unsignedVeterans.concat(this.fighters);
+		this.fighters = this.fighters.concat(
+			generateFighters(
+				Math.ceil(this.teams.length * 1.5 + 1) - this.fighters.length,
+				false,
+				this
+			)
+		);
+
+		// Set prices based on fighter quality
+		for (const fighter of this.fighters) {
+			fighter.price = Math.floor(1.35 * fighterValue(fighter) + this.randInt(-5, 5));
+		}
+		this.fighters.sort((a, b) => b.price - a.price);
+
+		this.pickTimeout = setTimeout(() => this.doBotFAPick(), BOT_DELAY);
+
+		return [{ type: 'goToFA', fighters: this.fighters }];
+	}
+
+	private doBotFAPick(): void {
+		clearTimeout(this.pickTimeout);
+
+		if (
+			this.gameStage !== 'free agency' ||
+			this.spotInDraftOrder >= this.draftOrder.length
+		)
+			return;
+		const pickingTeam = this.teams[this.draftOrder[this.spotInDraftOrder]];
+		if (pickingTeam.controller !== 'bot') return;
+
+		const picks = Bot.getFAPicks(pickingTeam, this.fighters);
+		for (const pick of picks) {
+			if (pick < this.fighters.length && pickingTeam.money >= this.fighters[pick].price) {
+				const fighter = this.fighters.splice(pick, 1)[0];
+				pickingTeam.fighters.push(fighter);
+				pickingTeam.money -= fighter.price;
+			}
+		}
+		this.spotInDraftOrder++;
+
+		if (this.spotInDraftOrder === this.draftOrder.length) {
+			this.pickTimeout = setTimeout(() => {
+				// This will trigger through the room layer
+			}, BOT_DELAY);
+		} else {
+			this.pickTimeout = setTimeout(() => this.doBotFAPick(), BOT_DELAY);
+		}
+	}
+
+	private advanceToTraining(): MayhemManagerEvent[] {
+		clearTimeout(this.pickTimeout);
+
+		this.gameStage = 'training';
+		delete this.fighters;
+		delete this.draftOrder;
+		delete this.spotInDraftOrder;
+
+		this.trainingChoices = Array(this.teams.length);
+		this.equipmentAvailable = [];
+		this.ready = Array(this.teams.length).fill(false);
+
+		for (let i = 0; i < this.teams.length; i++) {
+			const equipment = generateEightEquipment(this);
+			this.equipmentAvailable.push(equipment);
+		}
+
+		// Return a goToTraining event - the room layer will handle per-viewer equipment
+		return [{ type: 'goToTraining' }];
+	}
+
+	private advanceToBattleRoyale(): MayhemManagerEvent[] {
+		// Set team colors and save old stats
+		let i = 0;
+		for (const team of this.teams) {
+			for (const fighter of team.fighters) {
+				fighter.oldStats = { ...fighter.stats };
+				fighter.appearance.shirtColor = SHIRT_COLORS[i % 6];
+				fighter.appearance.shortsColor = SHORTS_COLORS[i % 5];
+			}
+			i++;
+		}
+
+		// Apply training choices
+		this.trainingChoices.forEach((choice, i) => {
+			const team = this.teams[i];
+			const e = this.equipmentAvailable[i];
+			choice.equipment.forEach((equipmentIndex) => {
+				if (
+					equipmentIndex >= 0 &&
+					equipmentIndex < e.length &&
+					team.money >= e[equipmentIndex].price
+				) {
+					const equipmentPicked = e.splice(equipmentIndex, 1)[0];
+					team.equipment.push(equipmentPicked);
+					team.money = Math.round(team.money - equipmentPicked.price);
+					equipmentPicked.price = 0;
+				}
+			});
+			choice.skills.forEach((skill, j) => {
+				if (typeof skill === 'number' && skill >= 0 && skill < team.equipment.length) {
+					team.fighters[j].attunements.push(team.equipment[skill].name);
+				} else if (
+					typeof skill === 'string' &&
+					Object.values(StatName).includes(skill) &&
+					team.fighters[j].stats[skill] < 10
+				) {
+					team.fighters[j].stats[skill] += 1;
+				}
+				this.doAgeBasedDevelopment(team.fighters[j]);
+			});
+		});
+		delete this.trainingChoices;
+		delete this.equipmentAvailable;
+
+		this.gameStage = 'battle royale';
+		this.fightersInBattle = [];
+		this.ready.fill(false);
+
+		// Clean up old stats
+		for (const team of this.teams) {
+			for (const fighter of team.fighters) {
+				delete fighter.oldStats;
+			}
+		}
+
+		return [{ type: 'goToBR', teams: this.teams }];
+	}
+
+	private doAgeBasedDevelopment(f: Fighter) {
+		for (const stat in f.stats) {
+			if (this.randReal() < 0.5) {
+				let change = (2 / 3) * (this.randReal() + this.randReal() + this.randReal() - 1.5);
+				if (f.experience <= 2 || f.experience >= 12) {
+					change *= 2;
+				}
+				change += (3 - f.experience) / 12;
+				f.stats[stat] = Math.min(Math.max(f.stats[stat] + Math.round(change), 0), 10);
+			}
+		}
+	}
+
+	private simulateBattleRoyale(): MayhemManagerEvent[] {
+		const fight = new Fight(this, this.fightersInBattle);
+		fight.simulate();
+
+		this.bracket = generateBracket(
+			fight.placementOrder.map((team) => {
+				return { winner: team };
+			})
+		);
+		this.gameStage = 'tournament';
+
+		const events: MayhemManagerEvent[] = [
+			{ type: 'fight', eventLog: fight.eventLog },
+			...this.prepareForNextMatch()
+		];
+
+		return events;
+	}
+
+	private simulateFight(): MayhemManagerEvent[] {
+		const fight = new Fight(this, this.fightersInBattle);
+		fight.simulate();
+
+		this.nextMatch.winner = fight.placementOrder[0];
+
+		const events: MayhemManagerEvent[] = [
+			{ type: 'fight', eventLog: fight.eventLog },
+			...this.prepareForNextMatch()
+		];
+
+		return events;
+	}
+
+	private prepareForNextMatch(): MayhemManagerEvent[] {
+		delete this.map;
+		this.fightersInBattle = [];
+
+		if (this.bracket.winner !== null) {
+			delete this.nextMatch;
+			return [{ type: 'bracket', bracket: this.bracket }];
+		}
+
+		this.nextMatch = nextMatch(this.bracket);
+		this.ready = Array(this.teams.length).fill(true);
+		this.ready[this.nextMatch.left.winner as number] = false;
+		this.ready[this.nextMatch.right.winner as number] = false;
+
+		return [{ type: 'bracket', bracket: this.bracket }];
+	}
+
+	private advanceToPreseason(): MayhemManagerEvent[] {
+		this.teams.forEach((team: PreseasonTeam) => {
+			team.needsResigning = team.fighters.filter((fighter) => {
+				fighter.experience++;
+				if (fighter.experience % 2 === 1) {
+					fighter.price = Math.floor(fighterValue(fighter)) + this.randInt(-5, 5);
+					return true;
+				}
+				return false;
+			});
+			team.fighters = team.fighters.filter((fighter) => fighter.experience % 2 !== 1);
+
+			team.needsRepair = team.equipment.filter((equipment) => {
+				equipment.yearsOwned++;
+				if (equipment.yearsOwned % 2 === 0) {
+					equipment.price = 3 * equipment.yearsOwned + this.randInt(1, 7);
+					return true;
+				}
+				return false;
+			});
+			team.equipment = team.equipment.filter((equipment) => equipment.yearsOwned % 2 !== 0);
+			team.money = Math.ceil(team.money / 2 + 100);
+		});
+
+		this.ready = Array(this.teams.length).fill(false);
+		delete this.fightersInBattle;
+		delete this.map;
+
+		this.history.push(preserveBracket(this.bracket, this.teams));
+		this.gameStage = 'preseason';
+
+		return [
+			{
+				type: 'goToPreseason',
+				teams: this.teams as PreseasonTeam[],
+				history: this.history
+			}
+		];
+	}
+
+	// submitBRPick is called from handlePickBRFighter - simplified version
+	private submitBRPick(teamIndex: number, fighter: number, equipment: number[]): void {
+		this.fightersInBattle.push(
+			new FighterInBattle(
+				this.teams[teamIndex].fighters[fighter],
+				equipment.map((e) => this.teams[teamIndex].equipment[e]),
+				teamIndex
+			)
+		);
+	}
+
+	// submitFightPicks is called from handlePickFighters - simplified version
+	private submitFightPicks(teamIndex: number, equipment: number[][]): void {
+		for (let i = 0; i < this.teams[teamIndex].fighters.length; i++) {
+			this.fightersInBattle.push(
+				new FighterInBattle(
+					this.teams[teamIndex].fighters[i],
+					equipment[i].map((e) => this.teams[teamIndex].equipment[e]),
+					teamIndex
+				)
+			);
+		}
+	}
+
+	handleDisconnect(viewer: Viewer, wasHost: boolean): void {
+		const indexControlledByViewer = getIndexByController(this.teams, viewer.index);
+		const teamControlledByViewer = getTeamByController(this.teams, viewer.index);
+		if (teamControlledByViewer !== null) {
+			teamControlledByViewer.controller = 'bot';
+			// Note: The room layer will handle broadcasting the leave event
+			// TODO: Make the bot finish the player's turn if applicable
+		}
+		super.handleDisconnect(viewer, wasHost);
+	}
+
+	basicViewpointInfo(viewer: Viewer): ViewpointBase {
+		return {
+			...super.basicViewpointInfo(viewer),
+			gameStage: this.gameStage,
+			history: this.history,
+			teams: this.teams
+		};
+	}
+
+	viewpointOf(viewer: Viewer): MayhemManagerViewpoint {
+		if (this.gameStage === 'preseason') {
+			return {
+				...this.basicViewpointInfo(viewer),
+				gameStage: this.gameStage,
+				teams: this.teams as PreseasonTeam[],
+				ready: this.ready
+			};
+		} else if (this.gameStage === 'training') {
+			return {
+				...this.basicViewpointInfo(viewer),
+				gameStage: this.gameStage,
+				ready: this.ready
+			};
+		} else if (this.gameStage === 'draft' || this.gameStage === 'free agency') {
+			return {
+				...this.basicViewpointInfo(viewer),
+				gameStage: this.gameStage,
+				draftOrder: this.draftOrder,
+				spotInDraftOrder: this.spotInDraftOrder,
+				fighters: this.fighters
+			};
+		} else if (this.gameStage === 'battle royale') {
+			return {
+				...this.basicViewpointInfo(viewer),
+				gameStage: this.gameStage,
+				ready: this.ready,
+				fightersInBattle: this.fightersInBattle
+			};
+		} else if (this.gameStage === 'tournament') {
+			return {
+				...this.basicViewpointInfo(viewer),
+				gameStage: this.gameStage,
+				bracket: this.bracket,
+				ready: this.ready,
+				fightersInBattle: this.fightersInBattle
+			};
+		}
+	}
+
+	private importLeague(league: MayhemManagerExport): void {
+		clearTimeout(this.pickTimeout);
+		this.teams = league.teams;
+		this.ready = Array(this.teams.length).fill(false);
+		this.gameStage = league.gameStage;
+
+		if (league.gameStage === 'draft') {
+			this.draftOrder = league.draftOrder;
+			this.spotInDraftOrder = league.spotInDraftOrder;
+			this.fighters = league.fighters;
+			this.unsignedVeterans = league.unsignedVeterans;
+		} else if (league.gameStage === 'free agency') {
+			this.draftOrder = league.draftOrder;
+			this.spotInDraftOrder = league.spotInDraftOrder;
+			this.fighters = league.fighters;
+		} else if (league.gameStage === 'training') {
+			this.equipmentAvailable = league.equipmentAvailable;
+		} else if (league.gameStage === 'tournament') {
+			this.bracket = generateBracket(
+				league.bracketOrdering.map((x) => {
+					return { winner: x };
+				})
+			);
+			this.nextMatch = nextMatch(this.bracket);
+			this.prepareForNextMatch(); // Sets up ready array, no need for events
+		}
+
+		this.history = [];
+		this.trainingChoices = this.teams.map((_) => {
+			return { equipment: [], skills: [] };
+		});
+		this.fightersInBattle = [];
+		// Note: Room layer will handle emitting full state to all viewers
+	}
+
+	private exportLeague(): MayhemManagerExport {
+		const exportBase = {
+			gameStage: this.gameStage,
+			teams: this.teams,
+			history: this.history
+		};
+
+		if (this.gameStage === 'preseason') {
+			return {
+				...exportBase,
+				gameStage: 'preseason',
+				teams: this.teams as PreseasonTeam[]
+			};
+		} else if (this.gameStage === 'draft') {
+			return {
+				...exportBase,
+				gameStage: 'draft',
+				draftOrder: this.draftOrder,
+				spotInDraftOrder: this.spotInDraftOrder,
+				fighters: this.fighters,
+				unsignedVeterans: this.unsignedVeterans
+			};
+		} else if (this.gameStage === 'free agency') {
+			return {
+				...exportBase,
+				gameStage: 'free agency',
+				draftOrder: this.draftOrder,
+				spotInDraftOrder: this.spotInDraftOrder,
+				fighters: this.fighters
+			};
+		} else if (this.gameStage === 'training') {
+			return {
+				...exportBase,
+				gameStage: 'training',
+				equipmentAvailable: this.equipmentAvailable
+			};
+		} else if (this.gameStage === 'battle royale') {
+			return {
+				...exportBase,
+				gameStage: 'battle royale'
+			};
+		} else if (this.gameStage === 'tournament') {
+			return {
+				...exportBase,
+				gameStage: 'tournament',
+				bracketOrdering: deconstructBracket(this.bracket)
+			};
+		}
+	}
 }
 
 function generateBracket(components: Bracket[]): Bracket {
