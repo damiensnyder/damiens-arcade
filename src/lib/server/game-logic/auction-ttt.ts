@@ -109,8 +109,26 @@ export class AuctionTTTLogic extends GameLogicBase<
 		}
 
 		const action = parsed.data;
-		const playerControlledByViewer = getPlayerByController(this.state.players, viewer.index);
-		const sideControlledByViewer = getSideByController(this.state.players, viewer.index);
+
+		// Determine which side the viewer controls
+		// In hot seat mode (controlling both sides), use whose turn it is
+		let sideControlledByViewer = getSideByController(this.state.players, viewer.index);
+		if (
+			this.state.players.X.controller === viewer.index &&
+			this.state.players.O.controller === viewer.index &&
+			this.state.stage === 'midgame'
+		) {
+			// Hot seat mode - determine acting side from turn
+			if (this.state.turnPart === TurnPart.Nominating) {
+				sideControlledByViewer = this.state.whoseTurnToNominate!;
+			} else if (this.state.turnPart === TurnPart.Bidding && this.state.whoseTurnToBid) {
+				sideControlledByViewer = this.state.whoseTurnToBid;
+			}
+		}
+
+		const playerControlledByViewer = sideControlledByViewer !== Side.None
+			? this.state.players[sideControlledByViewer as Side.X | Side.O]
+			: null;
 
 		// Route to specific handlers
 		switch (action.type) {
@@ -118,7 +136,7 @@ export class AuctionTTTLogic extends GameLogicBase<
 				return this.handleChangeGameSettings(viewer, action.settings);
 
 			case 'join':
-				return this.handleJoin(viewer, action.side, sideControlledByViewer);
+				return this.handleJoin(viewer, action.side, getSideByController(this.state.players, viewer.index));
 
 			case 'leave':
 				return this.handleLeave(viewer, sideControlledByViewer);
