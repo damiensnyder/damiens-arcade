@@ -150,8 +150,15 @@ export class GameRoom {
 				const result = this.gameLogic.handleAction(viewer, message.action);
 
 				if (result.success) {
+					// Broadcast events first
 					for (const event of result.events) {
 						this.broadcast({ type: 'event', event });
+					}
+
+					// Send updated gamestate to all clients
+					for (const [clientWs, clientViewer] of this.connections) {
+						const gamestate = this.gameLogic.viewpointOf(clientViewer);
+						this.send(clientWs, { type: 'gamestate', data: gamestate });
 					}
 				} else {
 					this.send(ws, { type: 'error', message: result.error });

@@ -92,11 +92,12 @@
 			<div class="player-selection">
 				<div class="player-slot">
 					<X size={80} />
-					{#if state.players.X.controller !== undefined}
-						<p>Player joined</p>
-						{#if state.players.X.controller === state.pov}
-							<button onclick={leave}>LEAVE</button>
-						{/if}
+					{#if state.players.X.controller === state.pov}
+						<p>You are X</p>
+						<button onclick={leave}>LEAVE</button>
+					{:else if state.players.X.controller !== undefined}
+						<p>Occupied</p>
+						<button onclick={() => join(Side.X)}>TAKE OVER</button>
 					{:else}
 						<button onclick={() => join(Side.X)}>JOIN AS X</button>
 					{/if}
@@ -104,11 +105,12 @@
 
 				<div class="player-slot">
 					<O size={80} />
-					{#if state.players.O.controller !== undefined}
-						<p>Player joined</p>
-						{#if state.players.O.controller === state.pov}
-							<button onclick={leave}>LEAVE</button>
-						{/if}
+					{#if state.players.O.controller === state.pov}
+						<p>You are O</p>
+						<button onclick={leave}>LEAVE</button>
+					{:else if state.players.O.controller !== undefined}
+						<p>Occupied</p>
+						<button onclick={() => join(Side.O)}>TAKE OVER</button>
 					{:else}
 						<button onclick={() => join(Side.O)}>JOIN AS O</button>
 					{/if}
