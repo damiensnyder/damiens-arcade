@@ -94,7 +94,7 @@
 					<X size={80} />
 					{#if state.players.X.controller !== undefined}
 						<p>Player joined</p>
-						{#if gameState.mySide === Side.X}
+						{#if state.players.X.controller === state.pov}
 							<button onclick={leave}>LEAVE</button>
 						{/if}
 					{:else}
@@ -106,7 +106,7 @@
 					<O size={80} />
 					{#if state.players.O.controller !== undefined}
 						<p>Player joined</p>
-						{#if gameState.mySide === Side.O}
+						{#if state.players.O.controller === state.pov}
 							<button onclick={leave}>LEAVE</button>
 						{/if}
 					{:else}

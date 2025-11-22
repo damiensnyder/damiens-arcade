@@ -101,16 +101,26 @@ export class AuctionTTTState {
 				break;
 
 			case 'join':
-				(state.players[event.side] as any).controller = event.controller;
-				this.connection.addToLog(`A player has joined as ${event.side}`);
-				if (state.gameStage === 'midgame' && state.lastBid !== undefined) {
-					this.currentBid = state.lastBid + 1;
+				if (event.side === Side.X || event.side === Side.O) {
+					const player = state.players[event.side];
+					if (player) {
+						(player as any).controller = event.controller;
+						this.connection.addToLog(`A player has joined as ${event.side}`);
+						if (state.gameStage === 'midgame' && state.lastBid !== undefined) {
+							this.currentBid = state.lastBid + 1;
+						}
+					}
 				}
 				break;
 
 			case 'leave':
-				delete (state.players[event.side] as any).controller;
-				this.connection.addToLog(`The player playing ${event.side} has left`);
+				if (event.side === Side.X || event.side === Side.O) {
+					const player = state.players[event.side];
+					if (player) {
+						delete (player as any).controller;
+						this.connection.addToLog(`The player playing ${event.side} has left`);
+					}
+				}
 				break;
 
 			case 'start':

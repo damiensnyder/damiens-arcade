@@ -5,7 +5,6 @@
 
 	let joinCode = $state('');
 	let creating = $state(false);
-	let hotSeat = $state(false);
 
 	let settings = $state<Settings>({
 		startingMoney: 100,
@@ -21,8 +20,7 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					gameType: 'auction-ttt',
-					settings,
-					hotSeat
+					settings
 				})
 			});
 
@@ -80,16 +78,6 @@
 							bind:checked={settings.useTiebreaker}
 						/>
 						Use time as tiebreaker
-					</label>
-				</div>
-				<div class="form-field">
-					<label for="hotSeat">
-						<input
-							id="hotSeat"
-							type="checkbox"
-							bind:checked={hotSeat}
-						/>
-						Hot seat mode (play both sides on one device)
 					</label>
 				</div>
 				<button type="submit" disabled={creating}>
