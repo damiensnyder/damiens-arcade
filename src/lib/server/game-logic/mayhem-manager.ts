@@ -1066,7 +1066,11 @@ export class MayhemManagerLogic extends GameLogicBase<
 
 	basicViewpointInfo(viewer: Viewer): ViewpointBase {
 		return {
-			...super.basicViewpointInfo(viewer),
+			roomCode: this.roomCode,
+			roomName: this.roomName,
+			isPublic: this.isPublic,
+			host: viewer.isHost ? viewer.index : -1,
+			pov: viewer.index,
 			gameStage: this.gameStage,
 			history: this.history,
 			teams: this.teams
