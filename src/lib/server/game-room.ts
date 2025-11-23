@@ -37,6 +37,18 @@ export class GameRoom {
 	) {
 		this.gameLogic = gameLogic;
 		this.teardownTimer = setTimeout(() => this.emptyCallback?.(), TEARDOWN_TIME);
+
+		// Set up async event emission callback for bot automation
+		this.gameLogic.setEmitCallback((events) => {
+			for (const event of events) {
+				this.broadcast({ type: 'event', event });
+			}
+			// Send updated gamestate to all clients
+			for (const [clientWs, clientViewer] of this.connections) {
+				const gamestate = this.gameLogic.viewpointOf(clientViewer);
+				this.send(clientWs, { type: 'gamestate', data: gamestate });
+			}
+		});
 	}
 
 	applyInitialSettings(settings: any) {

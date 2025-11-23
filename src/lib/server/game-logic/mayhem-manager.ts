@@ -1086,10 +1086,15 @@ export class MayhemManagerLogic extends GameLogicBase<
 				ready: this.ready
 			};
 		} else if (this.gameStage === 'training') {
+			const teamIndex = getIndexByController(this.teams, viewer.index);
+			const equipment = teamIndex !== null && this.equipmentAvailable
+				? this.equipmentAvailable[teamIndex]
+				: undefined;
 			return {
 				...this.basicViewpointInfo(viewer),
 				gameStage: this.gameStage,
-				ready: this.ready
+				ready: this.ready,
+				equipment
 			};
 		} else if (this.gameStage === 'draft' || this.gameStage === 'free agency') {
 			return {

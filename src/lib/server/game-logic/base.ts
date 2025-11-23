@@ -8,6 +8,7 @@ export abstract class GameLogicBase<TState, TAction, TEvent, TViewpoint> {
 	protected roomName: string;
 	protected isPublic: boolean;
 	protected abstract gameStage: string;
+	protected emitEvents?: (events: TEvent[]) => void;
 
 	constructor(roomCode: string, seed: number) {
 		this.roomCode = roomCode;
@@ -15,6 +16,11 @@ export abstract class GameLogicBase<TState, TAction, TEvent, TViewpoint> {
 		this.isPublic = false;
 		this.rng = new PRNG(seed);
 		this.state = this.initialState();
+	}
+
+	// Set callback for emitting events asynchronously (e.g., from bot timeouts)
+	setEmitCallback(callback: (events: TEvent[]) => void): void {
+		this.emitEvents = callback;
 	}
 
 	// Must be implemented by subclasses

@@ -46,6 +46,7 @@ interface FAViewpoint extends ViewpointBase {
 interface TrainingViewpoint extends ViewpointBase {
 	gameStage: 'training';
 	ready: boolean[];
+	equipment?: Equipment[];
 }
 
 interface BRViewpoint extends ViewpointBase {
