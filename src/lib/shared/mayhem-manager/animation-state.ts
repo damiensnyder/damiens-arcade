@@ -47,8 +47,8 @@ export default class AnimationState {
 	fightOver: boolean;
 
 	constructor(eventLog: MidFightEvent[][]) {
-		eventLog.push([], [], [], [], []); // repeat an empty tick after the last tick
-		this.eventLog = eventLog;
+		// Create a copy to avoid mutating the reactive input array
+		this.eventLog = [...eventLog, [], [], [], [], []]; // repeat an empty tick after the last tick
 		this.tick = -1;
 		this.fighters = [];
 		this.particles = [];
