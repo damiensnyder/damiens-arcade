@@ -91,8 +91,9 @@
 	}
 
 	onMount(() => {
-		const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-		const wsUrl = `${protocol}//${window.location.host}/mayhem-manager/${roomCode}`;
+		const wsUrl = dev
+			? `ws://localhost:3000/ws/mayhem-manager/${roomCode}`
+			: `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/mayhem-manager/${roomCode}`;
 		ws = new WebSocket(wsUrl);
 
 		ws.onopen = () => {
@@ -112,7 +113,7 @@
 				commonStore.pov = gamestate.pov;
 				handleGamestate(gamestate, commonStore.pov);
 			} else if (message.type === 'event') {
-				const gameEvent = message.data as MayhemManagerEvent;
+				const gameEvent = message.event as MayhemManagerEvent;
 				alreadySentInPicks = false;
 
 				// Handle common events
@@ -151,7 +152,7 @@
 		// Set up the sendAction function
 		commonStore.sendAction = (action: MayhemManagerAction | string) => {
 			if (ws && ws.readyState === WebSocket.OPEN) {
-				ws.send(JSON.stringify({ type: 'action', data: action }));
+				ws.send(JSON.stringify({ type: 'action', action }));
 			}
 		};
 

@@ -17,6 +17,10 @@ export function webSocketServer(): Plugin {
 			roomManager.registerGame('auction-ttt', (roomCode, seed) => new AuctionTTTLogic(roomCode, seed));
 			console.log('✅ Registered game: auction-ttt');
 
+			const { MayhemManagerLogic } = await import('./game-logic/mayhem-manager.js');
+			roomManager.registerGame('mayhem-manager', (roomCode, seed) => new MayhemManagerLogic(roomCode, seed));
+			console.log('✅ Registered game: mayhem-manager');
+
 			// Create WebSocket server
 			const wss = new WebSocketServer({ noServer: true });
 
