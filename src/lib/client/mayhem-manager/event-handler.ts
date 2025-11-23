@@ -24,6 +24,9 @@ export function handleGamestate(gamestate: MayhemManagerViewpoint, pov: number):
 		gameStore.draftOrder = gamestate.draftOrder;
 		gameStore.spotInDraftOrder = gamestate.spotInDraftOrder;
 		gameStore.fighters = gamestate.fighters;
+	} else if (gamestate.gameStage === 'training') {
+		gameStore.equipment = gamestate.equipment || [];
+		gameStore.ready = gamestate.ready;
 	} else if (gamestate.gameStage === 'tournament') {
 		gameStore.bracket = gamestate.bracket;
 	}

@@ -776,17 +776,19 @@ export class MayhemManagerLogic extends GameLogicBase<
 		this.fighters.splice(pick, 1);
 		this.spotInDraftOrder++;
 
-		// Emit the pick event immediately
-		// Note: In new architecture, this would be emitted via event return, but bot automation
-		// runs via setTimeout so we need a different pattern here (will be handled by room layer)
+		// Emit the pick event
+		const events: MayhemManagerEvent[] = [{ type: 'pick', fighter: pick }];
 
+		// Check if draft is complete
 		if (this.spotInDraftOrder === this.draftOrder.length) {
-			this.pickTimeout = setTimeout(() => {
-				// This will trigger through the room layer
-			}, BOT_DELAY);
+			events.push(...this.advanceToFreeAgency());
+			this.pickTimeout = setTimeout(() => this.doBotFAPick(), BOT_DELAY);
 		} else {
 			this.pickTimeout = setTimeout(() => this.doBotDraftPick(), BOT_DELAY);
 		}
+
+		// Emit events to all clients
+		this.emitEvents?.(events);
 	}
 
 	private advanceToFreeAgency(): MayhemManagerEvent[] {
@@ -838,13 +840,18 @@ export class MayhemManagerLogic extends GameLogicBase<
 		}
 		this.spotInDraftOrder++;
 
+		// Emit the pass event
+		const events: MayhemManagerEvent[] = [{ type: 'pass' }];
+
+		// Check if free agency is complete
 		if (this.spotInDraftOrder === this.draftOrder.length) {
-			this.pickTimeout = setTimeout(() => {
-				// This will trigger through the room layer
-			}, BOT_DELAY);
+			events.push(...this.advanceToTraining());
 		} else {
 			this.pickTimeout = setTimeout(() => this.doBotFAPick(), BOT_DELAY);
 		}
+
+		// Emit events to all clients
+		this.emitEvents?.(events);
 	}
 
 	private advanceToTraining(): MayhemManagerEvent[] {
