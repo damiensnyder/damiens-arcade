@@ -497,6 +497,20 @@ export class MayhemManagerLogic extends GameLogicBase<
 
 		// Check if all teams ready
 		if (this.teams.every((team, i) => this.ready[i] || team.controller === 'bot')) {
+			// Fill in bot picks before simulating
+			for (let i = 0; i < this.teams.length; i++) {
+				if (!this.ready[i]) {
+					const brPicks = Bot.getBRPicks(this.teams[i]);
+					this.fightersInBattle.push(
+						new FighterInBattle(
+							this.teams[i].fighters[brPicks.fighter],
+							brPicks.equipment.map((e) => this.teams[i].equipment[e]),
+							i
+						)
+					);
+					this.ready[i] = true;
+				}
+			}
 			// All teams ready, simulate BR
 			events.push(...this.simulateBattleRoyale());
 		}
@@ -525,6 +539,22 @@ export class MayhemManagerLogic extends GameLogicBase<
 		const rightTeam = match.right.winner as number;
 
 		if (this.ready[leftTeam] && this.ready[rightTeam]) {
+			// Fill in bot picks before simulating
+			for (let i = 0; i < this.teams.length; i++) {
+				if (!this.ready[i]) {
+					const fightPicks = Bot.getFightPicks(this.teams[i]);
+					for (let j = 0; j < this.teams[i].fighters.length; j++) {
+						this.fightersInBattle.push(
+							new FighterInBattle(
+								this.teams[i].fighters[j],
+								fightPicks[j].map((e) => this.teams[i].equipment[e]),
+								i
+							)
+						);
+					}
+					this.ready[i] = true;
+				}
+			}
 			// Both teams ready, simulate fight
 			events.push(...this.simulateFight());
 		}

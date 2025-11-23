@@ -10,6 +10,7 @@
 		scale = 1,
 		alpha = 1,
 		anchor = 0.5,
+		pivot = 0,
 		zIndex = 0,
 		filters = []
 	}: {
@@ -20,6 +21,7 @@
 		scale?: number | [number, number];
 		alpha?: number;
 		anchor?: number | [number, number];
+		pivot?: number | [number, number];
 		zIndex?: number;
 		filters?: PIXI.Filter[];
 	} = $props();
@@ -46,6 +48,12 @@
 			sprite.anchor.set(anchor[0], anchor[1]);
 		} else {
 			sprite.anchor.set(anchor, anchor);
+		}
+
+		if (Array.isArray(pivot)) {
+			sprite.pivot.set(pivot[0], pivot[1]);
+		} else {
+			sprite.pivot.set(pivot, pivot);
 		}
 
 		sprite.zIndex = zIndex;
@@ -86,6 +94,12 @@
 				sprite.anchor.set(anchor[0], anchor[1]);
 			} else {
 				sprite.anchor.set(anchor, anchor);
+			}
+
+			if (Array.isArray(pivot)) {
+				sprite.pivot.set(pivot[0], pivot[1]);
+			} else {
+				sprite.pivot.set(pivot, pivot);
 			}
 
 			sprite.zIndex = zIndex;
