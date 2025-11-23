@@ -14,7 +14,7 @@
 			description: 'Build a team of fighters and compete in tournaments',
 			players: '2-8 players',
 			duration: '30-60 min',
-			available: false // Not yet ported
+			available: true
 		},
 		{
 			id: 'daily-qless',
