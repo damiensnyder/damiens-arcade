@@ -26,7 +26,8 @@
 				throw new Error('Invalid response from server');
 			}
 
-			goto(`/mayhem-manager/${data.roomCode}`);
+			// Use full page navigation to avoid CSS theme bleeding
+			window.location.href = `/mayhem-manager/${data.roomCode}`;
 		} catch (err) {
 			console.error('Failed to create room:', err);
 			alert(`Failed to create room: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -36,7 +37,8 @@
 
 	function joinRoom() {
 		if (joinCode.trim()) {
-			goto(`/mayhem-manager/${joinCode.toUpperCase()}`);
+			// Use full page navigation to avoid CSS theme bleeding
+			window.location.href = `/mayhem-manager/${joinCode.toUpperCase()}`;
 		}
 	}
 </script>
