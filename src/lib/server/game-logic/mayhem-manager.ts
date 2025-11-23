@@ -1144,16 +1144,14 @@ export class MayhemManagerLogic extends GameLogicBase<
 			return {
 				...this.basicViewpointInfo(viewer),
 				gameStage: this.gameStage,
-				ready: this.ready,
-				fightersInBattle: this.fightersInBattle
+				ready: this.ready
 			};
 		} else if (this.gameStage === 'tournament') {
 			return {
 				...this.basicViewpointInfo(viewer),
 				gameStage: this.gameStage,
 				bracket: this.bracket,
-				ready: this.ready,
-				fightersInBattle: this.fightersInBattle
+				ready: this.ready
 			};
 		}
 	}

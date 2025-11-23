@@ -17,11 +17,15 @@
 	} = $props();
 
 	let canvasContainer: HTMLDivElement;
-	let app: PIXI.Application | null = $state(null);
+	let app = new PIXI.Application();
+	let ready = $state(false);
+
+	// Set context immediately during component initialization
+	setContext('pixi-app', app);
+	setContext('pixi-container', null);
 
 	onMount(async () => {
-		// Create PIXI application
-		app = new PIXI.Application();
+		// Initialize PIXI application
 		await app.init({
 			width,
 			height,
@@ -35,21 +39,18 @@
 		// Add canvas to DOM
 		canvasContainer.appendChild(app.canvas as HTMLCanvasElement);
 
-		// Provide app context to child components
-		setContext('pixi-app', app);
-		setContext('pixi-container', null);
+		ready = true;
 	});
 
 	onDestroy(() => {
 		if (app) {
 			app.destroy(true);
-			app = null;
 		}
 	});
 </script>
 
 <div bind:this={canvasContainer} class="pixi-canvas">
-	{#if app}
+	{#if ready}
 		{@render children?.()}
 	{/if}
 </div>
