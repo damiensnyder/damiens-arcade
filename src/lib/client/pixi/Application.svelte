@@ -17,21 +17,28 @@
 	} = $props();
 
 	let canvasContainer: HTMLDivElement;
-	let app = new PIXI.Application();
+	let app: PIXI.Application | null = null;
 	let ready = $state(false);
 
-	// Set context immediately during component initialization
-	setContext('pixi-app', app);
+	// Create wrapper object that will hold the app reference
+	const appWrapper = { current: app };
+
+	// Set context with wrapper immediately during component initialization
+	setContext('pixi-app-wrapper', appWrapper);
 	setContext('pixi-container', null);
 
 	onMount(async () => {
-		// Initialize PIXI application
+		// Create and initialize PIXI application
+		app = new PIXI.Application();
 		await app.init({
 			width,
 			height,
 			backgroundColor,
 			antialias
 		});
+
+		// Update wrapper reference
+		appWrapper.current = app;
 
 		// Make stage sortable
 		app.stage.sortableChildren = true;
@@ -45,6 +52,8 @@
 	onDestroy(() => {
 		if (app) {
 			app.destroy(true);
+			app = null;
+			appWrapper.current = null;
 		}
 	});
 </script>

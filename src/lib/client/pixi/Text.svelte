@@ -24,7 +24,7 @@
 		style?: Partial<PIXI.TextStyle>;
 	} = $props();
 
-	const app = getContext<PIXI.Application>('pixi-app');
+	const appWrapper = getContext<{ current: PIXI.Application | null }>('pixi-app-wrapper');
 	const parentContainer = getContext<PIXI.Container>('pixi-container');
 	let textSprite: PIXI.Text;
 
@@ -50,13 +50,13 @@
 
 		textSprite.zIndex = zIndex;
 
-		const target = parentContainer || app.stage;
+		const target = parentContainer || appWrapper.current!.stage;
 		target.addChild(textSprite);
 	});
 
 	onDestroy(() => {
-		if (textSprite) {
-			const target = parentContainer || app.stage;
+		if (textSprite && appWrapper.current) {
+			const target = parentContainer || appWrapper.current.stage;
 			target.removeChild(textSprite);
 			textSprite.destroy();
 		}

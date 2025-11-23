@@ -10,6 +10,7 @@ import { commonStore } from '../stores.svelte';
 import type { EventHandler } from '$lib/shared/common/types';
 
 export function handleGamestate(gamestate: MayhemManagerViewpoint, pov: number): void {
+	const previousGameStage = gameStore.gameStage;
 	gameStore.gameStage = gamestate.gameStage;
 	gameStore.history = gamestate.history;
 	gameStore.teams = gamestate.teams;
@@ -31,9 +32,11 @@ export function handleGamestate(gamestate: MayhemManagerViewpoint, pov: number):
 		gameStore.bracket = gamestate.bracket;
 	}
 
-	// Initialize equipment choices for own team
+	// Initialize equipment choices only when entering BR or tournament for the first time
 	const ownTeam = gameStore.getOwnTeam(pov);
-	if (ownTeam) {
+	if (ownTeam &&
+		(gamestate.gameStage === 'battle royale' || gamestate.gameStage === 'tournament') &&
+		previousGameStage !== gamestate.gameStage) {
 		gameStore.equipmentChoices = ownTeam.equipment.map(() => -1);
 	}
 }

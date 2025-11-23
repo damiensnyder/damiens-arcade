@@ -26,7 +26,7 @@
 		children?: any;
 	} = $props();
 
-	const app = getContext<PIXI.Application>('pixi-app');
+	const appWrapper = getContext<{ current: PIXI.Application | null }>('pixi-app-wrapper');
 	const parentContainer = getContext<PIXI.Container | null>('pixi-container');
 	let container: PIXI.Container;
 
@@ -56,7 +56,7 @@
 			container.filters = filters;
 		}
 
-		const target = parentContainer || app.stage;
+		const target = parentContainer || appWrapper.current!.stage;
 		target.addChild(container);
 
 		// Provide container context to child components
@@ -64,8 +64,8 @@
 	});
 
 	onDestroy(() => {
-		if (container) {
-			const target = parentContainer || app.stage;
+		if (container && appWrapper.current) {
+			const target = parentContainer || appWrapper.current.stage;
 			target.removeChild(container);
 			container.destroy();
 		}

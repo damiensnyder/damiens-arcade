@@ -26,7 +26,7 @@
 		filters?: PIXI.Filter[];
 	} = $props();
 
-	const app = getContext<PIXI.Application>('pixi-app');
+	const appWrapper = getContext<{ current: PIXI.Application | null }>('pixi-app-wrapper');
 	const parentContainer = getContext<PIXI.Container>('pixi-container');
 	let sprite: PIXI.Sprite;
 
@@ -62,13 +62,13 @@
 			sprite.filters = filters;
 		}
 
-		const target = parentContainer || app.stage;
+		const target = parentContainer || appWrapper.current!.stage;
 		target.addChild(sprite);
 	});
 
 	onDestroy(() => {
-		if (sprite) {
-			const target = parentContainer || app.stage;
+		if (sprite && appWrapper.current) {
+			const target = parentContainer || appWrapper.current.stage;
 			target.removeChild(sprite);
 			sprite.destroy();
 		}
