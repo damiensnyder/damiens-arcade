@@ -533,14 +533,18 @@ export class MayhemManagerLogic extends GameLogicBase<
 
 		const events: MayhemManagerEvent[] = [];
 
-		// Check if both teams in match are ready
+		// Check if both teams in match are ready (or are bots)
 		const match = nextMatch(this.bracket!);
 		const leftTeam = match.left.winner as number;
 		const rightTeam = match.right.winner as number;
 
-		if (this.ready[leftTeam] && this.ready[rightTeam]) {
-			// Fill in bot picks before simulating
-			for (let i = 0; i < this.teams.length; i++) {
+		const leftReady = this.ready[leftTeam] || this.teams[leftTeam].controller === 'bot';
+		const rightReady = this.ready[rightTeam] || this.teams[rightTeam].controller === 'bot';
+
+		if (leftReady && rightReady) {
+			// Fill in bot picks for teams in this match
+			const teamsInMatch = [leftTeam, rightTeam];
+			for (const i of teamsInMatch) {
 				if (!this.ready[i]) {
 					const fightPicks = Bot.getFightPicks(this.teams[i]);
 					for (let j = 0; j < this.teams[i].fighters.length; j++) {
