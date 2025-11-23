@@ -2,7 +2,11 @@
 	import type { FighterVisual } from '$lib/shared/mayhem-manager/types';
 	import FighterBattleInfo from './fighter-battle-info.svelte';
 	import { onMount } from 'svelte';
-	import { Application, Container, Graphics, Sprite, Text, Ticker } from 'svelte-pixi';
+	import Application from '$lib/client/pixi/Application.svelte';
+import Container from '$lib/client/pixi/Container.svelte';
+import Sprite from '$lib/client/pixi/Sprite.svelte';
+import Text from '$lib/client/pixi/Text.svelte';
+import Ticker from '$lib/client/pixi/Ticker.svelte';
 	import FighterBattleSprite from './fighter-battle-sprite.svelte';
 	import AnimationState, {
 		type FighterParticle,

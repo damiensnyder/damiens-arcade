@@ -4,7 +4,7 @@
 		type FighterVisual,
 		type EquipmentInBattle
 	} from '$lib/shared/mayhem-manager/types';
-	import { Sprite } from 'svelte-pixi';
+	import Sprite from '$lib/client/pixi/Sprite.svelte';
 	import * as PIXI from 'pixi.js';
 	import { onMount } from 'svelte';
 	import type { FighterParticle } from '$lib/shared/mayhem-manager/animation-state';
