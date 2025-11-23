@@ -15,11 +15,21 @@
 				})
 			});
 
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
+
 			const data = await response.json();
+
+			if (!data.roomCode) {
+				console.error('No roomCode in response:', data);
+				throw new Error('Invalid response from server');
+			}
+
 			goto(`/mayhem-manager/${data.roomCode}`);
 		} catch (err) {
 			console.error('Failed to create room:', err);
-			alert('Failed to create room');
+			alert(`Failed to create room: ${err instanceof Error ? err.message : 'Unknown error'}`);
 			creating = false;
 		}
 	}
