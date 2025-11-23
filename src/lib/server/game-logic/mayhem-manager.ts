@@ -641,8 +641,8 @@ export class MayhemManagerLogic extends GameLogicBase<
 			} else {
 				const pickingTeam = this.teams[this.draftOrder[this.spotInDraftOrder]];
 				const events: MayhemManagerEvent[] = [];
-				if (pickingTeam.controller !== 'bot') {
-					// Have bot pick for human player
+				if (pickingTeam.controller === 'bot') {
+					// Make bot pick immediately (skip the delay)
 					const pick = Bot.getDraftPick(pickingTeam, this.fighters);
 					const fighter = this.fighters[pick];
 					pickingTeam.fighters.push(fighter);
@@ -664,7 +664,16 @@ export class MayhemManagerLogic extends GameLogicBase<
 			} else {
 				const events: MayhemManagerEvent[] = [];
 				const pickingTeam = this.teams[this.draftOrder[this.spotInDraftOrder]];
-				if (pickingTeam.controller !== 'bot') {
+				if (pickingTeam.controller === 'bot') {
+					// Make bot picks immediately (skip the delay)
+					const picks = Bot.getFAPicks(pickingTeam, this.fighters);
+					for (const pick of picks) {
+						if (pick < this.fighters.length && pickingTeam.money >= this.fighters[pick].price) {
+							const fighter = this.fighters.splice(pick, 1)[0];
+							pickingTeam.fighters.push(fighter);
+							pickingTeam.money -= fighter.price;
+						}
+					}
 					events.push({ type: 'pass' });
 					this.spotInDraftOrder++;
 				}
