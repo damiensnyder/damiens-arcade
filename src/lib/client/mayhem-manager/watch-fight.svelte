@@ -10,7 +10,7 @@
 		type Particle
 	} from '$lib/shared/mayhem-manager/animation-state';
 	import * as PIXI from 'pixi.js';
-	import * as gameStore from './stores.svelte';
+	import { gameStore } from './stores.svelte';
 
 	const BUFFER_PIXELS = 15;
 

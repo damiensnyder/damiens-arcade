@@ -5,8 +5,8 @@ import type {
 	MayhemManagerViewpoint,
 	PreseasonViewpoint
 } from '$lib/shared/mayhem-manager/types';
-import * as gameStore from './stores.svelte';
-import * as commonStore from '../stores.svelte';
+import { gameStore } from './stores.svelte';
+import { commonStore } from '../stores.svelte';
 import type { EventHandler } from '$lib/shared/common/types';
 
 export function handleGamestate(gamestate: MayhemManagerViewpoint, pov: number): void {

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import FighterInfo from './fighter-info.svelte';
-	import * as gameStore from './stores.svelte';
-	import * as commonStore from '../stores.svelte';
+	import { gameStore } from './stores.svelte';
+	import { commonStore } from '../stores.svelte';
 
 	function replace(team: number) {
 		commonStore.sendAction({

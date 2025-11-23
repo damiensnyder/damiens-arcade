@@ -4,8 +4,8 @@
 	import FighterImage from './fighter-image.svelte';
 	import { EquipmentSlot } from '$lib/shared/mayhem-manager/types';
 	import { slotsToString } from '$lib/shared/mayhem-manager/utils';
-	import * as gameStore from './stores.svelte';
-	import * as commonStore from '../stores.svelte';
+	import { gameStore } from './stores.svelte';
+	import { commonStore } from '../stores.svelte';
 
 	let ownTeam = $derived(gameStore.getOwnTeam(commonStore.pov));
 

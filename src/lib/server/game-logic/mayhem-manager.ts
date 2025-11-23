@@ -1,4 +1,4 @@
-import type { Viewer, ActionResult } from '$lib/shared/common/types';
+import type { Viewer, ActionResult } from '../../shared/common/types';
 import { GameLogicBase } from './base';
 import type {
 	MayhemManagerGameStage,
@@ -12,15 +12,15 @@ import type {
 	MayhemManagerExport,
 	MayhemManagerAction,
 	MayhemManagerEvent
-} from '$lib/shared/mayhem-manager/types';
-import { StatName } from '$lib/shared/mayhem-manager/types';
+} from '../../shared/mayhem-manager/types';
+import { StatName } from '../../shared/mayhem-manager/types';
 import {
 	getIndexByController,
 	getTeamByController,
 	isValidEquipmentFighter,
 	isValidEquipmentTournament,
 	nextMatch
-} from '$lib/shared/mayhem-manager/utils';
+} from '../../shared/mayhem-manager/utils';
 import Bot from './mayhem-manager-bot';
 import {
 	AddBotSchema,
@@ -39,16 +39,16 @@ import {
 	RepairSchema,
 	ReplaceSchema,
 	ResignSchema
-} from '$lib/shared/mayhem-manager/schemas';
+} from '../../shared/mayhem-manager/schemas';
 import {
 	generateFighters,
 	generateEightEquipment,
 	SHIRT_COLORS,
 	SHORTS_COLORS
-} from '$lib/shared/mayhem-manager/create-from-catalogs';
-import { Fight } from '$lib/shared/mayhem-manager/fight';
-import { FighterInBattle } from '$lib/shared/mayhem-manager/fighter-in-battle';
-import { fighterValue } from '$lib/shared/mayhem-manager/fighter-value';
+} from '../../shared/mayhem-manager/create-from-catalogs';
+import { Fight } from '../../shared/mayhem-manager/fight';
+import { FighterInBattle } from '../../shared/mayhem-manager/fighter-in-battle';
+import { fighterValue } from '../../shared/mayhem-manager/fighter-value';
 
 
 

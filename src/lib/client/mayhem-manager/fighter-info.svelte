@@ -3,8 +3,8 @@
 	import { StatName } from '$lib/shared/mayhem-manager/types';
 	import StarRating from './star-rating.svelte';
 	import FighterImage from './fighter-image.svelte';
-	import * as gameStore from './stores.svelte';
-	import * as commonStore from '../stores.svelte';
+	import { gameStore } from './stores.svelte';
+	import { commonStore } from '../stores.svelte';
 
 	let {
 		fighter,

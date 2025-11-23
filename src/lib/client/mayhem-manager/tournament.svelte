@@ -1,8 +1,8 @@
 <script lang="ts">
 	import Bracket from './bracket.svelte';
 	import PickFighters from './pick-fighters.svelte';
-	import * as gameStore from './stores.svelte';
-	import * as commonStore from '../stores.svelte';
+	import { gameStore } from './stores.svelte';
+	import { commonStore } from '../stores.svelte';
 
 	let ownTeamIndex = $derived(gameStore.getOwnTeamIndex(commonStore.pov));
 	let nextMatch = $derived(gameStore.getNextMatch());

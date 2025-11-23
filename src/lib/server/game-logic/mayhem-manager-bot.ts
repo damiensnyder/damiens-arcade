@@ -1,13 +1,13 @@
-import { StatName } from '$lib/shared/mayhem-manager/types';
+import { StatName } from '../../shared/mayhem-manager/types';
 import type {
 	Equipment,
 	Fighter,
 	MayhemManagerGameStage,
 	PreseasonTeam,
 	Team
-} from '$lib/shared/mayhem-manager/types';
-import { fighterValueInBattle } from '$lib/shared/mayhem-manager/fighter-value';
-import { isValidEquipmentFighter } from '$lib/shared/mayhem-manager/utils';
+} from '../../shared/mayhem-manager/types';
+import { fighterValueInBattle } from '../../shared/mayhem-manager/fighter-value';
+import { isValidEquipmentFighter } from '../../shared/mayhem-manager/utils';
 
 const Bot = {
   getPreseasonPicks: function (team: PreseasonTeam): {

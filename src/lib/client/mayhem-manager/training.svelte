@@ -2,8 +2,8 @@
 	import EquipmentInfo from './equipment-info.svelte';
 	import FighterInfo from './fighter-info.svelte';
 	import { StatName, type Equipment, type Fighter, type FighterStats } from '$lib/shared/mayhem-manager/types';
-	import * as gameStore from './stores.svelte';
-	import * as commonStore from '../stores.svelte';
+	import { gameStore } from './stores.svelte';
+	import { commonStore } from '../stores.svelte';
 
 	let ownTeamIndex = $derived(gameStore.getOwnTeamIndex(commonStore.pov));
 	let ownTeam = $derived(gameStore.getOwnTeam(commonStore.pov));

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import FighterImage from './fighter-image.svelte';
 	import FighterInfo from './fighter-info.svelte';
-	import * as gameStore from './stores.svelte';
-	import * as commonStore from '../stores.svelte';
+	import { gameStore } from './stores.svelte';
+	import { commonStore } from '../stores.svelte';
 
 	let { fighter }: { fighter: any } = $props();
 

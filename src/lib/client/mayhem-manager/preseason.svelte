@@ -2,8 +2,8 @@
 	import type { PreseasonTeam } from '$lib/shared/mayhem-manager/types';
 	import FighterInfo from './fighter-info.svelte';
 	import EquipmentInfo from './equipment-info.svelte';
-	import * as gameStore from './stores.svelte';
-	import * as commonStore from '../stores.svelte';
+	import { gameStore } from './stores.svelte';
+	import { commonStore } from '../stores.svelte';
 
 	let needsResigning = $derived.by(() => {
 		const ownTeam = gameStore.getOwnTeam(commonStore.pov);

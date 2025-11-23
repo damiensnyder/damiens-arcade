@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { Equipment } from '$lib/shared/mayhem-manager/types';
 	import { slotsToString } from '$lib/shared/mayhem-manager/utils';
-	import * as gameStore from './stores.svelte';
-	import * as commonStore from '../stores.svelte';
+	import { gameStore } from './stores.svelte';
+	import { commonStore } from '../stores.svelte';
 
 	let {
 		equipment,

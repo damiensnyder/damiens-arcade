@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Team } from '$lib/shared/mayhem-manager/types';
-	import * as gameStore from './stores.svelte';
-	import * as commonStore from '../stores.svelte';
+	import { gameStore } from './stores.svelte';
+	import { commonStore } from '../stores.svelte';
 
 	let { callback }: { callback: (index: number) => () => void } = $props();
 

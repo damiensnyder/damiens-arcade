@@ -11,40 +11,44 @@ import type {
 } from '$lib/shared/mayhem-manager/types';
 import { getIndexByController, getTeamByController, nextMatch as nextMatch_ } from '$lib/shared/mayhem-manager/utils';
 
-// State
-export let gameStage = $state<MayhemManagerGameStage>('preseason');
-export let leagueExport = $state<MayhemManagerExport>({} as MayhemManagerExport);
-export let teams = $state<Team[] | PreseasonTeam[]>([]);
-export let ready = $state<boolean[]>([]);
-export let draftOrder = $state<number[]>([]);
-export let spotInDraftOrder = $state(0);
-export let fighters = $state<Fighter[]>([]);
-export let equipment = $state<Equipment[]>([]);
-export let bracket = $state<Bracket>({ winner: null });
-export let practicePicked = $state<(keyof FighterStats | number)[]>([]);
-export let brFighterPicked = $state<Fighter | null>(null);
-export let brEquipmentPicked = $state<Equipment[] | null>(null);
-export let equipmentPicked = $state<Equipment[]>([]);
-export let fightEvents = $state<MidFightEvent[][]>([]);
-export let watchingFight = $state(false);
-export let history = $state<Bracket[]>([]);
-export let equipmentChoices = $state<number[]>([]);
+// Game store class to allow mutation of $state properties
+class GameStore {
+	gameStage = $state<MayhemManagerGameStage>('preseason');
+	leagueExport = $state<MayhemManagerExport>({} as MayhemManagerExport);
+	teams = $state<Team[] | PreseasonTeam[]>([]);
+	ready = $state<boolean[]>([]);
+	draftOrder = $state<number[]>([]);
+	spotInDraftOrder = $state(0);
+	fighters = $state<Fighter[]>([]);
+	equipment = $state<Equipment[]>([]);
+	bracket = $state<Bracket>({ winner: null });
+	practicePicked = $state<(keyof FighterStats | number)[]>([]);
+	brFighterPicked = $state<Fighter | null>(null);
+	brEquipmentPicked = $state<Equipment[] | null>(null);
+	equipmentPicked = $state<Equipment[]>([]);
+	fightEvents = $state<MidFightEvent[][]>([]);
+	watchingFight = $state(false);
+	history = $state<Bracket[]>([]);
+	equipmentChoices = $state<number[]>([]);
 
-// Derived state (using getters to make them reactive)
-export function getOwnTeamIndex(pov: number): number | null {
-	return getIndexByController(teams, pov);
+	// Derived state (using getters to make them reactive)
+	getOwnTeamIndex(pov: number): number | null {
+		return getIndexByController(this.teams, pov);
+	}
+
+	getOwnTeam(pov: number): Team | PreseasonTeam | null {
+		return getTeamByController(this.teams, pov);
+	}
+
+	getNextMatch(): Bracket & { left: Bracket; right: Bracket } {
+		return (
+			nextMatch_(this.bracket) || {
+				left: { winner: -1 },
+				right: { winner: -1 },
+				winner: null
+			}
+		);
+	}
 }
 
-export function getOwnTeam(pov: number): Team | PreseasonTeam | null {
-	return getTeamByController(teams, pov);
-}
-
-export function getNextMatch(): Bracket & { left: Bracket; right: Bracket } {
-	return (
-		nextMatch_(bracket) || {
-			left: { winner: -1 },
-			right: { winner: -1 },
-			winner: null
-		}
-	);
-}
+export const gameStore = new GameStore();

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import RoomSettingsEditor from '../room-settings-editor.svelte';
 	import type { MayhemManagerExport } from '$lib/shared/mayhem-manager/types';
-	import * as gameStore from './stores.svelte';
-	import * as commonStore from '../stores.svelte';
+	import { gameStore } from './stores.svelte';
+	import { commonStore } from '../stores.svelte';
 	import { onMount } from 'svelte';
 
 	let leagueImportRaw = $state('');

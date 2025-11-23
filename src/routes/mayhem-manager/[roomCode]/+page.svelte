@@ -7,8 +7,8 @@
 		MayhemManagerViewpoint
 	} from '$lib/shared/mayhem-manager/types';
 	import { eventHandler, handleGamestate } from '$lib/client/mayhem-manager/event-handler';
-	import * as gameStore from '$lib/client/mayhem-manager/stores.svelte';
-	import * as commonStore from '$lib/client/stores.svelte';
+	import { gameStore } from '$lib/client/mayhem-manager/stores.svelte';
+	import { commonStore } from '$lib/client/stores.svelte';
 	import TeamView from '$lib/client/mayhem-manager/team-view.svelte';
 	import AllTeams from '$lib/client/mayhem-manager/all-teams.svelte';
 	import WatchFight from '$lib/client/mayhem-manager/watch-fight.svelte';
