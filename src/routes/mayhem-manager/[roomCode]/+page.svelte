@@ -19,8 +19,6 @@
 	import PickBrFighter from '$lib/client/mayhem-manager/pick-br-fighter.svelte';
 	import Tournament from '$lib/client/mayhem-manager/tournament.svelte';
 	import SettingsEditor from '$lib/client/mayhem-manager/settings-editor.svelte';
-	import '../../../styles/global.css';
-	import '../../../styles/fun.css';
 	import { onMount } from 'svelte';
 
 	let { data } = $props();

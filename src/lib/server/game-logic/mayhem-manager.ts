@@ -1053,7 +1053,7 @@ export class MayhemManagerLogic extends GameLogicBase<
 		}
 	}
 
-	handleDisconnect(viewer: Viewer, wasHost: boolean): void {
+	handleDisconnect(viewer: Viewer): void {
 		const indexControlledByViewer = getIndexByController(this.teams, viewer.index);
 		const teamControlledByViewer = getTeamByController(this.teams, viewer.index);
 		if (teamControlledByViewer !== null) {
@@ -1061,7 +1061,6 @@ export class MayhemManagerLogic extends GameLogicBase<
 			// Note: The room layer will handle broadcasting the leave event
 			// TODO: Make the bot finish the player's turn if applicable
 		}
-		super.handleDisconnect(viewer, wasHost);
 	}
 
 	basicViewpointInfo(viewer: Viewer): ViewpointBase {
